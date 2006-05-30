@@ -1,0 +1,22 @@
+Program IFSTest;
+type
+   TArrayOfByte = array of byte;
+
+procedure Test(x: TARrayOfByte);
+var
+  i: Integer;
+begin
+  for i := 0 to Getarraylength(X) -1 do
+  begin
+     writeln(inttostr(x[i]));
+  end;
+end;
+var
+  temp: TArrayOfByte;
+
+Begin
+  setarraylength(temp, 2);
+  temp[0] := 1;
+  temp[1] :=23;
+  test(temp);
+End.

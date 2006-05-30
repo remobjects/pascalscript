@@ -1,0 +1,12 @@
+Program IFSTest;
+var
+  b: Byte;
+Begin
+  for b := 0 to 2 do begin
+  case b of 
+    0: writeln('0');
+    1: writeln('1');
+    else writeln('>1');
+  end;
+  end;
+End.

@@ -1,0 +1,7 @@
+Program test;
+var
+  WordDoc: Variant;
+begin
+  WordDoc := CreateOleObject('Word.Application');
+  WordDoc.Visible := True;
+end.

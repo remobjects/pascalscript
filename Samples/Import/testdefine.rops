@@ -1,0 +1,10 @@
+{.$DEFINE ERROR} 
+
+// Remove the . before the define to 
+// cause an error in textinclude.rops
+
+{$I testinclude.rops}
+begin
+  testproc();
+  writeln('test');
+end.

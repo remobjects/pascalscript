@@ -1,0 +1,13 @@
+Program test;
+var
+  I: Integer;
+begin
+  try
+    I := I div 0;
+  except
+    try
+    except
+    end;
+    Writeln('SHOULD GET HERE');
+  end;
+end.

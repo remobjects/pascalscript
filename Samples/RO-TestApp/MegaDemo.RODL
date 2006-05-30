@@ -1,0 +1,109 @@
+<Library Name="NewLibrary" UID="{D9821C1A-A084-4120-93F3-BCE6CF2AE0F4}" Documentation="">
+   <Services>
+      <Service Name="NewService">
+      <Interfaces>
+         <Interface Name="Default" UID="{D9821C1A-A084-4120-93F3-BCE6CF2AE0F4}" Documentation="Service_NewService__This_service_has_been_automatically_generated_using_the_RODL_template_you_can_find_in_the_Templates_directory_">
+      <Operations>
+         <Operation Name="Sum" UID="{D9821C1A-A084-4120-93F3-BCE6CF2AE0F4}" Documentation="">
+      <Parameters>
+         <Parameter Name="A" DataType="Integer" Flag="In" />
+         <Parameter Name="B" DataType="Integer" Flag="In" />
+         <Parameter Name="Result" DataType="Integer" Flag="Result" />
+      </Parameters>
+         </Operation>
+         <Operation Name="GetServerTime" UID="{D9821C1A-A084-4120-93F3-BCE6CF2AE0F4}" Documentation="">
+      <Parameters>
+         <Parameter Name="Result" DataType="DateTime" Flag="Result" />
+      </Parameters>
+         </Operation>
+         <Operation Name="EchoPerson" UID="{B8717BF0-B874-4C94-8756-A734840FE445}" Documentation="">
+      <Parameters>
+         <Parameter Name="aPerson" DataType="TPerson" Flag="In" />
+         <Parameter Name="anotherPerson" DataType="TPerson" Flag="Out" />
+      </Parameters>
+         </Operation>
+         <Operation Name="TestIntegerArray" UID="{2A0CA87E-11DC-45FE-8288-30EEDDE8EC4E}" Documentation="">
+      <Parameters>
+         <Parameter Name="anArray" DataType="TIntegerArray" Flag="In" />
+         <Parameter Name="Result" DataType="TIntegerArray" Flag="Result" />
+      </Parameters>
+         </Operation>
+         <Operation Name="TestStringArray" UID="{C54A4879-EBA7-4AA3-B4CC-05A66580DB8C}" Documentation="">
+      <Parameters>
+         <Parameter Name="anArray" DataType="TStringArray" Flag="In" />
+         <Parameter Name="Result" DataType="TStringArray" Flag="Result" />
+      </Parameters>
+         </Operation>
+         <Operation Name="TestPersonArray" UID="{50565130-EA3B-408A-A230-B55AB11F7743}" Documentation="">
+      <Parameters>
+         <Parameter Name="anArray" DataType="TPersonArray" Flag="In" />
+         <Parameter Name="Result" DataType="TPersonArray" Flag="Result" />
+      </Parameters>
+         </Operation>
+         <Operation Name="EchoBinary" UID="{6007A623-9D43-4AB2-8CE5-E337316FE8DD}" Documentation="">
+      <Parameters>
+         <Parameter Name="BinIN" DataType="binary" Flag="In" />
+         <Parameter Name="BinOUT" DataType="Binary" Flag="Out" />
+      </Parameters>
+         </Operation>
+         <Operation Name="SomeTypes" UID="{86B5581B-EDB0-4039-9EF4-2F4155BF28F0}" Documentation="">
+      <Parameters>
+         <Parameter Name="aString" DataType="String" Flag="InOut" />
+         <Parameter Name="aWidestring" DataType="Widestring" Flag="InOut" />
+         <Parameter Name="anInteger" DataType="Integer" Flag="InOut" />
+         <Parameter Name="aCurrency" DataType="Currency" Flag="InOut" />
+         <Parameter Name="aDatetime" DataType="DateTime" Flag="InOut" />
+      </Parameters>
+         </Operation>
+         <Operation Name="CustomObjectAsString" UID="{D26D93E6-8FA8-447F-B927-604A542DCC43}" Documentation="">
+      <Parameters>
+         <Parameter Name="Result" DataType="String" Flag="Result" />
+      </Parameters>
+         </Operation>
+         <Operation Name="CustomObjectAsStream" UID="{F5048214-9949-41D2-B6FC-76E707E9E645}" Documentation="">
+      <Parameters>
+         <Parameter Name="Result" DataType="Binary" Flag="Result" />
+      </Parameters>
+         </Operation>
+         <Operation Name="RaiseError" UID="{6FF781AC-4A73-40FE-9760-216C2F460FF2}" Documentation="">
+      <Parameters>
+      </Parameters>
+         </Operation>
+      </Operations>
+         </Interface>
+      </Interfaces>
+      </Service>
+   </Services>
+   <Structs>
+      <Struct Name="TPerson" UID="{94B3E0BD-4AB9-4C93-8507-C1762CDA32C7}" Documentation="">
+   <Elements>
+         <Element Name="FirstName" DataType="String" />
+         <Element Name="LastName" DataType="String" />
+         <Element Name="Age" DataType="Integer" />
+         <Element Name="Sex" DataType="TSex" />
+   </Elements>
+      </Struct>
+   </Structs>
+   <Enums>
+      <Enum Name="TSex" UID="{9B0938FA-35F8-49DE-91E1-DB9E0DD5E1A3}" Documentation="">
+   <EnumValues>
+         <EnumValue Name="sxMale" />
+         <EnumValue Name="sxFemale" />
+   </EnumValues>
+      </Enum>
+   </Enums>
+   <Arrays>
+      <Array Name="TPersonArray" UID="{3DDF0AF8-EA63-4DD1-A23F-4AA0427A1DCA}" Documentation="">
+   <ElementType DataType="TPerson" />
+      </Array>
+      <Array Name="TIntegerArray" UID="{54E4F9ED-83DD-42E3-9611-D2617163B733}" Documentation="">
+   <ElementType DataType="Integer" />
+      </Array>
+      <Array Name="TStringArray" UID="{A4EE5636-DAD1-45B4-A46C-993664EB279F}" Documentation="">
+   <ElementType DataType="String" />
+      </Array>
+   </Arrays>
+   <Exceptions>
+      <Exception Name="TestException" UID="{DFB108B7-C8D8-4E25-AAFC-8546094E1623}" Documentation="" />
+   </Exceptions>
+</Library>

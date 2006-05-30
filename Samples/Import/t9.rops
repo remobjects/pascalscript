@@ -1,0 +1,16 @@
+Program test;
+var
+  t: TObject;
+  i: IUnknown;
+begin
+  t := TObject.Create;
+  try
+    try
+      i := t;
+    except
+      writeln('Expected Exception: Interface not supported');
+    end;
+  finally
+    t.Free;
+  end;
+end.

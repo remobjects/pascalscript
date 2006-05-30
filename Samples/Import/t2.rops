@@ -1,0 +1,6 @@
+Program test;
+var
+  i: Longint;
+begin
+  for i := 0 to 100000 do ;
+end.

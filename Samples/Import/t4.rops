@@ -1,0 +1,8 @@
+Program test;
+var
+  s: string;
+begin
+  s := 'test';
+  s := s + 'TESTED';
+  writeln(s);
+end.

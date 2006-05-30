@@ -1,0 +1,14 @@
+Program IFSTest;
+procedure test;
+begin
+  writeln('1');
+  exit;
+  writeln('2');
+end;
+Begin
+  test;
+  writeln('3');
+  exit;
+  writeln('4');
+  
+End.

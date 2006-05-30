@@ -1,0 +1,12 @@
+Program test;
+begin
+  writeln('1');
+  try
+    writeln('2');
+    raiseexception(erCustomError, 'TEST EXCEPTION');
+    writeln('3');
+  finally
+    writeln('4');
+  end;
+  writeln('5');
+end.

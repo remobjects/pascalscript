@@ -1,0 +1,92 @@
+var
+  Message: TROBINMessage;
+  Channel: TRoIndyHttpChannel;
+  Service: NewService;
+  s: string;
+  i1, i2, i3: Integer;
+  
+procedure TestPerson;
+var
+  inp, outp: TPerson;
+begin
+  inp.FirstName := 'First_Name';
+  inp.FirstName := 'Last_Name';
+  inp.Age := 100;
+  inp.Sex := sxFemale;
+  Writeln('Calling TestPerson:');
+  Service.EchoPerson(inp, outp);
+  Writeln('Test Result: FirstName: '+outp.FirstName+
+  ' LastName: '+outp.LastName + ' Age: '+inttostr(outp.Age));
+  if inp.Sex = sxMale then
+    Writeln('Male')
+  else
+    Writeln('Female');
+end;
+
+procedure TestStringArray;
+var
+  Str, Str2: TStringArray;
+  i: Longint;
+  s: string;
+begin
+  Str := ['first', 'second', 'third', 'fourth', 'fifth'];
+  Writeln('Passing [''first'', ''second'', ''third'', ''fourth'', ''fifth''] to TestStringArray:');
+  str2 := Service.TestStringArray(str);
+  for i := 0 to GetArrayLength(str2) -1 do
+    S := s + str2[i]+' ';
+  Writeln('Result: '+s);
+end;
+  
+procedure TestIntegerArray;
+var
+  Str, Str2: TIntegerArray;
+  i: Longint;
+  s: string;
+begin
+  Str := [12, 34, 45, 67, 89];
+  Writeln('Passing [12, 34, 45, 67, 89] to TestIntegerArray:');
+  str2 := Service.TestIntegerArray(str);
+  for i := 0 to GetArrayLength(str2) -1 do
+    S := s + inttostr(str2[i])+' ';
+  Writeln('Result: '+s);
+end;
+
+begin
+  Message := TROBINMessage.Create(nil);
+  Message.UseCompression := False;
+  Channel := TRoIndyHTTPChannel.Create(nil);
+  Channel.TargetURL := 'http://localhost:8099/BIN';
+  Service := NewService.Create(Message, Channel);
+  try
+    TestPerson;
+    Writeln('MegaDemo Test');
+    Writeln('First number:');
+    s := readln('First Number');
+    i1 := StrToInt(s);
+    Writeln('Second number:');
+    s := readln('Second Number');
+    i2 := StrToInt(s);
+    i3 := Service.Sum(i1,i2);
+    writeln(inttostr(i1)+'+'+inttostr(i2)+' -> Server, Result:'+inttostr(i3));
+
+    Writeln('Server Time:'+DateToStr(Service.GetServerTime));
+
+    TestStringArray;
+    TestIntegerArray;
+
+    Writeln('Custom Object As String: '+Service.CustomObjectAsString);
+
+    try
+      Writeln('Trying to raise an exception:');
+      Service.RaiseError;
+      Writeln('Exception Failed');
+    except
+      Writeln('Exception: '+ExceptionToString(ExceptionType, ExceptionParam));
+    end;
+  finally
+    Service := nil;
+    channel.Free;
+    message.Free;
+  end;
+end.
+

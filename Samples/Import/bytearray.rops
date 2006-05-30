@@ -1,0 +1,14 @@
+Program IFSTest;
+type
+  TByteArray = array of byte;
+var
+  x: TByteARray;
+Begin
+  try
+    x[0] := 1;
+   // will cause an runtime error (Out Of Record Fields Range)
+    writeln('Not supposed to be here');
+  except
+     Writeln('Error, which is ok since we accessed a field outside it''s bounds');
+  end;
+End.

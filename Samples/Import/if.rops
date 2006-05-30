@@ -1,0 +1,9 @@
+Program IFSTest;
+var
+  a: boolean;
+Begin
+  a := true;
+  if a then begin ;end else
+  if a then begin ;end else;
+  writeln('5');
+End.

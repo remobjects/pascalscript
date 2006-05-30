@@ -1,0 +1,16 @@
+Program IFSTest;
+var
+  a,b :string;
+Begin
+  a := 'test: ';
+  b := ImportTest('1', 2, 3, 4, a);
+  writeln(b);
+  writeln(a);
+{ 
+Output should be:
+
+1 2 3 4 - OK!
+1 2 3 4 - OK! -  OK2!
+
+}
+End.

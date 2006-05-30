@@ -1,0 +1,6 @@
+Program test;
+var
+  i: Longint;
+begin
+  writeln('Really simple test');
+end.

@@ -1,0 +1,9 @@
+Program IFSTest;
+var
+  i: Longint;
+Begin
+  for i := 0 to 9 do 
+  begin
+    writeln('hello'+inttostr(i));
+  end;
+End.

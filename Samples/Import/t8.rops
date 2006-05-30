@@ -1,0 +1,16 @@
+Program test;
+var
+  r: TObject;
+begin
+  if r = nil then Writeln('(r = nil) = true') else Writeln('(r = nil) = false');
+  if r <> nil then Writeln('(r <> nil) = true') else Writeln('(r <> nil) = false');
+  r := TObject.Create;
+  if r = nil then Writeln('(r = nil) = true') else Writeln('(r = nil) = false');
+  if r <> nil then Writeln('(r <> nil) = true') else Writeln('(r <> nil) = false');
+  r.Free;
+  if r = nil then Writeln('(r = nil) = true') else Writeln('(r = nil) = false');
+  if r <> nil then Writeln('(r <> nil) = true') else Writeln('(r <> nil) = false');
+  r := nil;
+  if r = nil then Writeln('(r = nil) = true') else Writeln('(r = nil) = false');
+  if r <> nil then Writeln('(r <> nil) = true') else Writeln('(r <> nil) = false');
+end.

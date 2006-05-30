@@ -1,0 +1,104 @@
+Program IFSTest;
+var
+  F, Form: TForm;
+  Labl: TLabel;
+  Button: TButton;
+  Edit: TEdit;
+  Memo: TMemo;
+  Stop: Boolean;
+procedure MyOnCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  CanClose := Stop;
+end;
+procedure c2(sender: TObject);
+begin
+  f.Close;
+end;
+
+procedure buttonclick(sender: TObject);
+var
+  l: TLabel;
+  b: TButton;
+begin
+  if Length(Edit.Text) < 5 then 
+  begin
+    f := TForm.Create(self);
+    f.Width := 100;
+    f.Height := 100;
+    f.Position := poScreenCenter;
+    f.BorderStyle := bsDialog;
+    f.Caption := 'Error';
+    l := TLabel.Create(F);
+    l.parent := f;
+    l.Left := 10;
+    l.Top := 10;
+    l.Width := 100;
+    l.Height := 50;
+    l.Caption := 'Invalid name';
+    b := TButton.Create(f);
+    b.parent := f;
+    b.Left:=10;
+    b.Top := 40;
+    b.Caption := 'OK';
+    b.Default := True;
+    b.Cancel := True;
+    b.OnClick := @C2;
+    f.Visible := True;
+    form.Visible := False;
+    while f.Visible do
+     begin
+       Application.HandleMessage;
+     end;
+      Form.Visible := True;
+  end else begin
+    writeln('debug:'+Edit.Text);
+    Stop := True;
+    Form.Close;
+  end;
+end;
+Begin
+  Form := TForm.Create(self);
+  Form.Width := 400;
+  Form.Height := 300;
+  Form.BorderStyle := bsDialog;
+  Form.BorderIcons := [];
+  Form.OnCloseQuery := @MyOnCloseQuery;
+  Form.Caption := 'Name';
+  Form.Position := poScreenCenter;
+  Labl := TLabel.Create(Form);
+  Labl.Top := 120;
+  Labl.Left := 160;
+  Labl.Caption := 'Please type in your name:';
+  Labl.Parent := Form;
+  Edit := TEdit.Create(Form);
+  Edit.Font.Name := 'Tahoma';
+  Edit.SetBounds(160,160,80,24);
+  Edit.Parent := Form;
+  Button := TButton.Create(Form);
+  Button.Left := 160;
+  Button.Top := 200;
+  Button.Width := 80;
+  Button.Height := 24;
+  Button.Caption := '&OK';
+  Button.OnClick := @buttonclick;
+  Button.Parent := Form;
+  Button.Default := True;
+  Memo := TMemo.Create(Form);
+  Memo.Left := 10;
+  Memo.Width := 380; 
+  Memo.Top := 10;
+  Memo.Height := 100;
+  Memo.Text := 'Welcome to Form Test.'#13#10#13#10'Type here your name (min 5 letters).  You can''t exit this demo without it.';
+  Memo.Color := 0;
+  Memo.Font.Color := $FFFFFF;
+  Memo.Parent := Form;
+  Memo.Readonly := True;
+  Form.Visible := true;
+  stop := false;
+  while Form.Visible  do
+  begin
+    Application.HandleMessage;
+  end;
+  Button.Free;
+  Form.Free;
+End.

@@ -1,0 +1,10 @@
+Program IFSTest;
+var
+  i, i2: Longint;
+Begin
+  for i := 0 to 1000000 do
+  begin
+    i2 := i -1;
+  end;
+  writeln(inttostr(i2));
+End.

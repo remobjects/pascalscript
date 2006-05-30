@@ -1,0 +1,7 @@
+Program test;
+var
+  r: TObject;
+begin
+  r := TObject.Create;
+  r.Free;
+end.

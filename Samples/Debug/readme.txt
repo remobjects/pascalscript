@@ -1,0 +1,1 @@
+This demo requires SynEdit (http://synedit.sf.net) to compile.

@@ -1,0 +1,15 @@
+Program IFSTest;
+var
+  x1, x2: integer;
+  b: boolean;
+Begin
+  x1 := 2;
+  x2 := 2;
+  b := x1 = x2;
+  if b then begin writeln('true'); end else begin writeln('false');end;
+  x1 := 2;
+  x2 := 4;
+  b := x1 = x2;
+  if b then begin writeln('true'); end else begin writeln('false');end;
+  writeln('done');
+End.

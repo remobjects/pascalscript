@@ -1,0 +1,9 @@
+Program test;
+var
+  s: string;
+begin
+  Writeln('Your name?');
+  s := readln(s);
+  s := s + 'TESTED';
+  writeln(s);
+end.

@@ -9243,7 +9243,7 @@ begin
               {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  tbts64(res.dta^) := Int64(EDX) shl 32 or EAX;
+                  tbts64(res.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
                 end;
               {$ENDIF}
               btCurrency:    tbtCurrency(res.Dta^) := RealFloatCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4) / 10000; 
@@ -10768,7 +10768,7 @@ begin
           begin
             p.ProcPtr := ClassCallProcMethod;
             p.Ext1 := px^.PointerInList;
-            if p.Ext1 = nil then begin result := false; exit; end;
+            //if p.Ext1 = nil then begin result := false; exit; end;
             p.ext2 := pointer(1);
           end;
         3:

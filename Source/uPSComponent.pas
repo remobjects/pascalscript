@@ -943,6 +943,7 @@ end;
 function TPSScript.ExecuteFunction(const Params: array of Variant;
   const ProcName: string): Variant;
 begin
+  DoOnExecute(RI);
   Result := Exec.RunProcPN(Params, ProcName);
 end;
 

@@ -11818,6 +11818,10 @@ function TPSPascalCompiler.ReadConstant(FParser: TPSPascalParser; StopOn: TPSPas
               {$IFNDEF PS_NOINT64}
               bts64: p1.ts64 := -p1.ts64;
               {$ENDIF}
+              btDouble: p1.tdouble := - p1.tDouble;
+              btSingle: p1.tsingle := - p1.tsingle;
+              btCurrency: p1.tcurrency := - p1.tcurrency;
+              btExtended: p1.textended := - p1.textended;
             else
               begin
                 MakeError('', ecTypeMismatch, '');

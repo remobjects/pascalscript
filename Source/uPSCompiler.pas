@@ -14033,7 +14033,7 @@ var
 begin
   for i := FItems.Count -1 downto 0 do
   begin
-    TPSType(FItems[i]).Free;
+    TPSAttribute(FItems[i]).Free;
   end;
   FItems.Free;
   inherited Destroy;
@@ -14132,7 +14132,7 @@ end;
 
 procedure TPSParametersDecl.DeleteParam(I: Longint);
 var
-  param: TPSParameter;
+  param: TPSParameterDecl;
 begin
   param := FParams[i];
   FParams.Delete(i);

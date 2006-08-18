@@ -51,15 +51,15 @@ type
   private
     FAttributes: TPSRuntimeAttributes;
   public
-    
+
     constructor Create(Owner: TPSExec);
-    
+
     destructor Destroy; override;
 
-    
+
     property Attributes: TPSRuntimeAttributes read FAttributes;
   end;
-  
+
   TPSExternalProcRec = class(TPSProcRec)
   private
     FExt1: Pointer;
@@ -68,18 +68,18 @@ type
     FProcPtr: TPSProcPtr;
     FDecl: string;
   public
-    
+
     property Name: string read FName write FName;
 
     property Decl: string read FDecl write FDecl;
-    
+
     property Ext1: Pointer read FExt1 write FExt1;
-    
+
     property Ext2: Pointer read FExt2 write FExt2;
-    
+
     property ProcPtr: TPSProcPtr read FProcPtr write FProcPtr;
   end;
-  
+
   TPSInternalProcRec = class(TPSProcRec)
   private
     FData: PByteArray;
@@ -88,43 +88,43 @@ type
     FExportDecl: string;
     FExportName: string;
   public
-    
+
     property Data: PByteArray read FData;
-    
+
     property Length: Cardinal read FLength;
-    
+
     property ExportNameHash: Longint read FExportNameHash;
 
     property ExportName: string read FExportName write FExportName;
-    
+
     property ExportDecl: string read FExportDecl write FExportDecl;
 
-    
+
     destructor Destroy; override;
   end;
 
   TProcRec = record
-    
+
     Name: ShortString;
-    
+
     Hash: Longint;
-    
+
     ProcPtr: TPSProcPtr;
-    
+
     FreeProc: TPSFreeProc;
-    
+
     Ext1, Ext2: Pointer;
   end;
 
   PBTReturnAddress = ^TBTReturnAddress;
 
   TBTReturnAddress = packed record
-    
+
     ProcNo: TPSInternalProcRec;
-    
+
     Position, StackBase: Cardinal;
   end;
-  
+
   TPSTypeRec = class
   private
     FExportNameHash: Longint;
@@ -134,88 +134,88 @@ type
   protected
     FRealSize: Cardinal;
   public
-    
+
     property RealSize: Cardinal read FRealSize;
-    
+
     property BaseType: TPSBaseType read FBaseType write FBaseType;
-    
+
     property ExportName: string read FExportName write FExportName;
-    
+
     property ExportNameHash: Longint read FExportNameHash write FExportNameHash;
 
     property Attributes: TPSRuntimeAttributes read FAttributes write FAttributes;
-    
+
     procedure CalcSize; virtual;
 
     constructor Create(Owner: TPSExec);
     destructor Destroy; override;
   end;
-  
+
   TPSTypeRec_ProcPtr = class(TPSTypeRec)
   private
     FParamInfo: string;
   public
-    
+
     property ParamInfo: string read FParamInfo write FParamInfo;
     procedure CalcSize; override;
   end;
   PIFTypeRec = TPSTypeRec;
-  
+
   TPSTypeRec_Class = class(TPSTypeRec)
   private
     FCN: string;
   public
-    
+
     property CN: string read FCN write FCN;
   end;
 {$IFNDEF PS_NOINTERFACES}
-  
+
   TPSTypeRec_Interface = class(TPSTypeRec)
   private
     FGuid: TGUID;
   public
-    
+
     property Guid: TGUID read FGuid write FGuid;
   end;
-{$ENDIF}  
-   
+{$ENDIF}
+
   TPSTypeRec_Array = class(TPSTypeRec)
   private
     FArrayType: TPSTypeRec;
   public
-    
+
     property ArrayType: TPSTypeRec read FArrayType write FArrayType;
     procedure CalcSize; override;
   end;
-  
+
   TPSTypeRec_StaticArray = class(TPSTypeRec_Array)
   private
     FSize: Longint;
   public
-    
+
     property Size: Longint read FSize write FSize;
     procedure CalcSize; override;
   end;
-   
+
   TPSTypeRec_Set = class(TPSTypeRec)
   private
     FBitSize: Longint;
     FByteSize: Longint;
   public
     {The number of bytes this would require (same as realsize)}
-    property aByteSize: Longint read FByteSize write FByteSize; 
+    property aByteSize: Longint read FByteSize write FByteSize;
     property aBitSize: Longint read FBitSize write FBitSize;
     procedure CalcSize; override;
   end;
-  
+
   TPSTypeRec_Record = class(TPSTypeRec)
   private
     FFieldTypes: TPSList;
     FRealFieldOffsets: TPSList;
   public
-    
+
     property FieldTypes: TPSList read FFieldTypes;
-    
+
     property RealFieldOffsets: TPSList read FRealFieldOffsets;
 
     procedure CalcSize; override;
@@ -223,40 +223,40 @@ type
     constructor Create(Owner: TPSExec);
     destructor Destroy; override;
   end;
-  
+
   PPSVariant = ^TPSVariant;
-  
+
   PIFVariant = PPSVariant;
-  
+
   TPSVariant = packed record
     FType: TPSTypeRec;
   end;
-  
+
   PPSVariantData = ^TPSVariantData;
-  
+
   TPSVariantData = packed record
     VI: TPSVariant;
     Data: array[0..0] of Byte;
   end;
 
   PPSVariantU8 = ^TPSVariantU8;
-  
+
   TPSVariantU8 = packed record
     VI: TPSVariant;
     Data: tbtU8;
   end;
 
-  
+
   PPSVariantS8 = ^TPSVariantS8;
-  
+
   TPSVariantS8 = packed record
     VI: TPSVariant;
     Data: tbts8;
   end;
 
-  
+
   PPSVariantU16 = ^TPSVariantU16;
-  
+
   TPSVariantU16 = packed record
     VI: TPSVariant;
     Data: tbtU16;
@@ -264,23 +264,23 @@ type
 
 
   PPSVariantS16 = ^TPSVariantS16;
-  
+
   TPSVariantS16 = packed record
     VI: TPSVariant;
     Data: tbts16;
   end;
 
-  
+
   PPSVariantU32 = ^TPSVariantU32;
-  
+
   TPSVariantU32 = packed record
     VI: TPSVariant;
     Data: tbtU32;
   end;
 
-  
+
   PPSVariantS32 = ^TPSVariantS32;
-  
+
   TPSVariantS32 = packed record
     VI: TPSVariant;
     Data: tbts32;
@@ -288,130 +288,130 @@ type
 {$IFNDEF PS_NOINT64}
 
   PPSVariantS64 = ^TPSVariantS64;
-  
+
   TPSVariantS64 = packed record
     VI: TPSVariant;
     Data: tbts64;
   end;
 {$ENDIF}
-  
+
   PPSVariantAChar = ^TPSVariantAChar;
-  
+
   TPSVariantAChar = packed record
     VI: TPSVariant;
     Data: tbtChar;
   end;
 
 {$IFNDEF PS_NOWIDESTRING}
-  
+
   PPSVariantWChar = ^TPSVariantWChar;
-  
+
   TPSVariantWChar = packed record
     VI: TPSVariant;
     Data: tbtWideChar;
   end;
 {$ENDIF}
-  
+
   PPSVariantAString = ^TPSVariantAString;
-  
+
   TPSVariantAString = packed record
     VI: TPSVariant;
     Data: tbtString;
   end;
 
 {$IFNDEF PS_NOWIDESTRING}
-  
+
   PPSVariantWString = ^TPSVariantWString;
-  
+
   TPSVariantWString = packed record
     VI: TPSVariant;
     Data: WideString;
   end;
 {$ENDIF}
 
-  
+
   PPSVariantSingle = ^TPSVariantSingle;
-  
+
   TPSVariantSingle = packed record
     VI: TPSVariant;
     Data: tbtsingle;
   end;
 
-  
+
   PPSVariantDouble = ^TPSVariantDouble;
-  
+
   TPSVariantDouble = packed record
     VI: TPSVariant;
     Data: tbtDouble;
   end;
 
-  
+
   PPSVariantExtended = ^TPSVariantExtended;
-  
+
   TPSVariantExtended = packed record
     VI: TPSVariant;
     Data: tbtExtended;
   end;
 
-  
+
   PPSVariantCurrency = ^TPSVariantCurrency;
-  
+
   TPSVariantCurrency = packed record
     VI: TPSVariant;
     Data: tbtCurrency;
   end;
-  
+
   PPSVariantSet = ^TPSVariantSet;
-  
+
   TPSVariantSet = packed record
     VI: TPSVariant;
     Data: array[0..0] of Byte;
   end;
 
 {$IFNDEF PS_NOINTERFACES}
-  
+
   PPSVariantInterface = ^TPSVariantInterface;
-  
+
   TPSVariantInterface = packed record
     VI: TPSVariant;
     Data: IUnknown;
   end;
 {$ENDIF}
-  
+
   PPSVariantClass = ^TPSVariantClass;
-  
+
   TPSVariantClass = packed record
     VI: TPSVariant;
     Data: TObject;
   end;
 
-  
+
   PPSVariantRecord = ^TPSVariantRecord;
-  
+
   TPSVariantRecord = packed record
     VI: TPSVariant;
     data: array[0..0] of byte;
   end;
 
-  
+
   PPSVariantDynamicArray = ^TPSVariantDynamicArray;
-  
+
   TPSVariantDynamicArray = packed record
     VI: TPSVariant;
     Data: Pointer;
   end;
 
-  
+
   PPSVariantStaticArray = ^TPSVariantStaticArray;
-  
+
   TPSVariantStaticArray = packed record
     VI: TPSVariant;
     data: array[0..0] of byte;
   end;
 
-  
+
   PPSVariantPointer = ^TPSVariantPointer;
-  
+
   TPSVariantPointer = packed record
     VI: TPSVariant;
     DataDest: Pointer;
@@ -419,17 +419,17 @@ type
     FreeIt: LongBool;
   end;
 
-  
+
   PPSVariantReturnAddress = ^TPSVariantReturnAddress;
-  
+
   TPSVariantReturnAddress = packed record
     VI: TPSVariant;
     Addr: TBTReturnAddress;
   end;
 
-  
+
   PPSVariantVariant = ^TPSVariantVariant;
-  
+
   TPSVariantVariant = packed record
     VI: TPSVariant;
     Data: Variant;
@@ -446,72 +446,72 @@ type
     }
   end;
 
-  
+
   TPSVarFreeType = (
-    vtNone,  
-    vtTempVar 
+    vtNone,
+    vtTempVar
     );
-  
+
   TPSResultData = packed record
     P: Pointer;
     aType: TPSTypeRec;
     FreeType: TPSVarFreeType;
   end;
 
-  
+
   PPSResource = ^TPSResource;
-  
+
   TPSResource = record
     Proc: Pointer;
     P: Pointer;
   end;
-  
+
   TPSAttributeUseProc = function (Sender: TPSExec; const AttribType: string; Attr: TPSRuntimeAttribute): Boolean;
-  
+
   TPSAttributeType = class
   private
     FTypeName: string;
     FUseProc: TPSAttributeUseProc;
     FTypeNameHash: Longint;
   public
-    
+
     property UseProc: TPSAttributeUseProc read FUseProc write FUseProc;
-    
+
     property TypeName: string read FTypeName write FTypeName;
 
     property TypeNameHash: Longint read FTypeNameHash write FTypeNameHash;
   end;
-  
+
   PClassItem = ^TClassItem;
-  
+
   TClassItem = record
-    
+
     FName: string;
-    
+
     FNameHash: Longint;
-    
+
     b: byte;
     case byte of
-    0: (Ptr: Pointer); 
-    1: (PointerInList: Pointer); 
+    0: (Ptr: Pointer);
+    1: (PointerInList: Pointer);
     3: (FReadFunc, FWriteFunc: Pointer); {Property Helper}
-    4: (Ptr2: Pointer); 
-    5: (PointerInList2: Pointer); 
+    4: (Ptr2: Pointer);
+    5: (PointerInList2: Pointer);
     6: (); {Property helper, like 3}
     7: (); {Property helper that will pass it's name}
   end;
 
-  
+
   PPSVariantIFC = ^TPSVariantIFC;
   {Temporary variant into record}
-  TPSVariantIFC = packed record 
+  TPSVariantIFC = packed record
     Dta: Pointer;
     aType: TPSTypeRec;
     VarParam: Boolean;
   end;
   PIFPSVariantIFC = PPSVariantIFC;
   TIFPSVariantIFC = TPSVariantIFC;
-  
+
   TPSRuntimeAttribute = class(TObject)
   private
     FValues: TPSStack;
@@ -521,29 +521,29 @@ type
     function GetValue(I: Longint): PIFVariant;
     function GetValueCount: Longint;
   public
-    
+
     property Owner: TPSRuntimeAttributes read FOwner;
-    
+
     property AttribType: string read FAttribType write FAttribType;
-    
+
     property AttribTypeHash: Longint read FAttribTypeHash write FAttribTypeHash;
-    
+
     property ValueCount: Longint read GetValueCount;
-    
+
     property Value[I: Longint]: PIFVariant read GetValue;
-    
+
     function AddValue(aType: TPSTypeRec): PPSVariant;
-    
+
     procedure DeleteValue(i: Longint);
-    
+
     procedure AdjustSize;
 
-    
+
     constructor Create(Owner: TPSRuntimeAttributes);
-    
+
     destructor Destroy; override;
   end;
-  
+
   TPSRuntimeAttributes = class(TObject)
   private
     FAttributes: TPSList;
@@ -551,33 +551,33 @@ type
     function GetCount: Longint;
     function GetItem(I: Longint): TPSRuntimeAttribute;
   public
-    
+
     property Owner: TPSExec read FOwner;
-    
+
     property Count: Longint read GetCount;
-    
+
     property Items[I: Longint]: TPSRuntimeAttribute read GetItem; default;
-    
+
     procedure Delete(I: Longint);
-    
+
     function Add: TPSRuntimeAttribute;
-    
+
     function FindAttribute(const Name: string): TPSRuntimeAttribute;
 
-    
+
     constructor Create(AOwner: TPSExec);
-    
+
     destructor Destroy; override;
   end;
   TPSOnGetNVariant = function (Sender: TPSExec; const Name: string): Variant;
   TPSOnSetNVariant = procedure (Sender: TPSExec; const Name: string; V: Variant);
-  
+
   TPSOnLineEvent = procedure(Sender: TPSExec);
-  
+
   TPSOnSpecialProcImport = function (Sender: TPSExec; p: TPSExternalProcRec; Tag: Pointer): Boolean;
-  
+
   TPSOnException = procedure (Sender: TPSExec; ExError: TPSError; const ExParam: string; ExObject: TObject; ProcNo, Position: Cardinal);
-  
+
   TPSExec = class(TObject)
   Private
     FOnGetNVariant: TPSOnGetNVariant;
@@ -597,115 +597,115 @@ type
     function DoIntegerNot(Dta: Pointer; aType: TPSTypeRec): Boolean;
     procedure RegisterStandardProcs;
   Protected
-    
+
     FReturnAddressType: TPSTypeRec;
-    
+
     FVariantType: TPSTypeRec;
-    
+
     FVariantArrayType: TPSTypeRec;
-    
+
     FAttributeTypes: TPSList;
-    
+
     FExceptionStack: TPSList;
-    
+
     FResources: TPSList;
-    
+
     FExportedVars: TPSList;
-    
-    FTypes: TPSList; 
-    
+
+    FTypes: TPSList;
+
     FProcs: TPSList;
-    
+
     FGlobalVars: TPSStack;
-    
+
     FTempVars: TPSStack;
-    
+
     FStack: TPSStack;
-    
+
     FMainProc: Cardinal;
-    
+
     FStatus: TPSStatus;
-    
+
     FCurrProc: TPSInternalProcRec;
-    
+
     FData: PByteArray;
-    
+
     FDataLength: Cardinal;
-    
+
     FCurrentPosition: Cardinal;
-    
+
     FCurrStackBase: Cardinal;
-    
+
     FOnRunLine: TPSOnLineEvent;
-    
+
     FSpecialProcList: TPSList;
-    
+
     FRegProcs: TPSList;
-    
+
     ExObject: TObject;
-    
+
     ExProc: Cardinal;
-    
+
     ExPos: Cardinal;
-    
+
     ExEx: TPSError;
-    
+
     ExParam: string;
-    
+
     function InvokeExternalMethod(At: TPSTypeRec_ProcPtr; Slf, Ptr: Pointer): Boolean;
-    
+
     function InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
-    
+
     procedure RunLine; virtual;
-    
+
     function ImportProc(const Name: ShortString; proc: TPSExternalProcRec): Boolean; Virtual;
-    
+
     procedure ExceptionProc(proc, Position: Cardinal; Ex: TPSError; const s: string; NewObject: TObject); Virtual;
-    
+
     function FindSpecialProcImport(P: TPSOnSpecialProcImport): pointer;
   Public
-    
+
     procedure CMD_Err(EC: TPSError);
-    
+
     procedure CMD_Err2(EC: TPSError; const Param: string);
-    
+
     procedure CMD_Err3(EC: TPSError; const Param: string; ExObject: TObject);
 
     property Id: Pointer read FID write FID;
-    
+
     class function About: string;
-    
+
     function RunProc(Params: TPSList; ProcNo: Cardinal): Boolean;
-    
+
     function RunProcP(const Params: array of Variant; const Procno: Cardinal): Variant;
-    
+
     function RunProcPN(const Params: array of Variant; const ProcName: string): Variant;
-    
+
     function FindType(StartAt: Cardinal; BaseType: TPSBaseType; var l: Cardinal): PIFTypeRec;
-    
+
     function FindType2(BaseType: TPSBaseType): PIFTypeRec;
-    
+
     function GetTypeNo(l: Cardinal): PIFTypeRec;
-    
+
     function GetType(const Name: string): Cardinal;
-    
+
     function GetProc(const Name: string): Cardinal;
-    
+
     function GetVar(const Name: string): Cardinal;
-    
+
     function GetVar2(const Name: string): PIFVariant;
 
     function GetVarNo(C: Cardinal): PIFVariant;
-    
+
     function GetProcNo(C: Cardinal): PIFProcRec;
-    
+
     function GetProcCount: Cardinal;
-    
+
     function GetVarCount: Longint;
-    
+
     function GetTypeCount: Longint;
 
-    
+
     constructor Create;
 	
     destructor Destroy; Override;
@@ -719,36 +719,36 @@ type
     procedure Clear; Virtual;
 	
     procedure Cleanup; Virtual;
-    
+
     procedure Stop; Virtual;
 	
     procedure Pause; Virtual;
-    
+
     property CallCleanup: Boolean read FCallCleanup write FCallCleanup;
-    
+
     property Status: TPSStatus Read FStatus;
 	
     property OnRunLine: TPSOnLineEvent Read FOnRunLine Write FOnRunLine;
-    
+
     procedure ClearspecialProcImports;
-    
+
     procedure AddSpecialProcImport(const FName: string; P: TPSOnSpecialProcImport; Tag: Pointer);
-    
+
     function RegisterFunctionName(const Name: string; ProcPtr: TPSProcPtr;
       Ext1, Ext2: Pointer): PProcRec;
-   
+
     procedure RegisterDelphiFunction(ProcPtr: Pointer; const Name: string; CC: TPSCallingConvention);
-   
+
     procedure RegisterDelphiMethod(Slf, ProcPtr: Pointer; const Name: string; CC: TPSCallingConvention);
-    
+
     function GetProcAsMethod(const ProcNo: Cardinal): TMethod;
 
     function GetProcAsMethodN(const ProcName: string): TMethod;
-    
+
     procedure RegisterAttributeType(useproc: TPSAttributeUseProc; const TypeName: string);
 	
     procedure ClearFunctionList;
-    
+
     property ExceptionProcNo: Cardinal Read ExProc;
 	
     property ExceptionPos: Cardinal Read ExPos;
@@ -756,9 +756,9 @@ type
     property ExceptionCode: TPSError Read ExEx;
 	
     property ExceptionString: string read ExParam;
-  
+
     property ExceptionObject: TObject read ExObject write ExObject;
-    
+
     procedure AddResource(Proc, P: Pointer);
 	
     function IsValidResource(Proc, P: Pointer): Boolean;
@@ -768,41 +768,41 @@ type
     function FindProcResource(Proc: Pointer): Pointer;
 
     function FindProcResource2(Proc: Pointer; var StartAt: Longint): Pointer;
-    
+
     procedure RaiseCurrentException;
-    
+
     property OnException: TPSOnException read FOnException write FOnException;
     property OnGetNVariant: TPSOnGetNVariant read FOnGetNVariant write FOnGetNVariant;
     property OnSetNVariant: TPSOnSetNVariant read FOnSetNVariant write FOnSetNVariant;
   end;
-  
+
   TPSStack = class(TPSList)
   private
     FDataPtr: Pointer;
     FCapacity,
     FLength: Longint;
     function GetItem(I: Longint): PPSVariant;
-    procedure SetCapacity(const Value: Longint); 
+    procedure SetCapacity(const Value: Longint);
     procedure AdjustLength;
   public
-    
+
     property DataPtr: Pointer read FDataPtr;
-    
+
     property Capacity: Longint read FCapacity write SetCapacity;
-    
+
     property Length: Longint read FLength;
 
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
-    
+
     procedure Clear; {$IFDEF DELPHI5UP} reintroduce;{$ELSE} override; {$ENDIF}
-    
+
     function Push(TotalSize: Longint): PPSVariant;
-    
+
     function PushType(aType: TPSTypeRec): PPSVariant;
-    
+
     procedure Pop;
     function GetInt(ItemNo: Longint): Longint;
     function GetUInt(ItemNo: Longint): Cardinal;
@@ -942,20 +942,20 @@ procedure VSetWideString(const Src: PIFVariant; const Val: WideString);
 {$ENDIF}
 
 type
-  
+
   EPSException = class(Exception)
   private
     FProcPos: Cardinal;
     FProcNo: Cardinal;
     FExec: TPSExec;
   public
-    
+
     constructor Create(const Error: string; Exec: TPSExec; Procno, ProcPos: Cardinal);
-    
+
     property ProcNo: Cardinal read FProcNo;
-    
+
     property ProcPos: Cardinal read FProcPos;
-    
+
     property Exec: TPSExec read FExec;
   end;
 
@@ -969,7 +969,7 @@ type
 
     FEndOfVmt: Longint;
   public
-    
+
     procedure RegisterConstructor(ProcPtr: Pointer; const Name: string);
 	
     procedure RegisterVirtualConstructor(ProcPtr: Pointer; const Name: string);
@@ -979,35 +979,35 @@ type
     procedure RegisterVirtualMethod(ProcPtr: Pointer; const Name: string);
 	
     procedure RegisterVirtualAbstractMethod(ClassDef: TClass; ProcPtr: Pointer; const Name: string);
-    
+
     procedure RegisterPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: string);
-    
+
     procedure RegisterPropertyHelperName(ReadFunc, WriteFunc: Pointer; const Name: string);
-    
+
     procedure RegisterEventPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: string);
-    
+
     constructor Create(aClass: TClass; const AName: string);
 	
     destructor Destroy; override;
   end;
-  
+
   TPSRuntimeClassImporter = class
   private
     FClasses: TPSList;
   public
-    
+
     constructor Create;
-    
+
     constructor CreateAndRegister(Exec: TPSexec; AutoFree: Boolean);
 	
     destructor Destroy; override;
-    
+
     function Add(aClass: TClass): TPSRuntimeClass;
-    
+
     function Add2(aClass: TClass; const Name: string): TPSRuntimeClass;
-    
+
     procedure Clear;
-    
+
     function FindClass(const Name: string): TPSRuntimeClass;
   end;
   TIFPSRuntimeClassImporter = TPSRuntimeClassImporter;
@@ -1034,19 +1034,19 @@ type
   TIFPSExec = TPSExec;
   TIFPSStack = TPSStack;
   TIFTypeRec = TPSTypeRec;
-  
-  
+
+
   TPSCallingConvention = uPSUtils.TPSCallingConvention;
 const
-  
+
   cdRegister = uPSUtils.cdRegister;
-  
+
   cdPascal = uPSUtils.cdPascal;
-  
+
   cdCdecl = uPSUtils.cdCdecl;
-  
+
   cdStdCall = uPSUtils.cdStdCall;
-  
+
   InvalidVal = Cardinal(-1);
 
 function  PSDynArrayGetLength(arr: Pointer; aType: TPSTypeRec): Longint;
@@ -2681,7 +2681,7 @@ var
         if not ImportProc(TPSExternalProcRec(Curr).Name, TPSExternalProcRec(Curr)) then begin
           if TPSExternalProcRec(Curr).Name <> '' then
             CMD_Err2(erCannotImport, TPSExternalProcRec(Curr).Name)
-          else 
+          else
             CMD_Err2(erCannotImport, TPSExternalProcRec(curr).Decl);
           Curr.Free;
           LoadProcs := False;
@@ -3384,7 +3384,7 @@ begin
     btChar: tbtchar(Src^) := Chr(Val);
 {$IFNDEF PS_NOWIDESTRING}
     btWideChar: tbtwidechar(Src^) := tbtwidechar(Val);
-{$ENDIF}    
+{$ENDIF}
     btSingle: tbtSingle(src^) := Val;
     btDouble: tbtDouble(src^) := Val;
     btCurrency: tbtCurrency(src^) := Val;
@@ -3672,7 +3672,7 @@ begin
             if Pointer(Dest^) <> nil then
             begin
               Inc(Longint(Pointer(IPointer(Dest^)-8)^)); // RefCount
-            end; 
+            end;
             Dest := Pointer(IPointer(Dest) + 4);
             Src := Pointer(IPointer(Src) + 4);
           end;
@@ -3722,7 +3722,7 @@ begin
             Src := Pointer(IPointer(Src) + 4);
           end;
         end;
-{$ENDIF}        
+{$ENDIF}
       btPointer:
         begin
           if (Pointer(Pointer(IPointer(Dest)+8)^) = nil) and (Pointer(Pointer(IPointer(Src)+8)^) = nil) then
@@ -3911,7 +3911,7 @@ var
   OldDest: IUnknown;
 begin
   { Like Delphi 3+'s _IntfCopy, reference source before releasing old dest.
-    so that self assignment (I := I) works right } 
+    so that self assignment (I := I) works right }
   OldDest := Dest;
   Dest := Src;
   if Src <> nil then
@@ -4204,7 +4204,7 @@ begin
             if IUnknown(Dest^) <> nil then
             begin
               IUnknown(Dest^).Release;
-              IUnknown(Dest^) := nil; 
+              IUnknown(Dest^) := nil;
             end;
             {$ENDIF}
             IUnknown(Dest^) := IUnknown(Src^);
@@ -4215,7 +4215,7 @@ begin
           end else
             Result := False;
         end;
-{$ENDIF}        
+{$ENDIF}
     else begin
         Result := False;
       end;
@@ -4366,7 +4366,7 @@ begin
             btDouble: b := tbtdouble(var1^) >= PSGetReal(Var2, var2type);
             btCurrency: b := tbtcurrency(var1^) >= PSGetCurrency(Var2, var2type);
             btExtended: b := tbtextended(var1^) >= PSGetReal(Var2, var2type);
-            {$IFNDEF PS_NOINT64}                  
+            {$IFNDEF PS_NOINT64}
             btS64: b := tbts64(var1^) >= PSGetInt64(Var2, var2type);
             {$ENDIF}
             btPChar,btString: b := tbtstring(var1^) >= PSGetString(Var2, var2type);
@@ -5107,7 +5107,7 @@ begin
             btS8: tbts8(var1^) := tbts8(var1^) - PSGetInt(Var2, var2type);
             btU16: tbtU16(var1^) := tbtU16(var1^) - PSGetUInt(Var2, var2type);
             btS16: tbts16(var1^) := tbts16(var1^) - PSGetInt(Var2, var2type);
-            btU32: 
+            btU32:
               begin
                 if var2type.BaseType = btPointer then
                 begin
@@ -5285,7 +5285,7 @@ begin
             btS8: tbts8(var1^) := tbts8(var1^) * PSGetInt(Var2, var2type);
             btU16: tbtU16(var1^) := tbtU16(var1^) * PSGetUInt(Var2, var2type);
             btS16: tbts16(var1^) := tbts16(var1^) * PSGetInt(Var2, var2type);
-            btU32: 
+            btU32:
               begin
                 if var2type.BaseType = btPointer then
                 begin
@@ -5459,7 +5459,7 @@ begin
             btS8: tbts8(var1^) := tbts8(var1^) div PSGetInt(Var2, var2type);
             btU16: tbtU16(var1^) := tbtU16(var1^) div PSGetUInt(Var2, var2type);
             btS16: tbts16(var1^) := tbts16(var1^) div PSGetInt(Var2, var2type);
-            btU32: 
+            btU32:
               begin
                 if var2type.BaseType = btPointer then
                 begin
@@ -5631,7 +5631,7 @@ begin
             btS8: tbts8(var1^) := tbts8(var1^) mod PSGetInt(Var2, var2type);
             btU16: tbtU16(var1^) := tbtU16(var1^) mod PSGetUInt(Var2, var2type);
             btS16: tbts16(var1^) := tbts16(var1^) mod PSGetInt(Var2, var2type);
-            btU32: 
+            btU32:
               begin
                 if var2type.BaseType = btPointer then
                 begin
@@ -6856,7 +6856,7 @@ var
   I: Longint;
   temp: PPSResource;
 begin
-  if StartAt > longint(FResources.Count) -1 then 
+  if StartAt > longint(FResources.Count) -1 then
     StartAt := longint(FResources.Count) -1;
   for i := StartAt downto 0 do
   begin
@@ -8824,7 +8824,7 @@ begin
           IUnknown(tvarrec(p^).VInterface) := IUnknown(cp^);
         end;
 
-{$ENDIF}        
+{$ENDIF}
 {$ENDIF}
       end;
     end;
@@ -8931,7 +8931,7 @@ begin
             IUnknown(cp^) := IUnknown(TVarRec(p^).VInterface);
           finalize(string(TVarRec(p^).VAnsiString));
         end;
-{$ENDIF}        
+{$ENDIF}
 {$ENDIF}
       end;
       datap := Pointer(IPointer(datap)+12);
@@ -9174,10 +9174,22 @@ var
           0: begin EAX := Longint((@Tempstr[1])^); Inc(RegUsage); end;
           1: begin EDX := Longint((@Tempstr[1])^); Inc(RegUsage); end;
           2: begin ECX := Longint((@Tempstr[1])^); Inc(RegUsage); end;
-          else Stack := TempStr + Stack;
+          else begin
+          {$IFDEF FPC}
+            if CallingConv = cdRegister then
+            Stack := Stack + TempStr
+          else
+          {$ENDIF}
+            Stack := TempStr + Stack;
+          end;
         end;
       end else begin
-        Stack := TempStr + Stack;
+        {$IFDEF FPC}
+            if CallingConv = cdRegister then
+            Stack := Stack + TempStr
+          else
+          {$ENDIF}
+          Stack := TempStr + Stack;
       end;
     end;
     Result := True;
@@ -9246,7 +9258,7 @@ begin
                   tbts64(res.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
                 end;
               {$ENDIF}
-              btCurrency:    tbtCurrency(res.Dta^) := RealFloatCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4) / 10000; 
+              btCurrency:    tbtCurrency(res.Dta^) := RealFloatCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4) / 10000;
               btInterface,
               btVariant,
               {$IFNDEF PS_NOWIDESTRING}btWidestring, {$ENDIF}
@@ -9287,7 +9299,7 @@ begin
                   tbts64(res^.dta^) := Int64(EAX) shl 32 or EDX;
                 end;
               {$ENDIF}
-              btVariant, 
+              btVariant,
               btInterface, btrecord, btstring: RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
             else
               exit;
@@ -9973,7 +9985,7 @@ begin
   TypeNo := NewTPSVariantIFC(Stack[Stack.Count-3], false);
   InVar := NewTPSVariantIFC(Stack[Stack.Count-2], false);
   ResVar := NewTPSVariantIFC(Stack[Stack.Count-1], true);
-  if (TypeNo.Dta = nil) or (InVar.Dta = nil) or (ResVar.Dta = nil) or 
+  if (TypeNo.Dta = nil) or (InVar.Dta = nil) or (ResVar.Dta = nil) or
   (TypeNo.aType.BaseType <> btu32) or (resvar.aType <> Caller.FTypes[tbtu32(Typeno.dta^)])
   then
   begin
@@ -9986,7 +9998,7 @@ begin
 {$IFNDEF Delphi3UP}
     if IUnknown(resvar.Dta^) <> nil then
       IUnknown(resvar.Dta^).Release;
-{$ENDIF}      
+{$ENDIF}
     IUnknown(resvar.Dta^) := nil;
     if (IUnknown(invar.Dta^) = nil) or (IUnknown(invar.Dta^).QueryInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^)) <> 0) then
     begin
@@ -10008,7 +10020,7 @@ begin
       Result := False;
       exit;
     end;
-{$ENDIF}    
+{$ENDIF}
   end else {$ENDIF}if (invar.aType.BaseType = btclass) and (resvar.aType.BaseType = btclass ) then
   begin
     FType := Caller.GetTypeNo(tbtu32(TypeNo.Dta^));
@@ -10282,7 +10294,7 @@ begin
         btString: string(n.Dta^) := GetStrProp(TObject(FSelf), p.Ext1);
         btClass: Longint(n.dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
 	  {$IFDEF DELPHI6UP}
-{$IFNDEF PS_NOWIDESTRING}btWideString: Widestring(n.dta^) := GetWideStrProp(TObject(FSelf), P.Ext1); {$ENDIF}        
+{$IFNDEF PS_NOWIDESTRING}btWideString: Widestring(n.dta^) := GetWideStrProp(TObject(FSelf), P.Ext1); {$ENDIF}
 {$ENDIF}
       else
         begin
@@ -10705,7 +10717,7 @@ begin
   end;
   if not isRead then begin
     Result := False;
-    exit;                 
+    exit;
   end;
   s2 := copy(S, 1, pos('|', s)-1);
   delete(s, 1, length(s2) + 1);
@@ -11242,7 +11254,7 @@ begin
     btPChar,
 {$IFNDEF PS_NOWIDESTRING}
     btWideChar,
-{$ENDIF}    
+{$ENDIF}
     btChar,
     btclass,
     btEnum: Result := true;
@@ -12252,7 +12264,7 @@ begin
     WSFreeList.Free;
   end;
 end;
-{$ENDIF}      
+{$ENDIF}
 
 { TPSTypeRec_ProcPtr }
 

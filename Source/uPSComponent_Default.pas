@@ -1,17 +1,17 @@
  unit uPSComponent_Default;
-
+{$I PascalScript.inc}
 interface
 uses
   SysUtils, Classes, uPSComponent, uPSCompiler, uPSRuntime;
 
 type
-  
+
   TPSImport_DateUtils = class(TPSPlugin)
   protected
     procedure CompOnUses(CompExec: TPSScript); override;
     procedure ExecOnUses(CompExec: TPSScript); override;
   end;
-  
+
   TPSImport_Classes = class(TPSPlugin)
   private
     FEnableStreams: Boolean;
@@ -20,17 +20,17 @@ type
     procedure CompileImport1(CompExec: TPSScript); override;
     procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); override;
   public
-    
+
     constructor Create(AOwner: TComponent); override;
   published
-    
+
     property EnableStreams: Boolean read FEnableStreams write FEnableStreams;
-    
+
     property EnableClasses: Boolean read FEnableClasses write FEnableClasses;
   end;
-  
+
   TIFPS3CE_Std = class(TPSImport_Classes);
-  
+
   TIFPS3CE_DateUtils = class(TPSImport_DateUtils);
 
 implementation
@@ -43,7 +43,7 @@ uses
   uPSR_dateutils;
 
 { TPSImport_Classes }
-                        
+
 procedure TPSImport_Classes.CompileImport1(CompExec: TPSScript);
 begin
   SIRegister_Std(CompExec.Comp);

@@ -1,6 +1,5 @@
 unit uPSCompiler;
 {$I PascalScript.inc}
-{$DEFINE PS_USESSUPPORT}
 interface
 uses
   {$IFNDEF DELPHI3UP}{$IFNDEF PS_NOINTERFACES}{$IFNDEF LINUX}Windows, Ole2,{$ENDIF}
@@ -11,23 +10,24 @@ type
 {$IFNDEF PS_NOINTERFACES}
   TPSInterface = class;
 {$ENDIF}
-  
+
   TPSParameterMode = (pmIn, pmOut, pmInOut);
   TPSPascalCompiler = class;
   TPSType = class;
   TPSValue = class;
   TPSParameters = class;
-  
-  TPSSubOptType = (tMainBegin, tProcBegin, tSubBegin, tOneLiner, tifOneliner, tRepeat, tTry, tTryEnd);
+
+  TPSSubOptType = (tMainBegin, tProcBegin, tSubBegin, tOneLiner, tifOneliner, tRepeat, tTry, tTryEnd
+    {$IFDEF PS_USESSUPPORT},tUnitInit, tUnitFinish {$ENDIF}); //nvds
 
 
   {TPSExternalClass is used when external classes need to be called}
   TPSCompileTimeClass = class;
   TPSAttributes = class;
   TPSAttribute = class;
-  
+
   EPSCompilerException = class(Exception) end;
-  
+
   TPSParameterDecl = class(TObject)
   private
     FName: string;
@@ -759,10 +759,10 @@ type
     ecUnitNotFoundOrContainsErrors
     {$ENDIF}
     );
-  
+
   TPSPascalCompilerHintType = (
-    ehVariableNotUsed, 
-    ehFunctionNotUsed, 
+    ehVariableNotUsed,
+    ehFunctionNotUsed,
     ehCustomHint
     );
   
@@ -928,7 +928,10 @@ type
     FAutoFreeList: TPSList;
     FClasses: TPSList;
 
+
     {$IFDEF PS_USESSUPPORT}
+    FUnitInits : TPSList; //nvds
+    FUnitFinits: TPSList; //nvds
     FUses      : TIFStringList;
     fModule    : String;
     fInCompile : Integer;
@@ -9972,7 +9975,11 @@ var
 
 begin
   ProcessSub := False;
-  if (BlockInfo.SubType = tProcBegin) or (BlockInfo.SubType= tMainBegin) or (BlockInfo.SubType= tSubBegin) then
+  if (BlockInfo.SubType = tProcBegin) or (BlockInfo.SubType= tMainBegin) or
+{$IFDEF PS_USESSUPPORT}
+     (BlockInfo.SubType = tUnitInit) or (BlockInfo.SubType= tUnitFinish) or // NvdS
+{$endif}
+     (BlockInfo.SubType= tSubBegin) then
   begin
     FParser.Next; // skip CSTII_Begin
   end;
@@ -10138,10 +10145,26 @@ begin
             end;
           end; {case}
         end;
+    {$IFDEF PS_USESSUPPORT}
+      CSTII_Finalization:                            //NvdS
+        begin                                        //
+          if (BlockInfo.SubType = tUnitInit) then    //
+          begin                                      //
+            break;                                   //
+          end                                        //
+          else                                       //
+          begin                                      //
+            MakeError('', ecIdentifierExpected, ''); //
+            exit;                                    //
+          end;                                       //
+        end;                                         //nvds
+    {$endif}
       CSTII_End:
         begin
-          if (BlockInfo.SubType = tTryEnd) or (BlockInfo.SubType = tMainBegin) or (BlockInfo.SubType = tSubBegin) or
-          (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = tProcBegin) or (BlockInfo.SubType = TOneLiner) then
+          if (BlockInfo.SubType = tTryEnd) or (BlockInfo.SubType = tMainBegin) or
+             (BlockInfo.SubType = tSubBegin) or (BlockInfo.SubType = tifOneliner) or
+             (BlockInfo.SubType = tProcBegin) or (BlockInfo.SubType = TOneLiner)
+    {$IFDEF PS_USESSUPPORT} or (BlockInfo.SubType = tUnitInit) or (BlockInfo.SubType = tUnitFinish) {$endif} then //nvds
           begin
             break;
           end
@@ -10163,22 +10186,32 @@ begin
       end;
     end;
   end;
-  if (BlockInfo.SubType = tMainBegin) or (BlockInfo.SubType = tProcBegin) then
+  if (BlockInfo.SubType = tMainBegin) or (BlockInfo.SubType = tProcBegin)
+ {$IFDEF PS_USESSUPPORT} or (BlockInfo.SubType = tUnitInit) or (BlockInfo.SubType = tUnitFinish) {$endif} then  //nvds
   begin
     Debug_WriteLine(BlockInfo);
     BlockWriteByte(BlockInfo, Cm_R);
-    FParser.Next; // skip end
-    if (BlockInfo.SubType = tMainBegin) and (FParser.CurrTokenId <> CSTI_Period) then
+    {$IFDEF PS_USESSUPPORT}
+    if FParser.CurrTokenId = CSTII_End then //nvds
     begin
-      MakeError('', ecPeriodExpected, '');
-      exit;
-    end;
-    if (BlockInfo.SubType = tProcBegin) and (FParser.CurrTokenId <> CSTI_Semicolon) then
-    begin
-      MakeError('', ecSemicolonExpected, '');
-      exit;
-    end;
-    FParser.Next;
+    {$endif}
+      FParser.Next; // skip end
+      if ((BlockInfo.SubType = tMainBegin)
+    {$IFDEF PS_USESSUPPORT} or (BlockInfo.SubType = tUnitInit) or (BlockInfo.SubType = tUnitFinish){$endif}) //nvds
+         and (FParser.CurrTokenId <> CSTI_Period) then
+      begin
+        MakeError('', ecPeriodExpected, '');
+        exit;
+      end;
+      if (BlockInfo.SubType = tProcBegin) and (FParser.CurrTokenId <> CSTI_Semicolon) then
+      begin
+        MakeError('', ecSemicolonExpected, '');
+        exit;
+      end;
+      FParser.Next;
+    {$IFDEF PS_USESSUPPORT}
+    end;   //nvds
+    {$endif}
   end;
   ProcessSub := True;
 end;
@@ -10328,6 +10361,19 @@ var
     FAttributeTypes := nil;
 
     {$IFDEF PS_USESSUPPORT}
+    for I := 0 to FUnitInits.Count - 1 do        //nvds
+    begin                                        //nvds
+      TPSBlockInfo(FUnitInits[I]).free;          //nvds
+    end;                                         //nvds
+    FUnitInits.Free;                             //nvds
+    FUnitInits := nil;                           //
+    for I := 0 to FUnitFinits.Count - 1 do       //nvds
+    begin                                        //nvds
+      TPSBlockInfo(FUnitFinits[I]).free;         //nvds
+    end;                                         //nvds
+    FUnitFinits.Free;                            //
+    FUnitFinits := nil;                          //
+
     FUses.Free;
     FUses:=nil;
     fInCompile:=0;
@@ -10624,21 +10670,61 @@ var
       end;
     end;
 
-    function FindMainProc: Cardinal;
-    var
-      l: Longint;
-    begin
-      for l := 0 to FProcs.Count - 1 do
-      begin
+    function FindMainProc: Cardinal;                           //NVDS
+    var                                                        //
+      l: Longint;                                              //
+      {$IFDEF PS_USESSUPPORT}                                  //
+      Proc : TPSInternalProcedure;                             //
+      ProcData : String;                                       //
+      Calls : Integer;                                         //
+                                                               //
+      procedure WriteProc(const aData: Longint);               //
+      var                                                      //
+        l: Longint;                                            //
+      begin                                                    //
+        ProcData := ProcData + Chr(cm_c);                      //
+        l := Length(ProcData);                                 //
+        SetLength(ProcData, l + 4);                            //
+        Move(aData, ProcData[l + 1], 4);                       //
+        inc(Calls);                                            //
+      end;                                                     //
+                                                               //
+    begin                                                      //NVDS
+      ProcData := ''; Calls := 1;                              //
+      for l := 0 to FUnitInits.Count-1 do                      //
+        if (FUnitInits[l] <> nil) and                          //
+           (TPSBlockInfo(FUnitInits[l]).Proc.Data<>'') then    //
+          WriteProc(TPSBlockInfo(FUnitInits[l]).FProcNo);     //
+                                                               //
+      WriteProc(FGlobalBlock.FProcNo);                         //
+                                                               //
+      for l := FUnitFinits.Count-1 downto 0 do                 //
+        if (FUnitFinits[l] <> nil) and                         //
+           (TPSBlockInfo(FUnitFinits[l]).Proc.Data<>'') then   //
+          WriteProc(TPSBlockInfo(FUnitFinits[l]).FProcNo);     //
+                                                               //
+      if Calls = 1 then begin                                  //
+        Result := FGlobalBlock.FProcNo;                        //
+      end else                                                 //
+      begin                                                    //
+        Proc := NewProc('Master proc', '!MASTERPROC');         //
+        Result := FindProc('!MASTERPROC');                     //
+        Proc.data := Procdata + Chr(cm_R);                     //NVDS
+      end;                                                     //
+      {$ELSE}                                                  //
+      for l := 0 to FProcs.Count - 1 do //NVDS: Why do we search here for the Main Proc.
+                                        //We know this by FGlobalproc.procno is it not?
         if (TPSProcedure(FProcs[l]).ClassType = TPSInternalProcedure) and
-          (TPSInternalProcedure(FProcs[l]).Name = PSMainProcName) then
-        begin
+           (TPSInternalProcedure(FProcs[l]).Name = PSMainProcName) then
           Result := l;
           exit;
         end;
+        Proc.data := Proc.data + Chr(cm_R);
       end;
       Result := InvalidVal;
+      {$ENDIF}
     end;
+
     procedure CreateDebugData;
     var
       I: Longint;
@@ -10671,6 +10757,10 @@ var
       s := s + #0;
       WriteDebugData(s);
     end;
+
+  var                       //nvds
+    MainProc : Cardinal;    //nvds
+
   begin
     if @FOnBeforeOutput <> nil then
     begin
@@ -10680,14 +10770,14 @@ var
         exit;
       end;
     end;
-
+    MainProc := FindMainProc; //NvdS (need it here becose FindMainProc can create a New proc.
     CreateDebugData;
     WriteLong(PSValidHeader);
     WriteLong(PSCurrentBuildNo);
     WriteLong(FCurrUsedTypeNo);
     WriteLong(FProcs.Count);
     WriteLong(FVars.Count);
-    WriteLong(FindMainProc);
+    WriteLong(MainProc);  //nvds
     WriteLong(0);
     WriteTypes;
     WriteProcs;
@@ -10785,6 +10875,7 @@ var
     until FParser.CurrTokenId <> CSTI_Identifier;
     Result := True;
   end;
+
   function ProcessUses: Boolean;
   var
     {$IFNDEF PS_USESSUPPORT}
@@ -10897,10 +10988,11 @@ var
 
 var
   Proc: TPSProcedure;
+  Block : TPSBlockInfo; //nvds
 
 begin
   Result := False;
-  
+
   {$IFDEF PS_USESSUPPORT}
   if fInCompile=0 then
   begin
@@ -10919,6 +11011,9 @@ begin
     FClasses := TPSList.Create;
 
     {$IFDEF PS_USESSUPPORT}
+    FUnitInits := TPSList.Create; //nvds
+    FUnitFinits:= TPSList.Create; //nvds
+
     FUses:=TIFStringList.Create;
     {$ENDIF}
   {$IFNDEF PS_NOINTERFACES}  FInterfaces := TPSList.Create;{$ENDIF}
@@ -10968,7 +11063,7 @@ begin
 
   inc(fInCompile);
   {$ENDIF}
-  
+
   Position := csStart;
   repeat
     if FParser.CurrTokenId = CSTI_EOF then
@@ -11110,21 +11205,37 @@ begin
         exit;
       end;
     end
-    else if (FParser.CurrTokenId = CSTII_Begin) then
+    else if (FParser.CurrTokenId = CSTII_Begin)
+      {$IFDEF PS_USESSUPPORT}
+             or ((FParser.CurrTokenID = CSTII_initialization) and FIsUnit) {$ENDIF}  then //nvds
     begin
       {$IFDEF PS_USESSUPPORT}
       if FIsUnit then
       begin
-        MakeError('',ecNotAllowed,'begin');
-        CleanUp;
-        exit;
+        Block := TPSBlockInfo.Create(nil); //nvds
+        Block.SubType := tUnitInit;        //nvds
+        Block.Proc := NewProc(PSMainProcNameOrg+'_'+fModule, PSMainProcName+'_'+fModule); //nvds
+        Block.ProcNo := FindProc(PSMainProcName+'_'+fModule);  //nvds
+        Block.Proc.DeclareUnit:= fModule;
+        Block.Proc.DeclarePos := FParser.CurrTokenPos;
+        Block.Proc.DeclareRow := FParser.Row;
+        Block.Proc.DeclareCol := FParser.Col;
+        Block.Proc.Use; 
+        FUnitInits.Add(Block);
+        if ProcessSub(Block) then
+        begin
+          if (Fparser.CurrTokenId = CSTI_EOF) THEN break;
+        end
+        else
+        begin
+          Cleanup;
+          exit;
+        end;
       end
       else
       begin
+        FGlobalBlock.Proc.DeclareUnit:= fModule;
       {$ENDIF}
-        {$IFDEF PS_USESSUPPORT}
-        FGlobalBlock.Proc.DeclareUnit:=fModule;
-        {$ENDIF}
         FGlobalBlock.Proc.DeclarePos := FParser.CurrTokenPos;
         FGlobalBlock.Proc.DeclareRow := FParser.Row;
         FGlobalBlock.Proc.DeclareCol := FParser.Col;
@@ -11141,6 +11252,30 @@ begin
       end;
       {$ENDIF}
     end
+    {$IFDEF PS_USESSUPPORT}
+    else if ((FParser.CurrTokenID = CSTII_finalization) and FIsUnit) then //NvdS
+    begin
+      Block := TPSBlockInfo.Create(nil);
+      Block.SubType := tUnitFinish;
+
+      Block.Proc := NewProc('Finish proc_'+fModule, '!FINISH_'+fModule);
+      Block.ProcNo := FindProc('!FINISH_'+fModule);
+      Block.Proc.DeclareUnit:= fModule;
+
+      Block.Proc.DeclarePos := FParser.CurrTokenPos;
+      Block.Proc.DeclareRow := FParser.Row;
+      Block.Proc.DeclareCol := FParser.Col;
+      Block.Proc.use;
+      FUnitFinits.Add(Block);
+      if ProcessSub(Block) then
+      begin
+        break;
+      end else begin
+        Result :=  False; //Cleanup;
+        exit;
+      end;
+    end
+    {$endif}
     else if (Fparser.CurrTokenId = CSTII_End) and (FAllowNoBegin or FIsUnit) then
     begin
       FParser.Next;
@@ -11169,6 +11304,8 @@ begin
       Cleanup;
       exit;
     end;
+    // NVDS: Do we need to check here also do a ProcessLabelForwards() for each Initialisation/finalization block?
+
     for i := 0 to FProcs.Count -1 do
     begin
       Proc := FProcs[I];

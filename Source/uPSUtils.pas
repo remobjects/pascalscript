@@ -5,9 +5,9 @@ interface
 uses
   Classes, SysUtils;
 const
-  
+
   PSMainProcName = '!MAIN';
-  
+
   PSMainProcNameOrg = 'Main Proc';
 
   PSLowBuildSupport = 12;
@@ -29,73 +29,71 @@ type
 
 const
 
-  btReturnAddress = 0;
+  btReturnAddress   = 0;
 
-  btU8 = 1;
+  btU8              = 1;
 
-  btS8 = 2;
+  btS8              = 2;
 
-  btU16 = 3;
+  btU16             = 3;
 
-  btS16 = 4;
+  btS16             = 4;
 
-  btU32 = 5;
+  btU32             = 5;
 
-  btS32 = 6;
+  btS32             = 6;
 
-  btSingle = 7;
+  btSingle          = 7;
 
-  btDouble = 8;
+  btDouble          = 8;
 
-  btExtended = 9;
+  btExtended        = 9;
 
-  btString = 10;
+  btString          = 10;
 
-  btRecord = 11;
+  btRecord          = 11;
 
-  btArray = 12;
+  btArray           = 12;
 
-  btPointer = 13;
+  btPointer         = 13;
 
-  btPChar = 14;
+  btPChar           = 14;
 
   btResourcePointer = 15;
 
-  btVariant = 16;
+  btVariant         = 16;
+
 {$IFNDEF PS_NOINT64}
-
-  btS64 = 17;
+  btS64             = 17;
 {$ENDIF}
 
-  btChar = 18;
+  btChar            = 18;
+
 {$IFNDEF PS_NOWIDESTRING}
+  btWideString      = 19;
 
-  btWideString = 19;
-
-  btWideChar = 20;
+  btWideChar        = 20;
 {$ENDIF}
 
-  btProcPtr = 21;
+  btProcPtr         = 21;
 
-  btStaticArray = 22;
-  
-  btSet = 23;
-  
-  btCurrency = 24;
-  
-  btClass = 25;
-  
-  btInterface = 26;
-  
+  btStaticArray     = 22;
+
+  btSet             = 23;
+
+  btCurrency        = 24;
+
+  btClass           = 25;
+
+  btInterface       = 26;
+
   btNotificationVariant = 27;
-  
+
   btType = 130;
 
   btEnum = 129;
 
   btExtClass = 131;
-
-
 
 function MakeHash(const s: string): Longint;
 
@@ -313,7 +311,8 @@ type
   tbtwidechar = widechar;
 {$ENDIF}
   IPointer = Cardinal; 
-  TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafecall);
+  TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafeCall);
+
 
 const
   
@@ -325,7 +324,7 @@ type
   
   TPointerList = array[0..MaxListSize - 1] of Pointer;
 
-  
+
   TPSList = class(TObject)
   protected
     
@@ -341,7 +340,7 @@ type
     procedure SetItem(Nr: Cardinal; P: Pointer);
   public
     {$IFNDEF PS_NOSMARTLIST}
-	
+  
     procedure Recreate;
     {$ENDIF}
     
@@ -350,23 +349,23 @@ type
     constructor Create;
 
     function IndexOf(P: Pointer): Longint;
-	
+  
     destructor Destroy; override;
-	
+  
     property Count: Cardinal read FCount;
     
     property Items[nr: Cardinal]: Pointer read GetItem write SetItem; default;
-	
+  
     function Add(P: Pointer): Longint;
-	
+  
     procedure AddBlock(List: PPointerList; Count: Longint);
-	
+  
     procedure Remove(P: Pointer);
-	
+  
     procedure Delete(Nr: Cardinal);
     
     procedure DeleteLast;
-	
+
     procedure Clear; virtual;
   end;
   TIFList = TPSList;
@@ -382,15 +381,15 @@ type
     
     property Items[Nr: Longint]: string read GetItem write SetItem; default;
 
-	
+  
     procedure Add(const P: string);
-	
+  
     procedure Delete(NR: LongInt);
-	
+  
     procedure Clear;
-	
+
     constructor Create;
-	
+
     destructor Destroy; override;
   end;
   TIFStringList = TPsStringList;
@@ -400,10 +399,10 @@ type
   
   TPSPasToken = (
     CSTI_EOF,
-  
+
     CSTIINT_Comment,
     CSTIINT_WhiteSpace,
-  
+
     CSTI_Identifier,
     CSTI_SemiColon,
     CSTI_Comma,
@@ -432,7 +431,7 @@ type
     CSTI_AddressOf,
     CSTI_Dereference,
     CSTI_TwoDots,
-  
+
     CSTII_and,
     CSTII_array,
     CSTII_begin,
@@ -495,19 +494,21 @@ type
     CSTII_Ord,
     CSTII_Interface,
     CSTII_Implementation,
+    CSTII_initialization,            //* Nvds
+    CSTII_finalization,              //* Nvds
     CSTII_out,
     CSTII_nil
     );
-  
-  TPSParserErrorKind = (iNoError 
-  , iCommentError 
-  , iStringError 
-  , iCharError 
-  , iSyntaxError 
+
+  TPSParserErrorKind = (iNoError
+  , iCommentError
+  , iStringError
+  , iCharError
+  , iSyntaxError
   );
   TPSParserErrorEvent = procedure (Parser: TObject; Kind: TPSParserErrorKind) of object;
 
-  
+
   TPSPascalParser = class(TObject)
   protected
     FData: string;
@@ -538,7 +539,7 @@ type
     property CurrTokenID: TPSPasToken read FTokenId;
     
     property Row: Cardinal read FRow;
-    
+
     property Col: Cardinal read GetCol;
     
     procedure SetText(const Data: string); virtual;
@@ -568,13 +569,12 @@ const
   
   FCapacityInc = 32;
 {$IFNDEF PS_NOSMARTLIST}
-  
+
   FMaxCheckCount = (FCapacityInc div 4) * 64;
 {$ENDIF}
 
 
 implementation
-
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -636,7 +636,7 @@ var
   i: longint;
 begin
   Val(s, Result, i);
-  if i <> 0 then raise Exception.Create(RPS_InvalidFloat); 
+  if i <> 0 then raise Exception.Create(RPS_InvalidFloat);
 end;
 //-------------------------------------------------------------------
 
@@ -979,7 +979,7 @@ type
 
 
 const
-  KEYWORD_COUNT = 63;
+  KEYWORD_COUNT = 65;  //*NVDS
   LookupTable: array[0..KEYWORD_COUNT - 1] of TRTab = (
       (name: 'AND'; c: CSTII_and),
       (name: 'ARRAY'; c: CSTII_array),
@@ -1000,6 +1000,7 @@ const
       (name: 'EXIT'; c: CSTII_exit),
       (name: 'EXPORT'; c: CSTII_Export),
       (name: 'EXTERNAL'; c: CSTII_External),
+      (Name: 'FINALIZATION'; c : CSTII_finalization),//* Nvds
       (name: 'FINALLY'; c: CSTII_finally),
       (name: 'FOR'; c: CSTII_for),
       (name: 'FORWARD'; c: CSTII_Forward),
@@ -1009,6 +1010,7 @@ const
       (name: 'IMPLEMENTATION'; c: CSTII_Implementation),
       (name: 'IN'; c: CSTII_in),
       (name: 'INHERITED'; c: CSTII_inherited),
+      (Name: 'INITIALIZATION'; c: CSTII_initialization), //* Nvds
       (name: 'INTERFACE'; c: CSTII_Interface),
       (name: 'IS'; c: CSTII_is),
       (name: 'LABEL'; c: CSTII_Label),
@@ -1164,12 +1166,12 @@ var
             or ((FText[ci+1] in ['+','-']) and (FText[ci+2] in ['0'..'9']))) then 
           begin
             hs := True;
-          	Inc(ci);
-          	if FText[ci] in ['+','-'] then
-          		Inc(ci);
-          	repeat
-          		Inc(ci);
-          	until not (FText[ci] in ['0'..'9']);
+            Inc(ci);
+            if FText[ci] in ['+','-'] then
+              Inc(ci);
+            repeat
+              Inc(ci);
+            until not (FText[ci] in ['0'..'9']);
           end;
 
           if hs
@@ -1473,6 +1475,7 @@ begin
       if @FParserError <> nil then FParserError(Self, Err);
       exit;
     end;
+
     case FTokenID of
       CSTIINT_Comment: if not FEnableComments then Continue else
         begin

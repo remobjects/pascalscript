@@ -11,9 +11,9 @@ const
   cdRegister = uPSRuntime.cdRegister;
   {alias to @link(ifps3.cdPascal)}
   cdPascal = uPSRuntime.cdPascal;
-  
+
   CdCdecl = uPSRuntime.CdCdecl;
-  
+
   CdStdCall = uPSRuntime.CdStdCall;
 
 type
@@ -90,7 +90,7 @@ type
   TPSEvent = procedure (Sender: TPSScript) of object;
   
   TPSOnCompImport = procedure (Sender: TObject; x: TPSPascalCompiler) of object;
-  
+
   TPSOnExecImport = procedure (Sender: TObject; se: TPSExec; x: TPSRuntimeClassImporter) of object;
   {Script engine event function}
   TPSOnNeedFile = function (Sender: TObject; const OrginFileName: string; var FileName, Output: string): Boolean of object;
@@ -127,6 +127,7 @@ type
     FOnVerifyProc: TPSVerifyProc;
     FOnProcessDirective: TPSOnProcessDirective;
     FOnProcessUnknowDirective: TPSOnProcessDirective;
+    FOnFindUnknownFile: TPSOnNeedFile;
     function GetRunning: Boolean;
     procedure SetScript(const Value: TStrings);
     function GetCompMsg(i: Integer): TPSPascalCompilerMessage;
@@ -290,6 +291,7 @@ type
     property OnVerifyProc: TPSVerifyProc read FOnVerifyProc write FOnVerifyProc;
     property OnGetNotificationVariant: TPSOnGetNotVariant read FOnGetNotificationVariant write FOnGetNotificationVariant;
     property OnSetNotificationVariant: TPSOnSetNotVariant read FOnSetNotificationVariant write FOnSetNotificationVariant;
+    property OnFindUnknownFile: TPSOnNeedFile read FOnFindUnknownFile write FOnFindUnknownFile;
 
   published
     //-- jgv
@@ -343,28 +345,54 @@ type
     procedure StepOver; virtual;
     
     procedure SetBreakPoint(const Fn: string; Line: Longint);
-    
+
     procedure ClearBreakPoint(const Fn: string; Line: Longint);
-    
+
     property BreakPointCount: Longint read GetBreakPointCount;
-    
+
     property BreakPoint[I: Longint]: TPSBreakPointInfo read GetBreakPoint;
-    
+
     function HasBreakPoint(const Fn: string; Line: Longint): Boolean;
-    
+
     procedure ClearBreakPoints;
-    
+
     function GetVarContents(const Name: string): string;
   published
-    
+
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
-    
+
     property OnLineInfo: TPSOnLineInfo read FOnLineInfo write FOnLineInfo;
 
     property OnBreakpoint: TPSOnLineInfo read FOnBreakpoint write FOnBreakpoint;
   end;
   
   TIFPS3DebugCompExec = class(TPSScriptDebugger);
+  
+  TPSCustumPlugin = class(TPSPlugin)
+  private
+    FOnCompileImport2: TPSEvent;
+    FOnExecOnUses: TPSEvent;
+    FOnCompOnUses: TPSEvent;
+    FOnCompileImport1: TPSEvent;
+    FOnExecImport1: TPSOnExecImport;
+    FOnExecImport2: TPSOnExecImport;
+  protected
+    procedure CompOnUses(CompExec: TPSScript); override;
+    procedure ExecOnUses(CompExec: TPSScript); override;
+    procedure CompileImport1(CompExec: TPSScript); override;
+    procedure CompileImport2(CompExec: TPSScript); override;
+    procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); override;
+
+    procedure ExecImport2(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); override;
+  public
+  published
+    property OnCompOnUses : TPSEvent read FOnCompOnUses write FOnCompOnUses;
+    property OnExecOnUses: TPSEvent read FOnExecOnUses write FOnExecOnUses;
+    property OnCompileImport1: TPSEvent read FOnCompileImport1 write FOnCompileImport1; 
+    property OnCompileImport2: TPSEvent read FOnCompileImport2 write FOnCompileImport2;
+    property OnExecImport1: TPSOnExecImport read FOnExecImport1 write FOnExecImport1;
+    property OnExecImport2: TPSOnExecImport read FOnExecImport2 write FOnExecImport2;
+  end;  
 
 implementation
 
@@ -647,7 +675,7 @@ begin
     LoadExec;
 
   DoOnExecute (RI);
-  
+
   FExec.DebugEnabled := FUseDebugInfo;
   Result := FExec.RunScript and (FExec.ExceptionCode = erNoError) ;
 
@@ -756,8 +784,8 @@ begin
   end
   else begin
     Result := DoOnUnknowUses (Sender, Name);
-    If Not Result then
-      Sender.MakeError('', ecUnknownIdentifier, Name);
+{    If Not Result then
+      Sender.MakeError('', ecUnknownIdentifier, Name);}
   end;
 end;
 
@@ -943,7 +971,13 @@ end;
 function TPSScript.ExecuteFunction(const Params: array of Variant;
   const ProcName: string): Variant;
 begin
-  DoOnExecute(RI);
+  if SuppressLoadData then
+    LoadExec;
+
+  DoOnExecute (RI);
+
+  FExec.DebugEnabled := FUseDebugInfo;
+
   Result := Exec.RunProcPN(Params, ProcName);
 end;
 
@@ -1009,8 +1043,37 @@ end;
 
 function TPSScript.DoOnUnknowUses(Sender: TPSPascalCompiler;
   const Name: string): Boolean;
+var
+  lPrevAllowUnit: Boolean;
+  lData, lName: string;
 begin
-  Result := False;
+  if assigned(FOnFindUnknownFile) then begin
+    lName := Name;
+    if FOnFindUnknownFile(self, '', lName, lData) then begin
+      lPrevAllowUnit := FComp.AllowUnit;
+      FComp.AllowUnit := true;
+      if FUsePreProcessor then
+      begin
+        FPP.Defines.Assign(FDefines);
+        Fpp.MainFile := lData;
+        Fpp.MainFileName := lName;
+        try
+          Fpp.PreProcess(lName, lData);
+          Result := FComp.Compile(lData);
+          Fpp.AdjustMessages(Comp);
+        finally
+          FPP.Clear;
+        end;
+      end else
+      begin
+        FComp.OnTranslateLineInfo := nil;
+        Result := FComp.Compile(lData);
+      end;
+      FComp.AllowUnit := lPrevAllowUnit;
+    end else
+      Result := false;
+  end else
+    result := false;
 end;
 
 procedure TPSScript.DoOnCompImport;
@@ -1379,6 +1442,57 @@ procedure TPSBreakPointInfo.SetFileName(const Value: string);
 begin
   FFileName := Value;
   FFileNameHash := MakeHash(Value);
+end;
+
+{ TPSCustomPlugin }
+procedure TPSCustumPlugin.CompileImport1(CompExec: TPSScript);
+begin
+  IF @FOnCompileImport1 <> nil then
+    FOnCompileImport1(CompExec)
+  else
+    inherited;
+end;
+
+procedure TPSCustumPlugin.CompileImport2(CompExec: TPSScript);
+begin
+  IF @FOnCompileImport2 <> nil then
+    FOnCompileImport2(CompExec)
+  else
+    inherited;
+end;
+
+procedure TPSCustumPlugin.CompOnUses(CompExec: TPSScript);
+begin
+  IF @FOnCompOnUses <> nil then
+    FOnCompOnUses(CompExec)
+  else
+    inherited;
+end;
+
+procedure TPSCustumPlugin.ExecImport1(CompExec: TPSScript;
+  const ri: TPSRuntimeClassImporter);
+begin
+  IF @FOnExecImport1 <> nil then
+    FOnExecImport1(CompExec, compExec.Exec, ri)
+  else
+    inherited;
+end;
+
+procedure TPSCustumPlugin.ExecImport2(CompExec: TPSScript;
+  const ri: TPSRuntimeClassImporter);
+begin
+  IF @FOnExecImport2 <> nil then
+    FOnExecImport1(CompExec, compExec.Exec, ri)
+  else
+    inherited;
+end;
+
+procedure TPSCustumPlugin.ExecOnUses(CompExec: TPSScript);
+begin
+  IF @FOnExecOnUses <> nil then
+    FOnExecOnUses(CompExec)
+  else
+    inherited;
 end;
 
 end.

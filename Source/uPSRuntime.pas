@@ -9209,7 +9209,7 @@ begin
           if assigned(res) then begin
             case res^.aType.BaseType of
               {$IFNDEF PS_NOWIDESTRING}btWideString, {$ENDIF}
-              btInterface, btArray, btrecord, btstring, btVariant: GetPtr(res);
+              btInterface, btArray, btrecord, btstring, btVariant, btStaticArray: GetPtr(res);
               btSet:
                 begin
                   if TPSTypeRec_Set(res.aType).aByteSize >4 then GetPtr(res);
@@ -9250,7 +9250,7 @@ begin
               btInterface,
               btVariant,
               {$IFNDEF PS_NOWIDESTRING}btWidestring, {$ENDIF}
-              btArray, btrecord, btstring:      RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
+              btStaticArray, btArray, btrecord, btstring:      RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
             else
               exit;
             end;

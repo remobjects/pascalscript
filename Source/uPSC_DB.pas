@@ -116,10 +116,11 @@ With RegClassS(cl,'TCOMPONENT','TDATASET') do
   RegisterMethod('Procedure ENABLECONTROLS');
 {$IFDEF DELPHI2006UP}
   RegisterMethod('Function FIELDBYNAME( const FIELDNAME : WIDESTRING) : TFIELD');
+  RegisterMethod('Function FINDFIELD( const FIELDNAME : WideString) : TFIELD');
 {$ELSE}
   RegisterMethod('Function FIELDBYNAME( const FIELDNAME : STRING) : TFIELD');
-{$ENDIF}
   RegisterMethod('Function FINDFIELD( const FIELDNAME : STRING) : TFIELD');
+{$ENDIF}
   RegisterMethod('Function FINDFIRST : BOOLEAN');
   RegisterMethod('Function FINDLAST : BOOLEAN');
   RegisterMethod('Function FINDNEXT : BOOLEAN');

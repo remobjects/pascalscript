@@ -420,7 +420,7 @@ type
     property Name: string read FName;
 
     property OrgName: string read FOrgName write SetName;
-    
+
     property NameHash: Longint read FNameHash;
     
     constructor Create;
@@ -1377,9 +1377,9 @@ type
     FResultType: TPSType;
   public
     property ResultType: TPSType read FResultType write FResultType;
-    
+
     property SelfPtr: TPSValue read FSelfPtr write FSelfPtr;
-    
+
     property Parameters: TPSParameters read FParameters write FParameters;
     destructor Destroy; override;
   end;
@@ -1396,10 +1396,12 @@ type
   private
     FProcNo: TPSValue;
   public
-    
+
     property ProcNo: TPSValue read FProcNo write FProcNo;
+
+    destructor Destroy; override;
   end;
-  
+
   TPSValueArray = class(TPSValue)
   private
     FItems: TPSList;
@@ -6589,7 +6591,6 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           begin
             Parameters := TPSParameters.Create;
             Parameters.Add;
-
           end;
           if Decl.ParamCount <> 0 then
           begin
@@ -14685,6 +14686,14 @@ begin
   result := false;
 end;
 
+
+{ TPSValueProcVal }
+
+destructor TPSValueProcVal.Destroy;
+begin
+  FProcNo.Free;
+  inherited;
+end;
 
 
 {

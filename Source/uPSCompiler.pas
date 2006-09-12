@@ -11030,8 +11030,10 @@ begin
     fModule:='System';
     FUses.Add('SYSTEM');
     {$ENDIF}
+    {$IFNDEF PS_NOSTANDARDTYPES}
     DefineStandardTypes;
     DefineStandardProcedures;
+	{$ENDIF}
     if @FOnUses <> nil then
     begin
       try

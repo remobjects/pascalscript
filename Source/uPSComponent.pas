@@ -662,6 +662,7 @@ begin
   FPP.Free;
   RI.Free;
   FPlugins.Free;
+  FPlugins := nil;
   FScript.Free;
   FExec.Free;
   FComp.Free;

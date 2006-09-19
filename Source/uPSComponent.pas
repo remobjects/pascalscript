@@ -566,7 +566,7 @@ begin
   RI := TPSRuntimeClassImporter.Create;
   for i := 0 to FPlugins.Count -1 do
   begin
-    if TPSPluginItem(FPlugins.Items[i]) <> nil then
+    if (TPSPluginItem(FPlugins.Items[i]) <> nil) and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
       TPSPluginItem(FPlugins.Items[i]).Plugin.ExecImport1(Self, ri);
   end;
 
@@ -574,13 +574,14 @@ begin
   
   for i := 0 to FPlugins.Count -1 do
   begin
-    if TPSPluginItem(FPlugins.Items[i]) <> nil then
-    TPSPluginItem(FPlugins.Items[i]).Plugin.ExecImport2(Self, ri);
+    if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+      TPSPluginItem(FPlugins.Items[i]).Plugin.ExecImport2(Self, ri);
   end;
   RegisterClassLibraryRuntime(Exec, RI);
   for i := 0 to FPlugins.Count -1 do
   begin
-    TPSPluginItem(FPlugins.Items[i]).Plugin.ExecOnUses(Self);
+    if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+      TPSPluginItem(FPlugins.Items[i]).Plugin.ExecOnUses(Self);
   end;
   FCanAdd := True;
   FComp.BooleanShortCircuit := icBooleanShortCircuit in FCompOptions;
@@ -765,18 +766,21 @@ begin
   begin
     for i := 0 to FPlugins.Count -1 do
     begin
-      TPSPluginItem(FPlugins.Items[i]).Plugin.CompOnUses(Self);
+      if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+        TPSPluginItem(FPlugins.Items[i]).Plugin.CompOnUses(Self);
     end;
     for i := 0 to FPlugins.Count -1 do
     begin
-      TPSPluginItem(FPlugins.Items[i]).Plugin.CompileImport1(self);
+      if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+        TPSPluginItem(FPlugins.Items[i]).Plugin.CompileImport1(self);
     end;
 
     DoOnCompImport;
 
     for i := 0 to FPlugins.Count -1 do
     begin
-      TPSPluginItem(FPlugins.Items[i]).Plugin.CompileImport2(Self);
+      if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+        TPSPluginItem(FPlugins.Items[i]).Plugin.CompileImport2(Self);
     end;
 
     DoOnCompile;
@@ -805,21 +809,22 @@ begin
   RI := TPSRuntimeClassImporter.Create;
   for i := 0 to FPlugins.Count -1 do
   begin
-    if TPSPluginItem(FPlugins.Items[i]) <> nil then
-      TPSPluginItem(FPlugins.Items[i]).Plugin.ExecImport1(Self, ri);
+    if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+        TPSPluginItem(FPlugins.Items[i]).Plugin.ExecImport1(Self, ri);
   end;
 
   DoOnExecImport(RI);
 
   for i := 0 to FPlugins.Count -1 do
   begin
-    if TPSPluginItem(FPlugins.Items[i]) <> nil then
-    TPSPluginItem(FPlugins.Items[i]).Plugin.ExecImport2(Self, ri);
+    if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+      TPSPluginItem(FPlugins.Items[i]).Plugin.ExecImport2(Self, ri);
   end;
   RegisterClassLibraryRuntime(Exec, RI);
   for i := 0 to FPlugins.Count -1 do
   begin
-    TPSPluginItem(FPlugins.Items[i]).Plugin.ExecOnUses(Self);
+    if (TPSPluginItem(FPlugins.Items[i]) <> nil)and (TPSPluginItem(FPlugins.Items[i]).Plugin <> nil) then
+      TPSPluginItem(FPlugins.Items[i]).Plugin.ExecOnUses(Self);
   end;
   if not FExec.LoadData(Data) then
     raise Exception.Create(GetExecErrorString);

@@ -160,8 +160,8 @@ resourcestring
 
 function CompExportCheck(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: string): Boolean;
 begin
-  Result := True;
   TPSScriptExtension(Sender.ID).DoVerifyProc(Sender.Id, Proc, ProcDecl, Result);
+  Result := not Result;
 end;
 
 Function BeforeCleanup(Sender: TPSPascalCompiler):Boolean;
@@ -211,6 +211,7 @@ var
   n{,m,p} : Integer;
   tstType : TPSProceduralType;
 begin
+  Error := False;
   for n := 0 to sender.comp.GetTypeCount -1 do begin
     If comp.GetType(n) is TPSProceduralType then begin
       tstType := comp.GetType(n) as TPSProceduralType;

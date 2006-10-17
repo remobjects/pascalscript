@@ -10673,60 +10673,66 @@ var
       end;
     end;
 
-    function FindMainProc: Cardinal;                           //NVDS
-    var                                                        //
-      l: Longint;                                              //
-      {$IFDEF PS_USESSUPPORT}                                  //
-      Proc : TPSInternalProcedure;                             //
-      ProcData : String;                                       //
-      Calls : Integer;                                         //
-                                                               //
-      procedure WriteProc(const aData: Longint);               //
-      var                                                      //
-        l: Longint;                                            //
-      begin                                                    //
-        ProcData := ProcData + Chr(cm_c);                      //
-        l := Length(ProcData);                                 //
-        SetLength(ProcData, l + 4);                            //
-        Move(aData, ProcData[l + 1], 4);                       //
-        inc(Calls);                                            //
-      end;                                                     //
-                                                               //
-    begin                                                      //NVDS
-      ProcData := ''; Calls := 1;                              //
-      for l := 0 to FUnitInits.Count-1 do                      //
-        if (FUnitInits[l] <> nil) and                          //
-           (TPSBlockInfo(FUnitInits[l]).Proc.Data<>'') then    //
-          WriteProc(TPSBlockInfo(FUnitInits[l]).FProcNo);     //
-                                                               //
-      WriteProc(FGlobalBlock.FProcNo);                         //
-                                                               //
-      for l := FUnitFinits.Count-1 downto 0 do                 //
-        if (FUnitFinits[l] <> nil) and                         //
-           (TPSBlockInfo(FUnitFinits[l]).Proc.Data<>'') then   //
-          WriteProc(TPSBlockInfo(FUnitFinits[l]).FProcNo);     //
-                                                               //
-      if Calls = 1 then begin                                  //
-        Result := FGlobalBlock.FProcNo;                        //
-      end else                                                 //
-      begin                                                    //
-        Proc := NewProc('Master proc', '!MASTERPROC');         //
-        Result := FindProc('!MASTERPROC');                     //
-        Proc.data := Procdata + Chr(cm_R);                     //NVDS
-      end;                                                     //
-      {$ELSE}                                                  //
-      for l := 0 to FProcs.Count - 1 do //NVDS: Why do we search here for the Main Proc.
-                                        //We know this by FGlobalproc.procno is it not?
+
+
+    {$IFDEF PS_USESSUPPORT}
+    function FindMainProc: Cardinal;
+    var
+      l: Longint;
+      Proc : TPSInternalProcedure;
+      ProcData : String;
+      Calls : Integer;
+
+      procedure WriteProc(const aData: Longint);
+      var
+        l: Longint;
+      begin
+        ProcData := ProcData + Chr(cm_c);
+        l := Length(ProcData);
+        SetLength(ProcData, l + 4);
+        Move(aData, ProcData[l + 1], 4);
+        inc(Calls);
+      end;
+    begin
+      ProcData := ''; Calls := 1;
+      for l := 0 to FUnitInits.Count-1 do
+        if (FUnitInits[l] <> nil) and
+           (TPSBlockInfo(FUnitInits[l]).Proc.Data<>'') then
+          WriteProc(TPSBlockInfo(FUnitInits[l]).FProcNo);
+
+      WriteProc(FGlobalBlock.FProcNo);
+
+      for l := FUnitFinits.Count-1 downto 0 do
+        if (FUnitFinits[l] <> nil) and
+           (TPSBlockInfo(FUnitFinits[l]).Proc.Data<>'') then
+          WriteProc(TPSBlockInfo(FUnitFinits[l]).FProcNo);
+
+      if Calls = 1 then begin
+        Result := FGlobalBlock.FProcNo;
+      end else
+      begin
+        Proc := NewProc('Master proc', '!MASTERPROC');
+        Result := FindProc('!MASTERPROC');
+        Proc.data := Procdata + Chr(cm_R);
+      end;
+    end;
+    {$ELSE}
+    function FindMainProc: Cardinal;
+    var
+      l: Longint;
+    begin
+      for l := 0 to FProcs.Count - 1 do
+      begin
         if (TPSProcedure(FProcs[l]).ClassType = TPSInternalProcedure) and
-           (TPSInternalProcedure(FProcs[l]).Name = PSMainProcName) then
+          (TPSInternalProcedure(FProcs[l]).Name = PSMainProcName) then
+        begin
           Result := l;
           exit;
         end;
-        Proc.data := Proc.data + Chr(cm_R);
       end;
       Result := InvalidVal;
-      {$ENDIF}
     end;
+    {$ENDIF}
 
     procedure CreateDebugData;
     var
@@ -10991,8 +10997,9 @@ var
 
 var
   Proc: TPSProcedure;
+  {$IFDEF PS_USESSUPPORT}
   Block : TPSBlockInfo; //nvds
-
+  {$ENDIF}
 begin
   Result := False;
 

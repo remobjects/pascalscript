@@ -8602,6 +8602,7 @@ begin
 
     if not ReadParameters(False, TPSValueProc(Result).Parameters) then
     begin
+      FSelf.Free;
       Result.Free;
       Result := nil;
       exit;
@@ -8609,6 +8610,7 @@ begin
 
     if not ValidateParameters(BlockInfo, TPSValueProc(Result).Parameters, Decl) then
     begin
+      FSelf.Free;
       Result.Free;
       Result := nil;
       exit;

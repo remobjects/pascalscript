@@ -1,14 +1,12 @@
 <?xml version="1.0"?>
 <CONFIG>
   <Package Version="2">
-    <PathDelim Value="\"/>
     <Name Value="PascalScript"/>
     <Author Value="Carlo Kok"/>
     <CompilerOptions>
       <Version Value="5"/>
-      <PathDelim Value="\"/>
       <SearchPaths>
-        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(Target_OS)\"/>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>

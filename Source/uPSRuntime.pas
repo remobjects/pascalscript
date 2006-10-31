@@ -9244,12 +9244,7 @@ begin
               btchar,btU8, btS8:    tbtu8(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 1, nil);
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass :
-              {$IFNDEF FPC}
               tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
-              {$ELSE}
-              //EAX switched with EDX
-              tbtu32(res.dta^) := RealCall_Register(Address, EDX, EAX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
-              {$ENDIF}
               btu32,bts32:   tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
               btPChar:       pchar(res.dta^) := Pchar(RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
               {$IFNDEF PS_NOINT64}bts64:
@@ -9826,7 +9821,15 @@ begin
     Result := False;
     exit;
   end;
+  {$IFDEF FPC}
+  // under FPC a constructor it's called with self=0 (EAX) and
+  // the VMT class pointer in EDX so they are effectively swaped
+  // using register calling convention
+  PPSVariantU32(IntVal).Data := Cardinal(FSelf);
+  FSelf := pointer(1);
+  {$ELSE}
   PPSVariantU32(IntVal).Data := 1;
+  {$ENDIF}
   MyList := TPSList.Create;
   MyList.Add(NewPPSVariantIFC(intval, false));
   for i := 2 to length(s) do

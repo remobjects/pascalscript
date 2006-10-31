@@ -258,7 +258,7 @@ type
     function ExecuteFunction(const Params: array of Variant; const ProcName: string): Variant;
   published
 
-    property About: string read GetAbout;
+    property About: string read GetAbout stored false;
 
     property Script: TStrings read FScript write SetScript;
 

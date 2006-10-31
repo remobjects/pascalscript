@@ -7,11 +7,11 @@
 { (c)opyright RemObjects Software. all rights reserved.                      }
 {                                                                            }
 {----------------------------------------------------------------------------}
- 
+
 
 {$INCLUDE eDefines.inc}
 
-{$IFDEF FPC}{$H+}{$MODE DELPHI}{$ENDIF}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 {$IFDEF VER125}{C4}{$B-}{$X+}{$T-}{$H+}{$ENDIF}
 {$IFDEF VER110}{C3}{$B-}{$X+}{$T-}{$H+}{$ENDIF}
@@ -64,4 +64,3 @@ Defines:
   {$DEFINE DELPHI3UP}
   {$DEFINE DELPHI6UP}
 {$ENDIF}
-{$DEFINE PS_USESSUPPORT}

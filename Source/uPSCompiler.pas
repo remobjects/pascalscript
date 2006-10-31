@@ -4353,7 +4353,16 @@ begin
   {$ENDIF}
   if @FOnTranslateLineInfo <> nil then
     FOnTranslateLineInfo(Self, Pos, Row, Col, S);
+  {$IFDEF FPC}
+  WriteDebugData(#4 + s + #1);
+  WriteDebugData(Ps_mi2s(ProcNo));
+  WriteDebugData(Ps_mi2s(Length(Proc.Data)));
+  WriteDebugData(Ps_mi2s(Pos));
+  WriteDebugData(Ps_mi2s(Row));
+  WriteDebugData(Ps_mi2s(Col));
+  {$ELSE}
   WriteDebugData(#4 + s + #1 + PS_mi2s(ProcNo) + PS_mi2s(Length(Proc.Data)) + PS_mi2s(Pos) + PS_mi2s(Row)+ PS_mi2s(Col));
+  {$ENDIF}
 end;
 
 procedure TPSPascalCompiler.Debug_WriteParams(ProcNo: Cardinal; Proc: TPSInternalProcedure);

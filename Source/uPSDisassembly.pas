@@ -268,8 +268,12 @@ var
         case b of
           CM_A:
           begin
-
+            {$IFDEF FPC}
+            Output := Output + ' ['+inttostr(dp)+'] ASSIGN '+ ReadWriteVariable;
+            Output := Output + ', ' + ReadWriteVariable + #13#10;
+            {$ELSE}
             Writeln(' ['+inttostr(dp)+'] ASSIGN '+ReadWriteVariable+ ', ' + ReadWriteVariable);
+            {$ENDIF}
           end;
           CM_CA:
           begin

@@ -2792,7 +2792,7 @@ var
         LoadVars := False;
         exit;
       end;
-      if (Rec.Flags and 1) <> 0then
+      if (Rec.Flags and 1) <> 0 then
       begin
         if not read(n, 4) then begin
           cmd_err(erUnexpectedEof);

@@ -12,9 +12,9 @@ const
 
   PSLowBuildSupport = 12;
 
-  PSCurrentBuildNo = 22;
+  PSCurrentBuildNo = 23;
 
-  PSCurrentversion = '1.30';
+  PSCurrentversion = '1.31';
 
   PSValidHeader = 1397769801;
 

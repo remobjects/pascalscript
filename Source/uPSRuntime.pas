@@ -191,9 +191,12 @@ type
   TPSTypeRec_StaticArray = class(TPSTypeRec_Array)
   private
     FSize: Longint;
+    FStartOffset: LongInt;
   public
 
     property Size: Longint read FSize write FSize;
+    property StartOffset: LongInt read FStartOffset write FStartOffset;   
+
     procedure CalcSize; override;
   end;
 
@@ -2532,6 +2535,15 @@ var
               exit;
             end;
             TPSTypeRec_StaticArray(curr).Size := d;
+            if not Read(d,4) then                                             //<-additional StartOffset
+            begin
+              curr.Free;
+              cmd_err(erUnexpectedEof);
+              LoadTypes:=false;
+              Exit;
+            end;
+            TPSTypeRec_StaticArray(curr).StartOffset:=d;
+
             Curr.BaseType := currf.BaseType;
             FTypes.Add(Curr);
           end;
@@ -8076,7 +8088,7 @@ var
   Tmp: TObject;
 begin
   case Longint(p.Ext1) of
-    0: Stack.SetString(-1, IntToStr(Stack.GetInt(-2))); // inttostr
+    0: Stack.SetString(-1, IntToStr(Stack.GetInt64(-2))); // inttostr
     1: Stack.SetInt(-1, SysUtils.StrToInt(Stack.GetString(-2))); // strtoint
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetString(-2), Stack.GetInt(-3))); // strtointdef
     3: Stack.SetInt(-1, Pos(Stack.GetString(-2), Stack.GetString(-3)));// pos
@@ -8270,6 +8282,124 @@ begin
   Result := System.Unassigned;
 end;
 {$ENDIF}
+function Length_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  arr: TPSVariantIFC;
+begin
+  Result:=false;
+  arr:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
+  if arr.aType.BaseType=btArray then
+  begin
+    Stack.SetInt(-1,PSDynArrayGetLength(Pointer(arr.Dta^),arr.aType));
+    Result:=true;
+  end;
+  if arr.aType.BaseType=btStaticArray then
+  begin
+    Stack.SetInt(-1,TPSTypeRec_StaticArray(arr.aType).Size);
+    Result:=true;
+  end;
+  if arr.aType.BaseType=btString then
+  begin
+    Stack.SetInt(-1,length(tbtstring(arr.Dta^)));
+    Result:=true;
+  end;
+end;
+
+
+function SetLength_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  arr: TPSVariantIFC;
+begin
+  Result:=false;
+  arr:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
+  if arr.aType.BaseType=btArray then
+  begin
+    PSDynArraySetLength(Pointer(arr.Dta^),arr.aType,Stack.GetInt(-2));
+    Result:=true;
+  end;
+  if arr.aType.BaseType=btString then
+  begin
+    SetLength(tbtstring(arr.Dta^),STack.GetInt(-2));
+    Result:=true;
+  end;
+end;
+
+function Low_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  arr: TPSVariantIFC;
+  t: PIFTypeRec;
+begin
+  Result:=true;
+  arr:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
+  case arr.aType.BaseType of
+    btArray      : Stack.SetInt(-1,0);
+    btStaticArray: Stack.SetInt(-1,TPSTypeRec_StaticArray(arr.aType).StartOffset);
+    btString     : Stack.SetInt64(-1,1);
+    btU8         : Stack.SetInt64(-1,Low(Byte));        //Byte: 0
+    btS8         : Stack.SetInt64(-1,Low(ShortInt));    //ShortInt: -128
+    btU16        : Stack.SetInt64(-1,Low(Word));        //Word: 0
+    btS16        : Stack.SetInt64(-1,Low(SmallInt));    //SmallInt: -32768
+    btU32        : Stack.SetInt64(-1,Low(Cardinal));    //Cardinal/LongWord: 0
+    btS32        : Stack.SetInt64(-1,Low(Integer));     //Integer/LongInt: -2147483648
+    else Result:=false;
+  end;
+end;
+
+function High_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  arr: TPSVariantIFC;
+  t: PIFTypeRec;
+begin
+  Result:=true;
+  arr:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
+  case arr.aType.BaseType of
+    btArray      : Stack.SetInt(-1,PSDynArrayGetLength(Pointer(arr.Dta^),arr.aType)-1);
+    btStaticArray: Stack.SetInt(-1,TPSTypeRec_StaticArray(arr.aType).StartOffset+TPSTypeRec_StaticArray(arr.aType).Size-1);
+    btString     : Stack.SetInt(-1,Length(tbtstring(arr.Dta^)));
+    btU8         : Stack.SetInt(-1,High(Byte));       //Byte: 255
+    btS8         : Stack.SetInt(-1,High(ShortInt));   //ShortInt: 127
+    btU16        : Stack.SetInt(-1,High(Word));       //Word: 65535
+    btS16        : Stack.SetInt(-1,High(SmallInt));   //SmallInt: 32767
+    btU32        : Stack.SetInt(-1,High(Cardinal));   //Cardinal/LongWord: 4294967295
+    btS32        : Stack.SetInt(-1,High(Integer));    //Integer/LongInt: 2147483647
+    else Result:=false;
+  end;
+end;
+
+function Dec_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  arr: TPSVariantIFC;
+begin
+  Result:=true;
+  arr:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
+  case arr.aType.BaseType of
+    btU8         : Stack.SetInt(-1,Tbtu8(arr.dta^)-1);     //Byte
+    btS8         : Stack.SetInt(-1,Tbts8(arr.dta^)-1);     //ShortInt
+    btU16        : Stack.SetInt(-1,Tbtu16(arr.dta^)-1);    //Word
+    btS16        : Stack.SetInt(-1,Tbts16(arr.dta^)-1);    //SmallInt
+    btU32        : Stack.SetInt(-1,Tbtu32(arr.dta^)-1);    //Cardinal/LongWord
+    btS32        : Stack.SetInt(-1,Tbts32(arr.dta^)-1);    //Integer/LongInt
+    else Result:=false;
+  end;
+end;
+
+function Inc_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  arr: TPSVariantIFC;
+begin
+  Result:=true;
+  arr:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
+  case arr.aType.BaseType of
+    btU8         : Stack.SetInt(-1,Tbtu8(arr.dta^)+1);     //Byte
+    btS8         : Stack.SetInt(-1,Tbts8(arr.dta^)+1);     //ShortInt
+    btU16        : Stack.SetInt(-1,Tbtu16(arr.dta^)+1);    //Word
+    btS16        : Stack.SetInt(-1,Tbts16(arr.dta^)+1);    //SmallInt
+    btU32        : Stack.SetInt(-1,Tbtu32(arr.dta^)+1);    //Cardinal/LongWord
+    btS32        : Stack.SetInt(-1,Tbts32(arr.dta^)+1);    //Integer/LongInt
+    else Result:=false;
+  end;
+end;
+
 
 procedure TPSExec.RegisterStandardProcs;
 begin
@@ -8289,8 +8419,14 @@ begin
   RegisterFunctionName('UPPERCASE', DefProc, Pointer(10), nil);
   RegisterFunctionName('LOWERCASE', DefProc, Pointer(11), nil);
   RegisterFunctionName('TRIM', DefProc, Pointer(12), nil);
-  RegisterFunctionName('LENGTH', DefProc, Pointer(13), nil);
-  RegisterFunctionName('SETLENGTH', DefProc, Pointer(14), nil);
+
+  RegisterFunctionName('LENGTH',Length_,nil,nil);
+  RegisterFunctionName('SETLENGTH',SetLength_,nil,nil);
+  RegisterFunctionName('LOW',Low_,nil,nil);
+  RegisterFunctionName('HIGH',High_,nil,nil);
+  RegisterFunctionName('DEC',Dec_,nil,nil);
+  RegisterFunctionName('INC',Inc_,nil,nil);
+
   RegisterFunctionName('SIN', DefProc, Pointer(15), nil);
   RegisterFunctionName('COS', DefProc, Pointer(16), nil);
   RegisterFunctionName('SQRT', DefProc, Pointer(17), nil);

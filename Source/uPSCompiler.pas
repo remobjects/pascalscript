@@ -10556,8 +10556,10 @@ var
           if (x.BaseType = btArray) or (x.basetype = btStaticArray) then
           begin
             WriteLong(TPSArrayType(x).ArrayTypeNo.FinalTypeNo);
-            if (x.baseType = btstaticarray) then
+            if (x.baseType = btstaticarray) then begin
               WriteLong(TPSStaticArrayType(x).Length);
+              WriteLong(TPSStaticArrayType(x).StartOffset);      //<-additional StartOffset
+            end;
           end else if x.BaseType = btRecord then
           begin
             n := TPSRecordType(x).RecValCount;
@@ -12062,7 +12064,7 @@ procedure TPSPascalCompiler.DefineStandardProcedures;
 var
   p: TPSRegProc;
 begin
-  AddFunction('function inttostr(i: Longint): string;');
+  AddFunction('function inttostr(i: Int64): string;');
   AddFunction('function strtoint(s: string): Longint;');
   AddFunction('function strtointdef(s: string; def: Longint): Longint;');
   AddFunction('function copy(s: string; ifrom, icount: Longint): string;');
@@ -12094,8 +12096,36 @@ begin
   AddFunction('Function Uppercase(s : string) : string;');
   AddFunction('Function Lowercase(s : string) : string;');
   AddFunction('Function Trim(s : string) : string;');
-  AddFunction('Function Length(s : String) : Longint;');
-  AddFunction('procedure SetLength(var S: String; L: Longint);');
+  AddFunction('function Length: Integer;').Decl.AddParam.OrgName:='s';
+  with AddFunction('procedure SetLength;').Decl do
+  begin
+    with AddParam do
+    begin
+      OrgName:='s';
+      Mode:=pmInOut;
+    end;
+    with AddParam do
+    begin
+      OrgName:='NewLength';
+      aType:=FindBaseType(btS32);  //Integer
+    end;
+  end;
+  AddFunction('function Low: Int64;').Decl.AddParam.OrgName:='x';
+  AddFunction('function High: Int64;').Decl.AddParam.OrgName:='x';
+  with AddFunction('procedure Dec;').Decl do begin
+    with AddParam do
+    begin
+      OrgName:='x';
+      Mode:=pmInOut;
+    end;
+  end;
+  with AddFunction('procedure Inc;').Decl do begin
+    with AddParam do
+    begin
+      OrgName:='x';
+      Mode:=pmInOut;
+    end;
+  end;
   AddFunction('Function Sin(e : Extended) : Extended;');
   AddFunction('Function Cos(e : Extended) : Extended;');
   AddFunction('Function Sqrt(e : Extended) : Extended;');

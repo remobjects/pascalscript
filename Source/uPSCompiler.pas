@@ -6184,7 +6184,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         {$IFNDEF PS_NOIDISPATCH}or ((u.BaseType = btVariant) or (u.BaseType = btNotificationVariant)){$ENDIF} or (u.BaseType = btExtClass) then exit;
         if FParser.CurrTokenId = CSTI_OpenBlock then
         begin
-          if u.BaseType = btString then
+          if (u.BaseType = btString) or (u.BaseType = btWideString) then
           begin
              FParser.Next;
             tmp := Calc(CSTI_CloseBlock);
@@ -6205,7 +6205,10 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             FParser.Next;
             if FParser.CurrTokenId = CSTI_Assignment then
             begin
-              l := FindProc('STRSET');
+              if u.BaseType = btWideString then
+                l := FindProc('WSTRSET')
+              else
+                l := FindProc('STRSET');
               if l = -1 then
               begin
                 MakeError('', ecUnknownIdentifier, 'StrSet');
@@ -6247,7 +6250,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 x := nil;
                 exit;
               end;
-              if GetTypeNo(BlockInfo, Tmp).BaseType <> btChar then
+              if (GetTypeNo(BlockInfo, Tmp).BaseType <> btChar) and (GetTypeno(BlockInfo, Tmp).BaseType <> btWideChar) then
               begin
                 x.Free;
                 x := nil;
@@ -6262,6 +6265,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               if not Param.ExpectedType.Used then asm int 3; end;
 {$ENDIF}
             end else begin
+              if u.BaseType = btWideString then
+                l := FindProc('WSTRGET')
+              else
               l := FindProc('STRGET');
               if l = -1 then
               begin
@@ -6272,7 +6278,10 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 exit;
               end;
               tmp3 := TPSValueProcNo.Create;
-              tmp3.ResultType := FindBaseType(btChar);
+              if u.BaseType = btWideString then
+                tmp3.ResultType := FindBaseType(btWideChar)
+              else
+                tmp3.ResultType := FindBaseType(btChar);
               tmp3.ProcNo := L;
               tmp3.SetParserPos(FParser);
               tmp3.Parameters := TPSParameters.Create;
@@ -12089,8 +12098,10 @@ begin
     aType := FindBaseType(btS32);
   end;
   AddFunction('Function StrGet(var S : String; I : Integer) : Char;');
-  AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
   AddFunction('procedure StrSet(c : Char; I : Integer; var s : String);');
+  AddFunction('Function WStrGet(var S : WideString; I : Integer) : WideChar;');
+  AddFunction('procedure WStrSet(c : WideChar; I : Integer; var s : WideString);');
+  AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
   AddFunction('Function AnsiUppercase(s : string) : string;');
   AddFunction('Function AnsiLowercase(s : string) : string;');
   AddFunction('Function Uppercase(s : string) : string;');

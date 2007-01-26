@@ -1,4 +1,6 @@
 January 2007
+ - 3034: Complication errors for Length() and SetLength() function when performed on arrays or widestrings
+ - 3034: Access to widestring elements
  - Changes by Thomas Nitzschke; Low, High, SetLength, GetLength on arrays support
 
 December 2004

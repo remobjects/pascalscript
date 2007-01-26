@@ -8227,6 +8227,40 @@ begin
         else
           Stack.SetInt(-1, Temp.aType.RealSize)
       end;
+    42: // WStrGet
+      begin
+        temp :=  NewTPSVariantIFC(Stack[Stack.Count -2], True);
+        if (temp.Dta = nil) or (temp.aType.BaseType <> btWideString) then
+        begin
+          Result := False;
+          exit;
+        end;
+        I := Stack.GetInt(-3);
+        if (i<1) or (i>length(tbtwidestring(temp.Dta^))) then
+        begin
+          Caller.CMD_Err2(erCustomError, RPS_OutOfStringRange);
+          Result := False;
+          exit;
+        end;
+        Stack.SetInt(-1,Ord(tbtwidestring(temp.Dta^)[i]));
+      end;
+    43: // WStrSet
+      begin
+        temp := NewTPSVariantIFC(Stack[Stack.Count -3], True);
+        if (temp.Dta = nil) or (temp.aType.BaseType <> btWideString) then
+        begin
+          Result := False;
+          exit;
+        end;
+        I := Stack.GetInt(-2);
+        if (i<1) or (i>length(tbtWidestring(temp.Dta^))) then
+        begin
+          Caller.CMD_Err2(erCustomError, RPS_OutOfStringRange);
+          Result := True;
+          exit;
+        end;
+        tbtWidestring(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
+      end;
     else
     begin
       Result := False;
@@ -8292,15 +8326,20 @@ begin
   begin
     Stack.SetInt(-1,PSDynArrayGetLength(Pointer(arr.Dta^),arr.aType));
     Result:=true;
-  end;
+  end else
   if arr.aType.BaseType=btStaticArray then
   begin
     Stack.SetInt(-1,TPSTypeRec_StaticArray(arr.aType).Size);
     Result:=true;
-  end;
+  end else
   if arr.aType.BaseType=btString then
   begin
     Stack.SetInt(-1,length(tbtstring(arr.Dta^)));
+    Result:=true;
+  end else
+  if arr.aType.BaseType=btWideString then
+  begin
+    Stack.SetInt(-1,length(tbtWidestring(arr.Dta^)));
     Result:=true;
   end;
 end;
@@ -8316,10 +8355,15 @@ begin
   begin
     PSDynArraySetLength(Pointer(arr.Dta^),arr.aType,Stack.GetInt(-2));
     Result:=true;
-  end;
+  end else
   if arr.aType.BaseType=btString then
   begin
     SetLength(tbtstring(arr.Dta^),STack.GetInt(-2));
+    Result:=true;
+  end else
+  if arr.aType.BaseType=btWideString then
+  begin
+    SetLength(tbtwidestring(arr.Dta^),STack.GetInt(-2));
     Result:=true;
   end;
 end;
@@ -8327,7 +8371,6 @@ end;
 function Low_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
 var
   arr: TPSVariantIFC;
-  t: PIFTypeRec;
 begin
   Result:=true;
   arr:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
@@ -8348,7 +8391,6 @@ end;
 function High_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
 var
   arr: TPSVariantIFC;
-  t: PIFTypeRec;
 begin
   Result:=true;
   arr:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
@@ -8360,7 +8402,7 @@ begin
     btS8         : Stack.SetInt(-1,High(ShortInt));   //ShortInt: 127
     btU16        : Stack.SetInt(-1,High(Word));       //Word: 65535
     btS16        : Stack.SetInt(-1,High(SmallInt));   //SmallInt: 32767
-    btU32        : Stack.SetInt(-1,High(Cardinal));   //Cardinal/LongWord: 4294967295
+    btU32        : Stack.SetUInt(-1,High(Cardinal));   //Cardinal/LongWord: 4294967295
     btS32        : Stack.SetInt(-1,High(Integer));    //Integer/LongInt: 2147483647
     else Result:=false;
   end;
@@ -8472,6 +8514,9 @@ begin
   RegisterFunctionName('INT64TOSTR', DefProc, Pointer(40), nil);
   {$ENDIF}
   RegisterFunctionName('SIZEOF', DefProc, Pointer(41), nil);
+
+  RegisterFunctionName('WSTRGET', DefProc, Pointer(42), nil);
+  RegisterFunctionName('WSTRSET', DefProc, Pointer(43), nil);
 
   RegisterInterfaceLibraryRuntime(Self);
 end;

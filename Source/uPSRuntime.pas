@@ -3572,6 +3572,26 @@ begin
   Result := true;
 end;
 
+function CreateArrayFromVariant(Exec: TPSExec; dest: Pointer; src: Variant; DestType: TPSTypeRec): Boolean;
+var
+  i: Integer;
+  r: Pointer;
+  lVarType: TPSTypeRec;
+  v: variant;
+begin
+  lVarType := Exec.FindType2(btVariant);
+  if lVarType = nil then begin result := false; exit; end;
+  PSDynArraySetLength(Pointer(dest^), desttype, VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) + 1);
+  r := Pointer(Dest^);
+  DestType := TPSTypeRec_Array(DestType).ArrayType;
+  for i := 0 to VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) do begin
+    v := src[i + VarArrayLowBound(src, 1)];
+    if not Exec.SetVariantValue(r, @v, desttype, lVarType) then begin result := false; exit; end;
+    r := Pointer(Longint(r) + DestType.RealSize);
+  end;
+  Result := true;
+end;
+
 function CopyArrayContents(dest, src: Pointer; Len: Longint; aType: TPSTypeRec): Boolean;
 var
   elsize: Cardinal;
@@ -4141,8 +4161,9 @@ begin
           begin
             PSDynArraySetLength(Pointer(Dest^), desttype, TPSTypeRec_StaticArray(srctype).Size);
             CopyArrayContents(Pointer(dest^), Src, TPSTypeRec_StaticArray(srctype).Size, TPSTypeRec_StaticArray(srctype).ArrayType);
-          end else
-          if (desttype <> srctype) and not ((desttype.BaseType = btarray) and (srctype.BaseType = btArray)
+          end else if (srctype.BaseType = btvariant) and VarIsArray(Variant(src^)) then
+            Result := CreateArrayFromVariant(Self, dest, Variant(src^), desttype)
+          else if (desttype <> srctype) and not ((desttype.BaseType = btarray) and (srctype.BaseType = btArray)
             and (TPSTypeRec_Array(desttype).ArrayType = TPSTypeRec_Array(srctype).ArrayType)) then
             Result := False
           else

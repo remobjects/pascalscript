@@ -1,3 +1,6 @@
+February 2007
+ - 2 Feb: Allow converting a Variant back to an array of Variant
+
 January 2007
  - 3034: Complication errors for Length() and SetLength() function when performed on arrays or widestrings
  - 3034: Access to widestring elements

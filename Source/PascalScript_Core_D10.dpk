@@ -71,7 +71,6 @@ contains
   uPSC_dateutils in 'uPSC_dateutils.pas',
   uPSC_DB in 'uPSC_DB.pas',
   uPSC_dll in 'uPSC_dll.pas',
-  PascalScript_Core_Reg in 'PascalScript_Core_Reg.pas',
-  uPSComponentExt in 'uPSComponentExt.pas';
+  PascalScript_Core_Reg in 'PascalScript_Core_Reg.pas';
 
 end.

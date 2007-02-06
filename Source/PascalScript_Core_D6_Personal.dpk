@@ -67,7 +67,6 @@ contains
   uPSC_controls in 'uPSC_controls.pas',
   uPSC_dateutils in 'uPSC_dateutils.pas',
   uPSC_dll in 'uPSC_dll.pas',
-  PascalScript_Core_Reg_noDB in 'PascalScript_Core_Reg_noDB.pas',
-  uPSComponentExt in 'uPSComponentExt.pas';
+  PascalScript_Core_Reg_noDB in 'PascalScript_Core_Reg_noDB.pas';
 
 end.

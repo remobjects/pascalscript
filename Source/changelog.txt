@@ -1,4 +1,5 @@
 February 2007
+ - 19 feb: 0002735: Problem with function returning record; Give an error when calling record members on a funtion instead of an AV
  - 2 Feb: Allow converting a Variant back to an array of Variant
 
 January 2007

@@ -6380,11 +6380,17 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             FParser.Next;
           if u.BaseType = btRecord then
           begin
-            t := FindSubR(FParser.GetToken, u);
+             t := FindSubR(FParser.GetToken, u);
             if t = InvalidVal then
             begin
               if ImplicitPeriod then exit;
               MakeError('', ecUnknownIdentifier, FParser.GetToken);
+              x.Free;
+              x := nil;
+              exit;
+            end;
+            if not (x is TPSValueVar) then begin
+              MakeError('', ecVariableExpected, FParser.GetToken);
               x.Free;
               x := nil;
               exit;

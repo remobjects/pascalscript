@@ -195,7 +195,7 @@ type
   public
 
     property Size: Longint read FSize write FSize;
-    property StartOffset: LongInt read FStartOffset write FStartOffset;   
+    property StartOffset: LongInt read FStartOffset write FStartOffset;
 
     procedure CalcSize; override;
   end;
@@ -3587,7 +3587,7 @@ begin
   for i := 0 to VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) do begin
     v := src[i + VarArrayLowBound(src, 1)];
     if not Exec.SetVariantValue(r, @v, desttype, lVarType) then begin result := false; exit; end;
-    r := Pointer(Longint(r) + DestType.RealSize);
+    r := Pointer(Longint(r) + Longint(DestType.RealSize));
   end;
   Result := true;
 end;
@@ -9423,7 +9423,7 @@ begin
           if assigned(res) then begin
             case res^.aType.BaseType of
               {$IFNDEF PS_NOWIDESTRING}btWideString, {$ENDIF}
-              btInterface, btArray, btrecord, btstring, btVariant, btStaticArray: GetPtr(res);
+              btInterface, btArray, btrecord, {$IFNDEF PS_FPCSTRINGWORKAROUND}btstring, {$ENDIF}btVariant, btStaticArray: GetPtr(res);
               btSet:
                 begin
                   if TPSTypeRec_Set(res.aType).aByteSize >4 then GetPtr(res);
@@ -9459,7 +9459,13 @@ begin
               btInterface,
               btVariant,
               {$IFNDEF PS_NOWIDESTRING}btWidestring, {$ENDIF}
-              btStaticArray, btArray, btrecord, btstring:      RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
+              btStaticArray, btArray, btrecord{$IFNDEF PS_FPCSTRINGWORKAROUND}, btstring {$ENDIF}:      RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
+              {$IFDEF PS_FPCSTRINGWORKAROUND}
+              btstring: begin
+                 eax := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
+                 Longint(res.dta^) := eax;
+              end;
+              {$ENDIF}
             else
               exit;
             end;
@@ -11453,6 +11459,9 @@ begin
     btu16,
     bts32,
     btu32,
+{$IFDEF PS_FPCSTRINGWORKAROUND}
+    btString,
+{$ENDIF}
 {$IFNDEF PS_NOINT64}
     bts64,
 {$ENDIF}

@@ -123,7 +123,11 @@ begin
     RegisterMethod('function SEEK(OFFSET:LONGINT;ORIGIN:WORD):LONGINT');
     RegisterMethod('procedure READBUFFER(BUFFER:STRING;COUNT:LONGINT)');
     RegisterMethod('procedure WRITEBUFFER(BUFFER:STRING;COUNT:LONGINT)');
-    RegisterMethod('function COPYFROM(SOURCE:TSTREAM;COUNT:LONGINT):LONGINT');
+    {$IFDEF DELPIH4UP}
+    RegisterMethod('function COPYFROM(SOURCE:TSTREAM;COUNT:INT64):LONGINT');
+    {$ELSE}
+    RegisterMethod('function COPYFROM(SOURCE:TSTREAM;COUNT:Integer):LONGINT');
+    {$ENDIF}
     RegisterProperty('POSITION', 'LONGINT', iptrw);
     RegisterProperty('SIZE', 'LONGINT', iptrw);
   end;

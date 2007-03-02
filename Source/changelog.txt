@@ -1,3 +1,7 @@
+March 2007
+ - 2 mar: 0003179: strange assignment result 
+ - 2 mar: 0003180: Type mismatch with currency 
+
 February 2007
  - 22 feb: 0003033: string results are returned wrong on FreePascal 
  - 22 feb: fix for parameter type of TStream.CopyFRom

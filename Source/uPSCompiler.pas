@@ -8776,6 +8776,8 @@ begin
       i: Longint;
     begin
       Result := False;
+      if Outreg is TPSValueReplace
+        then Outreg:=TPSValueReplace(Outreg).OldValue;
       if Where.ClassType = TPSUnValueOp then
       begin
         if CheckOutReg(TPSUnValueOp(Where).Val1, OutReg) then
@@ -12302,8 +12304,7 @@ begin
   p.OrgName := Name;
   p.Name := Fastuppercase(Name);
   p.FType := AT2UT(FType);
-  if p <> nil then
-    p.exportname := FastUppercase(Name);
+  p.exportname := p.Name;
   FVars.Add(p);
   Result := P;
 end;

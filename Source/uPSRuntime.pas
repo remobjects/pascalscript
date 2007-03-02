@@ -8837,6 +8837,7 @@ begin
     btU32: Dest := {$IFDEF DELPHI6UP}tbtu32{$ELSE}tbts32{$ENDIF}(Src^);
     btS32: Dest := tbts32(Src^);
     btSingle: Dest := tbtsingle(Src^);
+    btCurrency: Dest:=tbtCurrency(Src^);
     btDouble:
       begin
         if aType.ExportName = 'TDATETIME' then

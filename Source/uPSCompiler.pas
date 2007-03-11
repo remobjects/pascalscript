@@ -6184,7 +6184,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         {$IFNDEF PS_NOIDISPATCH}or ((u.BaseType = btVariant) or (u.BaseType = btNotificationVariant)){$ENDIF} or (u.BaseType = btExtClass) then exit;
         if FParser.CurrTokenId = CSTI_OpenBlock then
         begin
-          if (u.BaseType = btString) or (u.BaseType = btWideString) then
+          if (u.BaseType = btString) {$IFNDEF PS_NOWIDESTRING} or (u.BaseType = btWideString) {$ENDIF} then
           begin
              FParser.Next;
             tmp := Calc(CSTI_CloseBlock);
@@ -6205,9 +6205,11 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             FParser.Next;
             if FParser.CurrTokenId = CSTI_Assignment then
             begin
+              {$IFNDEF PS_NOWIDESTRING}
               if u.BaseType = btWideString then
                 l := FindProc('WSTRSET')
               else
+              {$ENDIF}
                 l := FindProc('STRSET');
               if l = -1 then
               begin
@@ -6250,7 +6252,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 x := nil;
                 exit;
               end;
-              if (GetTypeNo(BlockInfo, Tmp).BaseType <> btChar) and (GetTypeno(BlockInfo, Tmp).BaseType <> btWideChar) then
+              if (GetTypeNo(BlockInfo, Tmp).BaseType <> btChar)
+              {$IFNDEF PS_NOWIDESTRING} and (GetTypeno(BlockInfo, Tmp).BaseType <> btWideChar) {$ENDIF} then
               begin
                 x.Free;
                 x := nil;
@@ -6265,10 +6268,12 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               if not Param.ExpectedType.Used then asm int 3; end;
 {$ENDIF}
             end else begin
+              {$IFNDEF PS_NOWIDESTRING}
               if u.BaseType = btWideString then
                 l := FindProc('WSTRGET')
               else
-              l := FindProc('STRGET');
+              {$ENDIF}
+                l := FindProc('STRGET');
               if l = -1 then
               begin
                 MakeError('', ecUnknownIdentifier, 'StrGet');
@@ -6278,9 +6283,11 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 exit;
               end;
               tmp3 := TPSValueProcNo.Create;
+              {$IFNDEF PS_NOWIDESTRING}
               if u.BaseType = btWideString then
                 tmp3.ResultType := FindBaseType(btWideChar)
               else
+              {$ENDIF}
                 tmp3.ResultType := FindBaseType(btChar);
               tmp3.ProcNo := L;
               tmp3.SetParserPos(FParser);
@@ -12081,7 +12088,11 @@ procedure TPSPascalCompiler.DefineStandardProcedures;
 var
   p: TPSRegProc;
 begin
+  {$IFNDEF PS_NOINT64}
   AddFunction('function inttostr(i: Int64): string;');
+  {$ELSE}
+  AddFunction('function inttostr(i: Integer): string;');
+  {$ENDIF}
   AddFunction('function strtoint(s: string): Longint;');
   AddFunction('function strtointdef(s: string; def: Longint): Longint;');
   AddFunction('function copy(s: string; ifrom, icount: Longint): string;');
@@ -12107,8 +12118,10 @@ begin
   end;
   AddFunction('Function StrGet(var S : String; I : Integer) : Char;');
   AddFunction('procedure StrSet(c : Char; I : Integer; var s : String);');
+  {$IFNDEF PS_NOWIDESTRING}
   AddFunction('Function WStrGet(var S : WideString; I : Integer) : WideChar;');
   AddFunction('procedure WStrSet(c : WideChar; I : Integer; var s : WideString);');
+  {$ENDIF}
   AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
   AddFunction('Function AnsiUppercase(s : string) : string;');
   AddFunction('Function AnsiLowercase(s : string) : string;');
@@ -12129,8 +12142,13 @@ begin
       aType:=FindBaseType(btS32);  //Integer
     end;
   end;
+  {$IFNDEF PS_NOINT64}
   AddFunction('function Low: Int64;').Decl.AddParam.OrgName:='x';
   AddFunction('function High: Int64;').Decl.AddParam.OrgName:='x';
+  {$ELSE}
+  AddFunction('function Low: Integer;').Decl.AddParam.OrgName:='x';
+  AddFunction('function High: Integer;').Decl.AddParam.OrgName:='x';
+  {$ENDIF}
   with AddFunction('procedure Dec;').Decl do begin
     with AddParam do
     begin

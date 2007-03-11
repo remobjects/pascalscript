@@ -8109,7 +8109,7 @@ var
   Tmp: TObject;
 begin
   case Longint(p.Ext1) of
-    0: Stack.SetString(-1, IntToStr(Stack.GetInt64(-2))); // inttostr
+    0: Stack.SetString(-1, IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2))); // inttostr
     1: Stack.SetInt(-1, SysUtils.StrToInt(Stack.GetString(-2))); // strtoint
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetString(-2), Stack.GetInt(-3))); // strtointdef
     3: Stack.SetInt(-1, Pos(Stack.GetString(-2), Stack.GetString(-3)));// pos
@@ -8248,6 +8248,7 @@ begin
         else
           Stack.SetInt(-1, Temp.aType.RealSize)
       end;
+{$IFNDEF PS_NOWIDESTRING}
     42: // WStrGet
       begin
         temp :=  NewTPSVariantIFC(Stack[Stack.Count -2], True);
@@ -8282,6 +8283,7 @@ begin
         end;
         tbtWidestring(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
       end;
+{$ENDIF}
     else
     begin
       Result := False;
@@ -8357,11 +8359,13 @@ begin
   begin
     Stack.SetInt(-1,length(tbtstring(arr.Dta^)));
     Result:=true;
+{$IFNDEF PS_NOWIDESTRING}
   end else
   if arr.aType.BaseType=btWideString then
   begin
     Stack.SetInt(-1,length(tbtWidestring(arr.Dta^)));
     Result:=true;
+{$ENDIF}
   end;
 end;
 
@@ -8381,11 +8385,13 @@ begin
   begin
     SetLength(tbtstring(arr.Dta^),STack.GetInt(-2));
     Result:=true;
+{$IFNDEF PS_NOWIDESTRING}
   end else
   if arr.aType.BaseType=btWideString then
   begin
     SetLength(tbtwidestring(arr.Dta^),STack.GetInt(-2));
     Result:=true;
+{$ENDIF}
   end;
 end;
 
@@ -8398,13 +8404,13 @@ begin
   case arr.aType.BaseType of
     btArray      : Stack.SetInt(-1,0);
     btStaticArray: Stack.SetInt(-1,TPSTypeRec_StaticArray(arr.aType).StartOffset);
-    btString     : Stack.SetInt64(-1,1);
-    btU8         : Stack.SetInt64(-1,Low(Byte));        //Byte: 0
-    btS8         : Stack.SetInt64(-1,Low(ShortInt));    //ShortInt: -128
-    btU16        : Stack.SetInt64(-1,Low(Word));        //Word: 0
-    btS16        : Stack.SetInt64(-1,Low(SmallInt));    //SmallInt: -32768
-    btU32        : Stack.SetInt64(-1,Low(Cardinal));    //Cardinal/LongWord: 0
-    btS32        : Stack.SetInt64(-1,Low(Integer));     //Integer/LongInt: -2147483648
+    btString     : Stack.SetInt(-1,1);
+    btU8         : Stack.SetInt(-1,Low(Byte));        //Byte: 0
+    btS8         : Stack.SetInt(-1,Low(ShortInt));    //ShortInt: -128
+    btU16        : Stack.SetInt(-1,Low(Word));        //Word: 0
+    btS16        : Stack.SetInt(-1,Low(SmallInt));    //SmallInt: -32768
+    btU32        : Stack.SetInt(-1,Low(Cardinal));    //Cardinal/LongWord: 0
+    btS32        : Stack.SetInt(-1,Low(Integer));     //Integer/LongInt: -2147483648
     else Result:=false;
   end;
 end;
@@ -8536,8 +8542,10 @@ begin
   {$ENDIF}
   RegisterFunctionName('SIZEOF', DefProc, Pointer(41), nil);
 
+  {$IFNDEF PS_NOWIDESTRING}
   RegisterFunctionName('WSTRGET', DefProc, Pointer(42), nil);
   RegisterFunctionName('WSTRSET', DefProc, Pointer(43), nil);
+  {$ENDIF}
 
   RegisterInterfaceLibraryRuntime(Self);
 end;
@@ -12429,7 +12437,7 @@ begin
            (DispParam.rgvarg[i].pvarVal)^ := Par[High(Par)-i];
           *)
           Move(Par[High(Par)-i],Pointer(DispParam.rgvarg[i].pvarVal)^,
-           Sizeof(OleVariant));
+           Sizeof({$IFDEF DELPHI4UP}OleVariant{$ELSE}Variant{$ENDIF}));
 
         end;
       end;

@@ -9236,7 +9236,7 @@ var
         btInterface,
         btClass,
         {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
-        btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btChar, btCurrency
+        btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
         {$IFNDEF PS_NOINT64}, bts64{$ENDIF}:
           begin
             Varptr := fvar.Dta;

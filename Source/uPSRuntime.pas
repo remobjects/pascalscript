@@ -1527,7 +1527,14 @@ begin
     btSingle: str(tbtsingle(p.dta^), Result);
     btDouble: str(tbtdouble(p.dta^), Result);
     btExtended: str(tbtextended(p.dta^), Result);
-    btString, btPChar: Result := makestring(string(p.dta^));
+    btString: Result := makestring(string(p.dta^));
+    btPChar:
+      begin
+        if PChar(p.dta^) = nil then
+          Result := 'nil'
+        else
+          Result := MakeString(PChar(p.dta^));
+      end;
     btchar: Result := MakeString(tbtchar(p.dta^));
     {$IFNDEF PS_NOWIDESTRING}
     btwidechar: Result := MakeWString(tbtwidechar(p.dta^));

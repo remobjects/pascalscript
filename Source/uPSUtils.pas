@@ -310,82 +310,82 @@ type
 
   tbtwidechar = widechar;
 {$ENDIF}
-  IPointer = Cardinal; 
+  IPointer = Cardinal;
   TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafeCall);
 
 
 const
-  
+
   MaxListSize = Maxint div 16;
 
 type
-  
+
   PPointerList = ^TPointerList;
-  
+
   TPointerList = array[0..MaxListSize - 1] of Pointer;
 
 
   TPSList = class(TObject)
   protected
-    
+
     FData: PPointerList;
-    
+
     FCapacity: Cardinal;
-    
+
     FCount: Cardinal;
-    
+
     FCheckCount: Cardinal;
   private
     function GetItem(Nr: Cardinal): Pointer;
     procedure SetItem(Nr: Cardinal; P: Pointer);
   public
     {$IFNDEF PS_NOSMARTLIST}
-  
+
     procedure Recreate;
     {$ENDIF}
-    
+
     property Data: PPointerList read FData;
-    
+
     constructor Create;
 
     function IndexOf(P: Pointer): Longint;
-  
+
     destructor Destroy; override;
-  
+
     property Count: Cardinal read FCount;
-    
+
     property Items[nr: Cardinal]: Pointer read GetItem write SetItem; default;
-  
+
     function Add(P: Pointer): Longint;
-  
+
     procedure AddBlock(List: PPointerList; Count: Longint);
-  
+
     procedure Remove(P: Pointer);
-  
+
     procedure Delete(Nr: Cardinal);
-    
+
     procedure DeleteLast;
 
     procedure Clear; virtual;
   end;
   TIFList = TPSList;
-  
+
   TPSStringList = class(TObject)
   private
     List: TPSList;
     function GetItem(Nr: LongInt): string;
     procedure SetItem(Nr: LongInt; const s: string);
   public
-    
+
     function Count: LongInt;
-    
+
     property Items[Nr: Longint]: string read GetItem write SetItem; default;
 
-  
+
     procedure Add(const P: string);
-  
+
     procedure Delete(NR: LongInt);
-  
+
     procedure Clear;
 
     constructor Create;
@@ -396,7 +396,7 @@ type
 
 
 type
-  
+
   TPSPasToken = (
     CSTI_EOF,
 
@@ -523,27 +523,27 @@ type
     function GetCol: Cardinal;
     // only applicable when Token in [CSTI_Identifier, CSTI_Integer, CSTI_Real, CSTI_String, CSTI_Char, CSTI_HexInt]
   public
-    
+
     property EnableComments: Boolean read FEnableComments write FEnableComments;
-    
+
     property EnableWhitespaces: Boolean read FEnableWhitespaces write FEnableWhitespaces;
-    
+
     procedure Next; virtual;
-    
+
     property GetToken: string read FToken;
-    
+
     property OriginalToken: string read FOriginalToken;
-    
+
     property CurrTokenPos: Cardinal read FRealPosition;
-    
+
     property CurrTokenID: TPSPasToken read FTokenId;
-    
+
     property Row: Cardinal read FRow;
 
     property Col: Cardinal read GetCol;
-    
+
     procedure SetText(const Data: string); virtual;
-    
+
     property OnParserError: TPSParserErrorEvent read FParserError write FParserError;
   end;
 
@@ -566,7 +566,7 @@ function GRFW(var s: string): string;
 function GRLW(var s: string): string;
 
 const
-  
+
   FCapacityInc = 32;
 {$IFNDEF PS_NOSMARTLIST}
 
@@ -1092,13 +1092,13 @@ var
   end;
   //-------------------------------------------------------------------
 
-  function GetToken(CurrTokenPos, CurrTokenLen: Cardinal): string;
+  function _GetToken(CurrTokenPos, CurrTokenLen: Cardinal): string;
   var
     s: string;
   begin
     SetLength(s, CurrTokenLen);
     Move(FText[CurrTokenPos], S[1], CurrtokenLen);
-    GetToken := s;
+    Result := s;
   end;
 
   function ParseToken(var CurrTokenPos, CurrTokenLen: Cardinal; var CurrTokenId: TPSPasToken): TPSParserErrorKind;
@@ -1124,7 +1124,7 @@ var
           end;
           CurrTokenLen := ci - ct;
 
-          FLastUpToken := GetToken(CurrTokenPos, CurrtokenLen);
+          FLastUpToken := _GetToken(CurrTokenPos, CurrtokenLen);
           p := pchar(FLastUpToken);
           while p^<>#0 do
           begin
@@ -1162,8 +1162,8 @@ var
               Inc(ci);
             end;
           end;
-          if (FText[ci] in ['E','e']) and ((FText[ci+1] in ['0'..'9']) 
-            or ((FText[ci+1] in ['+','-']) and (FText[ci+2] in ['0'..'9']))) then 
+          if (FText[ci] in ['E','e']) and ((FText[ci+1] in ['0'..'9'])
+            or ((FText[ci+1] in ['+','-']) and (FText[ci+2] in ['0'..'9']))) then
           begin
             hs := True;
             Inc(ci);
@@ -1221,7 +1221,7 @@ var
           begin
             while (FText[ci] in ['0'..'9']) do begin
               Inc(ci);
-            end;         
+            end;
             if FText[ci] in ['A'..'Z', 'a'..'z', '_'] then
             begin
               ParseToken := iCharError;

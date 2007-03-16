@@ -5,7 +5,7 @@ uses
   {$IFNDEF DELPHI3UP}{$IFNDEF PS_NOINTERFACES}{$IFNDEF LINUX}Windows, Ole2,{$ENDIF}
   {$ENDIF}{$ENDIF}SysUtils, uPSUtils;
 
-    
+
 type
 {$IFNDEF PS_NOINTERFACES}
   TPSInterface = class;
@@ -56,14 +56,14 @@ type
     {$ENDIF}
 
     property DeclarePos: Cardinal read FDeclarePos write FDeclarePos;
-    
+
     property DeclareRow: Cardinal read FDeclareRow write FDeclareRow;
-    
+
     property DeclareCol: Cardinal read FDeclareCol write FDeclareCol;
-    
+
   end;
 
-  
+
   TPSParametersDecl = class(TObject)
   private
     FParams: TPSList;
@@ -71,28 +71,28 @@ type
     function GetParam(I: Longint): TPSParameterDecl;
     function GetParamCount: Longint;
   public
-    
+
     property Params[I: Longint]: TPSParameterDecl read GetParam;
-    
+
     property ParamCount: Longint read GetParamCount;
 
-    
+
     function AddParam: TPSParameterDecl;
-    
+
     procedure DeleteParam(I: Longint);
 
-    
+
     property Result : TPSType read FResult write FResult;
 
-    
+
     procedure Assign(Params: TPSParametersDecl);
 
-    
+
     function Same(d: TPSParametersDecl): boolean;
 
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
   end;
 
@@ -107,11 +107,11 @@ type
     FOrgName: string;
     procedure SetName(const Value: string);
   public
-    
+
     property OrgName: string read FOrgName write FOrgName;
 	
     property Name: string read FName write SetName;
-    
+
     property NameHash: Longint read FNameHash;
 	
     property Decl: TPSParametersDecl read FDecl;
@@ -120,18 +120,18 @@ type
 	
     property ImportDecl: string read FImportDecl write FImportDecl;
 
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
   end;
-  
+
   PIFPSRegProc = TPSRegProc;
-  
+
   PIfRVariant = ^TIfRVariant;
-  
+
   TIfRVariant = record
-    
+
     FType: TPSType;
     case Byte of
       1: (tu8: TbtU8);
@@ -155,7 +155,7 @@ type
       {$ENDIF}
       21: (ttype: TPSType);
   end;
-  
+
   TPSRecordFieldTypeDef = class(TObject)
   private
     FFieldOrgName: string;
@@ -164,18 +164,18 @@ type
     FType: TPSType;
     procedure SetFieldOrgName(const Value: string);
   public
-    
+
     property FieldOrgName: string read FFieldOrgName write SetFieldOrgName;
-    
+
     property FieldName: string read FFieldName;
-    
+
     property FieldNameHash: Longint read FFieldNameHash;
-    
+
     property aType: TPSType read FType write FType;
   end;
-  
+
   PIFPSRecordFieldTypeDef = TPSRecordFieldTypeDef;
-  
+
   TPSType = class(TObject)
   private
     FNameHash: Longint;
@@ -194,43 +194,43 @@ type
     FFinalTypeNo: cardinal;
     procedure SetName(const Value: string);
   public
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
-    
+
     property Attributes: TPSAttributes read FAttributes;
 
-    
+
     property FinalTypeNo: cardinal read FFinalTypeNo;
 
-    
+
     property OriginalName: string read FOriginalName write FOriginalName;
-    
+
     property Name: string read FName write SetName;
-    
+
     property NameHash: Longint read FNameHash;
-    
+
     property BaseType: TPSBaseType read FBaseType write FBaseType;
-    
+
     {$IFDEF PS_USESSUPPORT}
     property DeclareUnit: String read FDeclareUnit write FDeclareUnit;
     {$ENDIF}
 
     property DeclarePos: Cardinal read FDeclarePos write FDeclarePos;
-    
+
     property DeclareRow: Cardinal read FDeclareRow write FDeclareRow;
-    
+
     property DeclareCol: Cardinal read FDeclareCol write FDeclareCol;
-    
+
     property Used: Boolean read FUsed;
-    
+
     property ExportName: Boolean read FExportName write FExportName;
-    
+
     procedure Use;
   end;
 
-  
+
   PIFPSType = TPSType;
 
   TPSVariantType = class(TPSType)
@@ -242,28 +242,28 @@ type
     function GetDynIvokeResulType(Owner: TPSPascalCompiler): TPSType; virtual;
   end;
 
-  
+
   TPSRecordType = class(TPSType)
   private
     FRecordSubVals: TPSList;
   public
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
-    
+
     function RecValCount: Longint;
-    
+
     function RecVal(I: Longint): PIFPSRecordFieldTypeDef;
-    
+
     function AddRecVal: PIFPSRecordFieldTypeDef;
   end;
-  
+
   TPSClassType = class(TPSType)
   private
     FCL: TPSCompiletimeClass;
   public
-    
+
     property Cl: TPSCompileTimeClass read FCL write FCL;
   end;
   TPSExternalClass = class;
@@ -274,48 +274,48 @@ type
     property ExtClass: TPSExternalClass read FExtClass write FExtClass;
   end;
 {$IFNDEF PS_NOINTERFACES}
-  
+
   TPSInterfaceType = class(TPSType)
   private
     FIntf: TPSInterface;
   public
-    
+
     property Intf: TPSInterface read FIntf write FIntf;
   end;
 {$ENDIF}
 
-  
+
   TPSProceduralType = class(TPSType)
   private
     FProcDef: TPSParametersDecl;
   public
-    
+
     property ProcDef: TPSParametersDecl read FProcDef;
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
   end;
-  
+
   TPSArrayType = class(TPSType)
   private
     FArrayTypeNo: TPSType;
   public
-    
+
     property ArrayTypeNo: TPSType read FArrayTypeNo write FArrayTypeNo;
   end;
-  
+
   TPSStaticArrayType = class(TPSArrayType)
   private
     FStartOffset: Longint;
     FLength: Cardinal;
   public
-    
+
     property StartOffset: Longint read FStartOffset write FStartOffset;
-    
+
     property Length: Cardinal read FLength write FLength;
   end;
-  
+
   TPSSetType = class(TPSType)
   private
     FSetType: TPSType;
@@ -324,44 +324,44 @@ type
   public
 
     property SetType: TPSType read FSetType write FSetType;
-    
+
     property ByteSize: Longint read GetByteSize;
-    
+
     property BitSize: Longint read GetBitSize;
   end;
-  
+
   TPSTypeLink = class(TPSType)
   private
     FLinkTypeNo: TPSType;
   public
-    
+
     property LinkTypeNo: TPSType read FLinkTypeNo write FLinkTypeNo;
   end;
-  
+
   TPSEnumType = class(TPSType)
   private
     FHighValue: Cardinal;
   public
-    
+
     property HighValue: Cardinal read FHighValue write FHighValue;
   end;
 
-  
+
   TPSProcedure = class(TObject)
   private
     FAttributes: TPSAttributes;
   public
-    
+
     property Attributes: TPSAttributes read FAttributes;
 
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
   end;
 
   TPSAttributeType = class;
-  
+
   TPSAttributeTypeField = class(TObject)
   private
     FOwner: TPSAttributeType;
@@ -372,24 +372,24 @@ type
     FHidden: Boolean;
     procedure SetFieldOrgName(const Value: string);
   public
-    
+
     constructor Create(AOwner: TPSAttributeType);
-    
+
     property Owner: TPSAttributeType read FOwner;
-    
+
     property FieldOrgName: string read FFieldOrgName write SetFieldOrgName;
-    
+
     property FieldName: string read FFieldName;
-    
+
     property FieldNameHash: Longint read FFieldNameHash;
-    
+
     property FieldType: TPSType read FFieldType write FFieldType;
-    
+
     property Hidden: Boolean read FHidden write FHidden;
   end;
-  
+
   TPSApplyAttributeToType = function (Sender: TPSPascalCompiler; aType: TPSType; Attr: TPSAttribute): Boolean;
-  
+
   TPSApplyAttributeToProc = function (Sender: TPSPascalCompiler; aProc: TPSProcedure; Attr: TPSAttribute): Boolean;
   { An attribute type }
   TPSAttributeType = class(TPSType)
@@ -404,87 +404,87 @@ type
     function GetFieldCount: Longint;
     procedure SetName(const s: string);
   public
-    
+
     property OnApplyAttributeToType: TPSApplyAttributeToType read FAAType write FAAType;
-    
+
     property OnApplyAttributeToProc: TPSApplyAttributeToProc read FAAProc write FAAProc;
-    
+
     property Fields[i: Longint]: TPSAttributeTypeField read GetField;
-    
+
     property FieldCount: Longint read GetFieldCount;
 
     procedure DeleteField(I: Longint);
-    
+
     function AddField: TPSAttributeTypeField;
-    
+
     property Name: string read FName;
 
     property OrgName: string read FOrgName write SetName;
 
     property NameHash: Longint read FNameHash;
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
   end;
-  
+
   TPSAttribute = class(TObject)
   private
     FAttribType: TPSAttributeType;
-    FValues: TPSList; 
+    FValues: TPSList;
     function GetValueCount: Longint;
     function GetValue(I: Longint): PIfRVariant;
   public
-    
+
     constructor Create(AttribType: TPSAttributeType);
-    
+
     procedure Assign(Item: TPSAttribute);
-    
+
     property AType: TPSAttributeType read FAttribType;
-    
+
     property Count: Longint read GetValueCount;
-    
+
     property Values[i: Longint]: PIfRVariant read GetValue; default;
-    
+
     procedure DeleteValue(i: Longint);
-    
+
     function AddValue(v: PIFRVariant): Longint;
-    
+
     destructor Destroy; override;
   end;
 
-  
+
   TPSAttributes = class(TObject)
   private
-    FItems: TPSList; 
+    FItems: TPSList;
     function GetCount: Longint;
     function GetItem(I: Longint): TPSAttribute;
   public
-    
+
     procedure Assign(attr: TPSAttributes; Move: Boolean);
-    
+
     property Count: Longint read GetCount;
-    
+
     property Items[i: Longint]: TPSAttribute read GetItem; default;
-    
+
     procedure Delete(i: Longint);
-    
+
     function Add(AttribType: TPSAttributeType): TPSAttribute;
-    
+
     function FindAttribute(const Name: string): TPSAttribute;
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
   end;
 
-  
+
   TPSProcVar = class(TObject)
   private
     FNameHash: Longint;
     FName: string;
     FOrgName: string;
-    FType: TPSType; 
+    FType: TPSType;
     FUsed: Boolean;
     {$IFDEF PS_USESSUPPORT}
     FDeclareUnit: String;
@@ -492,41 +492,41 @@ type
     FDeclarePos, FDeclareRow, FDeclareCol: Cardinal;
     procedure SetName(const Value: string);
   public
-    
+
     property OrgName: string read FOrgName write FOrgname;
-    
+
     property NameHash: Longint read FNameHash;
-    
+
     property Name: string read FName write SetName;
-    
+
     property AType: TPSType read FType write FType;
-    
+
     property Used: Boolean read FUsed;
-    
+
     {$IFDEF PS_USESSUPPORT}
     property DeclareUnit: String read FDeclareUnit write FDeclareUnit;
     {$ENDIF}
 
     property DeclarePos: Cardinal read FDeclarePos write FDeclarePos;
-    
+
     property DeclareRow: Cardinal read FDeclareRow write FDeclareRow;
-    
+
     property DeclareCol: Cardinal read FDeclareCol write FDeclareCol;
-    
+
     procedure Use;
   end;
 
   PIFPSProcVar = TPSProcVar;
-   
+
   TPSExternalProcedure = class(TPSProcedure)
   private
     FRegProc: TPSRegProc;
   public
-    
+
     property RegProc: TPSRegProc read FRegProc write FRegProc;
   end;
 
-  
+
   TPSInternalProcedure = class(TPSProcedure)
   private
     FForwarded: Boolean;
@@ -538,7 +538,7 @@ type
     FUsed: Boolean;
     FOutputDeclPosition: Cardinal;
     FResultUsed: Boolean;
-    FLabels: TIfStringList; 
+    FLabels: TIfStringList;
     FGotos: TIfStringList;
     FDeclareRow: Cardinal;
     {$IFDEF PS_USESSUPPORT}
@@ -547,55 +547,55 @@ type
     FDeclarePos: Cardinal;
     FDeclareCol: Cardinal;
     FOriginalName: string;
-    procedure SetName(const Value: string);  
+    procedure SetName(const Value: string);
   public
-    
+
     constructor Create;
-    
+
     destructor Destroy; override;
     {Attributes}
 
-    
+
     property Forwarded: Boolean read FForwarded write FForwarded;
-    
+
     property Data: string read FData write FData;
-    
+
     property Decl: TPSParametersDecl read FDecl;
-    
+
     property OriginalName: string read FOriginalName write FOriginalName;
 
     property Name: string read FName write SetName;
-    
+
     property NameHash: Longint read FNameHash;
-    
+
     property ProcVars: TPSList read FProcVars;
-    
+
     property Used: Boolean read FUsed;
-    
+
     {$IFDEF PS_USESSUPPORT}
     property DeclareUnit: String read FDeclareUnit write FDeclareUnit;
     {$ENDIF}
 
     property DeclarePos: Cardinal read FDeclarePos write FDeclarePos;
-    
+
     property DeclareRow: Cardinal read FDeclareRow write FDeclareRow;
-    
+
     property DeclareCol: Cardinal read FDeclareCol write FDeclareCol;
-    
+
     property OutputDeclPosition: Cardinal read FOutputDeclPosition write FOutputDeclPosition;
-    
+
     property ResultUsed: Boolean read FResultUsed;
 
-    
+
     property Labels: TIfStringList read FLabels;
-    
+
     property Gotos: TIfStringList read FGotos;
-    
+
     procedure Use;
-    
+
     procedure ResultUse;
   end;
-  
+
   TPSVar = class(TObject)
   private
     FNameHash: Longint;
@@ -662,13 +662,13 @@ type
   private
     procedure SetName(const Value: string);
   public
-    
+
     property OrgName: string read FOrgName write FOrgName;
-    
+
     property Name: string read FName write SetName;
-    
+
     property NameHash: Longint read FNameHash;
-    
+
     property Value: PIfRVariant read FValue write FValue;
 
     {$IFDEF PS_USESSUPPORT}
@@ -676,41 +676,41 @@ type
     {$ENDIF}
 
     property DeclarePos: Cardinal read FDeclarePos write FDeclarePos;
-    
+
     property DeclareRow: Cardinal read FDeclareRow write FDeclareRow;
-    
+
     property DeclareCol: Cardinal read FDeclareCol write FDeclareCol;
-    
+
 
     procedure SetSet(const val);
 
-    
+
     procedure SetInt(const Val: Longint);
-    
+
     procedure SetUInt(const Val: Cardinal);
     {$IFNDEF PS_NOINT64}
-    
+
     procedure SetInt64(const Val: Int64);
     {$ENDIF}
-    
+
     procedure SetString(const Val: string);
-    
+
     procedure SetChar(c: Char);
     {$IFNDEF PS_NOWIDESTRING}
-    
+
     procedure SetWideChar(const val: WideChar);
-    
+
     procedure SetWideString(const val: WideString);
     {$ENDIF}
-    
+
     procedure SetExtended(const Val: Extended);
 
-    
+
     destructor Destroy; override;
   end;
-  
+
   PIFPSConstant = TPSConstant;
-  
+
   TPSPascalCompilerErrorType = (
     ecUnknownIdentifier,
     ecIdentifierExpected,
@@ -765,27 +765,27 @@ type
     ehFunctionNotUsed,
     ehCustomHint
     );
-  
+
   TPSPascalCompilerWarningType = (
     ewCalculationAlwaysEvaluatesTo,
     ewIsNotNeeded,
     ewAbstractClass,
     ewCustomWarning
   );
-  
+
   TPSPascalCompilerMessage = class(TObject)
   protected
-    
+
     FRow: Cardinal;
-    
+
     FCol: Cardinal;
-    
+
     FModuleName: string;
-    
+
     FParam: string;
-    
+
     FPosition: Cardinal;
-    
+
     procedure SetParserPos(Parser: TPSPascalParser);
   public
 
@@ -810,41 +810,41 @@ type
 
   TPSPascalCompilerError = class(TPSPascalCompilerMessage)
   protected
-    
+
     FError: TPSPascalCompilerErrorType;
   public
-    
+
     property Error: TPSPascalCompilerErrorType read FError;
 
     function ErrorType: string; override;
     function ShortMessageToString: string; override;
   end;
-  
+
   TPSPascalCompilerHint = class(TPSPascalCompilerMessage)
   protected
-    
+
     FHint: TPSPascalCompilerHintType;
   public
-    
+
     property Hint: TPSPascalCompilerHintType read FHint;
 
     function ErrorType: string; override;
     function ShortMessageToString: string; override;
   end;
-  
+
   TPSPascalCompilerWarning = class(TPSPascalCompilerMessage)
   protected
 
     FWarning: TPSPascalCompilerWarningType;
   public
-    
+
     property Warning: TPSPascalCompilerWarningType read FWarning;
 
     function ErrorType: string; override;
     function ShortMessageToString: string; override;
   end;
   TPSDuplicCheck = set of (dcTypes, dcProcs, dcVars, dcConsts);
-  
+
   TPSBlockInfo = class(TObject)
   private
     FOwner: TPSBlockInfo;
@@ -853,34 +853,34 @@ type
     FProc: TPSInternalProcedure;
     FSubType: TPSSubOptType;
   public
-    
+
     property WithList: TPSList read FWithList;
-    
+
     property ProcNo: Cardinal read FProcNo write FProcNo;
-    
+
     property Proc: TPSInternalProcedure read FProc write FProc;
-    
+
     property SubType: TPSSubOptType read FSubType write FSubType;
-    
+
     procedure Clear;
-    
+
     constructor Create(Owner: TPSBlockInfo);
-    
+
     destructor Destroy; override;
   end;
 
 
-  
+
   TPSBinOperatorType = (otAdd, otSub, otMul, otDiv, otMod, otShl, otShr, otAnd, otOr, otXor, otAs,
                           otGreaterEqual, otLessEqual, otGreater, otLess, otEqual,
                           otNotEqual, otIs, otIn);
-  
+
   TPSUnOperatorType = (otNot, otMinus, otCast);
 
   TPSOnUseVariable = procedure (Sender: TPSPascalCompiler; VarType: TPSVariableType; VarNo: Longint; ProcNo, Position: Cardinal; const PropData: string);
-  
+
   TPSOnUses = function(Sender: TPSPascalCompiler; const Name: string): Boolean;
-  
+
   TPSOnExportCheck = function(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: string): Boolean;
 
   {$IFNDEF PS_USESSUPPORT}
@@ -890,11 +890,11 @@ type
   {$ENDIF}
 
   TPSOnExternalProc = function (Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const Name, FExternal: string): TPSRegProc;
-  
+
   TPSOnTranslateLineInfoProc = procedure (Sender: TPSPascalCompiler; var Pos, Row, Col: Cardinal; var Name: string);
   TPSOnNotify = function (Sender: TPSPascalCompiler): Boolean;
 
-  
+
   TPSPascalCompiler = class
   protected
     FID: Pointer;
@@ -942,34 +942,34 @@ type
 
     FCurrUsedTypeNo: Cardinal;
     FGlobalBlock: TPSBlockInfo;
-    
+
     function IsBoolean(aType: TPSType): Boolean;
     {$IFNDEF PS_NOWIDESTRING}
-    
+
     function GetWideString(Src: PIfRVariant; var s: Boolean): WideString;
     {$ENDIF}
     function PreCalc(FUseUsedTypes: Boolean; Var1Mod: Byte; var1: PIFRVariant; Var2Mod: Byte;
       Var2: PIfRVariant; Cmd: TPSBinOperatorType; Pos, Row, Col: Cardinal): Boolean;
 
     function FindBaseType(BaseType: TPSBaseType): TPSType;
-    
+
     function IsIntBoolType(aType: TPSType): Boolean;
     function GetTypeCopyLink(p: TPSType): TPSType;
-    
+
     function at2ut(p: TPSType): TPSType;
     procedure UseProc(procdecl: TPSParametersDecl);
 
-    
+
     function GetMsgCount: Longint;
-    
+
     function GetMsg(l: Longint): TPSPascalCompilerMessage;
 
-    
+
     function MakeExportDecl(decl: TPSParametersDecl): string;
 
-    
+
     procedure DefineStandardTypes;
-    
+
     procedure DefineStandardProcedures;
 
     function ReadReal(const s: string): PIfRVariant;
@@ -977,11 +977,11 @@ type
     function ReadInteger(const s: string): PIfRVariant;
     function ReadAttributes(Dest: TPSAttributes): Boolean;
     function ReadConstant(FParser: TPSPascalParser; StopOn: TPSPasToken): PIfRVariant;
-    
+
     function ApplyAttribsToFunction(func: TPSProcedure): boolean;
     function ProcessFunction(AlwaysForward: Boolean; Att: TPSAttributes): Boolean;
     function ValidateParameters(BlockInfo: TPSBlockInfo; Params: TPSParameters; ParamTypes: TPSParametersDecl): boolean;
-    
+
     function IsVarInCompatible(ft1, ft2: TPSType): Boolean;
     function GetTypeNo(BlockInfo: TPSBlockInfo; p: TPSValue): TPSType;
     function DoVarBlock(proc: TPSInternalProcedure): Boolean;
@@ -992,47 +992,47 @@ type
     function ProcessLabelForwards(Proc: TPSInternalProcedure): Boolean;
 
     procedure WriteDebugData(const s: string);
-    
+
     procedure Debug_SavePosition(ProcNo: Cardinal; Proc: TPSInternalProcedure);
-    
+
     procedure Debug_WriteParams(ProcNo: Cardinal; Proc: TPSInternalProcedure);
-    
+
     procedure Debug_WriteLine(BlockInfo: TPSBlockInfo);
 
-    
+
     function IsCompatibleType(p1, p2: TPSType; Cast: Boolean): Boolean;
-    
+
     function IsDuplicate(const s: string; const check: TPSDuplicCheck): Boolean;
-    
+
     function NewProc(const OriginalName, Name: string): TPSInternalProcedure;
-    
+
     function AddUsedFunction(var Proc: TPSInternalProcedure): Cardinal;
-    
+
     function AddUsedFunction2(var Proc: TPSExternalProcedure): Cardinal;
 
-    
+
     function CheckCompatProc(P: TPSType; ProcNo: Cardinal): Boolean;
 
-    
+
     procedure ParserError(Parser: TObject; Kind: TPSParserErrorKind);
 
     function ReadTypeAddProcedure(const Name: string; FParser: TPSPascalParser): TPSType;
 
     function VarIsDuplicate(Proc: TPSInternalProcedure; const VarNames, s: string): Boolean;
-    
+
     function IsProcDuplicLabel(Proc: TPSInternalProcedure; const s: string): Boolean;
-    
+
     procedure CheckForUnusedVars(Func: TPSInternalProcedure);
     function ProcIsDuplic(Decl: TPSParametersDecl; const FunctionName, FunctionParamNames: string; const s: string; Func: TPSInternalProcedure): Boolean;
    public
      function GetConstant(const Name: string): TPSConstant;
-     
+
      function UseExternalProc(const Name: string): TPSParametersDecl;
-    
+
     function FindProc(const Name: string): Cardinal;
 
     function GetTypeCount: Longint;
-    
+
     function GetType(I: Longint): TPSType;
 
     function GetVarCount: Longint;
@@ -1053,84 +1053,84 @@ type
 
     function AddAttributeType: TPSAttributeType;
     function FindAttributeType(const Name: string): TPSAttributeType;
-    
+
     procedure AddToFreeList(Obj: TObject);
-    
+
     property ID: Pointer read FID write FID;
-    
+
     function MakeError(const Module: string; E: TPSPascalCompilerErrorType; const
       Param: string): TPSPascalCompilerMessage;
-    
+
     function MakeWarning(const Module: string; E: TPSPascalCompilerWarningType;
       const Param: string): TPSPascalCompilerMessage;
-    
+
     function MakeHint(const Module: string; E: TPSPascalCompilerHintType;
       const Param: string): TPSPascalCompilerMessage;
 
 {$IFNDEF PS_NOINTERFACES}
-    
+
     function AddInterface(InheritedFrom: TPSInterface; Guid: TGuid; const Name: string): TPSInterface;
-    
+
     function FindInterface(const Name: string): TPSInterface;
-    
+
 {$ENDIF}
     function AddClass(InheritsFrom: TPSCompileTimeClass; aClass: TClass): TPSCompileTimeClass;
-    
+
     function AddClassN(InheritsFrom: TPSCompileTimeClass; const aClass: string): TPSCompileTimeClass;
 
-    
+
     function FindClass(const aClass: string): TPSCompileTimeClass;
-    
+
     function AddFunction(const Header: string): TPSRegProc;
 
     function AddDelphiFunction(const Decl: string): TPSRegProc;
-    
+
     function AddType(const Name: string; const BaseType: TPSBaseType): TPSType;
-    
+
     function AddTypeS(const Name, Decl: string): TPSType;
-    
+
     function AddTypeCopy(const Name: string; TypeNo: TPSType): TPSType;
-    
+
     function AddTypeCopyN(const Name, FType: string): TPSType;
-    
+
     function AddConstant(const Name: string; FType: TPSType): TPSConstant;
-    
+
     function AddConstantN(const Name, FType: string): TPSConstant;
-    
+
     function AddVariable(const Name: string; FType: TPSType): TPSVar;
-    
+
     function AddVariableN(const Name, FType: string): TPSVar;
-    
+
     function AddUsedVariable(const Name: string; FType: TPSType): TPSVar;
-    
+
     function AddUsedVariableN(const Name, FType: string): TPSVar;
-    
+
     function AddUsedPtrVariable(const Name: string; FType: TPSType): TPSVar;
-    
+
     function AddUsedPtrVariableN(const Name, FType: string): TPSVar;
-    
+
     function FindType(const Name: string): TPSType;
 
     function MakeDecl(decl: TPSParametersDecl): string;
-    
+
     function Compile(const s: string): Boolean;
-    
+
     function GetOutput(var s: string): Boolean;
 	
     function GetDebugOutput(var s: string): Boolean;
-    
+
     procedure Clear;
-    
+
     constructor Create;
 	
     destructor Destroy; override;
-    
+
     property MsgCount: Longint read GetMsgCount;
 	
     property Msg[l: Longint]: TPSPascalCompilerMessage read GetMsg;
-    
+
     property OnTranslateLineInfo: TPSOnTranslateLineInfoProc read FOnTranslateLineInfo write FOnTranslateLineInfo;
-    
+
     property OnUses: TPSOnUses read FOnUses write FOnUses;
 	
     property OnExportCheck: TPSOnExportCheck read FOnExportCheck write FOnExportCheck;
@@ -1140,9 +1140,9 @@ type
     property OnExternalProc: TPSOnExternalProc read FOnExternalProc write FOnExternalProc;
 	
     property OnUseVariable: TPSOnUseVariable read FOnUseVariable write FOnUseVariable;
-    
+
     property OnBeforeOutput: TPSOnNotify read FOnBeforeOutput write FOnBeforeOutput;
-    
+
     property OnBeforeCleanup: TPSOnNotify read FOnBeforeCleanup write FOnBeforeCleanup;
 	
     property IsUnit: Boolean read FIsUnit;
@@ -1159,21 +1159,21 @@ type
     property UTF8Decode: Boolean read FUtf8Decode write FUtf8Decode;
   end;
   TIFPSPascalCompiler = TPSPascalCompiler;
-  
+
   TPSValue = class(TObject)
   private
     FPos, FRow, FCol: Cardinal;
   public
-    
+
     property Pos: Cardinal read FPos write FPos;
-    
+
     property Row: Cardinal read FRow write FRow;
-    
+
     property Col: Cardinal read FCol write FCol;
-    
+
     procedure SetParserPos(P: TPSPascalParser);
   end;
-  
+
   TPSParameter = class(TObject)
   private
     FValue: TPSValue;
@@ -1181,18 +1181,18 @@ type
     FParamMode: TPSParameterMode;
     FExpectedType: TPSType;
   public
-    
+
     property Val: TPSValue read FValue write FValue;
-    
+
     property ExpectedType: TPSType read FExpectedType write FExpectedType;
-    
+
     property TempVar: TPSValue read FTempVar write FTempVar;
-    
+
     property ParamMode: TPSParameterMode read FParamMode write FParamMode;
-    
+
     destructor Destroy; override;
   end;
-  
+
   TPSParameters = class(TObject)
   private
     FItems: TPSList;
@@ -1201,18 +1201,18 @@ type
   public
 
     constructor Create;
-    
+
     destructor Destroy; override;
-    
+
     property Count: Cardinal read GetCount;
-    
+
     property Item[I: Longint]: TPSParameter read GetItem; default;
-    
+
     procedure Delete(I: Cardinal);
-    
+
     function Add: TPSParameter;
   end;
-  
+
   TPSSubItem = class(TObject)
   private
     FType: TPSType;
@@ -1220,25 +1220,25 @@ type
 
     property aType: TPSType read FType write FType;
   end;
-  
+
   TPSSubNumber = class(TPSSubItem)
   private
     FSubNo: Cardinal;
   public
-    
+
     property SubNo: Cardinal read FSubNo write FSubNo;
   end;
-  
+
   TPSSubValue = class(TPSSubItem)
   private
     FSubNo: TPSValue;
   public
-    
+
     property SubNo: TPSValue read FSubNo write FSubNo;
-    
+
     destructor Destroy; override;
   end;
-  
+
   TPSValueVar = class(TPSValue)
   private
     FRecItems: TPSList;
@@ -1249,48 +1249,48 @@ type
     destructor Destroy; override;
 
     function RecAdd(Val: TPSSubItem): Cardinal;
-    
+
     procedure RecDelete(I: Cardinal);
-    
+
     property RecItem[I: Cardinal]: TPSSubItem read GetRecItem;
-    
+
     property RecCount: Cardinal read GetRecCount;
   end;
-  
+
   TPSValueGlobalVar = class(TPSValueVar)
   private
     FAddress: Cardinal;
   public
-    
+
     property GlobalVarNo: Cardinal read FAddress write FAddress;
   end;
 
-  
+
   TPSValueLocalVar = class(TPSValueVar)
   private
     FLocalVarNo: Longint;
   public
-    
+
     property LocalVarNo: Longint read FLocalVarNo write FLocalVarNo;
   end;
-  
+
   TPSValueParamVar = class(TPSValueVar)
   private
     FParamNo: Longint;
   public
-    
+
     property ParamNo: Longint read FParamNo write FParamNo;
   end;
-  
+
   TPSValueAllocatedStackVar = class(TPSValueLocalVar)
   private
     FProc: TPSInternalProcedure;
   public
-    
+
     property Proc: TPSInternalProcedure read FProc write FProc;
     destructor Destroy; override;
   end;
-  
+
   TPSValueData = class(TPSValue)
   private
     FData: PIfRVariant;
@@ -1299,7 +1299,7 @@ type
     property Data: PIfRVariant read FData write FData;
     destructor Destroy; override;
   end;
-  
+
   TPSValueReplace = class(TPSValue)
   private
     FPreWriteAllocated: Boolean;
@@ -1309,37 +1309,37 @@ type
     FNewValue: TPSValue;
     FReplaceTimes: Longint;
   public
-    
+
     property OldValue: TPSValue read FOldValue write FOldValue;
-    
+
     property NewValue: TPSValue read FNewValue write FNewValue;
     {Should it free the old value when destroyed?}
-    property FreeOldValue: Boolean read FFreeOldValue write FFreeOldValue; 
-    property FreeNewValue: Boolean read FFreeNewValue write FFreeNewValue; 
+    property FreeOldValue: Boolean read FFreeOldValue write FFreeOldValue;
+    property FreeNewValue: Boolean read FFreeNewValue write FFreeNewValue;
     property PreWriteAllocated: Boolean read FPreWriteAllocated write FPreWriteAllocated;
-    
+
     property ReplaceTimes: Longint read FReplaceTimes write FReplaceTimes;
 
     constructor Create;
     destructor Destroy; override;
   end;
 
-  
+
   TPSUnValueOp = class(TPSValue)
   private
     FVal1: TPSValue;
     FOperator: TPSUnOperatorType;
     FType: TPSType;
   public
-    
+
     property Val1: TPSValue read FVal1 write FVal1;
     {The operator}
     property Operator: TPSUnOperatorType read FOperator write FOperator;
-    
+
     property aType: TPSType read FType write FType;
     destructor Destroy; override;
   end;
-  
+
   TPSBinValueOp = class(TPSValue)
   private
     FVal1,
@@ -1347,29 +1347,29 @@ type
     FOperator: TPSBinOperatorType;
     FType: TPSType;
   public
-    
+
     property Val1: TPSValue read FVal1 write FVal1;
-    
+
     property Val2: TPSValue read FVal2 write FVal2;
     {The operator for this value}
     property Operator: TPSBinOperatorType read FOperator write FOperator;
-    
+
     property aType: TPSType read FType write FType;
-    
+
     destructor Destroy; override;
   end;
-  
+
   TPSValueNil = class(TPSValue)
   end;
-  
+
   TPSValueProcPtr = class(TPSValue)
   private
     FProcNo: Cardinal;
   public
-    
+
     property ProcPtr: Cardinal read FProcNo write FProcNo;
   end;
-  
+
   TPSValueProc = class(TPSValue)
   private
     FSelfPtr: TPSValue;
@@ -1383,12 +1383,12 @@ type
     property Parameters: TPSParameters read FParameters write FParameters;
     destructor Destroy; override;
   end;
-  
+
   TPSValueProcNo = class(TPSValueProc)
   private
     FProcNo: Cardinal;
   public
-   
+
     property ProcNo: Cardinal read FProcNo write FProcNo;
   end;
 
@@ -1418,9 +1418,9 @@ type
   end;
 
   TPSDelphiClassItem = class;
-  
+
   TPSPropType = (iptRW, iptR, iptW);
-  
+
   TPSCompileTimeClass = class
   private
     FInheritsFrom: TPSCompileTimeClass;
@@ -1438,62 +1438,62 @@ type
     function GetCount: Longint;
     function GetItem(i: Longint): TPSDelphiClassItem;
   public
-    
+
     property aType: TPSType read FType;
-    
+
     property Items[i: Longint]: TPSDelphiClassItem read GetItem;
-    
+
     property Count: Longint read GetCount;
 
     property IsAbstract: Boolean read FIsAbstract write FIsAbstract;
 
-    
+
     property ClassInheritsFrom: TPSCompileTimeClass read FInheritsFrom write FInheritsFrom;
-    
+
     function RegisterMethod(const Decl: string): Boolean;
 	
     procedure RegisterProperty(const PropertyName, PropertyType: string; PropAC: TPSPropType);
-    
+
     procedure RegisterPublishedProperties;
-    
+
     function RegisterPublishedProperty(const Name: string): Boolean;
-    
+
     procedure SetDefaultPropery(const Name: string);
-    
+
     constructor Create(ClassName: string; aOwner: TPSPascalCompiler; aType: TPSType);
-    
+
     class function CreateC(FClass: TClass; aOwner: TPSPascalCompiler; aType: TPSType): TPSCompileTimeClass;
 
-    
+
     destructor Destroy; override;
 
-    
+
     function IsCompatibleWith(aType: TPSType): Boolean;
-    
+
     function SetNil(var ProcNo: Cardinal): Boolean;
-    
+
     function CastToType(IntoType: TPSType; var ProcNo: Cardinal): Boolean;
 
-    
+
     function Property_Find(const Name: string; var Index: Cardinal): Boolean;
-    
+
     function Property_Get(Index: Cardinal; var ProcNo: Cardinal): Boolean;
-    
+
     function Property_Set(Index: Cardinal; var ProcNo: Cardinal): Boolean;
-    
+
     function Property_GetHeader(Index: Cardinal; Dest: TPSParametersDecl): Boolean;
 
-    
+
     function Func_Find(const Name: string; var Index: Cardinal): Boolean;
-    
+
     function Func_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean;
 
-    
+
     function ClassFunc_Find(const Name: string; var Index: Cardinal): Boolean;
-    
+
     function ClassFunc_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean;
   end;
-  
+
   TPSDelphiClassItem = class(TObject)
   private
     FOwner: TPSCompileTimeClass;
@@ -1503,50 +1503,50 @@ type
     FDecl: TPSParametersDecl;
     procedure SetName(const s: string);
   public
-    
+
     constructor Create(Owner: TPSCompileTimeClass);
-    
+
     destructor Destroy; override;
-    
+
     property Decl: TPSParametersDecl read FDecl;
-    
+
     property Name: string read FName;
-    
+
     property OrgName: string read FOrgName write SetName;
 
     property NameHash: Longint read FNameHash;
-    
+
     property Owner: TPSCompileTimeClass read FOwner;
   end;
-  
+
   TPSDelphiClassItemMethod = class(TPSDelphiClassItem)
   private
     FMethodNo: Cardinal;
   public
-    
+
     property MethodNo: Cardinal read FMethodNo write FMethodNo;
   end;
-  
+
   TPSDelphiClassItemProperty = class(TPSDelphiClassItem)
   private
     FReadProcNo: Cardinal;
     FWriteProcNo: Cardinal;
     FAccessType: TPSPropType;
   public
-    
+
     property AccessType: TPSPropType read FAccessType write FAccessType;
-    
+
     property ReadProcNo: Cardinal read FReadProcNo write FReadProcNo;
 
     property WriteProcNo: Cardinal read FWriteProcNo write FWriteProcNo;
   end;
 
-  
+
   TPSDelphiClassItemConstructor = class(TPSDelphiClassItemMethod)
   end;
 
 {$IFNDEF PS_NOINTERFACES}
-  
+
   TPSInterface = class(TObject)
   private
     FOwner: TPSPascalCompiler;
@@ -1568,30 +1568,30 @@ type
     property aType: TPSType read FType;
 
     property InheritedFrom: TPSInterface read FInheritedFrom write SetInheritedFrom;
-    
+
     property Guid: TGuid read FGuid write FGuid;
 
     property Name: string read FName write FName;
-    
+
     property NameHash: Longint read FNameHash;
 
-    
+
     function RegisterMethod(const Declaration: string; const cc: TPSCallingConvention): Boolean;
-    
+
     procedure RegisterDummyMethod;
 
     function IsCompatibleWith(aType: TPSType): Boolean;
-    
+
     function SetNil(var ProcNo: Cardinal): Boolean;
-    
+
     function CastToType(IntoType: TPSType; var ProcNo: Cardinal): Boolean;
 
     function Func_Find(const Name: string; var Index: Cardinal): Boolean;
-    
+
     function Func_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean;
   end;
 
-  
+
   TPSInterfaceMethod = class(TObject)
   private
     FName: string;
@@ -1626,33 +1626,33 @@ type
   end;
 {$ENDIF}
 
-  
+
   TPSExternalClass = class(TObject)
   protected
-    
+
     SE: TPSPascalCompiler;
-    
+
     FTypeNo: TPSType;
   public
-    
+
     function SelfType: TPSType; virtual;
 	
     constructor Create(Se: TPSPascalCompiler; TypeNo: TPSType);
-    
+
     function ClassFunc_Find(const Name: string; var Index: Cardinal): Boolean; virtual;
 	
     function ClassFunc_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean; virtual;
-    
+
     function Func_Find(const Name: string; var Index: Cardinal): Boolean; virtual;
-    
+
     function Func_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean; virtual;
-    
+
     function IsCompatibleWith(Cl: TPSExternalClass): Boolean; virtual;
-    
+
     function SetNil(var ProcNo: Cardinal): Boolean; virtual;
-    
+
     function CastToType(IntoType: TPSType; var ProcNo: Cardinal): Boolean; virtual;
-    
+
     function CompareClass(OtherTypeNo: TPSType; var ProcNo: Cardinal): Boolean; virtual;
   end;
 
@@ -1673,9 +1673,9 @@ type
   TIFPSCompileTimeClass = TPSCompileTimeClass;
   TIFPSInternalProcedure = TPSInternalProcedure;
   TIFPSPascalCompilerError = TPSPascalCompilerError;
-  
-  TPMFuncType = (mftProc 
-  , mftConstructor 
+
+  TPMFuncType = (mftProc
+  , mftConstructor
   );
 
 
@@ -2440,7 +2440,7 @@ begin
       else
         x.ImportDecl := x.ImportDecl + #0;
     end;
-    
+
     FRegProcs.Add(x);
   finally
     Decl.Free;
@@ -5272,7 +5272,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       Result := IsCompatibleType(p1, p2, False);
   end;
 
-  function ProcessFunction(ProcCall: TPSValueProc; ResultRegister: TPSValue): Boolean; forward;
+  function _ProcessFunction(ProcCall: TPSValueProc; ResultRegister: TPSValue): Boolean; forward;
   function ProcessFunction2(ProcNo: Cardinal; Par: TPSParameters; ResultReg: TPSValue): Boolean;
   var
     Temp: TPSValueProcNo;
@@ -5284,7 +5284,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       Temp.ResultType := TPSInternalProcedure(FProcs[ProcNo]).Decl.Result
     else
       Temp.ResultType := TPSExternalProcedure(FProcs[ProcNo]).RegProc.Decl.Result;
-    Result := ProcessFunction(Temp, ResultReg);
+    Result := _ProcessFunction(Temp, ResultReg);
     Temp.Parameters := nil;
     Temp.Free;
   end;
@@ -6210,7 +6210,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 l := FindProc('WSTRSET')
               else
               {$ENDIF}
-                l := FindProc('STRSET');
+              l := FindProc('STRSET');
               if l = -1 then
               begin
                 MakeError('', ecUnknownIdentifier, 'StrSet');
@@ -6273,7 +6273,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 l := FindProc('WSTRGET')
               else
               {$ENDIF}
-                l := FindProc('STRGET');
+              l := FindProc('STRGET');
               if l = -1 then
               begin
                 MakeError('', ecUnknownIdentifier, 'StrGet');
@@ -6288,7 +6288,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 tmp3.ResultType := FindBaseType(btWideChar)
               else
               {$ENDIF}
-                tmp3.ResultType := FindBaseType(btChar);
+              tmp3.ResultType := FindBaseType(btChar);
               tmp3.ProcNo := L;
               tmp3.SetParserPos(FParser);
               tmp3.Parameters := TPSParameters.Create;
@@ -6387,7 +6387,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             FParser.Next;
           if u.BaseType = btRecord then
           begin
-             t := FindSubR(FParser.GetToken, u);
+            t := FindSubR(FParser.GetToken, u);
             if t = InvalidVal then
             begin
               if ImplicitPeriod then exit;
@@ -6722,7 +6722,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         end else begin
          if not ImplicitPeriod then
           FParser.Next;
-        end;  
+        end;
         if FParser.CurrTokenID <> CSTI_Identifier then
         begin
           if ImplicitPeriod then exit;
@@ -6731,7 +6731,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
            p.Free;
            P := nil;
            Exit;
-          end; 
+          end;
         end;
         if (FType.BaseType = btVariant) or (FType.BaseType = btNotificationVariant) then
         begin
@@ -6740,7 +6740,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           end else begin
            s := FParser.OriginalToken;
            FParser.Next;
-          end; 
+          end;
           ImplicitPeriod := False;
           FType := GetTypeNo(BlockInfo, p);
           p := ReadIDispatchParameters(s, TPSVariantType(FType), p);
@@ -6822,7 +6822,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               SetParserPos(FParser);
               Data := NewVariant(ExpectedType);
               Data.tu32 := at2ut(FType).FinalTypeNo;
-            end;                         
+            end;
           end;
           FParser.Next;
           Exit;
@@ -8608,7 +8608,7 @@ begin
     until False;
     Result := true;
   end;
-  
+
   function ReadProcParameters(ProcNo: Cardinal; FSelf: TPSValue): TPSValue;
   var
     Decl: TPSParametersDecl;
@@ -8823,7 +8823,7 @@ begin
     end;
     if InData is TPSValueProc then
     begin
-      Result := ProcessFunction(TPSValueProc(indata), OutReg)
+      Result := _ProcessFunction(TPSValueProc(indata), OutReg)
     end else begin
       if not PreWriteOutRec(OutReg, nil) then
       begin
@@ -8877,7 +8877,7 @@ begin
   end; {WriteCalculation}
 
 
-  function ProcessFunction(ProcCall: TPSValueProc; ResultRegister: TPSValue): Boolean;
+  function _ProcessFunction(ProcCall: TPSValueProc; ResultRegister: TPSValue): Boolean;
   var
     res: TPSType;
     tmp: TPSParameter;
@@ -9527,7 +9527,7 @@ begin
     Result := True;
   end; {ProcessIf}
 
-  function ProcessLabel: Longint; {0 = failed; 1 = successful; 2 = no label}
+  function _ProcessLabel: Longint; {0 = failed; 1 = successful; 2 = no label}
   var
     I, H: Longint;
     s: string;
@@ -9596,7 +9596,7 @@ begin
         vout.Free;
       end else if vin is TPSValueProc then
       begin
-        Result := ProcessFunction(TPSValueProc(vin), nil);
+        Result := _ProcessFunction(TPSValueProc(vin), nil);
         vin.Free;
         Exit;
       end else
@@ -10142,7 +10142,7 @@ begin
         end;
       CSTI_Identifier:
         begin
-          case ProcessLabel of
+          case _ProcessLabel of
             0: Exit;
             1: ;
             else
@@ -11267,7 +11267,7 @@ begin
         Block.Proc.DeclarePos := FParser.CurrTokenPos;
         Block.Proc.DeclareRow := FParser.Row;
         Block.Proc.DeclareCol := FParser.Col;
-        Block.Proc.Use; 
+        Block.Proc.Use;
         FUnitInits.Add(Block);
         if ProcessSub(Block) then
         begin
@@ -12083,7 +12083,7 @@ const
   IUnknown_Guid: TGuid = (D1: 0; d2: 0; d3: 0; d4: ($c0,00,00,00,00,00,00,$46));
   IDispatch_Guid: Tguid = (D1: $20400; D2: $0; D3: $0; D4:($C0, $0, $0, $0, $0, $0, $0, $46));
 {$ENDIF}
-  
+
 procedure TPSPascalCompiler.DefineStandardProcedures;
 var
   p: TPSRegProc;
@@ -12241,7 +12241,7 @@ begin
     RegisterDummyMethod; // _AddRef
     RegisterDummyMethod; // _Release
   end;
-  with AddInterface(nil, IUnknown_Guid, 'IInterface') do 
+  with AddInterface(nil, IUnknown_Guid, 'IInterface') do
   begin
     RegisterDummyMethod; // Query Interface
     RegisterDummyMethod; // _AddRef
@@ -13038,7 +13038,7 @@ begin
   if (FValue <> nil) then
   begin
     case FValue.FType.BaseType of
-      btChar: FValue.tchar := (Val+#0)[1]; 
+      btChar: FValue.tchar := (Val+#0)[1];
       btString: string(FValue.tstring) := val;
       {$IFNDEF PS_NOWIDESTRING}
       btWideString: widestring(FValue.twidestring) := val;
@@ -14742,7 +14742,7 @@ end;
 function TPSExternalClass.IsCompatibleWith(
   Cl: TPSExternalClass): Boolean;
 begin
-  Result := False;                                        
+  Result := False;
 end;
 
 function TPSExternalClass.SelfType: TPSType;

@@ -1,6 +1,6 @@
 
 unit uPSR_dateutils;
-
+{$I PascalScript.inc}
 interface
 uses
   SysUtils, uPSRuntime;

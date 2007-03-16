@@ -1,17 +1,18 @@
  unit uPSComponent_DB;
 
 interface
+{$I PascalScript.inc}
 uses
   SysUtils, Classes, uPSComponent, uPSRuntime, uPSCompiler;
 type
-  
+
   TPSImport_DB = class(TPSPlugin)
   protected
     procedure CompileImport1(CompExec: TPSScript); override;
     procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); override;
   public
   end;
-  
+
   TIFPS3CE_DB = class(TPSImport_DB);
 
 implementation

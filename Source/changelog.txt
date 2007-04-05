@@ -1,3 +1,6 @@
+April 2007
+ - 5 apr: Fix by Fabio Lindner: using AND on booleans and notification variants
+
 March 2007
  - 2 mar: 0003179: strange assignment result 
  - 2 mar: 0003180: Type mismatch with currency 

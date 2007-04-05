@@ -7845,7 +7845,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               Result := t2
             else if IsIntType(t1.BaseType) and IsIntType(t2.BaseType) then
               Result := t1
-            else if (IsBoolean(t1)) and (t2 = t1) then
+            else if (IsBoolean(t1)) and ((t2 = t1)  or ((t2.BaseType = btVariant)
+              or (t2.BaseType = btNotificationVariant))) then
             begin
               Result := t1;
               if ((p1.ClassType = TPSValueData) or (p2.ClassType = TPSValueData)) then

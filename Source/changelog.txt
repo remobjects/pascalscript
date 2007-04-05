@@ -1,4 +1,5 @@
 April 2007
+ - 5 apr: 0003274: Finally inside except block does not reset exception  (reported by Martijn Laan)
  - 5 apr: Fix by Fabio Lindner: using AND on booleans and notification variants
 
 March 2007

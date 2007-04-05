@@ -1,110 +1,109 @@
-(*
 {----------------------------------------------------------------------------}
-{file:      eDefines.inc
-{type:      Delphi include file
-{
-{compiler:  Borland Pascal 7,
-{           Delphi 1-7, Delphi 2005 for Win32
-{           Kylix 1-3,
-{           C++Builder 1-5 (Pascal Only)
-{
-{platforms: DOS, DPMI, Win16, Win32, Linux
-{
-{author:    mh@elitedev.com
-{date:      8/3/1997, last changed: 7/2/2002 for Delphi 7 and Kylix 3
-{
-{contents:  Defines that can be flexibily used to determine the exact
-{           compiler version used.
-{
-{(c)opyright elitedevelopments. all rights reserved.
-{            http://www.elitedev.com
-{
-{ Third Party component developers are encouraged to use the set of defines
-{ established in this file, rather then their own system, for checking their
-{ component libraries agains different versions of Delphi and C++Builder.
-{
-{ This file may be distributed freely with both free and commercial source
-{ libraries, but you are asked to please leave this comment in place, and
-{ to return any improvements you make to this file to the maintainer that
-{ is noted above. 
+{file:      eDefines.inc                                                     }
+{type:      Delphi include file                                              }
+{                                                                            }
+{compiler:  Borland Pascal 7,                                                }
+{           Delphi 1-7, Delphi 2005 for Win32                                }
+{           Kylix 1-3,                                                       }
+{           C++Builder 1-5 (Pascal Only)                                     }
+{                                                                            }
+{platforms: DOS, DPMI, Win16, Win32, Linux                                   }
+{                                                                            }
+{author:    mh@elitedev.com                                                  }
+{date:      8/3/1997, last changed: 7/2/2002 for Delphi 7 and Kylix 3        }
+{                                                                            }
+{contents:  Defines that can be flexibily used to determine the exact        }
+{           compiler version used.                                           }
+{                                                                            }
+{(c)opyright elitedevelopments. all rights reserved.                         }
+{            http://www.elitedev.com                                         }
+{                                                                            }
+{ Third Party component developers are encouraged to use the set of defines  }
+{ established in this file, rather then their own system, for checking their }
+{ component libraries agains different versions of Delphi and C++Builder.    }
+{                                                                            }
+{ This file may be distributed freely with both free and commercial source   }
+{ libraries, but you are asked to please leave this comment in place, and    }
+{ to return any improvements you make to this file to the maintainer that    }
+{ is noted above.                                                            }
 {----------------------------------------------------------------------------}
 
 {----------------------------------------------------------------------------}
-{ Compiler and OS version defines:
-{
-{ exact compiler versions:
-{
-{ BP7             Borland Pascal 7.0
-{ DELPHI1         Delphi 1.0 (any Delphi)
-{ DELPHI2         Delphi 2.0
-{ DELPHI3         Delphi 3.0
-{ DELPHI4         Delphi 4.0
-{ DELPHI5         Delphi 5.0
-{ DELPHI6         Delphi 6.0
-{ DELPHI7         Delphi 7.0
-{ DELPHI9         Delphi 2005
-{ DELPHI2005      Delphi 2005
-{ KYLIX1          Kylix 1.0
-{ KYLIX2          Kylix 2.0
-{ KYLIX3          Kylix 3.0
-{ CBUILDER1       C++Builder 1.0
-{ CBUILDER3       C++Builder 3.0
-{ CBUILDER4       C++Builder 4.0
-{ CBUILDER5       C++Builder 5.0
-{
-{
-{ minimum compiler versions:
-{
-{ DELPHI1UP       Delphi 1.0 and above (any Delphi)
-{ DELPHI2UP       Delphi 2.0 and above
-{ DELPHI3UP       Delphi 3.0 and above
-{ DELPHI4UP       Delphi 4.0 and above
-{ DELPHI5UP       Delphi 5.0 and above
-{ DELPHI6UP       Delphi 6.0 and above
-{ DELPHI7UP       Delphi 7.0 and above
-{ DELPHI9UP       Delphi 9.0 and above
-{ DELPHI2005UP    Delphi 2005 and above
-{ KYLIX1UP        Kylix 1.0 and above (any Kylix)
-{ KYLIX2UP        Kylix 2.0 and above (any Kylix)
-{ KYLIX3UP        Kylix 3.0 and above (any Kylix)
-{ CBUILDER1UP     C++Builder 1.0 and above or Delphi 2 and above (any C++Builder)
-{ CBUILDER3UP     C++Builder 3.0 and above or Delphi 3.0 and above
-{ CBUILDER4UP     C++Builder 4.0 and above or Delphi 4.0 and above
-{ CBUILDER5UP     C++Builder 5.0 and above or Delphi 5.0 and above
-{ CBUILDER6UP     C++Builder 5.0 and above or Delphi 5.0 and above
-{
-{
-{ compiler types:
-{
-{ BP              Borland Pascal (not Delphi or C++Builder)
-{ DELPHI          any Delphi version (but not C++Builder or Kylix)
-{ KYLIX           any Kylix version (not Delphi or C++Builder for Windows)
-{ CBUILDER        any C++Builder for Windows (Pascal)
-{
-{
-{ target platforms compiler types:
-{
-{ DELPHI_16BIT    16bit Delphi (but not C++Builder!)
-{ DELPHI_32BIT    32bit Delphi (but not C++Builder)
-{ KYLIX_32BIT     32bit Kylix (but not C++Builder)
-{ CBUILDER_32BIT  32bit C++Builer's Pascal (but not Delphi)
-{
-{
-{ target platforms
-{
-{ DOS             any DOS (plain and DPMI)
-{ REALMODE        16bit realmode DOS
-{ PROTECTEDMODE   16bit DPMI DOS
-{
-{ MSWINDOWS       any Windows platform
-{ WIN16           16bit Windows
-{ WIN32           32bit Windows
-{ DOTNET          .NET
-{
-{ LINUX           any Linux platform
-{ LINUX32         32bit Linux
+{ Compiler and OS version defines:                                           }
+{                                                                            }
+{ exact compiler versions:                                                   }
+{                                                                            }
+{ BP7             Borland Pascal 7.0                                         }
+{ DELPHI1         Delphi 1.0 (any Delphi)                                    }
+{ DELPHI2         Delphi 2.0                                                 }
+{ DELPHI3         Delphi 3.0                                                 }
+{ DELPHI4         Delphi 4.0                                                 }
+{ DELPHI5         Delphi 5.0                                                 }
+{ DELPHI6         Delphi 6.0                                                 }
+{ DELPHI7         Delphi 7.0                                                 }
+{ DELPHI9         Delphi 2005                                                }
+{ DELPHI2005      Delphi 2005                                                }
+{ KYLIX1          Kylix 1.0                                                  }
+{ KYLIX2          Kylix 2.0                                                  }
+{ KYLIX3          Kylix 3.0                                                  }
+{ CBUILDER1       C++Builder 1.0                                             }
+{ CBUILDER3       C++Builder 3.0                                             }
+{ CBUILDER4       C++Builder 4.0                                             }
+{ CBUILDER5       C++Builder 5.0                                             }
+{                                                                            }
+{                                                                            }
+{ minimum compiler versions:                                                 }
+{                                                                            }
+{ DELPHI1UP       Delphi 1.0 and above (any Delphi)                          }
+{ DELPHI2UP       Delphi 2.0 and above                                       }
+{ DELPHI3UP       Delphi 3.0 and above                                       }
+{ DELPHI4UP       Delphi 4.0 and above                                       }
+{ DELPHI5UP       Delphi 5.0 and above                                       }
+{ DELPHI6UP       Delphi 6.0 and above                                       }
+{ DELPHI7UP       Delphi 7.0 and above                                       }
+{ DELPHI9UP       Delphi 9.0 and above                                       }
+{ DELPHI2005UP    Delphi 2005 and above                                      }
+{ KYLIX1UP        Kylix 1.0 and above (any Kylix)                            }
+{ KYLIX2UP        Kylix 2.0 and above (any Kylix)                            }
+{ KYLIX3UP        Kylix 3.0 and above (any Kylix)                            }
+{ CBUILDER1UP     C++Builder 1.0 and above or Delphi 2 and above (any C++Builder) }
+{ CBUILDER3UP     C++Builder 3.0 and above or Delphi 3.0 and above           }
+{ CBUILDER4UP     C++Builder 4.0 and above or Delphi 4.0 and above           }
+{ CBUILDER5UP     C++Builder 5.0 and above or Delphi 5.0 and above           }
+{ CBUILDER6UP     C++Builder 5.0 and above or Delphi 5.0 and above           }
+{                                                                            }
+{                                                                            }
+{ compiler types:                                                            }
+{                                                                            }
+{ BP              Borland Pascal (not Delphi or C++Builder)                  }
+{ DELPHI          any Delphi version (but not C++Builder or Kylix)           }
+{ KYLIX           any Kylix version (not Delphi or C++Builder for Windows)   }
+{ CBUILDER        any C++Builder for Windows (Pascal)                        }
+{                                                                            }
+{                                                                            }
+{ target platforms compiler types:                                           }
+{                                                                            }
+{ DELPHI_16BIT    16bit Delphi (but not C++Builder!)                         }
+{ DELPHI_32BIT    32bit Delphi (but not C++Builder)                          }
+{ KYLIX_32BIT     32bit Kylix (but not C++Builder)                           }
+{ CBUILDER_32BIT  32bit C++Builer's Pascal (but not Delphi)                  }
+{                                                                            }
+{                                                                            }
+{ target platforms                                                           }
+{                                                                            }
+{ DOS             any DOS (plain and DPMI)                                   }
+{ REALMODE        16bit realmode DOS                                         }
+{ PROTECTEDMODE   16bit DPMI DOS                                             }
+{                                                                            }
+{ MSWINDOWS       any Windows platform                                       }
+{ WIN16           16bit Windows                                              }
+{ WIN32           32bit Windows                                              }
+{ DOTNET          .NET                                                       }
+{                                                                            }
+{ LINUX           any Linux platform                                         }
+{ LINUX32         32bit Linux                                                }
 {----------------------------------------------------------------------------}
-*)
+
 { defines for Borland Pascal 7.0 }
 {$IFDEF VER70}
   {$DEFINE BP}
@@ -289,6 +288,7 @@
     {$DEFINE DELPHI6UP}
     {$DEFINE DELPHI7UP}
     {$DEFINE DELPHI9UP}
+    {$DEFINE DELPHI10A}  
     {$DEFINE DELPHI10UP}
     {$DEFINE DELPHI2005UP}
     {$DEFINE DELPHI2006UP}
@@ -298,6 +298,20 @@
     {$DEFINE BDS4UP}
   {$ENDIF}
 
+  { defines for Delphi 2007 }
+  {$IFDEF VER185}
+    {$UNDEF DELPHI10A}  // declared in VER180
+    {$UNDEF DELPHI2006} // declared in VER180
+    {$UNDEF BDS4}       // declared in VER180
+
+    {$DEFINE DELPHI10B}    
+    {$DEFINE DELPHI2007}
+    {$DEFINE DELPHI2007UP}    
+    {$DEFINE BDS5}
+    {$DEFINE BDS5UP}
+  {$ENDIF}
+
+  
   {$IFDEF WIN32}
     {$DEFINE MSWINDOWS} //not automatically defined for Delphi 2 thru 5
     {$DEFINE 32BIT}

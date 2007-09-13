@@ -23,13 +23,13 @@ const
 
 
 
-function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const Name, FExternal: string): TPSRegProc;
+function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const OriginalName, FExternal: string): TPSRegProc;
 type
-  
-  TDllCallingConvention = (clRegister 
-  , clPascal 
-  , ClCdecl 
-  , ClStdCall 
+
+  TDllCallingConvention = (clRegister
+  , clPascal
+  , ClCdecl
+  , ClStdCall
   );
 
 var
@@ -56,16 +56,19 @@ begin
   if (Result <> '') and (Result[Length(result)] = '"') then delete(result, length(result), 1);
 end;
 
-function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const Name, FExternal: string): TPSRegProc;
+function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const OriginalName, FExternal: string): TPSRegProc;
 var
   FuncName,
+  Name,
   FuncCC, s: string;
   CC: TDllCallingConvention;
   DelayLoad: Boolean;
 
 begin
+  Name := FastUpperCase(OriginalName);
   DelayLoad := False;
   FuncCC := FExternal;
+  
   if (pos('@', FuncCC) = 0) then
   begin
     Sender.MakeError('', ecCustomError, RPS_Invalid_External);
@@ -122,6 +125,7 @@ begin
   Result.ImportDecl := FuncName;
   Result.Decl.Assign(Decl);
   Result.Name := Name;
+  Result.OrgName := OriginalName;
   Result.ExportName := False;
 end;
 

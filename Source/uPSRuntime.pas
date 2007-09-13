@@ -4371,6 +4371,7 @@ var
       btS16: tbts16(Into^) := Longint(b);
       btU32: tbtu32(Into^) := Cardinal(b);
       btS32: tbts32(Into^) := Longint(b);
+      btVariant: Variant(Into^) := b;
     else begin
         CMD_Err(ErTypeMismatch);
         Ok := False;

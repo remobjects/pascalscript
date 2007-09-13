@@ -4072,7 +4072,7 @@ begin
     for l := proc.ProcVars.Count - 1 downto 0 do
     begin
       if (PIFPSProcVar(proc.ProcVars.Data[l]).NameHash = h) and
-        (TPSVar(proc.ProcVars.Data[l]).Name = s) then
+        (PIFPSProcVar(proc.ProcVars.Data[l]).Name = s) then
       begin
         Result := True;
         exit;
@@ -4726,7 +4726,7 @@ begin
         MakeError('', ecSemicolonExpected, '');
         exit;
       end;
-      pp := FOnExternalProc(Self, FunctionDecl, FunctionName, FunctionParamNames);
+      pp := FOnExternalProc(Self, FunctionDecl, OriginalName, FunctionParamNames);
       if pp = nil then
       begin
         MakeError('', ecCustomError, '');

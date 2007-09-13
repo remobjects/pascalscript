@@ -202,6 +202,7 @@ end;
 destructor TPSScriptExtension.Destroy;
 begin
   FMethodList.Free;
+  FMethodList := nil;
   inherited Destroy;
 end;
 
@@ -545,7 +546,8 @@ procedure TPSScriptExtension.Notification(AComponent: TComponent;
 begin
   inherited;
   If Operation = opRemove then begin
-    MethodList.SetMethodName(aComponent,'','');
+    if MethodList <> nil then
+      MethodList.SetMethodName(aComponent,'','');
   end;
 end;
 
@@ -676,15 +678,61 @@ var
   nProcs  : Integer;
   line, test : String;
 
+ 
   function IsItem(line,item:String; First :Boolean = false):Boolean;
   var
    nPos : Integer;
   begin
-    nPos := pos(item,line);
-    result := ((npos>0) and ((length(Line)-nPos<= length(item)) or not(line[nPos+length(item)] in ['0'..'9','A'..'Z','_'])) And
-              ((Npos = 1) or ((not first) and not(line[nPos-1] in ['0'..'9','A'..'Z','_']))));
+    repeat
+      nPos := pos(item,line);
+      result := ((npos>0) and ((length(Line)-nPos<= length(item)) or not(line[nPos+length(item)] in ['0'..'9','A'..'Z','_'])) And
+                ((Npos = 1) or ((not first) and not(line[nPos-1] in ['0'..'9','A'..'Z','_']))));
+      if nPos <> 0 then line := copy(line,nPos+Length(Item),Length(line));
+    until (Result) or (nPos = 0);
   end;
 
+  function DelSpaces(AText: String): String;
+  var i: Integer;
+  begin
+    Result := '';
+    for i := 1 to Length(AText) do
+      if AText[i] <> ' ' then
+        Result := Result + AText[i];
+  end;
+
+  function IsProcDecl(AnOriginalProcDecl: String): Boolean;
+  var
+    bIsFunc: Boolean;
+    iLineNo: Integer;
+    sProcKey: String;
+    sProcDecl: String;
+  begin
+    Result := false;
+    sProcDecl := Line;
+    iLineNo := x;
+    bIsFunc := isItem(AnOriginalProcDecl,'FUNCTION',true);
+ 
+    if bIsFunc
+      then sProcKey := 'FUNCTION'
+      else sProcKey := 'PROCEDURE';
+ 
+    sProcDecl := copy(sProcDecl,Pos(sProcKey,sProcDecl),Length(sProcDecl));
+ 
+    while not IsItem(sProcDecl,'BEGIN') do
+    begin
+      inc(iLineNo);
+      if iLineNo > (fowner.script.Count - 1) then exit;
+      sProcDecl := sProcDecl + ' ' + uppercase(trim(fowner.script[iLineNo])) + ' ';
+    end;
+ 
+    sProcDecl := DelSpaces(sProcDecl);
+    AnOriginalProcDecl := DelSpaces(AnOriginalProcDecl);
+ 
+    sProcDecl := copy(sProcDecl,1,Length(AnOriginalProcDecl));
+ 
+    Result := sProcDecl = AnOriginalProcDecl;
+ 
+  end;
 begin
   sl := TStringList.create;
   Try
@@ -701,23 +749,26 @@ begin
       Line := fowner.script[x];
       Line := uppercase(trim(line));
       If IsItem(line,'PROCEDURE', true) or IsItem(line,'FUNCTION', true) then begin
-        If nBegins >0 then Raise exception.create('Missing some ''End'' statments');
-        If (nProcs = 0) and (line = test) then
+        If nBegins >0 then Raise exception.create('Missing some ''end'' statments');
+        If (nProcs = 0) and IsProcDecl(test) and
+           (not IsItem(line,'FORWARD')) and (not IsItem(line,'EXTERNAL')) then
           Exit;
         Inc(nProcs);
       end;
+      if IsItem(line,'FORWARD') or IsItem(line,'EXTERNAL') then
+        dec(nProcs);
       If Pos('END',line) < Pos('BEGIN',line) then begin
         If IsItem(line,'END') then begin
           If (nBegins = 0) and (nProcs=0) then Break;
           Dec(nBegins);
           If nBegins = 0 then Dec(nProcs);
         end;
-        If IsItem(line,'BEGIN') or IsItem(line,'TRY') then begin
+        If IsItem(line,'BEGIN') or IsItem(line,'TRY') or IsItem(line,'CASE') then begin
           If nProcs = 0 then Break;
           Inc(nBegins);
         end;
       end else begin
-        If IsItem(line,'BEGIN') or IsItem(line,'TRY') then begin
+        If IsItem(line,'BEGIN') or IsItem(line,'TRY') or IsItem(line,'CASE') then begin
           If nProcs = 0 then Break;
           Inc(nBegins);
         end;
@@ -733,7 +784,7 @@ begin
   Try
     If (nProcs <> 0) or (nBegins<>0) then
       Raise exception.create(sMissingEndStatment);
-    If (Not Ontop) and (x>0) and (TRim(FOwner.script[x-1])<>'') then begin
+    If (Not Ontop) and (x>0) and (Trim(FOwner.script[x-1])<>'') then begin
       FOwner.script.Insert(x,'');
       inc(x);
     end;
@@ -743,7 +794,7 @@ begin
     FOwner.script.EndUpdate;
   end;
 end;
-
+ 
 destructor TMethodList.Destroy;
 begin
   fProcList.Free;  {<< Needs Eventlist for removing Methods}

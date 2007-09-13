@@ -1,0 +1,44 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{301d154e-a852-4e08-89a3-6bfb2774fb38}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Projects Include="PascalScript_Core_D11.dproj" />
+    <Projects Include="PascalScript_RO_D11.dproj" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+<BorlandProject xmlns=""><Default.Personality></Default.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="PascalScript_Core_D11">
+    <MSBuild Projects="PascalScript_Core_D11.dproj" Targets="" />
+  </Target>
+  <Target Name="PascalScript_Core_D11:Clean">
+    <MSBuild Projects="PascalScript_Core_D11.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PascalScript_Core_D11:Make">
+    <MSBuild Projects="PascalScript_Core_D11.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PascalScript_RO_D11">
+    <MSBuild Projects="PascalScript_RO_D11.dproj" Targets="" />
+  </Target>
+  <Target Name="PascalScript_RO_D11:Clean">
+    <MSBuild Projects="PascalScript_RO_D11.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PascalScript_RO_D11:Make">
+    <MSBuild Projects="PascalScript_RO_D11.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="PascalScript_Core_D11;PascalScript_RO_D11" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="PascalScript_Core_D11:Clean;PascalScript_RO_D11:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="PascalScript_Core_D11:Make;PascalScript_RO_D11:Make" />
+  </Target>
+  <Import Condition="Exists('$(MSBuildBinPath)\Borland.Group.Targets')" Project="$(MSBuildBinPath)\Borland.Group.Targets" />
+</Project>

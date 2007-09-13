@@ -1,4 +1,12 @@
+Sept 2007
+- 0004176: Duplicate local with diff caps don't show errors 
+- 0004192: Fix for ErTypeMismatch in TPSExec.DoBooleanCalc 
+- 0004443: public.pascalscript: uPSComponentExt.pas issue 
+- 0003310: bugfix for PascalScript
+- fix for casing of dll exports
+
 April 2007
+ - 11 apr: 0003310: bugfix for PascalScript in uPSComponentExt; Simon Forsberg
  - 5 apr: 0003274: Finally inside except block does not reset exception  (reported by Martijn Laan)
  - 5 apr: Fix by Fabio Lindner: using AND on booleans and notification variants
 

@@ -667,7 +667,10 @@ type
 
     function FindSpecialProcImport(P: TPSOnSpecialProcImport): pointer;
   Public
-
+    function LastEx: TPSError;
+    function LastExParam: string;
+    function LastExProc: Integer;
+    function LastExPos: Integer;
     procedure CMD_Err(EC: TPSError);
 
     procedure CMD_Err2(EC: TPSError; const Param: string);
@@ -8257,10 +8260,10 @@ begin
         end;
       end;
     31: Caller.CMD_Err2(TPSError(Stack.GetInt(-1)), Stack.GetString(-2)); {RaiseExeption}
-    32: Stack.SetInt(-1, Ord(Caller.ExEx)); {ExceptionType}
-    33: Stack.SetString(-1, Caller.ExParam); {ExceptionParam}
-    34: Stack.SetInt(-1, Caller.ExProc); {ExceptionProc}
-    35: Stack.SetInt(-1, Caller.ExPos); {ExceptionPos}
+    32: Stack.SetInt(-1, Ord(Caller.LastEx)); {ExceptionType}
+    33: Stack.SetString(-1, Caller.LastExParam); {ExceptionParam}
+    34: Stack.SetInt(-1, Caller.LastExProc); {ExceptionProc}
+    35: Stack.SetInt(-1, Caller.LastExPos); {ExceptionPos}
     36: Stack.SetString(-1, PSErrorToString(TPSError(Stack.GetInt(-2)), Stack.GetString(-3))); {ExceptionToString}
     37: Stack.SetString(-1, AnsiUpperCase(Stack.GetString(-2))); // AnsiUppercase
     38: Stack.SetString(-1, AnsiLowercase(Stack.GetString(-2)));// AnsiLowerCase
@@ -11224,6 +11227,33 @@ begin
 
   DisposePPSVariantIFC(res);
   DisposePPSVariantIFCList(mylist);
+end;
+
+function TPSExec.LastEx: TPSError;
+var
+  pp: TPSExceptionHandler;
+begin
+  if FExceptionStack.Count = 0 then begin
+    result := ExEx;
+    exit;
+  end;
+  pp := fExceptionStack[fExceptionStack.Count-1];
+  result := pp.ExceptionData;
+end;
+
+function TPSExec.LastExParam: string;
+begin
+  result := ExParam;
+end;
+
+function TPSExec.LastExPos: Integer;
+begin
+  result := ExPos;
+end;
+
+function TPSExec.LastExProc: Integer;
+begin
+  result := exProc;
 end;
 
 { TPSRuntimeClass }

@@ -4882,7 +4882,10 @@ function TPSPascalCompiler.IsVarInCompatible(ft1, ft2: TPSType): Boolean;
 begin
   ft1 := GetTypeCopyLink(ft1);
   ft2 := GetTypeCopyLink(ft2);
-  Result := (ft1 <> ft2) and (ft2 <> nil);
+  if (ft1 is TPSArrayType) and (ft2 is TPSArrayType) then begin
+    Result := IsVarInCompatible(TPSArrayType(ft1).ArrayTypeNo, TPSArrayType(ft2).ArrayTypeNo);
+  end else
+    Result := (ft1 <> ft2) and (ft2 <> nil);
 end;
 
 function TPSPascalCompiler.ValidateParameters(BlockInfo: TPSBlockInfo; Params: TPSParameters; ParamTypes: TPSParametersDecl): boolean;
@@ -8882,6 +8885,7 @@ begin
   var
     res: TPSType;
     tmp: TPSParameter;
+    lTv: TPSValue;
     resreg: TPSValue;
     l: Longint;
 
@@ -8967,17 +8971,38 @@ begin
           Cleanup;
           exit;
         end;
-        tmp.TempVar := AllocPointer(GetTypeNo(BlockInfo, Tmp.FValue));
-//        tmp.TempVar := AllocStackReg2(Tmp.ExpectedType);
-        if not PreWriteOutRec(Tmp.FValue, nil) then
-        begin
-          cleanup;
-          exit;
+        if Copy(tmp.ExpectedType.Name, 1, 10) = '!OPENARRAY' then begin
+          tmp.TempVar := AllocPointer(tmp.ExpectedType);
+          lTv := AllocStackReg(tmp.ExpectedType);
+          if not PreWriteOutRec(Tmp.FValue, nil) then
+          begin
+            cleanup;
+            exit;
+          end;
+          BlockWriteByte(BlockInfo, CM_A);
+          WriteOutRec(lTv, False);
+          WriteOutRec(Tmp.FValue, False);
+          AfterWriteOutRec(Tmp.FValue);
+
+          BlockWriteByte(BlockInfo, cm_sp);
+          WriteOutRec(tmp.TempVar, False);
+          WriteOutRec(lTv, False);
+
+          lTv.Free;
+//          BlockWriteByte(BlockInfo, CM_PO); // pop the temp var
+
+        end else begin
+          tmp.TempVar := AllocPointer(GetTypeNo(BlockInfo, Tmp.FValue));
+          if not PreWriteOutRec(Tmp.FValue, nil) then
+          begin
+            cleanup;
+            exit;
+          end;
+          BlockWriteByte(BlockInfo, cm_sp);
+          WriteOutRec(tmp.TempVar, False);
+          WriteOutRec(Tmp.FValue, False);
+          AfterWriteOutRec(Tmp.FValue);
         end;
-        BlockWriteByte(BlockInfo, cm_sp);
-        WriteOutRec(tmp.TempVar, False);
-        WriteOutRec(Tmp.FValue, False);
-        AfterWriteOutRec(Tmp.FValue);
       end
       else
       begin

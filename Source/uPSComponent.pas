@@ -1161,17 +1161,23 @@ var
   Dc: TPSScriptDebugger;
   h, i: Longint;
   bi: TPSBreakPointInfo;
+  lFileName: string;
 begin
   Dc := Sender.Id;
-  if @dc.FOnLineInfo <> nil then dc.FOnLineInfo(dc, FileName, Position, Row, Col);
+  if FileName = '' then
+    lFileName := dc.MainFileName
+  else
+    lFileName := FileName;
+
+  if @dc.FOnLineInfo <> nil then dc.FOnLineInfo(dc, lFileName, Position, Row, Col);
   if row = dc.FLastRow then exit;
   dc.FLastRow := row;
-  h := MakeHash(filename);
+  h := MakeHash(lFileName);
   bi := nil;
   for i := DC.FBreakPoints.Count -1 downto 0 do
   begin
     bi := Dc.FBreakpoints[i];
-    if (h = bi.FileNameHash) and (FileName = bi.FileName) and (Cardinal(bi.Line) = Row) then
+    if (h = bi.FileNameHash) and (lFileName = bi.FileName) and (Cardinal(bi.Line) = Row) then
     begin
       Break;
     end;
@@ -1179,7 +1185,7 @@ begin
   end;
   if bi <> nil then
   begin
-    if @dc.FOnBreakpoint <> nil then dc.FOnBreakpoint(dc, FileName, Position, Row, Col);
+    if @dc.FOnBreakpoint <> nil then dc.FOnBreakpoint(dc, lFileName, Position, Row, Col);
     dc.Pause;
   end;
 end;
@@ -1385,7 +1391,7 @@ begin
   end;
 end;
 
-procedure TPSScriptDebugger.StepInto;
+procedure TPSScriptDebugger.StepInto;            
 begin
   if (FExec.Status = isRunning) or (FExec.Status = isLoaded) then
     FExec.StepInto

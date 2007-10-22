@@ -1,3 +1,9 @@
+Oct 2007
+- 0004504: Getting characters at a given position 
+- 0004404: PreProcessor issue 
+- 0004503: Pascalscript error position for var params 
+- "With" on record
+
 Sept 2007
 - 0003488: breakpoints in unit support 
 - 0003535: byref/ open arrays of string give runtime type mismatch 

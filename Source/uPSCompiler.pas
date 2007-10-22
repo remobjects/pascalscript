@@ -6399,19 +6399,42 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               x := nil;
               exit;
             end;
-            if not (x is TPSValueVar) then begin
-              MakeError('', ecVariableExpected, FParser.GetToken);
-              x.Free;
-              x := nil;
-              exit;
+            if (x is TPSValueProcNo) then
+            begin
+              ImplicitPeriod := False;
+              FParser.Next;
+ 
+              tmp := AllocStackReg(u);
+              WriteCalculation(x,tmp);
+              TPSVar(BlockInfo.Proc.FProcVars[TPSValueAllocatedStackVar(tmp).LocalVarNo]).Use;
+ 
+              rr := TPSSubNumber.Create;
+              TPSValueVar(tmp).RecAdd(rr);
+              TPSSubNumber(rr).SubNo := t;
+              rr.aType := TPSRecordType(u).RecVal(t).FType;
+              u := rr.aType;
+ 
+              tmpn := AllocStackReg(u);
+              WriteCalculation(tmp,tmpn);
+              TPSVar(BlockInfo.Proc.FProcVars[TPSValueAllocatedStackVar(tmpn).LocalVarNo]).Use;
+ 
+              x := tmpn;
+            end else
+            begin
+              if not (x is TPSValueVar) then begin
+                MakeError('', ecVariableExpected, FParser.GetToken);
+                x.Free;
+                x := nil;
+                exit;
+              end;
+              ImplicitPeriod := False;
+              FParser.Next;
+              rr := TPSSubNumber.Create;
+              TPSValueVar(x).RecAdd(rr);
+              TPSSubNumber(rr).SubNo := t;
+              rr.aType := TPSRecordType(u).RecVal(t).FType;
+              u := rr.aType;
             end;
-            ImplicitPeriod := False;
-            FParser.Next;
-            rr := TPSSubNumber.Create;
-            TPSValueVar(x).RecAdd(rr);
-            TPSSubNumber(rr).SubNo := t;
-            rr.aType := TPSRecordType(u).RecVal(t).FType;
-            u := rr.aType;
           end
           else
           begin
@@ -6625,6 +6648,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           begin
             Parameters := TPSParameters.Create;
             Parameters.Add;
+            Pos := FParser.CurrTokenPos;
+            row := FParser.Row;
+            Col := FParser.Col;
           end;
           if Decl.ParamCount <> 0 then
           begin
@@ -7038,6 +7064,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     Temp1: TPSType;
     temp2: CArdinal;
     bi: TPSBlockInfo;
+    lOldRecCount: Integer;
 
   begin
     s := FParser.GetToken;
@@ -7053,11 +7080,12 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           TPSValueAllocatedStackVar(TWith).LocalVarNo := TPSValueAllocatedStackVar(TPSValueReplace(bi.WithList[l]).NewValue).LocalVarNo;
           Temp := TWith;
           VNo := TPSValueAllocatedStackVar(Temp).LocalVarNo;
+          lOldRecCount := TPSValueVar(TWith).GetRecCount;
           vt := ivtVariable;
           if Temp = TWith then CheckFurther(TWith, True);
           if Temp = TWith then CheckClass(TWith, vt, vno, True);
           if Temp = TWith then  CheckExtClass(TWith, vt, vno, True);
-          if Temp <> TWith then
+          if (Temp <> TWith) or (lOldRecCount <> TPSValueVar(TWith).GetRecCount) then
           begin
             repeat
               Temp := TWith;
@@ -7287,6 +7315,18 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           Data := NewVariant(at2ut(t.Value.FType));
           CopyVariantContents(t.Value, Data);
         end;
+        vt := ivtGlobal;
+        vno := InvalidVal;
+        repeat
+          Temp := Result;
+          if Result <> nil then CheckFurther(Result, False);
+          if Result <> nil then CheckClass(Result, vt, vno, False);
+          if Result <> nil then  CheckExtClass(Result, vt, vno, False);
+{$IFNDEF PS_NOIDISPATCH}if Result <> nil then CheckIntf(Result, vt, vno, False);{$ENDIF}
+          if Result <> nil then CheckProcCall(Result);
+          if Result <> nil then CheckClassArrayProperty(Result, vt, vno);
+          vno := InvalidVal;
+        until (Result = nil) or (Temp = Result);
         exit;
       end;
     end;
@@ -9896,6 +9936,7 @@ begin
       TPSValueReplace(aReplace).FreeOldValue := True;
       TPSValueReplace(aReplace).FreeNewValue := True;
       TPSValueReplace(aReplace).OldValue := aVar;
+(*
       TPSValueReplace(aReplace).NewValue := AllocStackReg(GetTypeNo(BlockInfo, aVar));
       if not WriteCalculation(aVar, TPSValueReplace(aReplace).NewValue) then
       begin
@@ -9904,6 +9945,13 @@ begin
         Result := False;
         exit;
       end;
+*)
+      TPSValueReplace(aReplace).NewValue := AllocPointer(GetTypeNo(BlockInfo, aVar));
+      PreWriteOutRec(aVar,GetTypeNo(BlockInfo, aVar));
+      BlockWriteByte(BlockInfo, cm_sp);
+      WriteOutRec(TPSValueReplace(aReplace).NewValue, true);
+      WriteOutRec(aVar, true);
+            
       Block.WithList.Add(aReplace);
 
       if FParser.CurrTokenID = CSTII_do then

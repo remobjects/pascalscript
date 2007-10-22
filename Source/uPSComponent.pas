@@ -590,27 +590,24 @@ begin
   FComp.AllowNoEnd := icAllowNoEnd in FCompOptions;
   if FUsePreProcessor then
   begin
+    FPP.Clear;
     FPP.Defines.Assign(FDefines);
     FComp.OnTranslateLineInfo := CompTranslateLineInfo;
     Fpp.OnProcessDirective := callObjectOnProcessDirective;
     Fpp.OnProcessUnknowDirective := callObjectOnProcessUnknowDirective;
     Fpp.MainFile := FScript.Text;
     Fpp.MainFileName := FMainFileName;
-    try
-      Fpp.PreProcess(FMainFileName, dta);
-      if FComp.Compile(dta) then
+    Fpp.PreProcess(FMainFileName, dta);
+    if FComp.Compile(dta) then
+    begin
+      FCanAdd := False;
+      if (not SuppressLoadData) and (not LoadExec) then
       begin
-        FCanAdd := False;
-        if (not SuppressLoadData) and (not LoadExec) then
-        begin
-          Result := False;
-        end else
-          Result := True;
-      end else Result := False;
-      Fpp.AdjustMessages(Comp);
-    finally
-      FPP.Clear;
-    end;
+        Result := False;
+      end else
+        Result := True;
+    end else Result := False;
+    Fpp.AdjustMessages(Comp);
   end else
   begin
     FComp.OnTranslateLineInfo := nil;
@@ -1063,13 +1060,9 @@ begin
         FPP.Defines.Assign(FDefines);
         Fpp.MainFile := lData;
         Fpp.MainFileName := lName;
-        try
-          Fpp.PreProcess(lName, lData);
-          Result := FComp.Compile(lData);
-          Fpp.AdjustMessages(Comp);
-        finally
-          FPP.Clear;
-        end;
+        Fpp.PreProcess(lName, lData);
+        Result := FComp.Compile(lData);
+        Fpp.AdjustMessages(FComp);
       end else
       begin
         FComp.OnTranslateLineInfo := nil;

@@ -15,7 +15,7 @@ unit PascalScript_Core_Reg;
 interface
 
 {$IFNDEF FPC}
-  {$R PascalScript_Core_Glyphs.res}
+{$R PascalScript_Core_Glyphs.res}
 {$ENDIF}
 
 procedure Register;

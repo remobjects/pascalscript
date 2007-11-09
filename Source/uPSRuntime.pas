@@ -1122,6 +1122,7 @@ const
   RPS_TooManyParameters = 'Too many parameters';
   RPS_OutOfStringRange = 'Out of string range';
   RPS_CannotCastInterface = 'Cannot cast an interface';
+  RPS_CannotCastObject = 'Cannot cast an object';
   RPS_CapacityLength = 'Capacity < Length';
   RPS_CanOnlySendLastItem = 'Can only remove last item from stack';
   RPS_NILInterfaceException = 'Nil interface';
@@ -7333,11 +7334,7 @@ begin
               if u.ClassType = TPSExternalProcRec then begin
                 try
                   if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then
-                  begin
-                    if ExEx = erNoError then
-                      CMD_Err(erCouldNotCallProc);
                     Break;
-                  end;
                 except
                   {$IFDEF DELPHI6UP}
                   Tmp := AcquireExceptionObject;
@@ -7353,27 +7350,23 @@ begin
                   begin
                     if Tmp is EPSException then
                     begin
-                      Result := False;
                       ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
-                      exit;
+                      Break;
                     end else
                     if Tmp is EDivByZero then
                     begin
-                      Result := False;
                       CMD_Err3(erDivideByZero, '', Tmp);
-                      Exit;
+                      Break;
                     end;
                     if Tmp is EZeroDivide then
                     begin
-                      Result := False;
                       CMD_Err3(erDivideByZero, '', Tmp);
-                      Exit;
+                      Break;
                     end;
                     if Tmp is EMathError then
                     begin
-                      Result := False;
                       CMD_Err3(erMathError, '', Tmp);
-                      Exit;
+                      Break;
                     end;
                   end;
                   if (Tmp <> nil) and (Tmp is Exception) then
@@ -7994,8 +7987,48 @@ begin
                 end;
                 u := FProcs.Data^[p];
                 if u.ClassType = TPSExternalProcRec then begin
-                  if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then
-                    CMD_Err(erCouldNotCallProc);
+                  try
+                    if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then
+                      Break;
+                  except
+                    {$IFDEF DELPHI6UP}
+                    Tmp := AcquireExceptionObject;
+                    {$ELSE}
+                    if RaiseList <> nil then
+                    begin
+                      Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
+                      PRaiseFrame(RaiseList)^.ExceptObject := nil;
+                    end else
+                      Tmp := nil;
+                    {$ENDIF}
+                    if Tmp <> nil then
+                    begin
+                      if Tmp is EPSException then
+                      begin
+                        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
+                        break;
+                      end else
+                      if Tmp is EDivByZero then
+                      begin
+                        CMD_Err3(erDivideByZero, '', Tmp);
+                        break;
+                      end;
+                      if Tmp is EZeroDivide then
+                      begin
+                        CMD_Err3(erDivideByZero, '', Tmp);
+                        break;
+                      end;
+                      if Tmp is EMathError then
+                      begin
+                        CMD_Err3(erMathError, '', Tmp);
+                        break;
+                      end;
+                    end;
+                    if (Tmp <> nil) and (Tmp is Exception) then
+                      CMD_Err3(erException, Exception(Tmp).Message, Tmp) else
+                      CMD_Err3(erException, '', Tmp);
+                    Break;
+                  end;
                 end
                 else begin
                   vtemp := FStack.PushType(FReturnAddressType);
@@ -9947,7 +9980,6 @@ var
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
   s: string;
-  Tmp: TObject;
 begin
   s := p.Decl;
   if length(S) < 2 then
@@ -9989,27 +10021,10 @@ begin
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cc, MyList, v)
     else
       Result := Caller.InnerfuseCall(FSelf, VirtualMethodPtrToPtr(p.Ext1, FSelf), cc, MyList, v);
-  except
-    {$IFDEF DELPHI6UP}
-    Tmp := AcquireExceptionObject;
-    {$ELSE}
-    if RaiseList <> nil then
-    begin
-      Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-      PRaiseFrame(RaiseList)^.ExceptObject := nil;
-    end else
-      Tmp := nil;
-    {$ENDIF}
-    if tmp = nil then
-      Caller.Cmd_Err(erCouldNotCallProc)
-    else if Tmp is Exception then
-      Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-    else
-      Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-    Result := false;
+  finally
+    DisposePPSVariantIFC(v);
+    DisposePPSVariantIFCList(mylist);
   end;
-  DisposePPSVariantIFC(v);
-  DisposePPSVariantIFCList(mylist);
 end;
 
 function ClassCallProcConstructor(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
@@ -10024,7 +10039,6 @@ var
   s: string;
   FType: PIFTypeRec;
   x: TPSRuntimeClass;
-  Tmp: TObject;
   IntVal: PIFVariant;
 begin
   n := Stack[Stack.Count -2];
@@ -10100,28 +10114,11 @@ begin
   end else v := nil;
   try
     Result := Caller.InnerfuseCall(FSelf, p.Ext1, cc, MyList, v);
-  except
-    {$IFDEF DELPHI6UP}
-    Tmp := AcquireExceptionObject;
-    {$ELSE}
-    if RaiseList <> nil then
-    begin
-      Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-      PRaiseFrame(RaiseList)^.ExceptObject := nil;
-    end else
-      Tmp := nil;
-    {$ENDIF}
-    if tmp = nil then
-      Caller.Cmd_Err(erCouldNotCallProc)
-    else if Tmp is Exception then
-      Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-    else
-      Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-    Result := false;
+  finally
+    DisposePPSVariantIFC(v);
+    DisposePPSVariantIFCList(mylist);
+    DestroyHeapVariant(intval);
   end;
-  DisposePPSVariantIFC(v);
-  DisposePPSVariantIFCList(mylist);
-  DestroyHeapVariant(intval);
 end;
 
 
@@ -10137,7 +10134,6 @@ var
   s: string;
   FType: PIFTypeRec;
   x: TPSRuntimeClass;
-  Tmp: TObject;
   IntVal: PIFVariant;
 begin
   n := Stack[Stack.Count -2];
@@ -10201,28 +10197,11 @@ begin
   end else v := nil;
   try
     Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), cc, MyList, v);
-  except
-    {$IFDEF DELPHI6UP}
-    Tmp := AcquireExceptionObject;
-    {$ELSE}
-    if RaiseList <> nil then
-    begin
-      Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-      PRaiseFrame(RaiseList)^.ExceptObject := nil;
-    end else
-      Tmp := nil;
-    {$ENDIF}
-    if tmp = nil then
-      Caller.Cmd_Err(erCouldNotCallProc)
-    else if Tmp is Exception then
-      Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-    else
-      Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-    Result := false;
+  finally
+    DisposePPSVariantIFC(v);
+    DisposePPSVariantIFCList(mylist);
+    DestroyHeapVariant(intval);
   end;
-  DisposePPSVariantIFC(v);
-  DisposePPSVariantIFCList(mylist);
-  DestroyHeapVariant(intval);
 end;
 
 function CastProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
@@ -10299,6 +10278,7 @@ begin
       TObject(ResVar.Dta^) := TObject(InVar.Dta^) as FSelf;
     except
       Result := False;
+      Caller.CMD_Err2(erCustomError, RPS_CannotCastObject);
       exit;
     end;
   end else
@@ -10343,7 +10323,6 @@ var
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
   s: string;
-  Tmp: TObject;
 begin
   s := p.Decl;
   if length(S) < 2 then
@@ -10382,27 +10361,10 @@ begin
   try
     Caller.InnerfuseCall(FSelf, Pointer(Pointer(Cardinal(FSelf^) + (Cardinal(p.Ext1) * Sizeof(Pointer)))^), cc, MyList, n2);
     result := true;
-  except
-    {$IFDEF DELPHI6UP}
-    Tmp := AcquireExceptionObject;
-    {$ELSE}
-    if RaiseList <> nil then
-    begin
-      Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-      PRaiseFrame(RaiseList)^.ExceptObject := nil;
-    end else
-      Tmp := nil;
-    {$ENDIF}
-    if tmp = nil then
-      Caller.Cmd_Err(erCouldNotCallProc)
-    else if Tmp is Exception then
-      Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-    else
-      Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-    Result := false;
+  finally
+    DisposePPSVariantIFC(n2);
+    DisposePPSVariantIFCList(MyList);
   end;
-  DisposePPSVariantIFC(n2);
-  DisposePPSVariantIFCList(MyList);
 end;
 
 
@@ -10449,7 +10411,6 @@ var
   n: TPSVariantIFC;
   ltemp: Longint;
   FSelf: Pointer;
-  tmp: TObject;
   m: TMethod;
 begin
   try
@@ -10555,24 +10516,7 @@ begin
       end;
       Result := True;
     end;
-  except
-    {$IFDEF DELPHI6UP}
-    Tmp := AcquireExceptionObject;
-    {$ELSE}
-    if RaiseList <> nil then
-    begin
-      Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-      PRaiseFrame(RaiseList)^.ExceptObject := nil;
-    end else
-      Tmp := nil;
-    {$ENDIF}
-    if tmp = nil then
-      Caller.Cmd_Err(erCouldNotCallProc)
-    else if Tmp is Exception then
-      Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-    else
-      Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-    Result := False;
+  finally
   end;
 end;
 
@@ -10582,7 +10526,6 @@ var
   Params: TPSList;
   n: TPSVariantIFC;
   FSelf: Pointer;
-  Tmp: TObject;
 begin
   if Length(P.Decl) < 4 then begin
     Result := False;
@@ -10617,26 +10560,9 @@ begin
     end;
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
-    except
-      {$IFDEF DELPHI6UP}
-      Tmp := AcquireExceptionObject;
-      {$ELSE}
-      if RaiseList <> nil then
-      begin
-        Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-        PRaiseFrame(RaiseList)^.ExceptObject := nil;
-      end else
-        Tmp := nil;
-      {$ENDIF}
-      if tmp = nil then
-        Caller.Cmd_Err(erCouldNotCallProc)
-      else if Tmp is Exception then
-        Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-      else
-        Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-      Result := false;
+    finally
+      DisposePPSVariantIFCList(Params);
     end;
-    DisposePPSVariantIFCList(Params);
   end else begin
     n := NewTPSVariantIFC(Stack[Longint(Stack.Count) - 1], False);
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
@@ -10660,26 +10586,9 @@ begin
     end;
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
-    except
-      {$IFDEF DELPHI6UP}
-      Tmp := AcquireExceptionObject;
-      {$ELSE}
-      if RaiseList <> nil then
-      begin
-        Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-        PRaiseFrame(RaiseList)^.ExceptObject := nil;
-      end else
-        Tmp := nil;
-      {$ENDIF}
-      if tmp = nil then
-        Caller.Cmd_Err(erCouldNotCallProc)
-      else if Tmp is Exception then
-        Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-      else
-        Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-      Result := false;
+    finally
+      DisposePPSVariantIFCList(Params);
     end;
-    DisposePPSVariantIFCList(Params);
   end;
 end;
 
@@ -10690,7 +10599,6 @@ var
   tt: PIFVariant;
   n: TPSVariantIFC;
   FSelf: Pointer;
-  Tmp: TObject;
 begin
   if Length(P.Decl) < 4 then begin
     Result := False;
@@ -10723,27 +10631,10 @@ begin
     end;
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
-    except
-      {$IFDEF DELPHI6UP}
-      Tmp := AcquireExceptionObject;
-      {$ELSE}
-      if RaiseList <> nil then
-      begin
-        Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-        PRaiseFrame(RaiseList)^.ExceptObject := nil;
-      end else
-        Tmp := nil;
-      {$ENDIF}
-      if tmp = nil then
-        Caller.Cmd_Err(erCouldNotCallProc)
-      else if Tmp is Exception then
-        Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-      else
-        Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-      Result := false;
+    finally
+      DestroyHeapVariant(tt);
+      DisposePPSVariantIFCList(Params);
     end;
-    DestroyHeapVariant(tt);
-    DisposePPSVariantIFCList(Params);
   end else begin
     n := NewTPSVariantIFC(Stack[Longint(Stack.Count) - 1], false);
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
@@ -10767,27 +10658,10 @@ begin
     end;
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
-    except
-      {$IFDEF DELPHI6UP}
-      Tmp := AcquireExceptionObject;
-      {$ELSE}
-      if RaiseList <> nil then
-      begin
-        Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-        PRaiseFrame(RaiseList)^.ExceptObject := nil;
-      end else
-        Tmp := nil;
-      {$ENDIF}
-      if tmp = nil then
-        Caller.Cmd_Err(erCouldNotCallProc)
-      else if Tmp is Exception then
-        Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-      else
-        Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-      Result := false;
+    finally
+      DestroyHeapVariant(tt);
+      DisposePPSVariantIFCList(Params);
     end;
-    DestroyHeapVariant(tt);
-    DisposePPSVariantIFCList(Params);
   end;
 end;
 
@@ -10801,7 +10675,6 @@ var
   n: TPSVariantIFC;
   n2: PIFVariant;
   FSelf: Pointer;
-  Tmp: TObject;
 begin
   if Length(P.Decl) < 4 then begin
     Result := False;
@@ -10842,33 +10715,16 @@ begin
       Params.Add(NewPPSVariantIFC(Stack[i], False));
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
-    except
-      {$IFDEF DELPHI6UP}
-      Tmp := AcquireExceptionObject;
-      {$ELSE}
-      if RaiseList <> nil then
+    finally
+      Cardinal(n.Dta^) := getMethodNo(TMethod(PPSVariantDouble(n2).Data));
+      if Cardinal(n.Dta^) = 0 then
       begin
-        Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-        PRaiseFrame(RaiseList)^.ExceptObject := nil;
-      end else
-        Tmp := nil;
-      {$ENDIF}
-      if tmp = nil then
-        Caller.Cmd_Err(erCouldNotCallProc)
-      else if Tmp is Exception then
-        Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-      else
-        Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-      Result := false;
+        Pointer(Pointer((IPointer(n.dta)+4))^) := TMethod(PPSVariantDouble(n2).Data).Data;
+        Pointer(Pointer((IPointer(n.dta)+8))^) := TMethod(PPSVariantDouble(n2).Data).Code;
+      end;
+      DestroyHeapVariant(n2);
+      DisposePPSVariantIFCList(Params);
     end;
-    Cardinal(n.Dta^) := getMethodNo(TMethod(PPSVariantDouble(n2).Data));
-    if Cardinal(n.Dta^) = 0 then
-    begin
-      Pointer(Pointer((IPointer(n.dta)+4))^) := TMethod(PPSVariantDouble(n2).Data).Data;
-      Pointer(Pointer((IPointer(n.dta)+8))^) := TMethod(PPSVariantDouble(n2).Data).Code;
-    end;
-    DestroyHeapVariant(n2);
-    DisposePPSVariantIFCList(Params);
   end else begin
     n := NewTPSVariantIFC(Stack[Longint(Stack.Count) - 1], false);
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
@@ -10899,27 +10755,10 @@ begin
     end;
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
-    except
-      {$IFDEF DELPHI6UP}
-      Tmp := AcquireExceptionObject;
-      {$ELSE}
-      if RaiseList <> nil then
-      begin
-        Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-        PRaiseFrame(RaiseList)^.ExceptObject := nil;
-      end else
-        Tmp := nil;
-      {$ENDIF}
-      if tmp = nil then
-        Caller.Cmd_Err(erCouldNotCallProc)
-      else if Tmp is Exception then
-        Caller.CMD_Err3(erCustomError, (tmp as Exception).Message, tmp)
-      else
-        Caller.Cmd_Err3(erCustomError, RPS_CouldNotCallProc, tmp);
-      Result := false;
+    finally
+      DestroyHeapVariant(n2);
+      DisposePPSVariantIFCList(Params);
     end;
-    DestroyHeapVariant(n2);
-    DisposePPSVariantIFCList(Params);
   end;
 end;
 

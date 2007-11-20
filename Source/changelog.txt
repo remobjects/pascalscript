@@ -1,4 +1,5 @@
 Nov 2007
+- Power pc support (done by Henry Vermaak)
 - 0004558: Re: Exception problem
 Oct 2007
 - 0004504: Getting characters at a given position 

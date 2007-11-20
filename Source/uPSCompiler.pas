@@ -1815,6 +1815,9 @@ begin
 end;
 
 procedure BlockWriteVariant(BlockInfo: TPSBlockInfo; p: PIfRVariant);
+var
+  du8: tbtu8;
+  du16: tbtu16;
 begin
   BlockWriteLong(BlockInfo, p^.FType.FinalTypeNo);
   case p.FType.BaseType of
@@ -1841,15 +1844,20 @@ begin
       BlockWriteLong(BlockInfo, Length(tbtString(p^.tstring)));
       BlockWriteData(BlockInfo, tbtString(p^.tstring)[1], Length(tbtString(p^.tstring)));
     end;
-  btenum:
-    begin
-      if TPSEnumType(p^.FType).HighValue <=256 then
-        BlockWriteData(BlockInfo, p^.tu32, 1)
-      else if TPSEnumType(p^.FType).HighValue <=65536 then
-        BlockWriteData(BlockInfo, p^.tu32, 2)
-      else
-        BlockWriteData(BlockInfo, p^.tu32, 4);
-    end;
+     btenum:
+     begin
+       if TPSEnumType(p^.FType).HighValue <=256 then
+      begin
+        du8 := tbtu8(p^.tu32);
+        BlockWriteData(BlockInfo, du8, 1)
+      end
+       else if TPSEnumType(p^.FType).HighValue <=65536 then
+      begin
+        du16 := tbtu16(p^.tu32);
+        BlockWriteData(BlockInfo, du16, 2)
+      end;
+	end;
+
   bts8,btu8: BlockWriteData(BlockInfo, p^.tu8, 1);
   bts16,btu16: BlockWriteData(BlockInfo, p^.tu16, 2);
   bts32,btu32: BlockWriteData(BlockInfo, p^.tu32, 4);
@@ -2272,7 +2280,7 @@ type
 
 function PS_mi2s(i: Cardinal): string;
 begin
-  Result := #0#0#0#0;
+  SetLength(Result, 4);
   Cardinal((@Result[1])^) := i;
 end;
 

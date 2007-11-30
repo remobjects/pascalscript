@@ -1,4 +1,6 @@
 Nov 2007
+- 0004797: [Hint] issue with modules 
+- 0004786: CreateOpenArray function issue 
 - Power pc support (done by Henry Vermaak)
 - 0004558: Re: Exception problem
 Oct 2007

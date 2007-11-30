@@ -4404,7 +4404,7 @@ begin
     p := Func.ProcVars[I];
     if not p.Used then
     begin
-      with MakeHint('', ehVariableNotUsed, p.Name) do
+      with MakeHint({$IFDEF PS_USESSUPPORT}p.DeclareUnit{$ELSE}''{$ENDIF}, ehVariableNotUsed, p.Name) do
       begin
         FRow := p.DeclareRow;
         FCol := p.DeclareCol;
@@ -4414,7 +4414,7 @@ begin
   end;
   if (not Func.ResultUsed) and (Func.Decl.Result <> nil) then
   begin
-      with MakeHint('', ehVariableNotUsed, 'Result') do
+      with MakeHint({$IFDEF PS_USESSUPPORT}p.DeclareUnit{$ELSE}''{$ENDIF}, ehVariableNotUsed, 'Result') do
       begin
         FRow := Func.DeclareRow;
         FCol := Func.DeclareCol;
@@ -7093,7 +7093,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           if Temp = TWith then CheckFurther(TWith, True);
           if Temp = TWith then CheckClass(TWith, vt, vno, True);
           if Temp = TWith then  CheckExtClass(TWith, vt, vno, True);
-          if (Temp <> TWith) or (lOldRecCount <> TPSValueVar(TWith).GetRecCount) then
+          if (Temp <> TWith) or (Cardinal(lOldRecCount) <> TPSValueVar(TWith).GetRecCount) then
           begin
             repeat
               Temp := TWith;
@@ -11459,7 +11459,7 @@ begin
     begin
       if not TPSVar(FVars[I]).Used then
       begin
-        with MakeHint('', ehVariableNotUsed, TPSVar(FVars[I]).Name) do
+        with MakeHint({$IFDEF PS_USESSUPPORT}TPSVar(FVars[I]).DeclareUnit{$ELSE}''{$ENDIF}, ehVariableNotUsed, TPSVar(FVars[I]).Name) do
         begin
           FPosition := TPSVar(FVars[I]).DeclarePos;
           FRow := TPSVar(FVars[I]).DeclareRow;

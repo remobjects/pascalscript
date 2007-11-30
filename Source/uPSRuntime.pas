@@ -8773,6 +8773,10 @@ begin
       tvarrec(p^).VPointer := nil;
     end else begin
        case ctype.BaseType of
+        btVariant: begin
+          tvarrec(p^).VType := vtVariant;
+          tvarrec(p^).VVariant := cp;
+        end;
         btchar: begin
             tvarrec(p^).VType := vtChar;
             tvarrec(p^).VChar := tbtchar(cp^);

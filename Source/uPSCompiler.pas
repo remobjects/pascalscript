@@ -897,6 +897,7 @@ type
 
   TPSPascalCompiler = class
   protected
+    FUnitName: String;
     FID: Pointer;
     FOnExportCheck: TPSOnExportCheck;
     FDefaultBoolType: TPSType;
@@ -929,13 +930,18 @@ type
     FClasses: TPSList;
 
 
+		FWithCount: Integer;
+		FTryCount: Integer;
+    FExceptFinallyCount: Integer;
+
+
     {$IFDEF PS_USESSUPPORT}
     FUnitInits : TPSList; //nvds
     FUnitFinits: TPSList; //nvds
     FUses      : TIFStringList;
     fModule    : String;
-    fInCompile : Integer;
     {$ENDIF}
+    fInCompile : Integer;
 {$IFNDEF PS_NOINTERFACES}
     FInterfaces: TPSList;
 {$ENDIF}
@@ -1157,6 +1163,8 @@ type
     property BooleanShortCircuit: Boolean read FBooleanShortCircuit write FBooleanShortCircuit;
 
     property UTF8Decode: Boolean read FUtf8Decode write FUtf8Decode;
+
+    property UnitName: String read FUnitName;
   end;
   TIFPSPascalCompiler = TPSPascalCompiler;
 
@@ -1172,6 +1180,7 @@ type
     property Col: Cardinal read FCol write FCol;
 
     procedure SetParserPos(P: TPSPascalParser);
+
   end;
 
   TPSParameter = class(TObject)
@@ -1692,11 +1701,11 @@ implementation
 
 uses Classes, typInfo;
 
-{$IFDEF DELPHI3UP }
+{$IFDEF DELPHI3UP}
 resourceString
-{$ELSE }
+{$ELSE}
 const
-{$ENDIF }
+{$ENDIF}
 
   RPS_OnUseEventOnly = 'This function can only be called from within the OnUses event';
   RPS_UnableToRegisterFunction = 'Unable to register function %s';
@@ -4890,10 +4899,7 @@ function TPSPascalCompiler.IsVarInCompatible(ft1, ft2: TPSType): Boolean;
 begin
   ft1 := GetTypeCopyLink(ft1);
   ft2 := GetTypeCopyLink(ft2);
-  if (ft1 is TPSArrayType) and (ft2 is TPSArrayType) then begin
-    Result := IsVarInCompatible(TPSArrayType(ft1).ArrayTypeNo, TPSArrayType(ft2).ArrayTypeNo);
-  end else
-    Result := (ft1 <> ft2) and (ft2 <> nil);
+  Result := (ft1 <> ft2) and (ft2 <> nil);
 end;
 
 function TPSPascalCompiler.ValidateParameters(BlockInfo: TPSBlockInfo; Params: TPSParameters; ParamTypes: TPSParametersDecl): boolean;
@@ -9040,16 +9046,16 @@ begin
 //          BlockWriteByte(BlockInfo, CM_PO); // pop the temp var
 
         end else begin
-          tmp.TempVar := AllocPointer(GetTypeNo(BlockInfo, Tmp.FValue));
-          if not PreWriteOutRec(Tmp.FValue, nil) then
-          begin
-            cleanup;
-            exit;
-          end;
-          BlockWriteByte(BlockInfo, cm_sp);
-          WriteOutRec(tmp.TempVar, False);
-          WriteOutRec(Tmp.FValue, False);
-          AfterWriteOutRec(Tmp.FValue);
+        tmp.TempVar := AllocPointer(GetTypeNo(BlockInfo, Tmp.FValue));
+        if not PreWriteOutRec(Tmp.FValue, nil) then
+        begin
+          cleanup;
+          exit;
+        end;
+        BlockWriteByte(BlockInfo, cm_sp);
+        WriteOutRec(tmp.TempVar, False);
+        WriteOutRec(Tmp.FValue, False);
+        AfterWriteOutRec(Tmp.FValue);
         end;
       end
       else
@@ -9099,30 +9105,32 @@ begin
     Result := True;
   end; {ProcessVarFunction}
 
-  function HasInvalidJumps(StartPos, EndPos: Cardinal): Boolean;
+	function HasInvalidJumps(StartPos, EndPos: Cardinal): Boolean;
   var
     I, J: Longint;
     Ok: LongBool;
     FLabelsInBlock: TIfStringList;
     s: string;
-  begin
-    FLabelsInBlock := TIfStringList.Create;
-    for i := 0 to BlockInfo.Proc.FLabels.Count -1 do
-    begin
-      s := BlockInfo.Proc.FLabels[I];
-      if (Cardinal((@s[1])^) >= StartPos) and (Cardinal((@s[1])^) <= EndPos) then
-      begin
-        Delete(s, 1, 8);
-        FLabelsInBlock.Add(s);
-      end;
-    end;
-    for i := 0 to BlockInfo.Proc.FGotos.Count -1 do
-    begin
-      s := BlockInfo.Proc.FGotos[I];
-      if (Cardinal((@s[1])^) >= StartPos) and (Cardinal((@s[1])^) <= EndPos) then
-      begin
-        Delete(s, 1, 8);
-        OK := False;
+	begin
+		FLabelsInBlock := TIfStringList.Create;
+		for i := 0 to BlockInfo.Proc.FLabels.Count -1 do
+		begin
+			s := BlockInfo.Proc.FLabels[I];
+			if (Cardinal((@s[1])^) >= StartPos) and (Cardinal((@s[1])^) <= EndPos) then
+			begin
+				Delete(s, 1, 8);
+				FLabelsInBlock.Add(s);
+			end;
+		end;
+		for i := 0 to BlockInfo.Proc.FGotos.Count -1 do
+		begin
+			s := BlockInfo.Proc.FGotos[I];
+			if (Cardinal((@s[1])^) >= StartPos) and (Cardinal((@s[1])^) <= EndPos) then
+			begin
+				Delete(s, 1, 4);
+				s := BlockInfo.Proc.FLabels[Cardinal((@s[1])^)];
+				Delete(s,1,8);
+				OK := False;
         for J := 0 to FLabelsInBlock.Count -1 do
         begin
           if FLabelsInBlock[J] = s then
@@ -9139,8 +9147,10 @@ begin
           exit;
         end;
       end else begin
-        Delete(s, 1, 4);
-        OK := True;
+				Delete(s, 1, 4);
+				s := BlockInfo.Proc.FLabels[Cardinal((@s[1])^)];
+				Delete(s,1,8);
+				OK := True;
         for J := 0 to FLabelsInBlock.Count -1 do
         begin
           if FLabelsInBlock[J] = s then
@@ -9174,6 +9184,9 @@ begin
     FPos, NPos, EPos, RPos: Longint;
     OldCO, OldBO: TPSList;
     I: Longint;
+		iOldWithCount: Integer;
+		iOldTryCount: Integer;
+		iOldExFnlCount: Integer;
   begin
     Debug_WriteLine(BlockInfo);
     Result := False;
@@ -9283,6 +9296,14 @@ begin
     FBreakOffsets := TPSList.Create;
     Block := TPSBlockInfo.Create(BlockInfo);
     Block.SubType := tOneLiner;
+
+		iOldWithCount := FWithCount;
+		FWithCount := 0;
+		iOldTryCount := FTryCount;
+		FTryCount := 0;
+		iOldExFnlCount := FExceptFinallyCount;
+    FExceptFinallyCount := 0;
+
     if not ProcessSub(Block) then
     begin
       Block.Free;
@@ -9292,18 +9313,28 @@ begin
       FContinueOffsets.Free;
       FContinueOffsets := OldCO;
       FBreakOffsets := OldBo;
-      exit;
-    end;
-    Block.Free;
-    FPos := Length(BlockInfo.Proc.Data);
-    if not PreWriteOutRec(VariableVar, nil) then
-    begin
-      TempBool.Free;
-      VariableVar.Free;
-      FBreakOffsets.Free;
-      FContinueOffsets.Free;
-      FContinueOffsets := OldCO;
-      FBreakOffsets := OldBo;
+
+			FWithCount := iOldWithCount;
+			FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
+			exit;
+		end;
+		Block.Free;
+		FPos := Length(BlockInfo.Proc.Data);
+		if not PreWriteOutRec(VariableVar, nil) then
+		begin
+			TempBool.Free;
+			VariableVar.Free;
+			FBreakOffsets.Free;
+			FContinueOffsets.Free;
+			FContinueOffsets := OldCO;
+			FBreakOffsets := OldBo;
+
+			FWithCount := iOldWithCount;
+			FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
       exit;
     end;
     if Backwards then
@@ -9318,6 +9349,11 @@ begin
       FContinueOffsets.Free;
       FContinueOffsets := OldCO;
       FBreakOffsets := OldBo;
+
+			FWithCount := iOldWithCount;
+			FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
       exit;
     end;
     AfterWriteOutRec(VariableVar);
@@ -9338,9 +9374,14 @@ begin
     FContinueOffsets.Free;
     FContinueOffsets := OldCO;
     FBreakOffsets := OldBo;
-    TempBool.Free;
-    VariableVar.Free;
-    if HasInvalidJumps(RPos, Length(BlockInfo.Proc.Data)) then
+
+		FWithCount := iOldWithCount;
+    FTryCount := iOldTryCount;
+    FExceptFinallyCount := iOldExFnlCount;
+
+		TempBool.Free;
+		VariableVar.Free;
+		if HasInvalidJumps(RPos, Length(BlockInfo.Proc.Data)) then
     begin
       Result := False;
       exit;
@@ -9355,6 +9396,11 @@ begin
     OldCo, OldBO: TPSList;
     I: Longint;
     Block: TPSBlockInfo;
+
+		iOldWithCount: Integer;
+    iOldTryCount: Integer;
+    iOldExFnlCount: Integer;
+
   begin
     Result := False;
     Debug_WriteLine(BlockInfo);
@@ -9401,6 +9447,14 @@ begin
     end;
     Block := TPSBlockInfo.Create(BlockInfo);
     Block.SubType := tOneLiner;
+
+    iOldWithCount := FWithCount;
+    FWithCount := 0;
+    iOldTryCount := FTryCount;
+    FTryCount := 0;
+    iOldExFnlCount := FExceptFinallyCount;
+    FExceptFinallyCount := 0;
+
     if not ProcessSub(Block) then
     begin
       Block.Free;
@@ -9409,6 +9463,11 @@ begin
       FContinueOffsets.Free;
       FContinueOffsets := OldCO;
       FBreakOffsets := OldBo;
+
+      FWithCount := iOldWithCount;
+			FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
       exit;
     end;
     Block.Free;
@@ -9430,8 +9489,13 @@ begin
     FContinueOffsets.Free;
     FContinueOffsets := OldCO;
     FBreakOffsets := OldBo;
+
+    FWithCount := iOldWithCount;
+    FTryCount := iOldTryCount;
+    FExceptFinallyCount := iOldExFnlCount;
+
     vin.Free;
-    if HasInvalidJumps(EPos, Length(BlockInfo.Proc.Data)) then
+		if HasInvalidJumps(EPos, Length(BlockInfo.Proc.Data)) then
     begin
       Result := False;
       exit;
@@ -9446,6 +9510,11 @@ begin
     I: Longint;
     OldCo, OldBO: TPSList;
     Block: TPSBlockInfo;
+
+    iOldWithCount: Integer;
+    iOldTryCount: Integer;
+    iOldExFnlCount: Integer;
+
   begin
     Result := False;
     Debug_WriteLine(BlockInfo);
@@ -9458,6 +9527,14 @@ begin
     SPos := Length(BlockInfo.Proc.Data);
     Block := TPSBlockInfo.Create(BlockInfo);
     Block.SubType := tRepeat;
+
+    iOldWithCount := FWithCount;
+    FWithCount := 0;
+    iOldTryCount := FTryCount;
+    FTryCount := 0;
+    iOldExFnlCount := FExceptFinallyCount;
+    FExceptFinallyCount := 0;
+
     if not ProcessSub(Block) then
     begin
       Block.Free;
@@ -9465,6 +9542,11 @@ begin
       FContinueOffsets.Free;
       FContinueOffsets := OldCO;
       FBreakOffsets := OldBo;
+
+      FWithCount := iOldWithCount;
+      FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
       vin.Free;
       exit;
     end;
@@ -9477,6 +9559,11 @@ begin
       FContinueOffsets.Free;
       FContinueOffsets := OldCO;
       FBreakOffsets := OldBo;
+
+      FWithCount := iOldWithCount;
+      FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
       vin.Free;
       exit;
     end;
@@ -9489,6 +9576,11 @@ begin
       FContinueOffsets.Free;
       FContinueOffsets := OldCO;
       FBreakOffsets := OldBo;
+
+      FWithCount := iOldWithCount;
+      FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
       exit;
     end;
     vout.Free;
@@ -9503,6 +9595,11 @@ begin
       FContinueOffsets.Free;
       FContinueOffsets := OldCO;
       FBreakOffsets := OldBo;
+
+      FWithCount := iOldWithCount;
+      FTryCount := iOldTryCount;
+      FExceptFinallyCount := iOldExFnlCount;
+
       exit;
     end;
     Longint((@BlockInfo.Proc.Data[EPos - 3])^) := Longint(SPos) -
@@ -9521,6 +9618,11 @@ begin
     FContinueOffsets.Free;
     FContinueOffsets := OldCO;
     FBreakOffsets := OldBo;
+
+    FWithCount := iOldWithCount;
+    FTryCount := iOldTryCount;
+    FExceptFinallyCount := iOldExFnlCount;
+
     vin.Free;
     if HasInvalidJumps(SPos, Length(BlockInfo. Proc.Data)) then
     begin
@@ -9881,7 +9983,7 @@ begin
     end;
     Result := True;
   end; {ProcessCase}
-  function ProcessGoto: Boolean;
+	function ProcessGoto: Boolean;
   var
     I, H: Longint;
     s: string;
@@ -9889,7 +9991,7 @@ begin
     Debug_WriteLine(BlockInfo);
     FParser.Next;
     h := MakeHash(FParser.GetToken);
-    for i := 0 to BlockInfo.Proc.FLabels.Count -1 do
+		for i := 0 to BlockInfo.Proc.FLabels.Count -1 do
     begin
       s := BlockInfo.Proc.FLabels[I];
       delete(s, 1, 4);
@@ -9916,6 +10018,10 @@ begin
     Block: TPSBlockInfo;
     aVar, aReplace: TPSValue;
     aType: TPSType;
+
+    iStartOffset: Integer;
+
+    tmp: TPSValue;
   begin
     Debug_WriteLine(BlockInfo);
     Block := TPSBlockInfo.Create(BlockInfo);
@@ -9944,22 +10050,19 @@ begin
       TPSValueReplace(aReplace).FreeOldValue := True;
       TPSValueReplace(aReplace).FreeNewValue := True;
       TPSValueReplace(aReplace).OldValue := aVar;
-(*
-      TPSValueReplace(aReplace).NewValue := AllocStackReg(GetTypeNo(BlockInfo, aVar));
-      if not WriteCalculation(aVar, TPSValueReplace(aReplace).NewValue) then
-      begin
-        aReplace.Free;
-        Block.Free;
-        Result := False;
-        exit;
-      end;
-*)
-      TPSValueReplace(aReplace).NewValue := AllocPointer(GetTypeNo(BlockInfo, aVar));
+
+      if aVar.InheritsFrom(TPSVar) then TPSVar(aVar).Use;
+      tmp := AllocPointer(GetTypeNo(BlockInfo, aVar));
+      TPSProcVar(BlockInfo.Proc.ProcVars[TPSValueAllocatedStackVar(tmp).LocalVarNo]).Use;
+      PreWriteOutRec(tmp,GetTypeNo(BlockInfo, tmp));
       PreWriteOutRec(aVar,GetTypeNo(BlockInfo, aVar));
       BlockWriteByte(BlockInfo, cm_sp);
-      WriteOutRec(TPSValueReplace(aReplace).NewValue, true);
-      WriteOutRec(aVar, true);
-            
+      WriteOutRec(tmp, false);
+      WriteOutRec(aVar, false);
+      TPSValueReplace(aReplace).NewValue := tmp;
+
+
+
       Block.WithList.Add(aReplace);
 
       if FParser.CurrTokenID = CSTII_do then
@@ -9977,12 +10080,22 @@ begin
       FParser.Next;
     until False;
 
-    if not ProcessSub(Block) then
+
+    inc(FWithCount);
+
+    iStartOffset := Length(Block.Proc.Data);
+
+    if not (ProcessSub(Block) and (not HasInvalidJumps(iStartOffset,Length(BlockInfo.Proc.Data) + 1)) )  then
     begin
+      dec(FWithCount);
       Block.Free;
       Result := False;
       exit;
     end;
+    dec(FWithCount);
+
+    AfterWriteOutRec(aVar);
+    AfterWriteOutRec(tmp);
     Block.Free;
     Result := True;
   end;
@@ -9990,6 +10103,7 @@ begin
   function ProcessTry: Boolean;
   var
     FStartOffset: Cardinal;
+    iBlockStartOffset: Integer;
     Block: TPSBlockInfo;
   begin
     FParser.Next;
@@ -10001,8 +10115,10 @@ begin
     BlockWriteLong(BlockInfo, InvalidVal);
     Block := TPSBlockInfo.Create(BlockInfo);
     Block.SubType := tTry;
-    if ProcessSub(Block) then
+    inc(FTryCount);
+    if ProcessSub(Block) and (not HasInvalidJumps(FStartOffset,Length(BlockInfo.Proc.Data) + 1))  then
     begin
+      dec(FTryCount);
       Block.Free;
       BlockWriteByte(BlockInfo, cm_poexh);
       BlockWriteByte(BlockInfo, 0);
@@ -10010,21 +10126,27 @@ begin
       begin
         FParser.Next;
         Cardinal((@BlockInfo.Proc.Data[FStartOffset + 4])^) := Cardinal(Length(BlockInfo.Proc.Data)) - FStartOffset - 15;
+        iBlockStartOffset := Length(BlockInfo.Proc.Data) ;
         Block := TPSBlockInfo.Create(BlockInfo);
         Block.SubType := tTryEnd;
-        if ProcessSub(Block) then
+        inc(FExceptFinallyCount);
+        if ProcessSub(Block) and (not HasInvalidJumps(iBlockStartOffset,Length(BlockInfo.Proc.Data) + 1))  then
         begin
+          dec(FExceptFinallyCount);
           Block.Free;
           BlockWriteByte(BlockInfo, cm_poexh);
           BlockWriteByte(BlockInfo, 2);
           if FParser.CurrTokenId = CSTII_Finally then
           begin
             Cardinal((@BlockInfo.Proc.Data[FStartOffset + 8])^) := Cardinal(Length(BlockInfo.Proc.Data)) - FStartOffset - 15;
+            iBlockStartOffset := Length(BlockInfo.Proc.Data) ;
             Block := TPSBlockInfo.Create(BlockInfo);
             Block.SubType := tTryEnd;
             FParser.Next;
-            if ProcessSub(Block) then
+           inc(FExceptFinallyCount);
+            if ProcessSub(Block)  and (not HasInvalidJumps(iBlockStartOffset,Length(BlockInfo.Proc.Data) + 1))  then
             begin
+              dec(FExceptFinallyCount);
               Block.Free;
               if FParser.CurrTokenId = CSTII_End then
               begin
@@ -10035,7 +10157,13 @@ begin
                 Result := False;
                 exit;
               end;
-            end else begin Block.Free; Result := False; exit; end;
+            end else
+            begin
+              Block.Free;
+              Result := False;
+              dec(FExceptFinallyCount);
+              exit;
+            end;
           end else if FParser.CurrTokenID <> CSTII_End then
           begin
             MakeError('', ecEndExpected, '');
@@ -10043,26 +10171,38 @@ begin
             exit;
           end;
           FParser.Next;
-        end else begin Block.Free; Result := False; exit; end;
+        end else
+        begin
+          Block.Free;
+          Result := False;
+          dec(FExceptFinallyCount);
+          exit;
+        end;
       end else if FParser.CurrTokenId = CSTII_Finally then
       begin
         FParser.Next;
         Cardinal((@BlockInfo.Proc.Data[FStartOffset])^) := Cardinal(Length(BlockInfo.Proc.Data)) - FStartOffset - 15;
+        iBlockStartOffset := Length(BlockInfo.Proc.Data) ;
         Block := TPSBlockInfo.Create(BlockInfo);
         Block.SubType := tTryEnd;
-        if ProcessSub(Block) then
+        inc(FExceptFinallyCount);
+        if ProcessSub(Block)  and (not HasInvalidJumps(iBlockStartOffset,Length(BlockInfo.Proc.Data) + 1)) then
         begin
+          dec(FExceptFinallyCount);
           Block.Free;
           BlockWriteByte(BlockInfo, cm_poexh);
           BlockWriteByte(BlockInfo, 1);
           if FParser.CurrTokenId = CSTII_Except then
           begin
             Cardinal((@BlockInfo.Proc.Data[FStartOffset + 4])^) := Cardinal(Length(BlockInfo.Proc.Data)) - FStartOffset - 15;
+            iBlockStartOffset := Length(BlockInfo.Proc.Data) ;
             FParser.Next;
             Block := TPSBlockInfo.Create(BlockInfo);
             Block.SubType := tTryEnd;
-            if ProcessSub(Block) then
+            inc(FExceptFinallyCount);
+            if ProcessSub(Block) and (not HasInvalidJumps(iBlockStartOffset,Length(BlockInfo.Proc.Data) + 1)) then
             begin
+              dec(FExceptFinallyCount);
               Block.Free;
               if FParser.CurrTokenId = CSTII_End then
               begin
@@ -10073,7 +10213,13 @@ begin
                 Result := False;
                 exit;
               end;
-            end else begin Block.Free; Result := False; exit; end;
+            end else
+            begin
+              Block.Free;
+              Result := False;
+              dec(FExceptFinallyCount);
+              exit;
+            end;
           end else if FParser.CurrTokenID <> CSTII_End then
           begin
             MakeError('', ecEndExpected, '');
@@ -10081,14 +10227,27 @@ begin
             exit;
           end;
           FParser.Next;
-        end else begin Block.Free;Result := False; exit; end;
+        end else
+        begin
+          Block.Free;
+          Result := False;
+          dec(FExceptFinallyCount);
+          exit;
+        end;
       end;
-    end else begin Block.Free; Result := False; exit; end;
+    end else
+    begin
+      Block.Free;
+      Result := False;
+      dec(FTryCount);
+      exit;
+    end;
     Cardinal((@BlockInfo.Proc.Data[FStartOffset + 12])^) := Cardinal(Length(BlockInfo.Proc.Data)) - FStartOffset - 15;
     Result := True;
   end; {ProcessTry}
 
 var
+  i: Integer;
   Block: TPSBlockInfo;
 
 begin
@@ -10236,6 +10395,22 @@ begin
                   MakeError('', ecNotInLoop, '');
                   exit;
                 end;
+                for i := 0 to FExceptFinallyCount - 1 do
+                begin
+                  BlockWriteByte(BlockInfo, cm_poexh);
+                  BlockWriteByte(BlockInfo, 1);
+                end;
+
+                for i := 0 to FTryCount - 1 do
+                begin
+                  BlockWriteByte(BlockInfo, cm_poexh);
+                  BlockWriteByte(BlockInfo, 0);
+                  BlockWriteByte(BlockInfo, cm_poexh);
+                  BlockWriteByte(BlockInfo, 1);
+                end;
+
+                for i := 0 to FWithCount - 1 do
+									BlockWriteByte(BlockInfo,cm_po);
                 BlockWriteByte(BlockInfo, Cm_G);
                 BlockWriteLong(BlockInfo, $12345678);
                 FBreakOffsets.Add(Pointer(Length(BlockInfo.Proc.Data)));
@@ -10249,6 +10424,22 @@ begin
                   MakeError('', ecNotInLoop, '');
                   exit;
                 end;
+                for i := 0 to FExceptFinallyCount - 1 do
+                begin
+                  BlockWriteByte(BlockInfo, cm_poexh);
+                  BlockWriteByte(BlockInfo, 1);
+                end;
+
+                for i := 0 to FTryCount - 1 do
+                begin
+                  BlockWriteByte(BlockInfo, cm_poexh);
+                  BlockWriteByte(BlockInfo, 0);
+                  BlockWriteByte(BlockInfo, cm_poexh);
+                  BlockWriteByte(BlockInfo, 1);
+                end;
+                
+                for i := 0 to FWithCount - 1 do
+									BlockWriteByte(BlockInfo,cm_po);
                 BlockWriteByte(BlockInfo, Cm_G);
                 BlockWriteLong(BlockInfo, $12345678);
                 FContinueOffsets.Add(Pointer(Length(BlockInfo.Proc.Data)));
@@ -11119,11 +11310,13 @@ var
   {$ENDIF}
 begin
   Result := False;
+  FWithCount := -1;
 
   {$IFDEF PS_USESSUPPORT}
   if fInCompile=0 then
   begin
   {$ENDIF}
+    FUnitName := '';
     FCurrUsedTypeNo := 0;
     FIsUnit := False;
     Clear;
@@ -11259,6 +11452,8 @@ begin
         Cleanup;
         exit;
       end;
+      if fInCompile = 1 then
+        FUnitName := FParser.OriginalToken;
       FParser.Next;
       if FParser.CurrTokenId <> CSTI_Semicolon then
       begin
@@ -11270,10 +11465,9 @@ begin
     end
     else if (FParser.CurrTokenID = CSTII_Uses) and ((Position < csuses) or (Position = csInterface)) then
     begin
-      if Position = csInterface then
-        Position := csInterfaceUses
-      else
-        Position := csUses;
+      if (Position = csInterface) or (Position =csInterfaceUses)
+        then Position := csInterfaceUses
+        else Position := csUses;
       if not ProcessUses then
       begin
         Cleanup;
@@ -11300,7 +11494,9 @@ begin
     end
     else if (FParser.CurrTokenId = CSTII_Label) then
     begin
-      Position := csUses;
+      if (Position = csInterface) or (Position =csInterfaceUses)
+        then Position := csInterfaceUses
+        else Position := csUses;
       if not ProcessLabel(FGlobalBlock.Proc) then
       begin
         Cleanup;
@@ -11309,7 +11505,9 @@ begin
     end
     else if (FParser.CurrTokenId = CSTII_Var) then
     begin
-      Position := csUses;
+      if (Position = csInterface) or (Position =csInterfaceUses)
+        then Position := csInterfaceUses
+        else Position := csUses;
       if not DoVarBlock(nil) then
       begin
         Cleanup;
@@ -11318,7 +11516,9 @@ begin
     end
     else if (FParser.CurrTokenId = CSTII_Const) then
     begin
-      Position := csUses;
+      if (Position = csInterface) or (Position =csInterfaceUses)
+        then Position := csInterfaceUses
+        else Position := csUses;
       if not DoConstBlock then
       begin
         Cleanup;
@@ -11327,7 +11527,9 @@ begin
     end
     else if (FParser.CurrTokenId = CSTII_Type) then
     begin
-      Position := csUses;
+      if (Position = csInterface) or (Position =csInterfaceUses)
+        then Position := csInterfaceUses
+        else Position := csUses;
       if not DoTypeBlock(FParser) then
       begin
         Cleanup;
@@ -12171,23 +12373,23 @@ var
   p: TPSRegProc;
 begin
   {$IFNDEF PS_NOINT64}
-  AddFunction('function inttostr(i: Int64): string;');
+  AddFunction('function IntToStr(i: Int64): String;');
   {$ELSE}
-  AddFunction('function inttostr(i: Integer): string;');
+  AddFunction('function IntTostr(i: Integer): String;');
   {$ENDIF}
-  AddFunction('function strtoint(s: string): Longint;');
-  AddFunction('function strtointdef(s: string; def: Longint): Longint;');
-  AddFunction('function copy(s: string; ifrom, icount: Longint): string;');
-  AddFunction('function pos(substr, s: string): Longint;');
-  AddFunction('procedure delete(var s: string; ifrom, icount: Longint);');
-  AddFunction('procedure insert(s: string; var s2: string; ipos: Longint);');
-  p := AddFunction('function getarraylength: integer;');
+  AddFunction('function StrToInt(s: string): Longint;');
+  AddFunction('function StrToIntDef(s: String; def: Longint): Longint;');
+  AddFunction('function Copy(s: string; iFrom, iCount: Longint): string;');
+  AddFunction('function Pos(SubStr, S: String): Longint;');
+  AddFunction('procedure Delete(var s: string; ifrom, icount: Longint);');
+  AddFunction('procedure Insert(s: string; var s2: string; iPos: Longint);');
+  p := AddFunction('function GetArrayLength: integer;');
   with P.Decl.AddParam do
   begin
     OrgName := 'arr';
     Mode := pmInOut;
   end;
-  p := AddFunction('procedure setarraylength;');
+  p := AddFunction('procedure SetArrayLength;');
   with P.Decl.AddParam do
   begin
     OrgName := 'arr';

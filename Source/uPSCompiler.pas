@@ -10366,6 +10366,8 @@ begin
           Debug_WriteLine(BlockInfo);
           BlockWriteByte(BlockInfo, Cm_R);
           FParser.Next;
+          if (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = TOneLiner) then
+            break;
         end;
       CSTII_Case:
         begin
@@ -10437,7 +10439,7 @@ begin
                   BlockWriteByte(BlockInfo, cm_poexh);
                   BlockWriteByte(BlockInfo, 1);
                 end;
-                
+
                 for i := 0 to FWithCount - 1 do
 									BlockWriteByte(BlockInfo,cm_po);
                 BlockWriteByte(BlockInfo, Cm_G);
@@ -10453,6 +10455,10 @@ begin
                 break;
             end;
           end; {case}
+          
+          if (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = TOneLiner) then
+            break;
+
         end;
     {$IFDEF PS_USESSUPPORT}
       CSTII_Finalization:                            //NvdS
@@ -10521,7 +10527,17 @@ begin
     {$IFDEF PS_USESSUPPORT}
     end;   //nvds
     {$endif}
+  end
+  else if (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = TOneLiner) then
+  begin
+    if (FParser.CurrTokenID <> CSTII_Else) and (FParser.CurrTokenID <> CSTII_End) then
+      if FParser.CurrTokenID <> CSTI_Semicolon then
+      begin
+        MakeError('', ecSemicolonExpected, '');
+        exit;
+      end;
   end;
+
   ProcessSub := True;
 end;
 procedure TPSPascalCompiler.UseProc(procdecl: TPSParametersDecl);

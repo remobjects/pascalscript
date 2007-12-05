@@ -1,3 +1,5 @@
+Dec 2007
+- 0004836: Semicolon bug 
 Nov 2007
 - 0004797: [Hint] issue with modules 
 - 0004786: CreateOpenArray function issue 

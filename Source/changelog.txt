@@ -1,4 +1,5 @@
 Dec 2007
+- 0004927: PS can't determine the length of a variant type anymore 
 - 0004836: Semicolon bug 
 Nov 2007
 - 0004797: [Hint] issue with modules 

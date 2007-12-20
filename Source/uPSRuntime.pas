@@ -8407,29 +8407,40 @@ function Length_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack
 var
   arr: TPSVariantIFC;
 begin
-  Result:=false;
   arr:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
-  if arr.aType.BaseType=btArray then
-  begin
-    Stack.SetInt(-1,PSDynArrayGetLength(Pointer(arr.Dta^),arr.aType));
-    Result:=true;
-  end else
-  if arr.aType.BaseType=btStaticArray then
-  begin
-    Stack.SetInt(-1,TPSTypeRec_StaticArray(arr.aType).Size);
-    Result:=true;
-  end else
-  if arr.aType.BaseType=btString then
-  begin
-    Stack.SetInt(-1,length(tbtstring(arr.Dta^)));
-    Result:=true;
-{$IFNDEF PS_NOWIDESTRING}
-  end else
-  if arr.aType.BaseType=btWideString then
-  begin
-    Stack.SetInt(-1,length(tbtWidestring(arr.Dta^)));
-    Result:=true;
-{$ENDIF}
+  case arr.aType.BaseType of
+    btArray:
+      begin
+        Stack.SetInt(-1,PSDynArrayGetLength(Pointer(arr.Dta^),arr.aType));
+        Result:=true;
+      end;
+    btStaticArray:
+      begin
+        Stack.SetInt(-1,TPSTypeRec_StaticArray(arr.aType).Size);
+        Result:=true;
+      end;
+    btString:
+      begin
+        Stack.SetInt(-1,length(tbtstring(arr.Dta^)));
+        Result:=true;
+      end;
+    {$IFNDEF PS_NOWIDESTRING}
+    btWideString:
+      begin
+        Stack.SetInt(-1,length(tbtWidestring(arr.Dta^)));
+        Result:=true;
+      end;
+    {$ENDIF}
+    btvariant:
+      begin
+        Stack.SetInt(-1,length(Variant(arr.Dta^)));
+        Result:=true;
+      end;
+  else
+    begin
+      Caller.CMD_Err(ErTypeMismatch);
+      result := true;
+    end;
   end;
 end;
 

@@ -8995,7 +8995,7 @@ end;
 {$ifndef FPC}
   {$include x86.inc}
 {$else}
-  {$if defined(cpu86))
+  {$if defined(cpu86)}
     {$include x86.inc}
   {$elseif defined(cpupowerpc)}
     {$include powerpc.inc}

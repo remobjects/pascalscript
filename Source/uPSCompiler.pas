@@ -4423,7 +4423,7 @@ begin
   end;
   if (not Func.ResultUsed) and (Func.Decl.Result <> nil) then
   begin
-      with MakeHint({$IFDEF PS_USESSUPPORT}p.DeclareUnit{$ELSE}''{$ENDIF}, ehVariableNotUsed, 'Result') do
+      with MakeHint({$IFDEF PS_USESSUPPORT}Func.DeclareUnit{$ELSE}''{$ENDIF}, ehVariableNotUsed, 'Result') do
       begin
         FRow := Func.DeclareRow;
         FCol := Func.DeclareCol;
@@ -11165,7 +11165,7 @@ var
       COrgName := FParser.OriginalToken;
       if IsDuplicate(FastUpperCase(COrgName), [dcVars, dcProcs, dcConsts]) then
       begin
-        MakeError('', ecDuplicateIdentifier, '');
+        MakeError('', ecDuplicateIdentifier, COrgName);
         Result := False;
         exit;
       end;
@@ -11618,6 +11618,7 @@ begin
       begin
         break;
       end else begin
+        Cleanup;
         Result :=  False; //Cleanup;
         exit;
       end;

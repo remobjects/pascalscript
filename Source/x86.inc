@@ -540,7 +540,14 @@ begin
               btchar,btU8, btS8:    tbtu8(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 1, nil);
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass :
-              tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
+              {$IFNDEF FPC}
+              tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX,
+              @Stack[Length(Stack) - 3], Length(Stack) div 4, 4, nil);
+              {$ELSE}
+              tbtu32(res.dta^) := RealCall_Register(Address, EDX, EAX, ECX,
+              @Stack[Length(Stack) - 3], Length(Stack) div 4, 4, nil);
+              {$ENDIF}
+
               btu32,bts32:   tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
               btPChar:       pchar(res.dta^) := Pchar(RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
               {$IFNDEF PS_NOINT64}bts64:

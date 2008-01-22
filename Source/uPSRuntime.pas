@@ -9317,6 +9317,7 @@ begin
     n := Stack[Stack.Count -2];
   if (n = nil) or (n^.FType.BaseType <> btClass)or (PPSVariantClass(n).Data = nil) then
   begin
+    Caller.CMD_Err(erNullPointerException);
     result := false;
     exit;
   end;
@@ -9461,12 +9462,14 @@ begin
   n := Stack[Stack.Count -2];
   if (n = nil) or (n^.FType.BaseType <> btU32)  then
   begin
+    Caller.CMD_Err(erNullPointerException);
     result := false;
     exit;
   end;
   FType := Caller.GetTypeNo(PPSVariantU32(N).Data);
   if (FType = nil)  then
   begin
+    Caller.CMD_Err(erNullPointerException);
     Result := False;
     exit;
   end;
@@ -9620,6 +9623,7 @@ begin
   if (n.Dta = nil) or ((n.aType.BaseType <> btClass) and (n.aType.BaseType <> btInterface)) then
   begin
     Result := False;
+    Caller.CMD_Err(erNullPointerException);
     Exit;
   end;
 {$IFNDEF PS_NOINTERFACES}
@@ -9660,6 +9664,7 @@ begin
     n := NewTPSVariantIFC(Stack[Stack.Count -2], false);
   if (n.dta = nil) or (n.atype.BaseType <> btInterface) or (Pointer(n.Dta^) = nil) then
   begin
+    Caller.CMD_Err(erNullPointerException);
     result := false;
     exit;
   end;
@@ -9742,6 +9747,7 @@ begin
       if (n.Dta = nil) or (n.aType.BaseType <> btclass)  then
       begin
         result := false;
+        Caller.CMD_Err(erNullPointerException);
         exit;
       end;
       FSelf := Pointer(n.dta^);
@@ -9790,6 +9796,7 @@ begin
       if (n.dta = nil) or (n.aType.BaseType <> btClass)then
       begin
         result := false;
+        Caller.CMD_Err(erNullPointerException);
         exit;
       end;
       FSelf := Pointer(n.dta^);
@@ -9865,6 +9872,7 @@ begin
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
     begin
       result := false;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     FSelf := pointer(n.Dta^);
@@ -9890,6 +9898,7 @@ begin
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
     begin
       result := false;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     FSelf := pointer(n.Dta^);
@@ -9938,6 +9947,7 @@ begin
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
     begin
       result := false;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     FSelf := Tobject(n.dta^);
@@ -9962,6 +9972,7 @@ begin
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
     begin
       result := false;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     FSelf := Tobject(n.dta^);
@@ -10014,6 +10025,7 @@ begin
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
     begin
       result := false;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     FSelf := Tobject(n.dta^);
@@ -10021,6 +10033,7 @@ begin
     if (n.aType.BaseType <> btU32) and (n.aType.BaseType <> btProcPtr) then
     begin
       Result := False;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     n2 := CreateHeapVariant(Caller.FindType2(btDouble));
@@ -10052,6 +10065,7 @@ begin
     if (n.Dta = nil) or (n.aType.BaseType <> btClass) then
     begin
       result := false;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     FSelf := Tobject(n.dta^);
@@ -10059,6 +10073,7 @@ begin
     if (n.Dta = nil) or ((n.aType.BaseType <> btu32) and (n.aType.BaseType <> btProcPtr)) then
     begin
       result := false;
+      Caller.CMD_Err(erNullPointerException);
       exit;
     end;
     n2 := CreateHeapVariant(Caller.FindType2(btDouble));

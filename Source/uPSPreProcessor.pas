@@ -258,8 +258,7 @@ begin
   Result := TPSLineInfo(FItems[i]);
 end;
 
-function TPSLineInfoList.GetLineInfo(Pos: Cardinal;
-  var Res: TPSLineInfoResults): Boolean;
+function TPSLineInfoList.GetLineInfo(Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
 var
   i,j: Longint;
   linepos: Cardinal;

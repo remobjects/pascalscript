@@ -1,6 +1,5 @@
 [FileVersion]
 Version=7.0
-
 [Compiler]
 A=8
 B=0
@@ -80,7 +79,6 @@ PrivatePropAccessor=1
 UnsafeType=0
 UnsafeCode=0
 UnsafeCast=0
-
 [Linker]
 MapFile=0
 OutputObjs=0
@@ -91,7 +89,6 @@ MinStackSize=16384
 MaxStackSize=1048576
 ImageBase=4194304
 ExeDescription=RemObjects Pascal Script - Core Package
-
 [Directories]
 OutputDir=
 UnitOutputDir=..\Dcu\D7
@@ -102,14 +99,23 @@ Packages=
 Conditionals=
 DebugSourceDirs=
 UsePackages=0
-
-
+[Parameters]
+RunParams=
+HostApplication=
+Launcher=
+UseLauncher=0
+DebugCWD=
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
 [Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
 MajorVer=3
 MinorVer=0
-Release=2
-Build=36
-AutoIncBuild=0
+Release=6
+Build=442
 Debug=0
 PreRelease=0
 Special=0
@@ -125,5 +131,6 @@ LegalTrademarks=
 ProductName=Pascal Script
 ProductVersion=3.0.0.0
 FileDescription=
-FileVersion=3.0.2.36
+FileVersion=3.0.6.442
 OriginalFilename=
+CompileDate=Tuesday, March 21, 2006 1:32 PM

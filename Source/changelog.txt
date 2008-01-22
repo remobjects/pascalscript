@@ -1,4 +1,5 @@
 Jan 2008
+- 0004975: bug fixed uPSRuntime.pas
 - 0004862: FPC/Lazarus please check. 
 - 0004870: Re: fixed bug 
 - 0004905: Duplicate Identifiers with constants

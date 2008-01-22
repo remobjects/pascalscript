@@ -1,0 +1,40 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{baff68a2-38f9-4c8c-b423-9ed555fd31df}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup />
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="PascalScript_Core_D10">
+    <MSBuild Projects="PascalScript_Core_D10.dproj" Targets="" />
+  </Target>
+  <Target Name="PascalScript_Core_D10:Clean">
+    <MSBuild Projects="PascalScript_Core_D10.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PascalScript_Core_D10:Make">
+    <MSBuild Projects="PascalScript_Core_D10.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PascalScript_RO_D10">
+    <MSBuild Projects="PascalScript_RO_D10.dproj" Targets="" />
+  </Target>
+  <Target Name="PascalScript_RO_D10:Clean">
+    <MSBuild Projects="PascalScript_RO_D10.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PascalScript_RO_D10:Make">
+    <MSBuild Projects="PascalScript_RO_D10.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="PascalScript_Core_D10;PascalScript_RO_D10" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="PascalScript_Core_D10:Clean;PascalScript_RO_D10:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="PascalScript_Core_D10:Make;PascalScript_RO_D10:Make" />
+  </Target>
+</Project>

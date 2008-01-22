@@ -28,7 +28,6 @@ uses
    LResources,
   {$ENDIF}
   uPSComponent,
-  uPSComponentExt,
   uPSDebugger,
   uPSComponent_Default,
  {$IFNDEF FPC}
@@ -53,7 +52,6 @@ begin
                                        TPSImport_Forms,
                                        TPSImport_Controls,
                                        TPSImport_StdCtrls,
-                                       TPSScriptExtension,
                                        TPSCustumPlugin]);
 end;
 

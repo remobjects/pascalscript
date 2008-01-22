@@ -184,7 +184,8 @@ begin
   result := inherited Compile;
   if result then FillMethods;
 
-  FNeedCompiling := false;
+  
+ FNeedCompiling := not result;
 end;
 
 constructor TPSScriptExtension.Create(AOwner: TComponent);

@@ -2058,6 +2058,8 @@ begin
     begin
       pp.Free;
       FExceptionStack.DeleteLast;
+
+      FCurrStackBase := InvalidVal;
       FStatus := isPaused;
       exit;
     end;

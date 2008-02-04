@@ -202,9 +202,11 @@ begin
 {$IFDEF DELPHI4UP}
     RegisterMethod('Procedure Assign( Source : TDragObject)');
 {$ENDIF}
+{$IFNDEF FPC}
     RegisterMethod('Function GetName : string');
-    RegisterMethod('Procedure HideDragImage');
     RegisterMethod('Function Instance : Longint');
+{$ENDIF}
+    RegisterMethod('Procedure HideDragImage');
     RegisterMethod('Procedure ShowDragImage');
 {$IFDEF DELPHI4UP}
     RegisterProperty('Cancelling', 'Boolean', iptrw);

@@ -213,9 +213,11 @@ begin
 {$IFDEF DELPHI4UP}
     RegisterVirtualMethod(@TDragObject.Assign, 'Assign');
 {$ENDIF}
+{$IFNDEF FPC}
     RegisterVirtualMethod(@TDragObject.GetName, 'GetName');
-    RegisterVirtualMethod(@TDragObject.HideDragImage, 'HideDragImage');
     RegisterVirtualMethod(@TDragObject.Instance, 'Instance');
+{$ENDIF}    
+    RegisterVirtualMethod(@TDragObject.HideDragImage, 'HideDragImage');
     RegisterVirtualMethod(@TDragObject.ShowDragImage, 'ShowDragImage');
 {$IFDEF DELPHI4UP}
     RegisterPropertyHelper(@TDragObjectCancelling_R,@TDragObjectCancelling_W,'Cancelling');

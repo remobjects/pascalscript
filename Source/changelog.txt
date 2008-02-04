@@ -1,3 +1,5 @@
+Feb 2008
+- 0003016: ranges .. in case statement not working 
 Jan 2008
 - 0004974: TPSScriptExtension: trivial bug 
 - 0004975: bug fixed uPSRuntime.pas

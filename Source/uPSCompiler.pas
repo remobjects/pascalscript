@@ -9793,7 +9793,7 @@ begin
 
   function ProcessCase: Boolean;
   var
-    V1, TempRec, Val, CalcItem: TPSValue;
+    V1, V2, TempRec, Val, CalcItem: TPSValue;
     p: TPSBinValueOp;
     SPos, CurrP: Cardinal;
     I: Longint;
@@ -9808,7 +9808,7 @@ begin
       Result.FreeNewValue := False;
     end;
 
-    function Combine(v1, v2: TPSValue): TPSValue;
+    function Combine(v1, v2: TPSValue; Op: TPSBinOperatorType): TPSValue;
     begin
       if V1 = nil then
       begin
@@ -9820,12 +9820,13 @@ begin
       begin
         Result := TPSBinValueOp.Create;
         TPSBinValueOp(Result).FType := FDefaultBoolType;
-        TPSBinValueOp(Result).Operator := otOr;
+        TPSBinValueOp(Result).Operator := Op;
         Result.SetParserPos(FParser);
         TPSBinValueOp(Result).FVal1 := V1;
         TPSBinValueOp(Result).FVal2 := V2;
       end;
     end;
+
 
   begin
     Debug_WriteLine(BlockInfo);
@@ -9870,13 +9871,41 @@ begin
           ProcessCase := False;
           exit;
         end; {if}
-        p := TPSBinValueOp.Create;
-        p.SetParserPos(FParser);
-        p.Operator := otEqual;
-        p.aType := at2ut(FDefaultBoolType);
-        p.Val1 := Val;
-        p.Val2 := NewRec(TempRec);
-        V1 := Combine(V1, P);
+        if fParser.CurrTokenID = CSTI_TwoDots then begin
+          FParser.Next;
+          V2 := Calc(CSTI_colon);
+          if V2 = nil then begin
+            V1.Free;
+            CalcItem.Free;
+            TempRec.Free;
+            EndReloc.Free;
+            ProcessCase := False;
+            Val.Free;
+            exit;
+          end;
+          p := TPSBinValueOp.Create;
+          p.SetParserPos(FParser);
+          p.Operator := otGreaterEqual;
+          p.aType := at2ut(FDefaultBoolType);
+          p.Val2 := Val;
+          p.Val1 := NewRec(TempRec);
+          Val := p;
+          p := TPSBinValueOp.Create;
+          p.SetParserPos(FParser);
+          p.Operator := otLessEqual;
+          p.aType := at2ut(FDefaultBoolType);
+          p.Val2 := V2;
+          p.Val1 := NewRec(TempRec);
+          P := TPSBinValueOp(Combine(Val,P, otAnd));
+        end else begin
+          p := TPSBinValueOp.Create;
+          p.SetParserPos(FParser);
+          p.Operator := otEqual;
+          p.aType := at2ut(FDefaultBoolType);
+          p.Val1 := Val;
+          p.Val2 := NewRec(TempRec);
+        end;
+        V1 := Combine(V1, P, otOr);
         if FParser.CurrTokenId = CSTI_Colon then Break;
         if FParser.CurrTokenID <> CSTI_Comma then
         begin

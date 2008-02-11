@@ -10383,7 +10383,7 @@ var
   MyList: TPSList;
 begin
   s := TPSTypeRec_ProcPtr(at).ParamInfo;
-  Delete(s, 1, 1);
+//  Delete(s, 1, 1);
   CurrStack := Cardinal(FStack.Count) - Cardinal(length(s)) -1;
   if s[1] = #0 then inc(CurrStack);
   MyList := TPSList.Create;

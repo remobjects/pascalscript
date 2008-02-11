@@ -9187,6 +9187,7 @@ begin
 		iOldWithCount: Integer;
 		iOldTryCount: Integer;
 		iOldExFnlCount: Integer;
+    lType: TPSType;
   begin
     Debug_WriteLine(BlockInfo);
     Result := False;
@@ -9199,7 +9200,12 @@ begin
     VariableVar := GetIdentifier(1);
     if VariableVar = nil then
       exit;
-    case GetTypeNo(BlockInfo, VariableVar).BaseType of
+    lType := GetTypeNo(BlockInfo, VariableVar);
+    if lType = nil then begin
+      MakeError('', ecTypeMismatch, '');
+      exit;
+    end;
+    case lType.BaseType of
       btU8, btS8, btU16, btS16, btU32, btS32: ;
     else
       begin

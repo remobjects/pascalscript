@@ -540,7 +540,7 @@ procedure CompTranslateLineInfo(Sender: TPSPascalCompiler; var Pos, Row, Col: Ca
 var
   res: TPSLineInfoResults;
 begin
-  if TPSScript(Sender.ID).FPP.CurrentLineInfo.GetLineInfo(Pos, Res) then
+  if TPSScript(Sender.ID).FPP.CurrentLineInfo.GetLineInfo(Name, Pos, Res) then
   begin
     Pos := Res.Pos;
     Row := Res.Row;

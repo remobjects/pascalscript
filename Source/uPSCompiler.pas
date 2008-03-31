@@ -10676,6 +10676,7 @@ var
     if @FOnBeforeCleanup <> nil then
       FOnBeforeCleanup(Self);        // no reason it actually read the result of this call
     FGlobalBlock.Free;
+    FGlobalBlock := nil;
 
     for I := 0 to FRegProcs.Count - 1 do
       TObject(FRegProcs[I]).Free;
@@ -11521,7 +11522,7 @@ begin
         else Position := csUses;
       if not ProcessUses then
       begin
-        Cleanup;
+         Cleanup;
         exit;
       end;
     end else if (FParser.CurrTokenId = CSTII_Procedure) or

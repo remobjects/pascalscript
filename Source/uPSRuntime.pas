@@ -10923,9 +10923,6 @@ begin
           end;
         else begin
             PPSVariantPointer(Res).DataDest := Pointer(FStack^);
-(*{$IFNDEF PS_NOINT64}
-            FStack := Pointer(IPointer(FStack) + 4);
-{$ENDIF}*)
             Inc(Result, 4);
           end;
       end;

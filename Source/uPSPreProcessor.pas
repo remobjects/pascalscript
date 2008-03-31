@@ -74,7 +74,7 @@ type
 
     procedure Clear;
     
-    function GetLineInfo(Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
+    function GetLineInfo(const ModuleName: string; Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
     
     property Current: Longint read FCurrent write FCurrent;
 
@@ -258,16 +258,20 @@ begin
   Result := TPSLineInfo(FItems[i]);
 end;
 
-function TPSLineInfoList.GetLineInfo(Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
+function TPSLineInfoList.GetLineInfo(const ModuleName: string; Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
 var
   i,j: Longint;
   linepos: Cardinal;
   Item: TPSLineInfo;
+  lModuleName: string;
 begin
+  lModuleName := FastUpperCase(lModuleName);
+
   for i := FItems.Count -1 downto 0 do
   begin
     Item := FItems[i];
-    if (Pos >= Item.StartPos) and (Pos < Item.EndPos) then
+    if (Pos >= Item.StartPos) and (Pos < Item.EndPos) and
+      (lModuleName = '') or (lModuleName = Item.FileName) then
     begin
       Res.Name := Item.FileName;
       Pos := Pos - Item.StartPos;
@@ -487,7 +491,7 @@ procedure TPSPreProcessor.AdjustMessage(Msg: TPSPascalCompilerMessage);
 var
   Res: TPSLineInfoResults;
 begin
-  if CurrentLineInfo.GetLineInfo(Msg.Pos, Res) then
+  if CurrentLineInfo.GetLineInfo(Msg.ModuleName, Msg.Pos, Res) then
   begin
     Msg.SetCustomPos(res.Pos, Res.Row, Res.Col);
     Msg.ModuleName := Res.Name;

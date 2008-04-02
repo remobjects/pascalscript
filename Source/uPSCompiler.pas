@@ -9203,6 +9203,7 @@ begin
     lType := GetTypeNo(BlockInfo, VariableVar);
     if lType = nil then begin
       MakeError('', ecTypeMismatch, '');
+      VariableVar.Free;
       exit;
     end;
     case lType.BaseType of

@@ -1793,7 +1793,7 @@ begin
         darr := Pointer(IPointer(darr) + 4);
         case t.BaseType of
           btString, {$IFNDEF PS_NOWIDESTRING}btWideString, {$ENDIF}{$IFNDEF PS_NOINTERFACES}btInterface, {$ENDIF}btArray, btStaticArray,
-          btRecord, btPointer:
+          btRecord, btPointer, btVariant:
             begin
               for i := 0 to l -1 do
               begin

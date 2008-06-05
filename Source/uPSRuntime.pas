@@ -684,6 +684,7 @@ type
     function RunProc(Params: TPSList; ProcNo: Cardinal): Boolean;
 
     function RunProcP(const Params: array of Variant; const Procno: Cardinal): Variant;
+    function RunProcPVar(var Params: array of Variant; const Procno: Cardinal): Variant;
 
     function RunProcPN(const Params: array of Variant; const ProcName: string): Variant;
 
@@ -6620,6 +6621,59 @@ begin
     RunProc(ParamList, ProcNo);
 
     RaiseCurrentException;
+
+    if pvar <> nil then
+    begin
+      PIFVariantToVariant(PVar, Result);
+    end else
+      Result := Null;
+  finally
+    FreePIFVariantList(ParamList);
+  end;
+end;
+function TPSExec.RunProcPVar(var Params: array of Variant; const Procno: Cardinal): Variant;
+var
+  ParamList: TPSList;
+  ct: PIFTypeRec;
+  pvar: PPSVariant;
+  res, s: string;
+  Proc: TPSInternalProcRec;
+  i: Longint;
+begin
+  if ProcNo >= FProcs.Count then raise Exception.Create(RPS_UnknownProcedure);
+  Proc := GetProcNo(ProcNo) as TPSInternalProcRec;
+  ParamList := TPSList.Create;
+  try
+    s := Proc.ExportDecl;
+    res := grfw(s);
+    i := High(Params);
+    while s <> '' do
+    begin
+      if i < 0 then raise Exception.Create(RPS_NotEnoughParameters);
+      ct := FTypes[StrToInt(copy(GRLW(s), 2, MaxInt))];
+      if ct = nil then raise Exception.Create(RPS_InvalidParameter);
+      pvar := CreateHeapVariant(ct);
+      ParamList.Add(pvar);
+
+      if not VariantToPIFVariant(Self, Params[i], pvar) then raise Exception.Create(RPS_InvalidParameter);
+
+      Dec(i);
+    end;
+    if I > -1 then raise Exception.Create(RPS_TooManyParameters);
+    if res <> '-1' then
+    begin
+      pvar := CreateHeapVariant(FTypes[StrToInt(res)]);
+      ParamList.Add(pvar);
+    end else
+      pvar := nil;
+
+    RunProc(ParamList, ProcNo);
+
+    RaiseCurrentException;
+
+    for i := 0 to Length(Params) - 1 do
+    PIFVariantToVariant(ParamList[i],
+                        Params[(Length(Params) - 1) - i]);
 
     if pvar <> nil then
     begin

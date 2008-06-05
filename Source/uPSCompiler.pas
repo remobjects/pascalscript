@@ -5217,6 +5217,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     x.DeclareCol := FParser.Col;
     x.Name := '';
     x.AType := MType;
+    x.Use;
     BlockInfo.Proc.ProcVars.Add(x);
     Result := TPSValueAllocatedStackVar.Create;
     Result.SetParserPos(FParser);
@@ -6428,10 +6429,23 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               rr.aType := TPSRecordType(u).RecVal(t).FType;
               u := rr.aType;
  
-              tmpn := AllocStackReg(u);
-              WriteCalculation(tmp,tmpn);
-              TPSVar(BlockInfo.Proc.FProcVars[TPSValueAllocatedStackVar(tmpn).LocalVarNo]).Use;
+              tmpn := TPSValueReplace.Create;
+              with TPSValueReplace(tmpn) do
+              begin
+                FreeOldValue := true;
+                FreeNewValue := true;
+                OldValue := tmp;
+                NewValue := AllocStackReg(u);
+                PreWriteAllocated := true;
+              end;
  
+              if not WriteCalculation(tmp,TPSValueReplace(tmpn).NewValue) then
+              begin
+                {MakeError('',ecInternalError,'');}
+                x.Free;
+                x := nil;
+                exit;
+              end;
               x := tmpn;
             end else
             begin

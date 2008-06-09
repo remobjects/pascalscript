@@ -6446,6 +6446,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 x := nil;
                 exit;
               end;
+              x.Free;
               x := tmpn;
             end else
             begin

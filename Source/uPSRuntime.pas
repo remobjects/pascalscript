@@ -10797,9 +10797,6 @@ begin
     btu16,
     bts32,
     btu32,
-{$IFNDEF PS_NOINT64}
-    bts64,
-{$ENDIF}
     btstring,
     btclass,
 {$IFNDEF PS_NOINTERFACES}

@@ -23,7 +23,7 @@ const
 
 
 
-function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const OriginalName, FExternal: string): TPSRegProc;
+function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const OriginalName, FExternal: tbtstring): TPSRegProc;
 type
 
   TDllCallingConvention = (clRegister
@@ -56,7 +56,7 @@ begin
   if (Result <> '') and (Result[Length(result)] = '"') then delete(result, length(result), 1);
 end;
 
-function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const OriginalName, FExternal: string): TPSRegProc;
+function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; const OriginalName, FExternal: tbtstring): TPSRegProc;
 var
   FuncName,
   Name,

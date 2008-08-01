@@ -21,7 +21,7 @@ type
     FProcNames: TIFStringList;
     FGlobalVarNames: TIfStringList;
     FCurrentSourcePos, FCurrentRow, FCurrentCol: Cardinal;
-    FCurrentFile: string;
+    FCurrentFile: tbtstring;
     
     function GetCurrentProcParams: TIfStringList;
     
@@ -37,9 +37,9 @@ type
     
     function TranslatePosition(Proc, Position: Cardinal): Cardinal;
     
-    function TranslatePositionEx(Proc, Position: Cardinal; var Pos, Row, Col: Cardinal; var Fn: string): Boolean;
+    function TranslatePositionEx(Proc, Position: Cardinal; var Pos, Row, Col: Cardinal; var Fn: tbtstring): Boolean;
     
-    procedure LoadDebugData(const Data: string);
+    procedure LoadDebugData(const Data: tbtstring);
 	
     procedure Clear; override;
     
@@ -63,7 +63,7 @@ type
   end;
   TPSDebugExec = class;
   
-  TOnSourceLine = procedure (Sender: TPSDebugExec; const Name: string; Position, Row, Col: Cardinal);
+  TOnSourceLine = procedure (Sender: TPSDebugExec; const Name: tbtstring; Position, Row, Col: Cardinal);
   
   TOnIdleCall = procedure (Sender: TPSDebugExec);
   
@@ -83,7 +83,7 @@ type
   public
     constructor Create;
     
-    function LoadData(const s: string): Boolean; override;
+    function LoadData(const s: tbtstring): Boolean; override;
     
     procedure Pause; override;
     
@@ -118,7 +118,7 @@ const
 type
   PPositionData = ^TPositionData;
   TPositionData = packed record
-    FileName: string;
+    FileName: tbtstring;
     Position,
     Row,
     Col,
@@ -271,10 +271,10 @@ begin
   REsult := c;
 end;
 
-procedure TPSCustomDebugExec.LoadDebugData(const Data: string);
+procedure TPSCustomDebugExec.LoadDebugData(const Data: tbtstring);
 var
   CP, I: Longint;
-  c: char;
+  c: tbtchar;
   CurrProcNo, LastProcNo: Cardinal;
   LastProc: PFunctionInfo;
   NewLoc: PPositionData;
@@ -429,21 +429,21 @@ end;
 function TPSCustomDebugExec.TranslatePosition(Proc, Position: Cardinal): Cardinal;
 var
   D1, D2: Cardinal;
-  s: string;
+  s: tbtstring;
 begin
   if not TranslatePositionEx(Proc, Position, Result, D1, D2, s) then
     Result := 0;
 end;
 
 function TPSCustomDebugExec.TranslatePositionEx(Proc, Position: Cardinal;
-  var Pos, Row, Col: Cardinal; var Fn: string): Boolean;
+  var Pos, Row, Col: Cardinal; var Fn: tbtstring): Boolean;
 // Made by Martijn Laan (mlaan@wintax.nl)
 var
   i: LongInt;
   fi: PFunctionInfo;
   pt: TIfList;
   r: PPositionData;
-  lastfn: string;
+  lastfn: tbtstring;
   LastPos, LastRow, LastCol: Cardinal;
   pp: TPSProcRec;
 begin
@@ -507,7 +507,7 @@ begin
   FDebugMode := dmRun;
 end;
 
-function TPSDebugExec.LoadData(const s: string): Boolean;
+function TPSDebugExec.LoadData(const s: tbtstring): Boolean;
 begin
   Result := inherited LoadData(s);
   FDebugMode := dmRun;

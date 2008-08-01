@@ -64,14 +64,14 @@ type
   private
     FExt1: Pointer;
     FExt2: Pointer;
-    FName: string;
+    FName: tbtstring;
     FProcPtr: TPSProcPtr;
-    FDecl: string;
+    FDecl: tbtstring;
   public
 
-    property Name: string read FName write FName;
+    property Name: tbtstring read FName write FName;
 
-    property Decl: string read FDecl write FDecl;
+    property Decl: tbtstring read FDecl write FDecl;
 
     property Ext1: Pointer read FExt1 write FExt1;
 
@@ -85,8 +85,8 @@ type
     FData: PByteArray;
     FLength: Cardinal;
     FExportNameHash: Longint;
-    FExportDecl: string;
-    FExportName: string;
+    FExportDecl: tbtstring;
+    FExportName: tbtstring;
   public
 
     property Data: PByteArray read FData;
@@ -95,9 +95,9 @@ type
 
     property ExportNameHash: Longint read FExportNameHash;
 
-    property ExportName: string read FExportName write FExportName;
+    property ExportName: tbtstring read FExportName write FExportName;
 
-    property ExportDecl: string read FExportDecl write FExportDecl;
+    property ExportDecl: tbtstring read FExportDecl write FExportDecl;
 
 
     destructor Destroy; override;
@@ -128,7 +128,7 @@ type
   TPSTypeRec = class
   private
     FExportNameHash: Longint;
-    FExportName: string;
+    FExportName: tbtstring;
     FBaseType: TPSBaseType;
     FAttributes: TPSRuntimeAttributes;
   protected
@@ -139,7 +139,7 @@ type
 
     property BaseType: TPSBaseType read FBaseType write FBaseType;
 
-    property ExportName: string read FExportName write FExportName;
+    property ExportName: tbtstring read FExportName write FExportName;
 
     property ExportNameHash: Longint read FExportNameHash write FExportNameHash;
 
@@ -153,20 +153,20 @@ type
 
   TPSTypeRec_ProcPtr = class(TPSTypeRec)
   private
-    FParamInfo: string;
+    FParamInfo: tbtstring;
   public
 
-    property ParamInfo: string read FParamInfo write FParamInfo;
+    property ParamInfo: tbtstring read FParamInfo write FParamInfo;
     procedure CalcSize; override;
   end;
   PIFTypeRec = TPSTypeRec;
 
   TPSTypeRec_Class = class(TPSTypeRec)
   private
-    FCN: string;
+    FCN: tbtstring;
   public
 
-    property CN: string read FCN write FCN;
+    property CN: tbtstring read FCN write FCN;
   end;
 {$IFNDEF PS_NOINTERFACES}
 
@@ -326,9 +326,9 @@ type
 
   PPSVariantWString = ^TPSVariantWString;
 
-  TPSVariantWString = packed record
+  TPSVariantWString = {$IFNDEF DELPHI2008UP}packed {$ENDIF}record
     VI: TPSVariant;
-    Data: WideString;
+    Data: tbtWideString;
   end;
 {$ENDIF}
 
@@ -469,18 +469,18 @@ type
     P: Pointer;
   end;
 
-  TPSAttributeUseProc = function (Sender: TPSExec; const AttribType: string; Attr: TPSRuntimeAttribute): Boolean;
+  TPSAttributeUseProc = function (Sender: TPSExec; const AttribType: tbtstring; Attr: TPSRuntimeAttribute): Boolean;
 
   TPSAttributeType = class
   private
-    FTypeName: string;
+    FTypeName: tbtstring;
     FUseProc: TPSAttributeUseProc;
     FTypeNameHash: Longint;
   public
 
     property UseProc: TPSAttributeUseProc read FUseProc write FUseProc;
 
-    property TypeName: string read FTypeName write FTypeName;
+    property TypeName: tbtstring read FTypeName write FTypeName;
 
     property TypeNameHash: Longint read FTypeNameHash write FTypeNameHash;
   end;
@@ -489,7 +489,7 @@ type
 
   TClassItem = record
 
-    FName: string;
+    FName: tbtstring;
 
     FNameHash: Longint;
 
@@ -518,7 +518,7 @@ type
   TPSRuntimeAttribute = class(TObject)
   private
     FValues: TPSStack;
-    FAttribType: string;
+    FAttribType: tbtstring;
     FOwner: TPSRuntimeAttributes;
     FAttribTypeHash: Longint;
     function GetValue(I: Longint): PIFVariant;
@@ -527,7 +527,7 @@ type
 
     property Owner: TPSRuntimeAttributes read FOwner;
 
-    property AttribType: string read FAttribType write FAttribType;
+    property AttribType: tbtstring read FAttribType write FAttribType;
 
     property AttribTypeHash: Longint read FAttribTypeHash write FAttribTypeHash;
 
@@ -565,21 +565,21 @@ type
 
     function Add: TPSRuntimeAttribute;
 
-    function FindAttribute(const Name: string): TPSRuntimeAttribute;
+    function FindAttribute(const Name: tbtstring): TPSRuntimeAttribute;
 
 
     constructor Create(AOwner: TPSExec);
 
     destructor Destroy; override;
   end;
-  TPSOnGetNVariant = function (Sender: TPSExec; const Name: string): Variant;
-  TPSOnSetNVariant = procedure (Sender: TPSExec; const Name: string; V: Variant);
+  TPSOnGetNVariant = function (Sender: TPSExec; const Name: tbtstring): Variant;
+  TPSOnSetNVariant = procedure (Sender: TPSExec; const Name: tbtstring; V: Variant);
 
   TPSOnLineEvent = procedure(Sender: TPSExec);
 
   TPSOnSpecialProcImport = function (Sender: TPSExec; p: TPSExternalProcRec; Tag: Pointer): Boolean;
 
-  TPSOnException = procedure (Sender: TPSExec; ExError: TPSError; const ExParam: string; ExObject: TObject; ProcNo, Position: Cardinal);
+  TPSOnException = procedure (Sender: TPSExec; ExError: TPSError; const ExParam: tbtstring; ExObject: TObject; ProcNo, Position: Cardinal);
 
   TPSExec = class(TObject)
   Private
@@ -653,7 +653,7 @@ type
 
     ExEx: TPSError;
 
-    ExParam: string;
+    ExParam: tbtstring;
 
     function InvokeExternalMethod(At: TPSTypeRec_ProcPtr; Slf, Ptr: Pointer): Boolean;
 
@@ -663,30 +663,30 @@ type
 
     function ImportProc(const Name: ShortString; proc: TPSExternalProcRec): Boolean; Virtual;
 
-    procedure ExceptionProc(proc, Position: Cardinal; Ex: TPSError; const s: string; NewObject: TObject); Virtual;
+    procedure ExceptionProc(proc, Position: Cardinal; Ex: TPSError; const s: tbtstring; NewObject: TObject); Virtual;
 
     function FindSpecialProcImport(P: TPSOnSpecialProcImport): pointer;
   Public
     function LastEx: TPSError;
-    function LastExParam: string;
+    function LastExParam: tbtstring;
     function LastExProc: Integer;
     function LastExPos: Integer;
     procedure CMD_Err(EC: TPSError);
 
-    procedure CMD_Err2(EC: TPSError; const Param: string);
+    procedure CMD_Err2(EC: TPSError; const Param: tbtstring);
 
-    procedure CMD_Err3(EC: TPSError; const Param: string; ExObject: TObject);
+    procedure CMD_Err3(EC: TPSError; const Param: tbtstring; ExObject: TObject);
 
     property Id: Pointer read FID write FID;
 
-    class function About: string;
+    class function About: tbtstring;
 
     function RunProc(Params: TPSList; ProcNo: Cardinal): Boolean;
 
     function RunProcP(const Params: array of Variant; const Procno: Cardinal): Variant;
     function RunProcPVar(var Params: array of Variant; const Procno: Cardinal): Variant;
 
-    function RunProcPN(const Params: array of Variant; const ProcName: string): Variant;
+    function RunProcPN(const Params: array of Variant; const ProcName: tbtstring): Variant;
 
     function FindType(StartAt: Cardinal; BaseType: TPSBaseType; var l: Cardinal): PIFTypeRec;
 
@@ -694,13 +694,13 @@ type
 
     function GetTypeNo(l: Cardinal): PIFTypeRec;
 
-    function GetType(const Name: string): Cardinal;
+    function GetType(const Name: tbtstring): Cardinal;
 
-    function GetProc(const Name: string): Cardinal;
+    function GetProc(const Name: tbtstring): Cardinal;
 
-    function GetVar(const Name: string): Cardinal;
+    function GetVar(const Name: tbtstring): Cardinal;
 
-    function GetVar2(const Name: string): PIFVariant;
+    function GetVar2(const Name: tbtstring): PIFVariant;
 
     function GetVarNo(C: Cardinal): PIFVariant;
 
@@ -721,8 +721,8 @@ type
     function RunScript: Boolean;
 
 	
-    function LoadData(const s: string): Boolean; virtual;
-	
+    function LoadData(const s: tbtstring): Boolean; virtual;
+
     procedure Clear; Virtual;
 	
     procedure Cleanup; Virtual;
@@ -739,20 +739,20 @@ type
 
     procedure ClearspecialProcImports;
 
-    procedure AddSpecialProcImport(const FName: string; P: TPSOnSpecialProcImport; Tag: Pointer);
+    procedure AddSpecialProcImport(const FName: tbtstring; P: TPSOnSpecialProcImport; Tag: Pointer);
 
-    function RegisterFunctionName(const Name: string; ProcPtr: TPSProcPtr;
+    function RegisterFunctionName(const Name: tbtstring; ProcPtr: TPSProcPtr;
       Ext1, Ext2: Pointer): PProcRec;
 
-    procedure RegisterDelphiFunction(ProcPtr: Pointer; const Name: string; CC: TPSCallingConvention);
+    procedure RegisterDelphiFunction(ProcPtr: Pointer; const Name: tbtstring; CC: TPSCallingConvention);
 
-    procedure RegisterDelphiMethod(Slf, ProcPtr: Pointer; const Name: string; CC: TPSCallingConvention);
+    procedure RegisterDelphiMethod(Slf, ProcPtr: Pointer; const Name: tbtstring; CC: TPSCallingConvention);
 
     function GetProcAsMethod(const ProcNo: Cardinal): TMethod;
 
-    function GetProcAsMethodN(const ProcName: string): TMethod;
+    function GetProcAsMethodN(const ProcName: tbtstring): TMethod;
 
-    procedure RegisterAttributeType(useproc: TPSAttributeUseProc; const TypeName: string);
+    procedure RegisterAttributeType(useproc: TPSAttributeUseProc; const TypeName: tbtstring);
 	
     procedure ClearFunctionList;
 
@@ -762,7 +762,7 @@ type
 	
     property ExceptionCode: TPSError Read ExEx;
 	
-    property ExceptionString: string read ExParam;
+    property ExceptionString: tbtstring read ExParam;
 
     property ExceptionObject: TObject read ExObject write ExObject;
 
@@ -816,9 +816,9 @@ type
 {$IFNDEF PS_NOINT64}
     function GetInt64(ItemNo: Longint): Int64;
 {$ENDIF}
-    function GetString(ItemNo: Longint): string;
+    function GetString(ItemNo: Longint): tbtstring;
 {$IFNDEF PS_NOWIDESTRING}
-    function GetWideString(ItemNo: Longint): WideString;
+    function GetWideString(ItemNo: Longint): tbtWideString;
 {$ENDIF}
     function GetReal(ItemNo: Longint): Extended;
     function GetCurrency(ItemNo: Longint): Currency;
@@ -830,9 +830,9 @@ type
 {$IFNDEF PS_NOINT64}
     procedure SetInt64(ItemNo: Longint; const Data: Int64);
 {$ENDIF}
-    procedure SetString(ItemNo: Longint; const Data: string);
+    procedure SetString(ItemNo: Longint; const Data: tbtstring);
 {$IFNDEF PS_NOWIDESTRING}
-    procedure SetWideString(ItemNo: Longint; const Data: WideString);
+    procedure SetWideString(ItemNo: Longint; const Data: tbtWideString);
 {$ENDIF}
     procedure SetReal(ItemNo: Longint; const Data: Extended);
     procedure SetCurrency(ItemNo: Longint; const Data: Currency);
@@ -843,8 +843,8 @@ type
   end;
 
 
-function PSErrorToString(x: TPSError; const Param: string): string;
-function TIFErrorToString(x: TPSError; const Param: string): string;
+function PSErrorToString(x: TPSError; const Param: tbtstring): tbtstring;
+function TIFErrorToString(x: TPSError; const Param: tbtstring): tbtstring;
 function CreateHeapVariant(aType: TPSTypeRec): PPSVariant;
 procedure DestroyHeapVariant(v: PPSVariant);
 
@@ -879,9 +879,9 @@ function PSGetInt64(Src: Pointer; aType: TPSTypeRec): Int64;
 function PSGetReal(Src: Pointer; aType: TPSTypeRec): Extended;
 function PSGetCurrency(Src: Pointer; aType: TPSTypeRec): Currency;
 function PSGetInt(Src: Pointer; aType: TPSTypeRec): Longint;
-function PSGetString(Src: Pointer; aType: TPSTypeRec): String;
+function PSGetString(Src: Pointer; aType: TPSTypeRec): tbtString;
 {$IFNDEF PS_NOWIDESTRING}
-function PSGetWideString(Src: Pointer; aType: TPSTypeRec): WideString;
+function PSGetWideString(Src: Pointer; aType: TPSTypeRec): tbtWideString;
 {$ENDIF}
 
 procedure PSSetObject(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; Const val: TObject);
@@ -892,9 +892,9 @@ procedure PSSetInt64(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val
 procedure PSSetReal(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: Extended);
 procedure PSSetCurrency(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: Currency);
 procedure PSSetInt(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: Longint);
-procedure PSSetString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: String);
+procedure PSSetString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtString);
 {$IFNDEF PS_NOWIDESTRING}
-procedure PSSetWideString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: WideString);
+procedure PSSetWideString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtWideString);
 {$ENDIF}
 
 procedure VNSetPointerTo(const Src: TPSVariantIFC; Data: Pointer; aType: TPSTypeRec);
@@ -906,9 +906,9 @@ function VNGetInt64(const Src: TPSVariantIFC): Int64;
 function VNGetReal(const Src: TPSVariantIFC): Extended;
 function VNGetCurrency(const Src: TPSVariantIFC): Currency;
 function VNGetInt(const Src: TPSVariantIFC): Longint;
-function VNGetString(const Src: TPSVariantIFC): String;
+function VNGetString(const Src: TPSVariantIFC): tbtString;
 {$IFNDEF PS_NOWIDESTRING}
-function VNGetWideString(const Src: TPSVariantIFC): WideString;
+function VNGetWideString(const Src: TPSVariantIFC): tbtWideString;
 {$ENDIF}
 
 procedure VNSetUInt(const Src: TPSVariantIFC; const Val: Cardinal);
@@ -918,9 +918,9 @@ procedure VNSetInt64(const Src: TPSVariantIFC; const Val: Int64);
 procedure VNSetReal(const Src: TPSVariantIFC; const Val: Extended);
 procedure VNSetCurrency(const Src: TPSVariantIFC; const Val: Currency);
 procedure VNSetInt(const Src: TPSVariantIFC; const Val: Longint);
-procedure VNSetString(const Src: TPSVariantIFC; const Val: String);
+procedure VNSetString(const Src: TPSVariantIFC; const Val: tbtString);
 {$IFNDEF PS_NOWIDESTRING}
-procedure VNSetWideString(const Src: TPSVariantIFC; const Val: WideString);
+procedure VNSetWideString(const Src: TPSVariantIFC; const Val: tbtWideString);
 {$ENDIF}
 
 function VGetUInt(const Src: PIFVariant): Cardinal;
@@ -930,9 +930,9 @@ function VGetInt64(const Src: PIFVariant): Int64;
 function VGetReal(const Src: PIFVariant): Extended;
 function VGetCurrency(const Src: PIFVariant): Currency;
 function VGetInt(const Src: PIFVariant): Longint;
-function VGetString(const Src: PIFVariant): String;
+function VGetString(const Src: PIFVariant): tbtString;
 {$IFNDEF PS_NOWIDESTRING}
-function VGetWideString(const Src: PIFVariant): WideString;
+function VGetWideString(const Src: PIFVariant): tbtWideString;
 {$ENDIF}
 
 procedure VSetPointerTo(const Src: PIFVariant; Data: Pointer; aType: TPSTypeRec);
@@ -943,9 +943,9 @@ procedure VSetInt64(const Src: PIFVariant; const Val: Int64);
 procedure VSetReal(const Src: PIFVariant; const Val: Extended);
 procedure VSetCurrency(const Src: PIFVariant; const Val: Currency);
 procedure VSetInt(const Src: PIFVariant; const Val: Longint);
-procedure VSetString(const Src: PIFVariant; const Val: String);
+procedure VSetString(const Src: PIFVariant; const Val: tbtString);
 {$IFNDEF PS_NOWIDESTRING}
-procedure VSetWideString(const Src: PIFVariant; const Val: WideString);
+procedure VSetWideString(const Src: PIFVariant; const Val: tbtWideString);
 {$ENDIF}
 
 type
@@ -957,7 +957,7 @@ type
     FExec: TPSExec;
   public
 
-    constructor Create(const Error: string; Exec: TPSExec; Procno, ProcPos: Cardinal);
+    constructor Create(const Error: tbtstring; Exec: TPSExec; Procno, ProcPos: Cardinal);
 
     property ProcNo: Cardinal read FProcNo;
 
@@ -968,7 +968,7 @@ type
 
   TPSRuntimeClass = class
   protected
-    FClassName: string;
+    FClassName: tbtstring;
     FClassNameHash: Longint;
 
     FClassItems: TPSList;
@@ -977,23 +977,23 @@ type
     FEndOfVmt: Longint;
   public
 
-    procedure RegisterConstructor(ProcPtr: Pointer; const Name: string);
+    procedure RegisterConstructor(ProcPtr: Pointer; const Name: tbtstring);
 	
-    procedure RegisterVirtualConstructor(ProcPtr: Pointer; const Name: string);
+    procedure RegisterVirtualConstructor(ProcPtr: Pointer; const Name: tbtstring);
 
-    procedure RegisterMethod(ProcPtr: Pointer; const Name: string);
+    procedure RegisterMethod(ProcPtr: Pointer; const Name: tbtstring);
 
-    procedure RegisterVirtualMethod(ProcPtr: Pointer; const Name: string);
+    procedure RegisterVirtualMethod(ProcPtr: Pointer; const Name: tbtstring);
 	
-    procedure RegisterVirtualAbstractMethod(ClassDef: TClass; ProcPtr: Pointer; const Name: string);
+    procedure RegisterVirtualAbstractMethod(ClassDef: TClass; ProcPtr: Pointer; const Name: tbtstring);
 
-    procedure RegisterPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: string);
+    procedure RegisterPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
 
-    procedure RegisterPropertyHelperName(ReadFunc, WriteFunc: Pointer; const Name: string);
+    procedure RegisterPropertyHelperName(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
 
-    procedure RegisterEventPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: string);
+    procedure RegisterEventPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
 
-    constructor Create(aClass: TClass; const AName: string);
+    constructor Create(aClass: TClass; const AName: tbtstring);
 	
     destructor Destroy; override;
   end;
@@ -1011,11 +1011,11 @@ type
 
     function Add(aClass: TClass): TPSRuntimeClass;
 
-    function Add2(aClass: TClass; const Name: string): TPSRuntimeClass;
+    function Add2(aClass: TClass; const Name: tbtstring): TPSRuntimeClass;
 
     procedure Clear;
 
-    function FindClass(const Name: string): TPSRuntimeClass;
+    function FindClass(const Name: tbtstring): TPSRuntimeClass;
   end;
   TIFPSRuntimeClassImporter = TPSRuntimeClassImporter;
   TPSResourceFreeProc = procedure (Sender: TPSExec; P: TPSRuntimeClassImporter);
@@ -1062,14 +1062,14 @@ procedure PSDynArraySetLength(var arr: Pointer; aType: TPSTypeRec; NewLength: Lo
 function  GetPSArrayLength(Arr: PIFVariant): Longint;
 procedure SetPSArrayLength(Arr: PIFVariant; NewLength: Longint);
 
-function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: string): string;
-function MakeString(const s: string): string;
+function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: tbtstring): tbtstring;
+function MakeString(const s: tbtstring): tbtstring;
 {$IFNDEF PS_NOWIDESTRING}
-function MakeWString(const s: widestring): string;
+function MakeWString(const s: tbtwidestring): tbtstring;
 {$ENDIF}
 
 {$IFNDEF PS_NOIDISPATCH}
-function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: String; const Par: array of Variant): Variant;
+function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
 {$ENDIF}
 
 
@@ -1134,7 +1134,7 @@ const
 type
   PPSExportedVar = ^TPSExportedVar;
   TPSExportedVar = record
-    FName: string;
+    FName: tbtstring;
     FNameHash: Longint;
     FVarNo: Cardinal;
   end;
@@ -1151,7 +1151,7 @@ type
     FinallyOffset, ExceptOffset, Finally2Offset, EndOfBlock: Cardinal;
     ExceptionData: TPSError;
     ExceptionObject: TObject;
-    ExceptionParam: String;
+    ExceptionParam: tbtString;
     destructor Destroy; override;
   end;
   TPSHeader = packed record
@@ -1185,7 +1185,7 @@ type
   TSpecialProc = record
     P: TPSOnSpecialProcImport;
     namehash: Longint;
-    Name: string;
+    Name: tbtstring;
     tag: pointer;
   end;
 
@@ -1289,45 +1289,45 @@ begin
   p.Free;
 end;
 
-function Trim(const s: string): string;
+function Trim(const s: tbtstring): tbtstring;
 begin
   Result := s;
   while (Length(result) > 0) and (Result[1] = #32) do Delete(Result, 1, 1);
   while (Length(result) > 0) and (Result[Length(Result)] = #32) do Delete(Result, Length(Result), 1);
 end;
-function FloatToStr(E: Extended): string;
+(*function FloatToStr(E: Extended): tbtstring;
 begin
   Result := Sysutils.FloatToStr(e);
-end;
+end;*)
 
 //-------------------------------------------------------------------
 
-function Padl(s: string; i: longInt): string;
+function Padl(s: tbtstring; i: longInt): tbtstring;
 begin
-  result := StringOfChar(' ', i - length(s)) + s;
+  result := StringOfChar(tbtchar(' '), i - length(s)) + s;
 end;
 //-------------------------------------------------------------------
 
-function Padz(s: string; i: longInt): string;
+function Padz(s: tbtString; i: longInt): tbtString;
 begin
-  result := StringOfChar('0', i - length(s)) + s;
+  result := StringOfChar(tbtchar('0'), i - length(s)) + s;
 end;
 //-------------------------------------------------------------------
 
-function Padr(s: string; i: longInt): string;
+function Padr(s: tbtString; i: longInt): tbtString;
 begin
-  result := s + StringOfChar(' ', i - Length(s));
+  result := s + StringOfChar(tbtchar(' '), i - Length(s));
 end;
 //-------------------------------------------------------------------
 
 {$IFNDEF PS_NOWIDESTRING}
-function MakeWString(const s: widestring): string;
+function MakeWString(const s: tbtwidestring): tbtString;
 var
   i: Longint;
-  e: string;
+  e: tbtString;
   b: boolean;
 begin
-  Result := s;
+  Result := tbtString(s);
   i := 1;
   b := false;
   while i <= length(result) do
@@ -1372,10 +1372,10 @@ begin
     Result := '''''';
 end;
 {$ENDIF}
-function MakeString(const s: string): string;
+function MakeString(const s: tbtString): tbtString;
 var
   i: Longint;
-  e: string;
+  e: tbtString;
   b: boolean;
 begin
   Result := s;
@@ -1423,7 +1423,7 @@ begin
     Result := '''''';
 end;
 
-function SafeStr(const s: string): string;
+function SafeStr(const s: tbtString): tbtString;
 var
  i : Longint;
 begin
@@ -1439,20 +1439,20 @@ begin
 
 end;
 
-function PropertyToString(Instance: TObject; PName: string): string;
+function PropertyToString(Instance: TObject; PName: tbtString): tbtString;
 var
-  s: string;
+  s: tbtString;
   i: Longint;
   PP: PPropInfo;
 begin
   if PName = '' then
   begin
-    Result := Instance.ClassName;
+    Result := tbtString(Instance.ClassName);
     exit;
   end;
   while Length(PName) > 0 do
   begin
-    i := pos('.', pname);
+    i := pos(tbtChar('.'), pname);
     if i = 0 then
     begin
       s := Trim(PNAme);
@@ -1461,31 +1461,31 @@ begin
       s := trim(Copy(PName, 1, i-1));
       Delete(PName, 1, i);
     end;
-    pp := GetPropInfo(PTypeInfo(Instance.ClassInfo), s);
-    if pp = nil then begin Result := RPS_UnknownIdentifier; exit; end;
+    pp := GetPropInfo(PTypeInfo(Instance.ClassInfo), string(s));
+    if pp = nil then begin Result := tbtstring(RPS_UnknownIdentifier); exit; end;
 
 
     case pp^.PropType^.Kind of
       tkInteger: begin Result := IntToStr(GetOrdProp(Instance, pp)); exit; end;
       tkChar: begin Result := '#'+IntToStr(GetOrdProp(Instance, pp)); exit; end;
-      tkEnumeration: begin Result := GetEnumName(pp^.PropType{$IFNDEF FPC}{$IFDEF DELPHI3UP}^{$ENDIF}{$ENDIF}, GetOrdProp(Instance, pp)); exit; end;
+      tkEnumeration: begin Result := tbtstring(GetEnumName(pp^.PropType{$IFNDEF FPC}{$IFDEF DELPHI3UP}^{$ENDIF}{$ENDIF}, GetOrdProp(Instance, pp))); exit; end;
       tkFloat: begin Result := FloatToStr(GetFloatProp(Instance, PP)); exit; end;
-      tkString, tkLString: begin Result := ''''+GetStrProp(Instance, PP)+''''; exit; end;
+      tkString, tkLString: begin Result := ''''+tbtString(GetStrProp(Instance, PP))+''''; exit; end;
       tkSet: begin Result := '[Set]'; exit; end;
       tkClass: begin Instance := TObject(GetOrdProp(Instance, pp)); end;
       tkMethod: begin Result := '[Method]'; exit; end;
       tkVariant: begin Result := '[Variant]'; exit; end;
 	  {$IFDEF DELPHI6UP}
-	  {$IFNDEF PS_NOWIDESTRING}tkWString: begin Result := ''''+GetWideStrProp(Instance, pp)+''; end; {$ENDIF}
+	  {$IFNDEF PS_NOWIDESTRING}tkWString: begin Result := ''''+tbtString(GetWideStrProp(Instance, pp))+''; end; {$ENDIF}
 	  {$ENDIF}
       else begin Result := '[Unknown]'; exit; end;
     end;
     if Instance = nil then begin result := 'nil'; exit; end;
   end;
-  Result := Instance.ClassName;
+  Result := tbtstring(Instance.ClassName);
 end;
 
-function ClassVariantInfo(const pvar: TPSVariantIFC; const PropertyName: string): string;
+function ClassVariantInfo(const pvar: TPSVariantIFC; const PropertyName: tbtString): tbtString;
 begin
   if pvar.aType.BaseType = btClass then
   begin
@@ -1495,10 +1495,10 @@ begin
       Result := PropertyToString(TObject(pvar.Dta^), PropertyName);
   end else if pvar.atype.basetype = btInterface then
       Result := 'Interface'
-  else Result := RPS_InvalidType;
+  else Result := tbtstring(RPS_InvalidType);
 end;
 
-function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: string): string;
+function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: tbtString): tbtString;
 var
   i, n: Longint;
 begin
@@ -1521,12 +1521,12 @@ begin
         Result := MakeWString(variant(p.dta^))
       {$ENDIF}
       else if TVarData(p.Dta^).VType = varString then
-        Result := MakeString(variant(p.Dta^))
+        Result := MakeString(tbtstring(variant(p.Dta^)))
       else
-      Result := Variant(p.Dta^);
+      Result := tbtstring(Variant(p.Dta^));
     except
       on e: Exception do
-        Result := Format (RPS_Exception, [e.Message]);
+        Result := tbtstring(Format (RPS_Exception, [e.Message]));
     end;
     exit;
   end;
@@ -1541,13 +1541,13 @@ begin
     btSingle: str(tbtsingle(p.dta^), Result);
     btDouble: str(tbtdouble(p.dta^), Result);
     btExtended: str(tbtextended(p.dta^), Result);
-    btString: Result := makestring(string(p.dta^));
+    btString: Result := makestring(tbtString(p.dta^));
     btPChar:
       begin
-        if PChar(p.dta^) = nil then
+        if PansiChar(p.dta^) = nil then
           Result := 'nil'
         else
-          Result := MakeString(PChar(p.dta^));
+          Result := MakeString(PAnsiChar(p.dta^));
       end;
     btchar: Result := MakeString(tbtchar(p.dta^));
     {$IFNDEF PS_NOWIDESTRING}
@@ -1586,47 +1586,47 @@ begin
         Result := ClassVariantInfo(p, ClassProperties)
       end;
   else
-    Result := RPS_Invalid;
+    Result := tbtString(RPS_Invalid);
   end;
 end;
 
 
 
-function TIFErrorToString(x: TPSError; const Param: string): string;
+function TIFErrorToString(x: TPSError; const Param: tbtString): tbtString;
 begin
   Result := PSErrorToString(x,param);
 end;
 
-function PSErrorToString(x: TPSError; const Param: string): string;
+function PSErrorToString(x: TPSError; const Param: tbtString): tbtString;
 begin
   case x of
-    ErNoError: Result := RPS_NoError;
-    erCannotImport: Result := Format (RPS_CannotImport, [Safestr(Param)]);
-    erInvalidType: Result := RPS_InvalidType;
-    ErInternalError: Result := RPS_InternalError;
-    erInvalidHeader: Result := RPS_InvalidHeader;
-    erInvalidOpcode: Result := RPS_InvalidOpcode;
-    erInvalidOpcodeParameter: Result := RPS_InvalidOpcodeParameter;
-    erNoMainProc: Result := RPS_NoMainProc;
-    erOutOfGlobalVarsRange: Result := RPS_OutOfGlobalVarsRange;
-    erOutOfProcRange: Result := RPS_OutOfProcRange;
-    ErOutOfRange: Result := RPS_OutOfRange;
-    erOutOfStackRange: Result := RPS_OutOfStackRange;
-    ErTypeMismatch: Result := RPS_TypeMismatch;
-    erUnexpectedEof: Result := RPS_UnexpectedEof;
-    erVersionError: Result := RPS_VersionError;
-    ErDivideByZero: Result := RPS_DivideByZero;
-    erMathError: Result := RPS_MathError;
-    erCouldNotCallProc: begin Result := RPS_CouldNotCallProc; if (Param <> '') then Result := result +' ('+Param+')'; end;
-    erOutofRecordRange: Result := RPS_OutofRecordRange;
-    erNullPointerException: Result := RPS_NullPointerException;
-    erNullVariantError: Result := RPS_NullVariantError;
-    erOutOfMemory: Result := RPS_OutOfMemory;
-    erException: Result := Format (RPS_Exception, [Param]);
-    eInterfaceNotSupported: Result := RPS_InterfaceNotSupported;
+    ErNoError: Result := tbtString(RPS_NoError);
+    erCannotImport: Result := tbtString(Format (RPS_CannotImport, [Safestr(Param)]));
+    erInvalidType: Result := tbtString(RPS_InvalidType);
+    ErInternalError: Result := tbtString(RPS_InternalError);
+    erInvalidHeader: Result := tbtString(RPS_InvalidHeader);
+    erInvalidOpcode: Result := tbtString(RPS_InvalidOpcode);
+    erInvalidOpcodeParameter: Result := tbtString(RPS_InvalidOpcodeParameter);
+    erNoMainProc: Result := tbtString(RPS_NoMainProc);
+    erOutOfGlobalVarsRange: Result := tbtString(RPS_OutOfGlobalVarsRange);
+    erOutOfProcRange: Result := tbtString(RPS_OutOfProcRange);
+    ErOutOfRange: Result := tbtString(RPS_OutOfRange);
+    erOutOfStackRange: Result := tbtString(RPS_OutOfStackRange);
+    ErTypeMismatch: Result := tbtString(RPS_TypeMismatch);
+    erUnexpectedEof: Result := tbtString(RPS_UnexpectedEof);
+    erVersionError: Result := tbtString(RPS_VersionError);
+    ErDivideByZero: Result := tbtString(RPS_DivideByZero);
+    erMathError: Result := tbtString(RPS_MathError);
+    erCouldNotCallProc: begin Result := tbtString(RPS_CouldNotCallProc); if (Param <> '') then Result := result +' ('+Param+')'; end;
+    erOutofRecordRange: Result := tbtString(RPS_OutofRecordRange);
+    erNullPointerException: Result := tbtString(RPS_NullPointerException);
+    erNullVariantError: Result := tbtString(RPS_NullVariantError);
+    erOutOfMemory: Result := tbtString(RPS_OutOfMemory);
+    erException: Result := tbtString(Format (RPS_Exception, [Param]));
+    eInterfaceNotSupported: Result := tbtString(RPS_InterfaceNotSupported);
     erCustomError: Result := Param;
       else
-    Result := RPS_UnknownError;
+    Result := tbtString(RPS_UnknownError);
   end;
   //
 end;
@@ -1756,8 +1756,8 @@ var
   darr: Pointer;
 begin
   case aType.BaseType of
-    btString: string(p^) := '';
-    {$IFNDEF PS_NOWIDESTRING}btWideString: widestring(p^) := '';{$ENDIF}
+    btString: tbtString(p^) := '';
+    {$IFNDEF PS_NOWIDESTRING}btWideString: tbtwidestring(p^) := '';{$ENDIF}
     {$IFNDEF PS_NOINTERFACES}btInterface:
       begin
         {$IFNDEF DELPHI3UP}
@@ -1904,7 +1904,7 @@ begin
   RegisterStandardProcs;
 end;
 
-class function TPSExec.About: string;
+class function TPSExec.About: tbtString;
 begin
   Result := 'RemObjects Pascal Script. Copyright (c) 2004 by RemObjects Software';
 end;
@@ -2034,7 +2034,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TPSExec.ExceptionProc(proc, Position: Cardinal; Ex: TPSError; const s: string; NewObject: TObject);
+procedure TPSExec.ExceptionProc(proc, Position: Cardinal; Ex: TPSError; const s: tbtString; NewObject: TObject);
 var
   d, l: Longint;
   pp: TPSExceptionHandler;
@@ -2118,7 +2118,7 @@ end;
 function TPSExec.ImportProc(const Name: ShortString; proc: TPSExternalProcRec): Boolean;
 var
   u: PProcRec;
-  fname: string;
+  fname: tbtString;
   I, fnh: Longint;
   P: PSpecialProc;
 
@@ -2126,7 +2126,7 @@ begin
   if name = '' then
   begin
     fname := proc.Decl;
-    fname := copy(fname, 1, pos(':', fname)-1);
+    fname := copy(fname, 1, pos(tbtchar(':'), fname)-1);
     fnh := MakeHash(fname);
     for I := FSpecialProcList.Count -1 downto 0 do
     begin
@@ -2154,10 +2154,10 @@ begin
   Result := True;
 end;
 
-function TPSExec.RegisterFunctionName(const Name: string; ProcPtr: TPSProcPtr; Ext1, Ext2: Pointer): PProcRec;
+function TPSExec.RegisterFunctionName(const Name: tbtString; ProcPtr: TPSProcPtr; Ext1, Ext2: Pointer): PProcRec;
 var
   p: PProcRec;
-  s: string;
+  s: tbtString;
 begin
   s := FastUppercase(Name);
   New(p);
@@ -2171,7 +2171,7 @@ begin
   Result := P;
 end;
 
-function TPSExec.LoadData(const s: string): Boolean;
+function TPSExec.LoadData(const s: tbtString): Boolean;
 var
   HDR: TPSHeader;
   Pos: Cardinal;
@@ -2194,7 +2194,7 @@ var
     function ReadAttrib: Boolean;
     var
       NameLen: Longint;
-      Name: string;
+      Name: tbtString;
       TypeNo: Cardinal;
       i, h, FieldCount: Longint;
       att: TPSRuntimeAttribute;
@@ -2676,7 +2676,7 @@ var
   function LoadProcs: Boolean;
   var
     Rec: TPSProc;
-    n: string;
+    n: tbtString;
     b: Byte;
     l, L2, L3: Longint;
     Curr: TPSProcRec;
@@ -2968,13 +2968,13 @@ begin
   Result := PSGetInt(Src.Dta, Src.aType);
 end;
 
-function VNGetString(const Src: TPSVariantIFC): String;
+function VNGetString(const Src: TPSVariantIFC): tbtString;
 begin
   Result := PSGetString(Src.Dta, Src.aType);
 end;
 
 {$IFNDEF PS_NOWIDESTRING}
-function VNGetWideString(const Src: TPSVariantIFC): WideString;
+function VNGetWideString(const Src: TPSVariantIFC): tbtWideString;
 begin
   Result := PSGetWideString(Src.Dta, Src.aType);
 end;
@@ -3017,7 +3017,7 @@ begin
   PSSetInt(Src.Dta, Src.aType, Dummy, Val);
 end;
 
-procedure VNSetString(const Src: TPSVariantIFC; const Val: String);
+procedure VNSetString(const Src: TPSVariantIFC; const Val: tbtString);
 var
   Dummy: Boolean;
 begin
@@ -3025,7 +3025,7 @@ begin
 end;
 
 {$IFNDEF PS_NOWIDESTRING}
-procedure VNSetWideString(const Src: TPSVariantIFC; const Val: WideString);
+procedure VNSetWideString(const Src: TPSVariantIFC; const Val: tbtWideString);
 var
   Dummy: Boolean;
 begin
@@ -3060,13 +3060,13 @@ begin
   Result := PSGetInt(@PPSVariantData(src).Data, src.FType);
 end;
 
-function VGetString(const Src: PIFVariant): String;
+function VGetString(const Src: PIFVariant): tbtString;
 begin
   Result := PSGetString(@PPSVariantData(src).Data, src.FType);
 end;
 
 {$IFNDEF PS_NOWIDESTRING}
-function VGetWideString(const Src: PIFVariant): WideString;
+function VGetWideString(const Src: PIFVariant): tbtWideString;
 begin
   Result := PSGetWideString(@PPSVariantData(src).Data, src.FType);
 end;
@@ -3121,7 +3121,7 @@ begin
   PSSetInt(@PPSVariantData(src).Data, src.FType, Dummy, Val);
 end;
 
-procedure VSetString(const Src: PIFVariant; const Val: String);
+procedure VSetString(const Src: PIFVariant; const Val: tbtString);
 var
   Dummy: Boolean;
 begin
@@ -3129,7 +3129,7 @@ begin
 end;
 
 {$IFNDEF PS_NOWIDESTRING}
-procedure VSetWideString(const Src: PIFVariant; const Val: WideString);
+procedure VSetWideString(const Src: PIFVariant; const Val: tbtWideString);
 var
   Dummy: Boolean;
 begin
@@ -3138,7 +3138,7 @@ end;
 {$ENDIF}
 
 {$IFNDEF PS_NOWIDESTRING}
-function VarToWideStr(const Data: Variant): WideString;
+function VarToWideStr(const Data: Variant): tbtWideString;
 begin
   if not VarIsNull(Data) then
     Result := Data
@@ -3320,7 +3320,7 @@ begin
 end;
 
 
-function PSGetString(Src: Pointer; aType: TPSTypeRec): String;
+function PSGetString(Src: Pointer; aType: TPSTypeRec): tbtString;
 begin
   if aType.BaseType = btPointer then
   begin
@@ -3329,18 +3329,18 @@ begin
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
-    btU8: Result := chr(tbtu8(src^));
+    btU8: Result := tbtchar(tbtu8(src^));
     btChar: Result := tbtchar(Src^);
-    btPchar: Result := pchar(src^);
-{$IFNDEF PS_NOWIDESTRING}    btWideChar: Result := tbtwidechar(Src^);{$ENDIF}
+    btPchar: Result := pansichar(src^);
+{$IFNDEF PS_NOWIDESTRING}    btWideChar: Result := tbtString(tbtwidechar(Src^));{$ENDIF}
     btString: Result := tbtstring(src^);
-{$IFNDEF PS_NOWIDESTRING}    btWideString: Result := tbtwidestring(src^);{$ENDIF}
-    btVariant:  Result := Variant(src^);
+{$IFNDEF PS_NOWIDESTRING}    btWideString: Result := tbtString(tbtwidestring(src^));{$ENDIF}
+    btVariant:  Result := tbtString(Variant(src^));
     else raise Exception.Create(RPS_TypeMismatch);
   end;
 end;
 {$IFNDEF PS_NOWIDESTRING}
-function PSGetWideString(Src: Pointer; aType: TPSTypeRec): WideString;
+function PSGetWideString(Src: Pointer; aType: TPSTypeRec): tbtWideString;
 begin
   if aType.BaseType = btPointer then
   begin
@@ -3351,10 +3351,10 @@ begin
   case aType.BaseType of
     btU8: Result := chr(tbtu8(src^));
     btU16: Result := widechar(src^);
-    btChar: Result := tbtchar(Src^);
-    btPchar: Result := pchar(src^);
+    btChar: Result := tbtwidestring(tbtchar(Src^));
+    btPchar: Result := tbtwidestring(pansichar(src^));
     btWideChar: Result := tbtwidechar(Src^);
-    btString: Result := tbtstring(src^);
+    btString: Result := tbtwidestring(tbtstring(src^));
     btWideString: Result := tbtwidestring(src^);
     btVariant:   Result := Variant(src^);
     else raise Exception.Create(RPS_TypeMismatch);
@@ -3385,7 +3385,7 @@ begin
     btU32: tbtu32(src^) := Val;
     btS32: tbts32(src^) := Val;
 {$IFNDEF PS_NOINT64}    btS64: tbts64(src^) := Val;{$ENDIF}
-    btChar: tbtchar(Src^) := Chr(Val);
+    btChar: tbtchar(Src^) := tbtChar(Val);
 {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtwidechar(Src^) := tbtwidechar(Val);{$ENDIF}
     btSingle: tbtSingle(src^) := Val;
     btDouble: tbtDouble(src^) := Val;
@@ -3421,7 +3421,7 @@ begin
     btU32: tbtu32(src^) := Val;
     btS32: tbts32(src^) := Val;
     btS64: tbts64(src^) := Val;
-    btChar: tbtchar(Src^) := Chr(Val);
+    btChar: tbtchar(Src^) := tbtChar(Val);
 {$IFNDEF PS_NOWIDESTRING}
     btWideChar: tbtwidechar(Src^) := tbtwidechar(Val);
 {$ENDIF}
@@ -3519,7 +3519,7 @@ begin
     btU32: tbtu32(src^) := Val;
     btS32: tbts32(src^) := Val;
 {$IFNDEF PS_NOINT64}    btS64: tbts64(src^) := Val;{$ENDIF}
-    btChar: tbtchar(Src^) := Chr(Val);
+    btChar: tbtchar(Src^) := tbtChar(Val);
 {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtwidechar(Src^) := tbtwidechar(Val);{$ENDIF}
     btSingle: tbtSingle(src^) := Val;
     btDouble: tbtDouble(src^) := Val;
@@ -3537,7 +3537,7 @@ begin
   end;
 end;
 
-procedure PSSetString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: String);
+procedure PSSetString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtString);
 begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
@@ -3548,7 +3548,7 @@ begin
   end;
   case aType.BaseType of
     btString: tbtstring(src^) := val;
-{$IFNDEF PS_NOWIDESTRING}    btWideString: tbtwidestring(src^) := val;{$ENDIF}
+{$IFNDEF PS_NOWIDESTRING}    btWideString: tbtwidestring(src^) := tbtwidestring(AnsiString(val));{$ENDIF}
     btVariant:
       begin
         try
@@ -3561,7 +3561,7 @@ begin
   end;
 end;
 {$IFNDEF PS_NOWIDESTRING}
-procedure PSSetWideString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: WideString);
+procedure PSSetWideString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtWideString);
 begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
@@ -3571,7 +3571,7 @@ begin
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
   case aType.BaseType of
-    btString: tbtstring(src^) := val;
+    btString: tbtstring(src^) := tbtString(val);
     btWideString: tbtwidestring(src^) := val;
     btVariant:
       begin
@@ -3929,7 +3929,7 @@ end;
 
 
 {$IFDEF FPC}
-function OleErrorMessage(ErrorCode: HResult): String;
+function OleErrorMessage(ErrorCode: HResult): tbtString;
 begin
   Result := SysErrorMessage(ErrorCode);
   if Result = '' then
@@ -3949,7 +3949,7 @@ end;
 
 
 {$IFNDEF DELPHI3UP}
-function OleErrorMessage(ErrorCode: HResult): String;
+function OleErrorMessage(ErrorCode: HResult): tbtString;
 begin
   Result := SysErrorMessage(ErrorCode);
   if Result = '' then
@@ -4168,10 +4168,10 @@ begin
           end;
         end;
       btCurrency: tbtcurrency(Dest^) := PSGetCurrency(Src, srctype);
-      btPChar: pchar(dest^) := pchar(PSGetString(Src, srctype));
+      btPChar: pansichar(dest^) := pansichar(PSGetString(Src, srctype));
       btString:
         tbtstring(dest^) := PSGetString(Src, srctype);
-      btChar: tbtchar(dest^) := chr(PSGetUInt(Src, srctype));
+      btChar: tbtchar(dest^) := tbtchar(PSGetUInt(Src, srctype));
       {$IFNDEF PS_NOWIDESTRING}
       btWideString: tbtwidestring(dest^) := PSGetWideString(Src, srctype);
       btWideChar: tbtwidechar(dest^) := widechar(PSGetUInt(Src, srctype));
@@ -4299,7 +4299,7 @@ begin
       if Tmp is EPSException then
       begin
         Result := False;
-        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
+        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
         exit;
       end else
       if Tmp is EDivByZero then
@@ -4322,7 +4322,7 @@ begin
       end;
     end;
     if (tmp <> nil) and (Tmp is Exception) then
-      CMD_Err3(erException, Exception(Tmp).Message, Tmp)
+      CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp)
     else
       CMD_Err3(erException, '', Tmp);
     Result := False;
@@ -4393,7 +4393,7 @@ begin
           case var1Type.BaseType of
             btU8:
             if (var2Type.BaseType = btString) or (Var2Type.BaseType = btPChar) then
-              b := char(tbtu8(var1^)) >= PSGetString(Var2, var2type)
+              b := tbtchar(tbtu8(var1^)) >= PSGetString(Var2, var2type)
             else
               b := tbtu8(var1^) >= PSGetUInt(Var2, var2type);
             btS8: b := tbts8(var1^) >= PSGetInt(Var2, var2type);
@@ -4467,7 +4467,7 @@ begin
           case var1Type.BaseType of
             btU8:
             if (var2Type.BaseType = btString) or (Var2Type.BaseType = btPChar) then
-              b := char(tbtu8(var1^)) <= PSGetString(Var2, var2type)
+              b := tbtchar(tbtu8(var1^)) <= PSGetString(Var2, var2type)
             else
               b := tbtu8(var1^) <= PSGetUInt(Var2, var2type);
             btS8: b := tbts8(var1^) <= PSGetInt(Var2, var2type);
@@ -4540,7 +4540,7 @@ begin
           case var1Type.BaseType of
             btU8:
             if (var2Type.BaseType = btString) or (Var2Type.BaseType = btPChar) then
-              b := char(tbtu8(var1^)) > PSGetString(Var2, var2type)
+              b := tbtchar(tbtu8(var1^)) > PSGetString(Var2, var2type)
             else
               b := tbtu8(var1^) > PSGetUInt(Var2, var2type);
             btS8: b := tbts8(var1^) > PSGetInt(Var2, var2type);
@@ -4606,7 +4606,7 @@ begin
           case var1Type.BaseType of
             btU8:
             if (var2Type.BaseType = btString) or (Var2Type.BaseType = btPChar) then
-              b := char(tbtu8(var1^)) < PSGetString(Var2, var2type)
+              b := tbtchar(tbtu8(var1^)) < PSGetString(Var2, var2type)
             else
               b := tbtu8(var1^) < PSGetUInt(Var2, var2type);
             btS8: b := tbts8(var1^) < PSGetInt(Var2, var2type);
@@ -4686,7 +4686,7 @@ begin
               end;
             btU8:
             if (var2Type.BaseType = btString) or (Var2Type.BaseType = btPChar) then
-              b := char(tbtu8(var1^)) <> PSGetString(Var2, var2type)
+              b := tbtchar(tbtu8(var1^)) <> PSGetString(Var2, var2type)
             else
               b := tbtu8(var1^) <> PSGetUInt(Var2, var2type);
             btS8: b := tbts8(var1^) <> PSGetInt(Var2, var2type);
@@ -4785,7 +4785,7 @@ begin
               end;
             btU8:
             if (var2Type.BaseType = btString) or (Var2Type.BaseType = btPChar) then
-              b := char(tbtu8(var1^)) = PSGetString(Var2, var2type)
+              b := tbtchar(tbtu8(var1^)) = PSGetString(Var2, var2type)
             else
               b := tbtu8(var1^) = PSGetUInt(Var2, var2type);
             btS8: b := tbts8(var1^) = PSGetInt(Var2, var2type);
@@ -4938,7 +4938,7 @@ begin
       if Tmp is EPSException then
       begin
         Result := False;
-        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
+        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
         exit;
       end else
       if Tmp is EDivByZero then
@@ -4961,7 +4961,7 @@ begin
       end;
     end;
     if (tmp <> nil) and (Tmp is Exception) then
-      CMD_Err3(erException, Exception(Tmp).Message, Tmp)
+      CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp)
     else
       CMD_Err3(erException, '', Tmp);
     Result := False;
@@ -5132,7 +5132,7 @@ begin
                 end;
               end;
             btPchar, btString: tbtstring(var1^) := tbtstring(var1^) + PSGetString(Var2, var2type);
-            btChar: tbtchar(var1^) := char(ord(tbtchar(var1^)) +  PSGetUInt(Var2, var2type));
+            btChar: tbtchar(var1^) := tbtchar(ord(tbtchar(var1^)) +  PSGetUInt(Var2, var2type));
             {$IFNDEF PS_NOWIDESTRING}
             btWideChar: tbtwidechar(var1^) := widechar(ord(tbtwidechar(var1^)) + PSGetUInt(Var2, var2type));
             btWideString: tbtwidestring(var1^) := tbtwidestring(var1^) + PSGetWideString(Var2, var2type);
@@ -5312,7 +5312,7 @@ begin
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
               end;
-            btChar: tbtchar(var1^):= char(ord(tbtchar(var1^)) - PSGetUInt(Var2, var2type));
+            btChar: tbtchar(var1^):= tbtchar(ord(tbtchar(var1^)) - PSGetUInt(Var2, var2type));
             {$IFNDEF PS_NOWIDESTRING}
             btWideChar: tbtwidechar(var1^) := widechar(ord(tbtwidechar(var1^)) - PSGetUInt(Var2, var2type));
             {$ENDIF}
@@ -5954,7 +5954,7 @@ begin
       if Tmp is EPSException then
       begin
         Result := False;
-        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
+        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
         exit;
       end else
       if Tmp is EDivByZero then
@@ -5977,7 +5977,7 @@ begin
       end;
     end;
     if (tmp <> nil) and (Tmp is Exception) then
-      CMD_Err3(erException, Exception(Tmp).Message, Tmp)
+      CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp)
     else
       CMD_Err3(erException, '', Tmp);
     Result := False;
@@ -6587,7 +6587,7 @@ var
   ParamList: TPSList;
   ct: PIFTypeRec;
   pvar: PPSVariant;
-  res, s: string;
+  res, s: tbtString;
   Proc: TPSInternalProcRec;
   i: Longint;
 begin
@@ -6636,7 +6636,7 @@ var
   ParamList: TPSList;
   ct: PIFTypeRec;
   pvar: PPSVariant;
-  res, s: string;
+  res, s: tbtString;
   Proc: TPSInternalProcRec;
   i: Longint;
 begin
@@ -6685,7 +6685,7 @@ begin
   end;
 end;
 
-function TPSExec.RunProcPN(const Params: array of Variant; const ProcName: string): Variant;
+function TPSExec.RunProcPN(const Params: array of Variant; const ProcName: tbtString): Variant;
 var
   ProcNo: Cardinal;
 begin
@@ -6772,7 +6772,7 @@ begin
           if Tmp is EPSException then
           begin
             Result := False;
-            ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
+            ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
             exit;
           end else
           if Tmp is EDivByZero then
@@ -6795,7 +6795,7 @@ begin
           end;
         end;
         if (Tmp <> nil) and (Tmp is Exception) then
-          CMD_Err3(erException, Exception(Tmp).Message, Tmp) else
+          CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp) else
           CMD_Err3(erException, '', Tmp);
         Result := false;
         exit;
@@ -6865,12 +6865,12 @@ begin
   Result := FTypes[l];
 end;
 
-function TPSExec.GetProc(const Name: string): Cardinal;
+function TPSExec.GetProc(const Name: tbtString): Cardinal;
 var
   MM,
     I: Longint;
   n: PIFProcRec;
-  s: string;
+  s: tbtString;
 begin
   s := FastUpperCase(name);
   MM := MakeHash(s);
@@ -6888,12 +6888,12 @@ begin
   Result := InvalidVal;
 end;
 
-function TPSExec.GetType(const Name: string): Cardinal;
+function TPSExec.GetType(const Name: tbtString): Cardinal;
 var
   MM,
     I: Longint;
   n: PIFTypeRec;
-  s: string;
+  s: tbtString;
 begin
   s := FastUpperCase(name);
   MM := MakeHash(s);
@@ -6993,7 +6993,7 @@ begin
     FOnRunLine(Self);
 end;
 
-procedure TPSExec.CMD_Err3(EC: TPSError; const Param: string; ExObject: TObject);
+procedure TPSExec.CMD_Err3(EC: TPSError; const Param: tbtString; ExObject: TObject);
 var
   l: Longint;
   C: Cardinal;
@@ -7010,7 +7010,7 @@ begin
   ExceptionProc(C, FCurrentPosition, EC, Param, ExObject);
 end;
 
-procedure TPSExec.AddSpecialProcImport(const FName: string;
+procedure TPSExec.AddSpecialProcImport(const FName: tbtString;
   P: TPSOnSpecialProcImport; Tag: Pointer);
 var
   N: PSpecialProc;
@@ -7023,11 +7023,11 @@ begin
   FSpecialProcList.Add(n);
 end;
 
-function TPSExec.GetVar(const Name: string): Cardinal;
+function TPSExec.GetVar(const Name: tbtString): Cardinal;
 var
   l: Longint;
   h: longint;
-  s: string;
+  s: tbtString;
   p: PPSExportedVar;
 begin
   s := FastUpperCase(name);
@@ -7049,7 +7049,7 @@ begin
   Result := FGlobalVars[c];
 end;
 
-function TPSExec.GetVar2(const Name: string): PIFVariant;
+function TPSExec.GetVar2(const Name: tbtString): PIFVariant;
 begin
   Result := GetVarNo(GetVar(Name));
 end;
@@ -7406,7 +7406,7 @@ begin
                   begin
                     if Tmp is EPSException then
                     begin
-                      ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
+                      ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
                       Break;
                     end else
                     if Tmp is EDivByZero then
@@ -7426,7 +7426,7 @@ begin
                     end;
                   end;
                   if (Tmp <> nil) and (Tmp is Exception) then
-                    CMD_Err3(erException, Exception(Tmp).Message, Tmp) else
+                    CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp) else
                     CMD_Err3(erException, '', Tmp);
                   Break;
                 end;
@@ -8061,7 +8061,7 @@ begin
                     begin
                       if Tmp is EPSException then
                       begin
-                        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, EPSException(tmp).Message, nil);
+                        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
                         break;
                       end else
                       if Tmp is EDivByZero then
@@ -8081,7 +8081,7 @@ begin
                       end;
                     end;
                     if (Tmp <> nil) and (Tmp is Exception) then
-                      CMD_Err3(erException, Exception(Tmp).Message, Tmp) else
+                      CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp) else
                       CMD_Err3(erException, '', Tmp);
                     Break;
                   end;
@@ -8225,7 +8225,7 @@ var
 begin
   case Longint(p.Ext1) of
     0: Stack.SetString(-1, IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2))); // inttostr
-    1: Stack.SetInt(-1, SysUtils.StrToInt(Stack.GetString(-2))); // strtoint
+    1: Stack.SetInt(-1, StrToInt(Stack.GetString(-2))); // strtoint
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetString(-2), Stack.GetInt(-3))); // strtointdef
     3: Stack.SetInt(-1, Pos(Stack.GetString(-2), Stack.GetString(-3)));// pos
     4: Stack.SetString(-1, Copy(Stack.GetString(-2), Stack.GetInt(-3), Stack.GetInt(-4))); // copy
@@ -8260,7 +8260,7 @@ begin
         I := Stack.GetInt(-3);
         if (i<1) or (i>length(tbtstring(temp.Dta^))) then
         begin
-          Caller.CMD_Err2(erCustomError, RPS_OutOfStringRange);
+          Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
           Result := False;
           exit;
         end;
@@ -8277,11 +8277,11 @@ begin
         I := Stack.GetInt(-2);
         if (i<1) or (i>length(tbtstring(temp.Dta^))) then
         begin
-          Caller.CMD_Err2(erCustomError, RPS_OutOfStringRange);
+          Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
           Result := True;
           exit;
         end;
-        tbtstring(temp.Dta^)[i] := chr(Stack.GetInt(-1));
+        tbtstring(temp.Dta^)[i] := tbtchar(Stack.GetInt(-1));
       end;
     10: Stack.SetString(-1, FastUppercase(Stack.GetString(-2))); // Uppercase
     11: Stack.SetString(-1, FastLowercase(Stack.GetString(-2)));// LowerCase
@@ -8310,7 +8310,7 @@ begin
     25: Stack.SetString(-1, PadL(Stack.GetString(-2), Stack.GetInt(-3))); //  PadL
     26: Stack.SetString(-1, PadR(Stack.GetString(-2), Stack.GetInt(-3))); // PadR
     27: Stack.SetString(-1, PadZ(Stack.GetString(-2), Stack.GetInt(-3)));// PadZ
-    28: Stack.SetString(-1, StringOfChar(Char(Stack.GetInt(-2)), Stack.GetInt(-3))); // Replicate/StrOfChar
+    28: Stack.SetString(-1, StringOfChar(tbtChar(Stack.GetInt(-2)), Stack.GetInt(-3))); // Replicate/StrOfChar
     29: // Assigned
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], True);
@@ -8354,11 +8354,11 @@ begin
     34: Stack.SetInt(-1, Caller.LastExProc); {ExceptionProc}
     35: Stack.SetInt(-1, Caller.LastExPos); {ExceptionPos}
     36: Stack.SetString(-1, PSErrorToString(TPSError(Stack.GetInt(-2)), Stack.GetString(-3))); {ExceptionToString}
-    37: Stack.SetString(-1, AnsiUpperCase(Stack.GetString(-2))); // AnsiUppercase
-    38: Stack.SetString(-1, AnsiLowercase(Stack.GetString(-2)));// AnsiLowerCase
+    37: Stack.SetString(-1, tbtString(AnsiUpperCase(string(Stack.GetString(-2))))); // AnsiUppercase
+    38: Stack.SetString(-1, tbtString(AnsiLowercase(string(Stack.GetString(-2))))); // AnsiLowerCase
 {$IFNDEF PS_NOINT64}
-    39: Stack.SetInt64(-1, StrToInt64(Stack.GetString(-2)));  // StrToInt64
-    40: Stack.SetString(-1, SysUtils.IntToStr(Stack.GetInt64(-2)));// Int64ToStr
+    39: Stack.SetInt64(-1, StrToInt64(string(Stack.GetString(-2))));  // StrToInt64
+    40: Stack.SetString(-1, IntToStr(Stack.GetInt64(-2)));// Int64ToStr
 {$ENDIF}
     41:  // sizeof
       begin
@@ -8380,7 +8380,7 @@ begin
         I := Stack.GetInt(-3);
         if (i<1) or (i>length(tbtwidestring(temp.Dta^))) then
         begin
-          Caller.CMD_Err2(erCustomError, RPS_OutOfStringRange);
+          Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
           Result := False;
           exit;
         end;
@@ -8397,7 +8397,7 @@ begin
         I := Stack.GetInt(-2);
         if (i<1) or (i>length(tbtWidestring(temp.Dta^))) then
         begin
-          Caller.CMD_Err2(erCustomError, RPS_OutOfStringRange);
+          Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
           Result := True;
           exit;
         end;
@@ -8682,7 +8682,7 @@ begin
 end;
 
 
-function ToString(p: PChar): string;
+function ToString(p: PansiChar): tbtString;
 begin
   SetString(Result, p, StrLen(p));
 end;
@@ -8745,14 +8745,14 @@ begin
       end;
     btExtended: Dest := tbtExtended(Src^);
     btString: Dest := tbtString(Src^);
-    btPChar: Dest := ToString(PChar(Src^));
+    btPChar: Dest := ToString(PansiChar(Src^));
   {$IFNDEF PS_NOINT64}
   {$IFDEF DELPHI6UP} btS64: Dest := tbts64(Src^); {$ELSE} bts64: begin Result := False; exit; end; {$ENDIF}
   {$ENDIF}
-    btChar: Dest := string(tbtchar(src^));
+    btChar: Dest := tbtString(tbtchar(src^));
   {$IFNDEF PS_NOWIDESTRING}
     btWideString: Dest := tbtWideString(src^);
-    btWideChar: Dest := widestring(tbtwidechar(src^));
+    btWideChar: Dest := tbtwidestring(tbtwidechar(src^));
   {$ENDIF}
   else
     begin
@@ -8846,7 +8846,7 @@ begin
         end;
         btchar: begin
             tvarrec(p^).VType := vtChar;
-            tvarrec(p^).VChar := tbtchar(cp^);
+            tvarrec(p^).VChar := Char(tbtchar(cp^));
           end;
         btSingle:
           begin
@@ -8873,7 +8873,7 @@ begin
           end;
         btwideString: begin
           tvarrec(p^).VType := vtWideString;
-          widestring(TVarRec(p^).VWideString) := tbtwidestring(cp^);
+          tbtwidestring(TVarRec(p^).VWideString) := tbtwidestring(cp^);
         end;
         {$ENDIF}
         btU8: begin
@@ -8909,7 +8909,7 @@ begin
         {$ENDIF}
         btString: begin
           tvarrec(p^).VType := vtAnsiString;
-          string(TVarRec(p^).VAnsiString) := tbtstring(cp^);
+          tbtString(TVarRec(p^).VAnsiString) := tbtstring(cp^);
         end;
         btPChar:
         begin
@@ -8934,7 +8934,7 @@ begin
       end;
     end;
     datap := Pointer(IPointer(datap)+12);
-    p := PChar(p) + Result^.ElementSize;
+    p := PansiChar(p) + Result^.ElementSize;
   end;
 end;
 
@@ -8984,7 +8984,7 @@ begin
           end;
         btChar: begin
             if v^.VarParam then
-              tbtchar(cp^) := tvarrec(p^).VChar
+              tbtchar(cp^) := tbtChar(tvarrec(p^).VChar)
           end;
         btSingle: begin
           if v^.VarParam then
@@ -9016,14 +9016,14 @@ begin
         btWideString:
           begin
           if v^.VarParam then
-            tbtwidestring(cp^) := widestring(TVarRec(p^).VWideString);
+            tbtwidestring(cp^) := tbtwidestring(TVarRec(p^).VWideString);
           finalize(widestring(TVarRec(p^).VWideString));
           end;
         {$ENDIF}
         btString: begin
           if v^.VarParam then
             tbtstring(cp^) := tbtstring(TVarRec(p^).VString);
-          finalize(string(TVarRec(p^).VAnsiString));
+          finalize(tbtString(TVarRec(p^).VAnsiString));
         end;
         btClass: begin
           if v^.VarParam then
@@ -9034,7 +9034,7 @@ begin
         btInterface: begin
           if v^.VarParam then
             IUnknown(cp^) := IUnknown(TVarRec(p^).VInterface);
-          finalize(string(TVarRec(p^).VAnsiString));
+          finalize(tbtString(TVarRec(p^).VAnsiString));
         end;
 {$ENDIF}
 {$ENDIF}
@@ -9357,7 +9357,7 @@ var
   FSelf: Pointer;
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
-  s: string;
+  s: tbtString;
 begin
   s := p.Decl;
   if length(S) < 2 then
@@ -9415,7 +9415,7 @@ var
   FSelf: Pointer;
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
-  s: string;
+  s: tbtString;
   FType: PIFTypeRec;
   x: TPSRuntimeClass;
   IntVal: PIFVariant;
@@ -9510,7 +9510,7 @@ var
   FSelf: Pointer;
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
-  s: string;
+  s: tbtString;
   FType: PIFTypeRec;
   x: TPSRuntimeClass;
   IntVal: PIFVariant;
@@ -9613,7 +9613,7 @@ begin
     IUnknown(resvar.Dta^) := nil;
     if (IUnknown(invar.Dta^) = nil) or (IUnknown(invar.Dta^).QueryInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^)) <> 0) then
     begin
-      Caller.CMD_Err2(erCustomError, RPS_CannotCastInterface);
+      Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastInterface));
       Result := False;
       exit;
     end;
@@ -9627,7 +9627,7 @@ begin
     IUnknown(resvar.Dta^) := nil;
     if (TObject(invar.Dta^)= nil) or (not TObject(invar.dta^).GetInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^))) then
     begin
-      Caller.CMD_Err2(erCustomError, RPS_CannotCastInterface);
+      Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastInterface));
       Result := False;
       exit;
     end;
@@ -9659,7 +9659,7 @@ begin
       TObject(ResVar.Dta^) := TObject(InVar.Dta^) as FSelf;
     except
       Result := False;
-      Caller.CMD_Err2(erCustomError, RPS_CannotCastObject);
+      Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastObject));
       exit;
     end;
   end else
@@ -9704,7 +9704,7 @@ var
   FSelf: Pointer;
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
-  s: string;
+  s: tbtString;
 begin
   s := p.Decl;
   if length(S) < 2 then
@@ -9753,7 +9753,7 @@ end;
 
 function InterfaceProc(Sender: TPSExec; p: TPSExternalProcRec; Tag: Pointer): Boolean;
 var
-  s: string;
+  s: tbtString;
 begin
   s := p.Decl;
   delete(s,1,5); // delete 'intf:'
@@ -9834,11 +9834,11 @@ begin
         btSingle: SetFloatProp(TObject(FSelf), p.Ext1, tbtsingle(n.Dta^));
         btDouble: SetFloatProp(TObject(FSelf), p.Ext1, tbtdouble(n.Dta^));
         btExtended: SetFloatProp(TObject(FSelf), p.Ext1, tbtextended(n.Dta^));
-        btString: SetStrProp(TObject(FSelf), p.Ext1, string(n.Dta^));
-        btPChar: SetStrProp(TObject(FSelf), p.Ext1, pchar(n.Dta^));
+        btString: SetStrProp(TObject(FSelf), p.Ext1, string(tbtString(n.Dta^)));
+        btPChar: SetStrProp(TObject(FSelf), p.Ext1, string(pansichar(n.Dta^)));
         btClass: SetOrdProp(TObject(FSelf), P.Ext1, Longint(n.Dta^));
 	  {$IFDEF DELPHI6UP}
-{$IFNDEF PS_NOWIDESTRING}btWideString: SetWideStrProp(TObject(FSelf), P.Ext1, Widestring(n.dta^)); {$ENDIF}
+{$IFNDEF PS_NOWIDESTRING}btWideString: SetWideStrProp(TObject(FSelf), P.Ext1, tbtWidestring(n.dta^)); {$ENDIF}
 {$ENDIF}
         else
         begin
@@ -9888,10 +9888,10 @@ begin
         btSingle: tbtsingle(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);
         btDouble: tbtdouble(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);
         btExtended: tbtextended(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);
-        btString: string(n.Dta^) := GetStrProp(TObject(FSelf), p.Ext1);
+        btString: tbtString(n.Dta^) := tbtString(GetStrProp(TObject(FSelf), p.Ext1));
         btClass: Longint(n.dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
 	  {$IFDEF DELPHI6UP}
-{$IFNDEF PS_NOWIDESTRING}btWideString: Widestring(n.dta^) := GetWideStrProp(TObject(FSelf), P.Ext1); {$ENDIF}
+{$IFNDEF PS_NOWIDESTRING}btWideString: tbtWidestring(n.dta^) := GetWideStrProp(TObject(FSelf), P.Ext1); {$ENDIF}
 {$ENDIF}
       else
         begin
@@ -10163,7 +10163,7 @@ For property write functions there is an '@' after the funcname.
 function SpecImport(Sender: TPSExec; p: TPSExternalProcRec; Tag: Pointer): Boolean;
 var
   H, I: Longint;
-  S, s2: string;
+  S, s2: tbtString;
   CL: TPSRuntimeClass;
   Px: PClassItem;
   pp: PPropInfo;
@@ -10184,7 +10184,7 @@ begin
     Result := True;
     exit;
   end;
-  s2 := copy(S, 1, pos('|', s)-1);
+  s2 := copy(S, 1, pos(tbtchar('|'), s)-1);
   delete(s, 1, length(s2) + 1);
   H := MakeHash(s2);
   ISRead := False;
@@ -10202,7 +10202,7 @@ begin
     Result := False;
     exit;
   end;
-  s2 := copy(S, 1, pos('|', s)-1);
+  s2 := copy(S, 1, pos(tbtchar('|'), s)-1);
   delete(s, 1, length(s2) + 1);
   if (s2 <> '') and (s2[length(s2)] = '@') then
   begin
@@ -10308,7 +10308,7 @@ begin
   end;
   if cl.FClass.ClassInfo <> nil then
   begin
-    pp := GetPropInfo(cl.FClass.ClassInfo, s2);
+    pp := GetPropInfo(cl.FClass.ClassInfo, string(s2));
     if pp <> nil then
     begin
        p.ProcPtr := ClassCallProcProperty;
@@ -10357,7 +10357,7 @@ begin
   raise EPSException.Create(PSErrorToString(ExceptionCode, ExceptionString), Self, ExProc, ExPos);
 end;
 
-procedure TPSExec.CMD_Err2(EC: TPSError; const Param: string);
+procedure TPSExec.CMD_Err2(EC: TPSError; const Param: tbtString);
 begin
   CMD_Err3(EC, Param, Nil);
 end;
@@ -10367,7 +10367,7 @@ begin
   Result := MkMethod(Self, ProcNo);
 end;
 
-function TPSExec.GetProcAsMethodN(const ProcName: string): TMethod;
+function TPSExec.GetProcAsMethodN(const ProcName: tbtString): TMethod;
 var
   procno: Cardinal;
 begin
@@ -10383,7 +10383,7 @@ end;
 
 
 procedure TPSExec.RegisterAttributeType(useproc: TPSAttributeUseProc;
-  const TypeName: string);
+  const TypeName: tbtString);
 var
   att: TPSAttributeType;
 begin
@@ -10431,7 +10431,7 @@ function TPSExec.InvokeExternalMethod(At: TPSTypeRec_ProcPtr; Slf,
   Ptr: Pointer): Boolean;
 var
   res: PPSVariantIFC;
-  s: string;
+  s: tbtString;
   CurrStack, i: Longint;
   n: PPSVariant;
   MyList: TPSList;
@@ -10473,7 +10473,7 @@ begin
   result := pp.ExceptionData;
 end;
 
-function TPSExec.LastExParam: string;
+function TPSExec.LastExParam: tbtString;
 begin
   result := ExParam;
 end;
@@ -10490,13 +10490,13 @@ end;
 
 { TPSRuntimeClass }
 
-constructor TPSRuntimeClass.Create(aClass: TClass; const AName: string);
+constructor TPSRuntimeClass.Create(aClass: TClass; const AName: tbtString);
 begin
   inherited Create;
   FClass := AClass;
   if AName = '' then
   begin
-    FClassName := FastUpperCase(aClass.ClassName);
+    FClassName := FastUpperCase(tbtString(aClass.ClassName));
     FClassNameHash := MakeHash(FClassName);
   end else begin
     FClassName := FastUppercase(AName);
@@ -10521,7 +10521,7 @@ begin
 end;
 
 procedure TPSRuntimeClass.RegisterVirtualAbstractMethod(ClassDef: TClass;
-  ProcPtr: Pointer; const Name: string);
+  ProcPtr: Pointer; const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10534,7 +10534,7 @@ begin
 end;
 
 procedure TPSRuntimeClass.RegisterConstructor(ProcPtr: Pointer;
-  const Name: string);
+  const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10546,7 +10546,7 @@ begin
   FClassItems.Add(p);
 end;
 
-procedure TPSRuntimeClass.RegisterMethod(ProcPtr: Pointer; const Name: string);
+procedure TPSRuntimeClass.RegisterMethod(ProcPtr: Pointer; const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10560,7 +10560,7 @@ end;
 
 
 procedure TPSRuntimeClass.RegisterPropertyHelper(ReadFunc,
-  WriteFunc: Pointer; const Name: string);
+  WriteFunc: Pointer; const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10574,7 +10574,7 @@ begin
 end;
 
 procedure TPSRuntimeClass.RegisterVirtualConstructor(ProcPtr: Pointer;
-  const Name: string);
+  const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10586,7 +10586,7 @@ begin
   FClassItems.Add(p);
 end;
 
-procedure TPSRuntimeClass.RegisterVirtualMethod(ProcPtr: Pointer; const Name: string);
+procedure TPSRuntimeClass.RegisterVirtualMethod(ProcPtr: Pointer; const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10599,7 +10599,7 @@ begin
 end;
 
 procedure TPSRuntimeClass.RegisterEventPropertyHelper(ReadFunc,
-  WriteFunc: Pointer; const Name: string);
+  WriteFunc: Pointer; const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10614,7 +10614,7 @@ end;
 
 
 procedure TPSRuntimeClass.RegisterPropertyHelperName(ReadFunc,
-  WriteFunc: Pointer; const Name: string);
+  WriteFunc: Pointer; const Name: tbtString);
 var
   P: PClassItem;
 begin
@@ -10631,14 +10631,14 @@ end;
 
 function TPSRuntimeClassImporter.Add(aClass: TClass): TPSRuntimeClass;
 begin
-  Result := FindClass(FastUppercase(aClass.ClassName));
+  Result := FindClass(FastUppercase(tbtString(aClass.ClassName)));
   if Result <> nil then exit;
   Result := TPSRuntimeClass.Create(aClass, '');
   FClasses.Add(Result);
 end;
 
 function TPSRuntimeClassImporter.Add2(aClass: TClass;
-  const Name: string): TPSRuntimeClass;
+  const Name: tbtString): TPSRuntimeClass;
 begin
   Result := FindClass(Name);
   if Result <> nil then exit;
@@ -10703,7 +10703,7 @@ begin
   end;
 end;
 
-function BGRFW(var s: string): string;
+function BGRFW(var s: tbtString): tbtString;
 var
   l: Longint;
 begin
@@ -10840,13 +10840,13 @@ end;
 
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer;
 var
-  Decl: string;
+  Decl: tbtString;
   I, C, regno: Integer;
   Params: TPSList;
   Res, Tmp: PIFVariant;
   cpt: PIFTypeRec;
-  fmod: char;
-  s,e: string;
+  fmod: tbtchar;
+  s,e: tbtString;
   FStack: pointer;
   ex: TPSExceptionHandler;
 
@@ -11040,7 +11040,7 @@ begin
   end;
 end;
 {$endif}
-function TPSRuntimeClassImporter.FindClass(const Name: string): TPSRuntimeClass;
+function TPSRuntimeClassImporter.FindClass(const Name: tbtString): TPSRuntimeClass;
 var
   h, i: Longint;
   p: TPSRuntimeClass;
@@ -11064,7 +11064,7 @@ var
   MyList: TPSList;
   n: PPSVariantIFC;
   CurrStack: Cardinal;
-  s: string;
+  s: tbtString;
 begin
   s := P.Decl;
   if length(s) = 0 then begin Result := False; exit; end;
@@ -11111,13 +11111,13 @@ begin
 end;
 
 procedure TPSExec.RegisterDelphiFunction(ProcPtr: Pointer;
-  const Name: string; CC: TPSCallingConvention);
+  const Name: tbtString; CC: TPSCallingConvention);
 begin
   RegisterDelphiMethod(nil, ProcPtr, FastUppercase(Name), CC);
 end;
 
 procedure TPSExec.RegisterDelphiMethod(Slf, ProcPtr: Pointer;
-  const Name: string; CC: TPSCallingConvention);
+  const Name: tbtString; CC: TPSCallingConvention);
 begin
   case cc of
     cdRegister: RegisterFunctionName(FastUppercase(Name), DelphiFunctionProc_Register, ProcPtr, Slf);
@@ -11129,10 +11129,10 @@ end;
 
 { EPSException }
 
-constructor EPSException.Create(const Error: string; Exec: TPSExec;
+constructor EPSException.Create(const Error: tbtString; Exec: TPSExec;
   Procno, ProcPos: Cardinal);
 begin
- inherited Create(Error);
+ inherited Create(string(Error));
  FExec := Exec;
  FProcNo := Procno;
  FProcPos := ProcPos;
@@ -11212,9 +11212,9 @@ begin
 end;
 
 function TPSRuntimeAttributes.FindAttribute(
-  const Name: string): TPSRuntimeAttribute;
+  const Name: tbtString): TPSRuntimeAttribute;
 var
-  n: string;
+  n: tbtString;
   i, h: Longint;
 begin
   n := FastUpperCase(Name);
@@ -11411,7 +11411,7 @@ begin
   Result := PSGetreal(@PPSVariantData(val).Data, val.FType);
 end;
 
-function TPSStack.GetString(ItemNo: Longint): string;
+function TPSStack.GetString(ItemNo: Longint): tbtString;
 var
   val: PPSVariant;
 begin
@@ -11434,7 +11434,7 @@ begin
 end;
 
 {$IFNDEF PS_NOWIDESTRING}
-function TPSStack.GetWideString(ItemNo: Longint): WideString;
+function TPSStack.GetWideString(ItemNo: Longint): tbtWideString;
 var
   val: PPSVariant;
 begin
@@ -11611,7 +11611,7 @@ begin
   if not ok then raise Exception.Create(RPS_TypeMismatch);
 end;
 
-procedure TPSStack.SetString(ItemNo: Longint; const Data: string);
+procedure TPSStack.SetString(ItemNo: Longint; const Data: tbtString);
 var
   val: PPSVariant;
   ok: Boolean;
@@ -11642,7 +11642,7 @@ end;
 
 {$IFNDEF PS_NOWIDESTRING}
 procedure TPSStack.SetWideString(ItemNo: Longint;
-  const Data: WideString);
+  const Data: tbtWideString);
 var
   val: PPSVariant;
   ok: Boolean;
@@ -11664,7 +11664,7 @@ var
 const
   LOCALE_SYSTEM_DEFAULT = 2 shl 10; // Delphi 2 doesn't define this
 
-function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: String; const Par: array of Variant): Variant;
+function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
 var
   Param: Word;
   i, ArgErr: Longint;

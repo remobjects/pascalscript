@@ -13,12 +13,12 @@ type
   TPSPreProcessor = class;
   TPSPascalPreProcessorParser = class;
 
-  TPSOnNeedFile = function (Sender: TPSPreProcessor; const callingfilename: string; var FileName, Output: string): Boolean;
+  TPSOnNeedFile = function (Sender: TPSPreProcessor; const callingfilename: tbtstring; var FileName, Output: tbtstring): Boolean;
   TPSOnProcessDirective = procedure (
                             Sender: TPSPreProcessor;
                             Parser: TPSPascalPreProcessorParser;
                             const Active: Boolean;
-                            const DirectiveName, DirectiveParam: String;
+                            const DirectiveName, DirectiveParam: tbtString;
                             Var Continue: Boolean); //- jgv - application set continue to false to stop the normal directive processing
   
   TPSLineInfo = class(TObject)
@@ -28,12 +28,12 @@ type
   protected
     FEndPos: Cardinal;
     FStartPos: Cardinal;
-    FFileName: string;
+    FFileName: tbtstring;
     FLineOffsets: TIfList;
   public
-    
-    property FileName: string read FFileName;
-    
+
+    property FileName: tbtstring read FFileName;
+
     property StartPos: Cardinal read FStartPos;
     
     property EndPos: Cardinal read FEndPos;
@@ -54,7 +54,7 @@ type
     Col,
     Pos: Cardinal;
     
-    Name: string;
+    Name: tbtstring;
   end;
   
   TPSLineInfoList = class(TObject)
@@ -74,7 +74,7 @@ type
 
     procedure Clear;
     
-    function GetLineInfo(const ModuleName: string; Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
+    function GetLineInfo(const ModuleName: tbtstring; Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
     
     property Current: Longint read FCurrent write FCurrent;
 
@@ -94,12 +94,12 @@ type
     FAddedPosition: Cardinal;
     FDefineState: TPSDefineStates;
     FMaxLevel: Longint;
-    FMainFileName: string;
-    FMainFile: string;
+    FMainFileName: tbtstring;
+    FMainFile: tbtstring;
     FOnProcessDirective: TPSOnProcessDirective;
     FOnProcessUnknowDirective: TPSOnProcessDirective;
     procedure ParserNewLine(Sender: TPSPascalPreProcessorParser; Row, Col, Pos: Cardinal);
-    procedure IntPreProcess(Level: Integer; const OrgFileName: string; FileName: string; Dest: TStream);
+    procedure IntPreProcess(Level: Integer; const OrgFileName: tbtstring; FileName: tbtstring; Dest: TStream);
   protected
     procedure doAddStdPredefines; virtual; // jgv
   public
@@ -111,16 +111,16 @@ type
 
     property Defines: TStringList read FDefines write FDefines;
 
-    property MainFile: string read FMainFile write FMainFile;
+    property MainFile: tbtstring read FMainFile write FMainFile;
 
-    property MainFileName: string read FMainFileName write FMainFileName;
+    property MainFileName: tbtstring read FMainFileName write FMainFileName;
 
     property ID: Pointer read FID write FID;
 
     procedure AdjustMessages(Comp: TPSPascalCompiler);
     procedure AdjustMessage(Msg: TPSPascalCompilerMessage); //-jgv
 
-    procedure PreProcess(const Filename: string; var Output: string);
+    procedure PreProcess(const Filename: tbtstring; var Output: tbtstring);
 
     procedure Clear;
 
@@ -139,19 +139,19 @@ type
   
   TPSPascalPreProcessorParser = class(TObject)
   private
-    FData: string;
+    FData: tbtstring;
     FText: Pchar;
-    FToken: string;
+    FToken: tbtstring;
     FTokenId: TPSPascalPreProcessorType;
     FLastEnterPos, FLen, FRow, FCol, FPos: Cardinal;
     FOnNewLine: TPSOnNewLine;
   public
     
-    procedure SetText(const dta: string);
+    procedure SetText(const dta: tbtstring);
     
     procedure Next;
     
-    property Token: string read FToken;
+    property Token: tbtstring read FToken;
     
     property TokenId: TPSPascalPreProcessorType read FTokenId;
     
@@ -258,12 +258,12 @@ begin
   Result := TPSLineInfo(FItems[i]);
 end;
 
-function TPSLineInfoList.GetLineInfo(const ModuleName: string; Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
+function TPSLineInfoList.GetLineInfo(const ModuleName: tbtstring; Pos: Cardinal; var Res: TPSLineInfoResults): Boolean;
 var
   i,j: Longint;
   linepos: Cardinal;
   Item: TPSLineInfo;
-  lModuleName: string;
+  lModuleName: tbtstring;
 begin
   lModuleName := FastUpperCase(lModuleName);
 
@@ -472,7 +472,7 @@ begin
   FToken := Copy(FData, FPos +1, FLen);
 end;
 
-procedure TPSPascalPreProcessorParser.SetText(const dta: string);
+procedure TPSPascalPreProcessorParser.SetText(const dta: tbtstring);
 begin
   FData := dta;
   FText := pchar(FData);
@@ -554,12 +554,12 @@ begin
   {$ENDIF }
 end;
 
-procedure TPSPreProcessor.IntPreProcess(Level: Integer; const OrgFileName: string; FileName: string; Dest: TStream);
+procedure TPSPreProcessor.IntPreProcess(Level: Integer; const OrgFileName: tbtstring; FileName: tbtstring; Dest: TStream);
 var
   Parser: TPSPascalPreProcessorParser;
-  dta: string;
+  dta: tbtstring;
   item: TPSLineInfo;
-  s, name: string;
+  s, name: tbtstring;
   current, i: Longint;
   ds: TPSDefineState;
   AppContinue: Boolean;
@@ -702,7 +702,7 @@ begin
   end;
 end;
 
-procedure TPSPreProcessor.PreProcess(const Filename: string; var Output: string);
+procedure TPSPreProcessor.PreProcess(const Filename: tbtstring; var Output: tbtstring);
 var
   Stream: TMemoryStream;
 begin

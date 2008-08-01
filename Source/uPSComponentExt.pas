@@ -31,28 +31,28 @@ type
 
   {Base class for all plugins for the component}
   TPSOnCompCleanup = Function (Sender: TObject; aComp: TPSPascalCompiler):Boolean of object;
-  TPSOnInsertProcedure = Procedure (Sender: TObject; aProc: String; OnTop: Boolean) of object;
-  TPSOnException = procedure (Sender: TPSExec; ExError: TPSError; const ExParam: string;
+  TPSOnInsertProcedure = Procedure (Sender: TObject; aProc: tbtstring; OnTop: Boolean) of object;
+  TPSOnException = procedure (Sender: TPSExec; ExError: TPSError; const ExParam: tbtstring;
                               ExObject: TObject; ProcNo, Position: Cardinal) of object;
 
   TMethodList = class;
   TProcObj = Class
     private
-      FName     : String;
+      FName     : tbtstring;
       fOwner   : TMethodList;
-    procedure SetName(const Value: String);
+    procedure SetName(const Value: tbtstring);
   public
     ProcType : TStringList;
     Method : TMethod;
     constructor create(aOwner: TMethodList);
     destructor Destroy; override;
-    property Name: String read FName write SetName;
+    property Name: tbtstring read FName write SetName;
   end;
 
   TMethodObj = Class
     Instance  : TPersistent;
-    PropName  : String;
-    ProcName  : String;
+    PropName  : tbtstring;
+    ProcName  : tbtstring;
   end;
 
   TMethodList = class
@@ -62,18 +62,18 @@ type
     fEventList : TObjectList;
     function  GetObject(Index: Integer): TMethodObj; virtual;
     function  GetProcObj(Index: Integer): TProcObj;
-    function  GetMethodName(Instance: TObject; PropName: String): String;
-    procedure SetMethodName(Instance: TObject; PropName: String; const Value: String);
-    procedure CreateProc(ProcName: string; aPropType: TTypeData);
+    function  GetMethodName(Instance: TObject; PropName: tbtstring): tbtstring;
+    procedure SetMethodName(Instance: TObject; PropName: tbtstring; const Value: tbtstring);
+    procedure CreateProc(ProcName: tbtstring; aPropType: TTypeData);
   public
     constructor create(aOwner: TPSScriptExtension);
     destructor Destroy; override;
-    function methodIndexOf(Instance: TObject; PropName: String):Integer;
-    Function ProcIndexOf(Name: String): Integer;
-    Procedure ListEventsName(EventType:string; List : TStrings);
+    function methodIndexOf(Instance: TObject; PropName: tbtstring):Integer;
+    Function ProcIndexOf(Name: tbtstring): Integer;
+    Procedure ListEventsName(EventType:tbtstring; List : TStrings);
 
-    Procedure AddProcedure(ProcName, ProcType:String);
-    procedure InsertMethod(NewProc: String; OnTop: Boolean = false);
+    Procedure AddProcedure(ProcName, ProcType:tbtstring);
+    procedure InsertMethod(NewProc: tbtstring; OnTop: Boolean = false);
 
     Procedure FillMethods;
     procedure ClearProcList;
@@ -82,7 +82,7 @@ type
     Function MethodCount :Integer;
     property Procs[Index: Integer]: TProcObj read GetProcObj ;
     property Methods[Index: Integer]: TMethodObj read GetObject;
-    property ProcName[Instance: TObject; PropName:String]: String read GetMethodName write SetMethodName;
+    property ProcName[Instance: TObject; PropName:tbtstring]: tbtstring read GetMethodName write SetMethodName;
   end;
 
   TPSScriptExtension = class(TPSScriptDebugger)
@@ -96,17 +96,17 @@ type
 
     fItems, fInserts: TStrings;
     fScriptPos : Cardinal;
-    fObjectNest: STring;
+    fObjectNest: tbtstring;
 
     Procedure GetCodeProps ;
-    function GetProcName(Instance: TObject; PropName: String): string;
-    procedure SetProcName(Instance: TObject; PropName: String; const Value: string);
+    function GetProcName(Instance: TObject; PropName: tbtstring): tbtstring;
+    procedure SetProcName(Instance: TObject; PropName: tbtstring; const Value: tbtstring);
 
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     procedure DoVerifyProc(Sender: TPSScript; Proc: TPSInternalProcedure;
-                           const Decl: string; var Error: Boolean); reintroduce;
+                           const Decl: tbtstring; var Error: Boolean); reintroduce;
     Function  DoBeforeCleanup(Sender: TObject; aComp: TPSPascalCompiler):Boolean;
     procedure DoScriptChance(sender:TObject);
 
@@ -120,7 +120,7 @@ type
     function Compile: Boolean; Override;
     function Execute: Boolean; Override;
     { Create a list of all var's, const's, Type's and functions }
-    Procedure GetValueDefs(aItems, aInserts: TStrings; Const aObjectNest: String=''; aScriptPos: Integer = 0);
+    Procedure GetValueDefs(aItems, aInserts: TStrings; Const aObjectNest: tbtstring=''; aScriptPos: Integer = 0);
 
     {Compile the source only when the source is modified}
     procedure CompileIfNeeded;
@@ -140,7 +140,7 @@ type
      Instance is the object where the Propname must be set.
      You need te create the function yopur self in the script.
      When the new Procname dose not exists in the script, it is automatic created for you.}
-    property ProcName[Instance: TObject; PropName:String]: string read GetProcName write SetProcName;
+    property ProcName[Instance: TObject; PropName:tbtstring]: tbtstring read GetProcName write SetProcName;
     property MethodList : TMethodList read FMethodList;
 
   published
@@ -158,7 +158,7 @@ resourcestring
   sMissingEndStatment = 'Missing some ''End'' statments';
 
 
-function CompExportCheck(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: string): Boolean;
+function CompExportCheck(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: tbtstring): Boolean;
 begin
   TPSScriptExtension(Sender.ID).DoVerifyProc(Sender.Id, Proc, ProcDecl, Result);
   Result := not Result;
@@ -169,7 +169,7 @@ begin
   result := TPSScriptExtension(Sender.ID).DoBeforeCleanUp(Sender.ID,Sender);
 end;
 
-procedure CEException(Sender: TPSExec; ExError: TIFError; const ExParam: string; ExObject: TObject; ProcNo, Position: Cardinal);
+procedure CEException(Sender: TPSExec; ExError: TIFError; const ExParam: tbtstring; ExObject: TObject; ProcNo, Position: Cardinal);
 begin
   if @TPSScriptExtension(Sender.ID).FOnException <> nil then
     TPSScriptExtension(Sender.ID).FOnException(Sender, ExError, ExParam, ExObject, ProcNo, Position);
@@ -208,7 +208,7 @@ begin
 end;
 
 procedure TPSScriptExtension.DoVerifyProc(Sender: TPSScript;
-  Proc: TPSInternalProcedure; const Decl: string; var Error: Boolean);
+  Proc: TPSInternalProcedure; const Decl: tbtstring; var Error: Boolean);
 var
   n{,m,p} : Integer;
   tstType : TPSProceduralType;
@@ -232,16 +232,16 @@ end;
 type
   TMyPascalCompiler = class(TPSPascalCompiler);
 const
-  sIFPSParameterMode : array [pmIn..pmInOut] of string = ('','\style{+B}out\style{-B} ','\style{+B}Var\style{-B} ');
+  sIFPSParameterMode : array [pmIn..pmInOut] of tbtstring = ('','\style{+B}out\style{-B} ','\style{+B}Var\style{-B} ');
 
 Procedure TPSScriptExtension.GetCodeProps;
 
-  Function existsItem(aName:String):Boolean;
+  Function existsItem(aName:tbtstring):Boolean;
   Begin
     result := FInserts.indexof(aName)<> -1;
   end;
 
-  Procedure addListItem(aType, aName:String; aDef:String='');
+  Procedure addListItem(aType, aName:tbtstring; aDef:tbtstring='');
   var
     x : LongInt;
   begin
@@ -251,7 +251,7 @@ Procedure TPSScriptExtension.GetCodeProps;
     end;
   end;
 
-  procedure Getdecl(decl : TPSParametersDecl; var T,v :string);
+  procedure Getdecl(decl : TPSParametersDecl; var T,v :tbtstring);
   var
     m : Integer;
   begin
@@ -271,15 +271,15 @@ Procedure TPSScriptExtension.GetCodeProps;
 
   end;
 
-  Function getTypeDef(xr: TPSType; aZoek:string = ''):Boolean; forward;
+  Function getTypeDef(xr: TPSType; aZoek:tbtstring = ''):Boolean; forward;
 
-  Function getClassDef(xc: TPSCompileTimeClass; aZoek:string = ''):Boolean;
+  Function getClassDef(xc: TPSCompileTimeClass; aZoek:tbtstring = ''):Boolean;
   var
     Show : Boolean;
-    Zoek,bZoek : String;
+    Zoek,bZoek : tbtstring;
     tci : TPSDelphiClassItem;
     n : Integer;
-    T,v : String;
+    T,v : tbtstring;
 
   begin
     Show := aZoek='';
@@ -321,10 +321,10 @@ Procedure TPSScriptExtension.GetCodeProps;
     end;
   end;
 
-  Function getTypeDef(xr: TPSType; aZoek:string = ''):Boolean;
+  Function getTypeDef(xr: TPSType; aZoek:tbtstring = ''):Boolean;
   var
     Show : Boolean;
-    Zoek : String;
+    Zoek : tbtstring;
     xri : PIFPSRecordFieldTypeDef;
     n : Integer;
   begin
@@ -353,15 +353,15 @@ Procedure TPSScriptExtension.GetCodeProps;
     end;
   end;
 
-  Function FindVarProc(aVarName:string; aZoek : string= ''):Boolean;
+  Function FindVarProc(aVarName:tbtstring; aZoek : tbtstring= ''):Boolean;
   var
-//    cv   : String;
+//    cv   : tbtstring;
     hh, h, i : Longint;
     proc : TPSProcedure;
     ip   : TPSInternalProcedure;
     ipv  : PIFPSProcVar;
     ipp  : TPSParameterDecl;
-//    t    : String;
+//    t    : tbtstring;
   begin
     Hh := MakeHash(aVarName);
     result := False;
@@ -395,13 +395,13 @@ Procedure TPSScriptExtension.GetCodeProps;
     end;
   end;
 
-  Function FindVarFunctType(aProcName:string): Boolean;
+  Function FindVarFunctType(aProcName:tbtstring): Boolean;
   var
-    cv : String;
+    cv : tbtstring;
     h, i : Longint;
     proc : TPSProcedure;
     xr : TPSRegProc;
-//    t  : String;
+//    t  : tbtstring;
   begin
     cv := aProcName;
     If Pos('.',aProcName)>0 then begin
@@ -441,7 +441,7 @@ Procedure TPSScriptExtension.GetCodeProps;
 
 Var
   n : Integer;
-  s, t, v : String;
+  s, t, v : tbtstring;
   proc : TPSProcedure;
   xr : TPSRegProc;
 
@@ -494,7 +494,7 @@ begin
   end;
 end;
 
-procedure TPSScriptExtension.GetValueDefs(aItems, aInserts: TStrings; const aObjectNest: STring; aScriptPos: Integer);
+procedure TPSScriptExtension.GetValueDefs(aItems, aInserts: TStrings; const aObjectNest: tbtstring; aScriptPos: Integer);
 begin
   fItems      := aItems;
   fInserts    := aInserts;
@@ -552,12 +552,12 @@ begin
   end;
 end;
 
-function TPSScriptExtension.GetProcName(Instance: TObject; PropName: String): string;
+function TPSScriptExtension.GetProcName(Instance: TObject; PropName: tbtstring): tbtstring;
 begin
   Result := MethodList.ProcName[Instance, Propname];
 end;
 
-procedure TPSScriptExtension.SetProcName(Instance: TObject; PropName: String; const Value: string);
+procedure TPSScriptExtension.SetProcName(Instance: TObject; PropName: tbtstring; const Value: tbtstring);
 begin
   MethodList.ProcName[Instance, Propname] := Value;
 end;
@@ -579,7 +579,7 @@ end;
 
 { TMethodList }
 
-procedure TMethodList.AddProcedure(ProcName, ProcType: String);
+procedure TMethodList.AddProcedure(ProcName, ProcType: tbtstring);
 var
   po : TProcObj;
   x,y  : Integer;
@@ -611,9 +611,9 @@ begin
   fEventList := TObjectList.create(true);
 end;
 
-procedure TMethodList.CreateProc(ProcName:String; aPropType: TTypeData);
+procedure TMethodList.CreateProc(ProcName:tbtstring; aPropType: TTypeData);
 var
-  newProc: string;
+  newProc: tbtstring;
   P: PByte;
   i: Integer;
   pf : TParamFlags;
@@ -671,16 +671,16 @@ begin
   end;
 end;
 
-procedure TMethodList.InsertMethod(NewProc: String; OnTop: Boolean = false);
+procedure TMethodList.InsertMethod(NewProc: tbtstring; OnTop: Boolean = false);
 var
   x : Integer;
   sl : TStringList;
   nBegins : Integer;
   nProcs  : Integer;
-  line, test : String;
+  line, test : tbtstring;
 
  
-  function IsItem(line,item:String; First :Boolean = false):Boolean;
+  function IsItem(line,item:tbtstring; First :Boolean = false):Boolean;
   var
    nPos : Integer;
   begin
@@ -692,7 +692,7 @@ var
     until (Result) or (nPos = 0);
   end;
 
-  function DelSpaces(AText: String): String;
+  function DelSpaces(AText: tbtstring): tbtstring;
   var i: Integer;
   begin
     Result := '';
@@ -701,12 +701,12 @@ var
         Result := Result + AText[i];
   end;
 
-  function IsProcDecl(AnOriginalProcDecl: String): Boolean;
+  function IsProcDecl(AnOriginalProcDecl: tbtstring): Boolean;
   var
     bIsFunc: Boolean;
     iLineNo: Integer;
-    sProcKey: String;
-    sProcDecl: String;
+    sProcKey: tbtstring;
+    sProcDecl: tbtstring;
   begin
     Result := false;
     sProcDecl := Line;
@@ -821,7 +821,7 @@ begin
   end;
 end;
 
-function TMethodList.GetMethodName(Instance: TObject; PropName: String): String;
+function TMethodList.GetMethodName(Instance: TObject; PropName: tbtstring): tbtstring;
 var
   x : Integer;
 begin
@@ -841,7 +841,7 @@ begin
   result := TProcObj(fProcList.items[Index]);
 end;
 
-procedure TMethodList.ListEventsName(EventType: string; List: TStrings);
+procedure TMethodList.ListEventsName(EventType: tbtstring; List: TStrings);
 var
   x : Integer;
 begin
@@ -861,7 +861,7 @@ begin
 end;
 
 function TMethodList.methodIndexOf(Instance: TObject;
-  PropName: String): Integer;
+  PropName: tbtstring): Integer;
 var x : integer;
 begin
   Result := -1;
@@ -879,7 +879,7 @@ begin
   result := fProcList.count;
 end;
 
-function TMethodList.ProcIndexOf(Name: String): Integer;
+function TMethodList.ProcIndexOf(Name: tbtstring): Integer;
 var x : integer;
 begin
   result := -1;
@@ -892,12 +892,12 @@ begin
   end;
 end;
 
-procedure TMethodList.SetMethodName(Instance: TObject; PropName: String;
-  const Value: String);
+procedure TMethodList.SetMethodName(Instance: TObject; PropName: tbtstring;
+  const Value: tbtstring);
 var
   x, y : Integer;
   mo   : TMethodObj;
-  function TypeData(Instance: TObject; const PropName: string):PTypeData;
+  function TypeData(Instance: TObject; const PropName: tbtstring):PTypeData;
   var
     PropInfo: PPropInfo;
   begin
@@ -982,7 +982,7 @@ begin
   inherited;
 end;
 
-procedure TProcObj.SetName(const Value: String);
+procedure TProcObj.SetName(const Value: tbtstring);
 var
   x : Integer;
 begin

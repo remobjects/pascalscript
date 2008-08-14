@@ -982,6 +982,8 @@ begin
   FExec.DebugEnabled := FUseDebugInfo;
 
   Result := Exec.RunProcPN(Params, ProcName);
+
+  DoAfterExecute;
 end;
 
 function TPSScript.FindBaseType(Bt: TPSBaseType): TPSTypeRec;

@@ -39,7 +39,7 @@ procedure RegisterDll_Compiletime(cs: TPSPascalCompiler);
 
 implementation
 
-function rpos(ch: char; const s: string): Longint;
+function rpos(ch: tbtchar; const s: tbtstring): Longint;
 var
   i: Longint;
 begin
@@ -48,7 +48,7 @@ begin
   result := 0;
 end;
 
-function RemoveQuotes(s: string): string;
+function RemoveQuotes(s: tbtstring): tbtstring;
 begin
   result := s;
   if result = '' then exit;
@@ -60,7 +60,7 @@ function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; con
 var
   FuncName,
   Name,
-  FuncCC, s: string;
+  FuncCC, s: AnsiString;
   CC: TDllCallingConvention;
   DelayLoad: Boolean;
 
@@ -68,38 +68,38 @@ begin
   Name := FastUpperCase(OriginalName);
   DelayLoad := False;
   FuncCC := FExternal;
-  
-  if (pos('@', FuncCC) = 0) then
+
+  if (pos(tbtChar('@'), FuncCC) = 0) then
   begin
-    Sender.MakeError('', ecCustomError, RPS_Invalid_External);
+    Sender.MakeError('', ecCustomError, tbtString(RPS_Invalid_External));
     Result := nil;
     exit;
   end;
   FuncName := copy(FuncCC, 1, rpos('@', FuncCC)-1)+#0;
   delete(FuncCc, 1, length(FuncName));
-  if pos(' ', Funccc) <> 0 then
+  if pos(tbtchar(' '), Funccc) <> 0 then
   begin
     if FuncCC[1] = '"' then
     begin
       Delete(FuncCC, 1, 1);
-      FuncName := RemoveQuotes(copy(FuncCC, 1, pos('"', FuncCC)-1))+#0+FuncName;
-      Delete(FuncCC,1, pos('"', FuncCC));
+      FuncName := RemoveQuotes(copy(FuncCC, 1, pos(tbtchar('"'), FuncCC)-1))+#0+FuncName;
+      Delete(FuncCC,1, pos(tbtchar('"'), FuncCC));
       if (FuncCC <> '') and( FuncCC[1] = ' ') then delete(FuncCC,1,1);
     end else
     begin
-      FuncName := copy(FuncCc, 1, pos(' ',FuncCC)-1)+#0+FuncName;
-      Delete(FuncCC, 1, pos(' ', FuncCC));
+      FuncName := copy(FuncCc, 1, pos(tbtchar(' '),FuncCC)-1)+#0+FuncName;
+      Delete(FuncCC, 1, pos(tbtchar(' '), FuncCC));
     end;
-    if pos(' ', FuncCC) > 0 then
+    if pos(tbtchar(' '), FuncCC) > 0 then
     begin
-      s := Copy(FuncCC, pos(' ', Funccc)+1, MaxInt);
-      FuncCC := FastUpperCase(Copy(FuncCC, 1, pos(' ', FuncCC)-1));
-      Delete(FuncCC, pos(' ', Funccc), MaxInt);
+      s := Copy(FuncCC, pos(tbtchar(' '), Funccc)+1, MaxInt);
+      FuncCC := FastUpperCase(Copy(FuncCC, 1, pos(tbtchar(' '), FuncCC)-1));
+      Delete(FuncCC, pos(tbtchar(' '), Funccc), MaxInt);
       if FastUppercase(s) = 'DELAYLOAD' then
         DelayLoad := True
       else
       begin
-        Sender.MakeError('', ecCustomError, RPS_Invalid_External);
+        Sender.MakeError('', ecCustomError, tbtstring(RPS_Invalid_External));
         Result := nil;
         exit;
       end;
@@ -110,7 +110,7 @@ begin
     if FuncCC = 'REGISTER' then cc := clRegister else
     if FuncCC = 'PASCAL' then cc := clPascal else
     begin
-      Sender.MakeError('', ecCustomError, RPS_InvalidCallingConvention);
+      Sender.MakeError('', ecCustomError, tbtstring(RPS_InvalidCallingConvention));
       Result := nil;
       exit;
     end;
@@ -120,7 +120,7 @@ begin
     FuncCC := '';
     cc := DefaultCC;
   end;
-  FuncName := 'dll:'+FuncName+char(cc)+char(bytebool(DelayLoad)) + declToBits(Decl);
+  FuncName := 'dll:'+FuncName+tbtchar(cc)+tbtchar(bytebool(DelayLoad)) + declToBits(Decl);
   Result := TPSRegProc.Create;
   Result.ImportDecl := FuncName;
   Result.Decl.Assign(Decl);

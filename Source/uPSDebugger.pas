@@ -278,7 +278,7 @@ var
   CurrProcNo, LastProcNo: Cardinal;
   LastProc: PFunctionInfo;
   NewLoc: PPositionData;
-  s: string;
+  s: tbtstring;
 begin
   ClearDebug;
   if FStatus = isNotLoaded then exit;

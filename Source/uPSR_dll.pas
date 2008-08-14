@@ -31,7 +31,7 @@ type
   PLoadedDll = ^TLoadedDll;
   TLoadedDll = record
     dllnamehash: Longint;
-    dllname: string;
+    dllname: tbtstring;
     {$IFDEF LINUX}
     dllhandle: Pointer;
     {$ELSE}
@@ -83,7 +83,7 @@ end;
 
 function LoadDll(Caller: TPSExec; P: TPSExternalProcRec): Boolean;
 var
-  s, s2: string;
+  s, s2: tbtstring;
   h, i: Longint;
   ph: PLoadedDll;
   {$IFDEF LINUX}
@@ -94,7 +94,7 @@ var
 begin
   s := p.Decl;
   Delete(s, 1, 4);
-  s2 := copy(s, 1, pos(#0, s)-1);
+  s2 := copy(s, 1, pos(tbtchar(#0), s)-1);
   delete(s, 1, length(s2)+1);
   h := makehash(s2);
   i := 2147483647; // maxint
@@ -113,7 +113,7 @@ begin
       {$IFDEF LINUX}
       dllhandle := dlopen(PChar(s2), RTLD_LAZY);
       {$ELSE}
-      dllhandle := LoadLibrary(Pchar(s2));
+      dllhandle := LoadLibraryA(PAnsiChar(AnsiString(s2)));
       {$ENDIF}
       if dllhandle = {$IFDEF LINUX}nil{$ELSE}0{$ENDIF}then
       begin
@@ -135,7 +135,7 @@ begin
   {$IFDEF LINUX}
   p.Ext1 := dlsym(dllhandle, pchar(copy(s, 1, pos(#0, s)-1)));
   {$ELSE}
-  p.Ext1 := GetProcAddress(dllhandle, pchar(copy(s, 1, pos(#0, s)-1)));
+  p.Ext1 := GetProcAddress(dllhandle, PAnsiChar(copy(s, 1, pos(tbtchar(#0), s)-1)));
   {$ENDIF}
   if p.Ext1 = nil then
   begin
@@ -155,7 +155,7 @@ var
   n: PPSVariantIFC;
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
-  s: string;
+  s: tbtstring;
 begin
   if p.Ext2 <> nil then // error
   begin
@@ -171,8 +171,8 @@ begin
     end;
   end;
   s := p.Decl;
-  delete(S, 1, pos(#0, s));
-  delete(S, 1, pos(#0, s));
+  delete(S, 1, pos(tbtchar(#0), s));
+  delete(S, 1, pos(tbtchar(#0), s));
   if length(S) < 2 then
   begin
     Result := False;
@@ -216,12 +216,12 @@ end;
 function ProcessDllImportEx(Caller: TPSExec; P: TPSExternalProcRec; ForceDelayLoad: Boolean): Boolean;
 var
   DelayLoad: Boolean;
-  s: string;
+  s: tbtstring;
 begin
   if not ForceDelayLoad then begin
     s := p.Decl;
-    Delete(s,1,pos(#0, s));
-    Delete(s,1,pos(#0, s));
+    Delete(s,1,pos(tbtchar(#0), s));
+    Delete(s,1,pos(tbtchar(#0), s));
     DelayLoad := bytebool(s[2]);
   end else
     DelayLoad := True;
@@ -247,7 +247,7 @@ var
   h, i: Longint;
   pv: TPSProcRec;
   ph: PLoadedDll;
-  sname, s: string;
+  sname, s: tbtstring;
 begin
   sname := Stack.GetString(-1);
   for i := Caller.GetProcCount -1 downto 0 do
@@ -257,7 +257,7 @@ begin
     if @TPSExternalProcRec(pv).ProcPtr <> @DllProc then continue;
     s := (TPSExternalProcRec(pv).Decl);
     delete(s,1,4);
-    if copy(s,1,pos(#0,s)-1) = sname then
+    if copy(s,1,pos(tbtchar(#0),s)-1) = sname then
     begin
       TPSExternalProcRec(pv).Ext1 := nil;
     end;

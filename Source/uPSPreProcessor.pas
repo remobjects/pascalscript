@@ -265,7 +265,7 @@ var
   Item: TPSLineInfo;
   lModuleName: tbtstring;
 begin
-  lModuleName := FastUpperCase(lModuleName);
+  lModuleName := FastUpperCase(ModuleName);
 
   for i := FItems.Count -1 downto 0 do
   begin

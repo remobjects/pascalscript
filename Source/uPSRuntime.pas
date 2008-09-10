@@ -9051,6 +9051,7 @@ end;
 {$ifndef FPC}
   {$include x86.inc}
 {$else}
+{$IFDEF Delphi6UP}
   {$if defined(cpu86)}
     {$include x86.inc}
   {$elseif defined(cpupowerpc)}
@@ -9058,6 +9059,9 @@ end;
   {$else}
     {$fatal Pascal Script is not supported for your architecture at the moment!}
   {$ifend}
+{$ELSE}
+{$include x86.inc}
+{$ENDIF}
 {$endif}
 
 type

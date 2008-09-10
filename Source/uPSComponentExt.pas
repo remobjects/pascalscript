@@ -416,6 +416,12 @@ Procedure TPSScriptExtension.GetCodeProps;
         Exit;
       end;
     end;
+   for i :=0 to Comp.GetTypeCount -1 do begin
+    if (Comp.GetType(I).NameHash = H) and (Comp.GetType(I).Name = CV) then begin
+      Result := getTypeDef(Comp.GetType(I), aProcName);
+      Exit;
+    end;
+   end;
     result := FindVarProc(cv, aProcName);
     If result then exit;
     for i :=0 to Comp.GetProcCount -1 do begin

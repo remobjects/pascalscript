@@ -11811,7 +11811,7 @@ begin
   AddType('Char', btChar);
   {$IFNDEF PS_NOWIDESTRING}
   AddType('WideChar', btWideChar);
-  AddType('tbtwidestring', btWideString);
+  AddType('WideString', btWideString);
   {$ENDIF}
   AddType('String', btString);
   {$IFDEF DELPHI2008UP}
@@ -12448,16 +12448,16 @@ var
   p: TPSRegProc;
 begin
   {$IFNDEF PS_NOINT64}
-  AddFunction('function IntToStr(i: Int64): tbtString;');
+  AddFunction('function IntToStr(i: Int64): String;');
   {$ELSE}
-  AddFunction('function IntTostr(i: Integer): tbtString;');
+  AddFunction('function IntTostr(i: Integer): String;');
   {$ENDIF}
-  AddFunction('function StrToInt(s: tbtString): Longint;');
-  AddFunction('function StrToIntDef(s: tbtString; def: Longint): Longint;');
-  AddFunction('function Copy(s: tbtString; iFrom, iCount: Longint): tbtString;');
-  AddFunction('function Pos(SubStr, S: tbtString): Longint;');
-  AddFunction('procedure Delete(var s: tbtString; ifrom, icount: Longint);');
-  AddFunction('procedure Insert(s: tbtString; var s2: tbtString; iPos: Longint);');
+  AddFunction('function StrToInt(s: String): Longint;');
+  AddFunction('function StrToIntDef(s: String; def: Longint): Longint;');
+  AddFunction('function Copy(s: String; iFrom, iCount: Longint): String;');
+  AddFunction('function Pos(SubStr, S: String): Longint;');
+  AddFunction('procedure Delete(var s: String; ifrom, icount: Longint);');
+  AddFunction('procedure Insert(s: String; var s2: String; iPos: Longint);');
   p := AddFunction('function GetArrayLength: integer;');
   with P.Decl.AddParam do
   begin
@@ -12475,18 +12475,18 @@ begin
     OrgName := 'count';
     aType := FindBaseType(btS32);
   end;
-  AddFunction('Function StrGet(var S : tbtString; I : Integer) : Char;');
-  AddFunction('procedure StrSet(c : Char; I : Integer; var s : tbtString);');
+  AddFunction('Function StrGet(var S : String; I : Integer) : Char;');
+  AddFunction('procedure StrSet(c : Char; I : Integer; var s : String);');
   {$IFNDEF PS_NOWIDESTRING}
-  AddFunction('Function WStrGet(var S : tbtwidestring; I : Integer) : WideChar;');
-  AddFunction('procedure WStrSet(c : WideChar; I : Integer; var s : tbtwidestring);');
+  AddFunction('Function WStrGet(var S : widestring; I : Integer) : WideChar;');
+  AddFunction('procedure WStrSet(c : WideChar; I : Integer; var s : widestring);');
   {$ENDIF}
-  AddFunction('Function StrGet2(S : tbtString; I : Integer) : Char;');
-  AddFunction('Function AnsiUppercase(s : tbtString) : tbtString;');
-  AddFunction('Function AnsiLowercase(s : tbtString) : tbtString;');
-  AddFunction('Function Uppercase(s : tbtString) : tbtString;');
-  AddFunction('Function Lowercase(s : tbtString) : tbtString;');
-  AddFunction('Function Trim(s : tbtString) : tbtString;');
+  AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
+  AddFunction('Function AnsiUppercase(s : String) : String;');
+  AddFunction('Function AnsiLowercase(s : String) : String;');
+  AddFunction('Function Uppercase(s : String) : String;');
+  AddFunction('Function Lowercase(s : String) : String;');
+  AddFunction('Function Trim(s : String) : String;');
   AddFunction('function Length: Integer;').Decl.AddParam.OrgName:='s';
   with AddFunction('procedure SetLength;').Decl do
   begin
@@ -12530,13 +12530,13 @@ begin
   AddFunction('Function Int(e : Extended) : Extended;');
   AddFunction('Function Pi : Extended;');
   AddFunction('Function Abs(e : Extended) : Extended;');
-  AddFunction('function StrToFloat(s: tbtString): Extended;');
-  AddFunction('Function FloatToStr(e : Extended) : tbtString;');
-  AddFunction('Function Padl(s : tbtString;I : longInt) : tbtString;');
-  AddFunction('Function Padr(s : tbtString;I : longInt) : tbtString;');
-  AddFunction('Function Padz(s : tbtString;I : longInt) : tbtString;');
-  AddFunction('Function Replicate(c : char;I : longInt) : tbtString;');
-  AddFunction('Function StringOfChar(c : char;I : longInt) : tbtString;');
+  AddFunction('function StrToFloat(s: String): Extended;');
+  AddFunction('Function FloatToStr(e : Extended) : String;');
+  AddFunction('Function Padl(s : String;I : longInt) : String;');
+  AddFunction('Function Padr(s : String;I : longInt) : String;');
+  AddFunction('Function Padz(s : String;I : longInt) : String;');
+  AddFunction('Function Replicate(c : char;I : longInt) : String;');
+  AddFunction('Function StringOfChar(c : char;I : longInt) : String;');
   AddTypeS('TVarType', 'Word');
   AddConstantN('varEmpty', 'Word').Value.tu16 := varempty;
   AddConstantN('varNull', 'Word').Value.tu16 := varnull;
@@ -12578,15 +12578,15 @@ begin
     'erVersionError, ErDivideByZero, ErMathError,erCouldNotCallProc, erOutofRecordRange, '+
     'erOutOfMemory, erException, erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError)');
   AddFunction('procedure RaiseLastException;');
-  AddFunction('procedure RaiseException(Ex: TIFException; Param: tbtString);');
+  AddFunction('procedure RaiseException(Ex: TIFException; Param: String);');
   AddFunction('function ExceptionType: TIFException;');
-  AddFunction('function ExceptionParam: tbtString;');
+  AddFunction('function ExceptionParam: String;');
   AddFunction('function ExceptionProc: Cardinal;');
   AddFunction('function ExceptionPos: Cardinal;');
-  AddFunction('function ExceptionToString(er: TIFException; Param: tbtString): tbtString;');
+  AddFunction('function ExceptionToString(er: TIFException; Param: String): String;');
   {$IFNDEF PS_NOINT64}
-  AddFunction('function StrToInt64(s: tbtString): int64;');
-  AddFunction('function Int64ToStr(i: Int64): tbtString;');
+  AddFunction('function StrToInt64(s: String): int64;');
+  AddFunction('function Int64ToStr(i: Int64): String;');
   {$ENDIF}
 
   with AddFunction('function SizeOf: Longint;').Decl.AddParam do
@@ -12619,7 +12619,7 @@ begin
   begin
     ExportName := True;
   end;
-  AddDelphiFunction('function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; Par: array of variant): variant;');
+  AddDelphiFunction('function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: String; Par: array of variant): variant;');
  {$ENDIF}
 {$ENDIF}
 end;

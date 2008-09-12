@@ -10362,9 +10362,10 @@ begin
         end;
       CSTI_Semicolon:
         begin
-          FParser.Next;
+
           if (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = TOneLiner) then
-            break;
+            break
+          else FParser.Next;
         end;
       CSTII_until:
         begin

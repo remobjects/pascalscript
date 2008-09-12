@@ -10925,6 +10925,35 @@ begin
     end;
   end;
   s := decl;
+  e := grfw(s);
+
+  if e <> '-1' then
+  begin
+    cpt := Self.Se.GetTypeNo(StrToInt(e));
+    if not ResultAsRegister(cpt) then
+    begin
+      Res := CreateHeapVariant(Self.Se.FindType2(btPointer));
+      PPSVariantPointer(Res).DestType := cpt;
+      Params.Add(Res);
+      case regno of
+        0: begin
+            PPSVariantPointer(Res).DataDest := Pointer(_EDX);
+          end;
+        1: begin
+            PPSVariantPointer(Res).DataDest := Pointer(_ECX);
+          end;
+        else begin
+            PPSVariantPointer(Res).DataDest := Pointer(FStack^);
+            Inc(Result, 4);
+          end;
+      end;
+    end else
+    begin
+      Res := CreateHeapVariant(cpt);
+      Params.Add(Res);
+    end;
+  end else Res := nil;
+  s := decl;
   grfw(s);
   for i := 0 to c -1 do
   begin
@@ -10958,35 +10987,6 @@ begin
       Inc(Result, (cpt.RealSize + 3) and not 3);
     end;
   end;
-  s := decl;
-  e := grfw(s);
-
-  if e <> '-1' then
-  begin
-    cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if not ResultAsRegister(cpt) then
-    begin
-      Res := CreateHeapVariant(Self.Se.FindType2(btPointer));
-      PPSVariantPointer(Res).DestType := cpt;
-      Params.Add(Res);
-      case regno of
-        0: begin
-            PPSVariantPointer(Res).DataDest := Pointer(_EDX);
-          end;
-        1: begin
-            PPSVariantPointer(Res).DataDest := Pointer(_ECX);
-          end;
-        else begin
-            PPSVariantPointer(Res).DataDest := Pointer(FStack^);
-            Inc(Result, 4);
-          end;
-      end;
-    end else
-    begin
-      Res := CreateHeapVariant(cpt);
-      Params.Add(Res);
-    end;
-  end else Res := nil;
   ex := TPSExceptionHandler.Create;
   ex.FinallyOffset := InvalidVal;
   ex.ExceptOffset := InvalidVal;

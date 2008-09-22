@@ -1071,10 +1071,14 @@ begin
         Result := FComp.Compile(lData);
       end;
       FComp.AllowUnit := lPrevAllowUnit;
-    end else
+    end else begin
+      FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
       Result := false;
-  end else
+    end;
+  end else begin
+    FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
     result := false;
+  end;
 end;
 
 procedure TPSScript.DoOnCompImport;

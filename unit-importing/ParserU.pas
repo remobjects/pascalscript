@@ -1087,7 +1087,8 @@ begin
         begin // prevent adding brakets when there should not be
           if blkBracketCount <> 0 then
           begin
-            dec(BlkBracketCount)
+            dec(BlkBracketCount);
+            if (Result = '') and (BlkBracketCount = 0) then Result := '0';
           end
           else break;
         end;

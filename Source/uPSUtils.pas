@@ -23,7 +23,7 @@ const
 
   PSAddrNegativeStackStart = 1073741824;
 type
-  TbtString = {$IFDEF DELPHI2008UP}RawByteString{$ELSE}String{$ENDIF};
+  TbtString = {$IFDEF DELPHI2009UP}RawByteString{$ELSE}String{$ENDIF};
 
   TPSBaseType = Byte;
 

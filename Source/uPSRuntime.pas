@@ -326,7 +326,7 @@ type
 
   PPSVariantWString = ^TPSVariantWString;
 
-  TPSVariantWString = {$IFNDEF DELPHI2008UP}packed {$ENDIF}record
+  TPSVariantWString = {$IFNDEF DELPHI2009UP}packed {$ENDIF}record
     VI: TPSVariant;
     Data: tbtWideString;
   end;

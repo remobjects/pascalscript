@@ -587,7 +587,7 @@ procedure TBLOBFIELDTRANSLITERATE_R(Self: TBLOBFIELD; var T: BOOLEAN);
 begin T := Self.TRANSLITERATE; end;
 
 procedure TBLOBFIELDVALUE_W(Self: TBLOBFIELD; const T: tbtstring);
-{$IFDEF DELPHI2008UP}
+{$IFDEF DELPHI2009UP}
 var
   b: TBytes;
 begin
@@ -602,7 +602,7 @@ end;
 
 procedure TBLOBFIELDVALUE_R(Self: TBLOBFIELD; var T: tbtstring);
 begin
-{$IFDEF DELPHI2008UP}
+{$IFDEF DELPHI2009UP}
   SetLength(t, Length(SElf.Value));
   Move(Self.Value[0], t[1], LEngth(T));
 {$ELSE}
@@ -1864,7 +1864,15 @@ with Cl.Add(TLOOKUPLIST) do
   RegisterConstructor(@TLOOKUPLIST.CREATE, 'CREATE');
   RegisterMethod(@TLOOKUPLIST.ADD, 'ADD');
   RegisterMethod(@TLOOKUPLIST.CLEAR, 'CLEAR');
+  {$IFDEF DELPHI2009UP}
+  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.ADD, 'ADD');  
+  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.CLEAR, 'CLEAR');  
+  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.VALUEOFKEY, 'VALUEOFKEY');  
+  {$ELSE}
+  RegisterMethod(@TLOOKUPLIST.ADD, 'ADD');
+  RegisterMethod(@TLOOKUPLIST.CLEAR, 'CLEAR');
   RegisterMethod(@TLOOKUPLIST.VALUEOFKEY, 'VALUEOFKEY');
+  {$ENDIF}
   end;
 end;
 

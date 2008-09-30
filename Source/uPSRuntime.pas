@@ -8846,7 +8846,7 @@ begin
         end;
         btchar: begin
             tvarrec(p^).VType := vtChar;
-            tvarrec(p^).VChar := Char(tbtchar(cp^));
+            tvarrec(p^).VChar := tbtChar(tbtchar(cp^));
           end;
         btSingle:
           begin

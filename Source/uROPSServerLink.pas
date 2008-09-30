@@ -297,8 +297,8 @@ begin
     while Length(s) > 0 do
     begin
       s2 := copy(s, 2, ord(s[1]));
-      Char(aMode) := s[length(s2)+2];
-      Char(aType) := s[length(s2)+3];
+      aMode := TRODLParamFlag(ord(s[length(s2)+2]));
+      aType := TRODataType(ord(s[length(s2)+3]));
       Delete(s, 1, length(s2)+3);
       n := NewTPSVariantIFC(Stack[i], True);
       Dec(I);
@@ -333,8 +333,8 @@ begin
     while Length(s) > 0 do
     begin
       s2 := copy(s, 2, ord(s[1]));
-      Char(aMode) := s[length(s2)+2];
-      Char(aType) := s[length(s2)+3];
+      aMode := TRODLParamFlag(ord(s[length(s2)+2]));
+      aType := TRODataType(ord(s[length(s2)+3]));
       Delete(s, 1, length(s2)+3);
       n := NewTPSVariantIFC(Stack[i], True);
       Dec(I);
@@ -414,11 +414,11 @@ type
     constructor Create(Se: TPSPascalCompiler; Service: TRODLService; Const Typeno: TPSType);
 
     function SelfType: TPSType; override;
-    function Func_Find(const Name: string; var Index: Cardinal): Boolean; override;
+    function Func_Find(const Name: tbtstring; var Index: Cardinal): Boolean; override;
     function Func_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean; override;
     function SetNil(var ProcNo: Cardinal): Boolean; override;
 
-    function ClassFunc_Find(const Name: string; var Index: Cardinal): Boolean; override;
+    function ClassFunc_Find(const Name: tbtstring; var Index: Cardinal): Boolean; override;
     function ClassFunc_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean; override;
     function IsCompatibleWith(Cl: TPSExternalClass): Boolean; override;
   end;
@@ -561,7 +561,7 @@ begin
     if (p is TPSExternalProcedure) then
     begin
       p2 := TPSExternalProcedure(p);
-      if (p2.RegProc.NameHash = h) and (Copy(p2.RegProc.ImportDecl, 1, pos('!', p2.RegProc.ImportDecl)) = s) then
+      if (p2.RegProc.NameHash = h) and (Copy(p2.RegProc.ImportDecl, 1, pos(tbtchar('!'), p2.RegProc.ImportDecl)) = s) then
       begin
         Procno := I;
         Result := True;
@@ -581,7 +581,7 @@ begin
   Result := True;
 end;
 
-function TRoClass.Func_Find(const Name: string; var Index: Cardinal): Boolean;
+function TRoClass.Func_Find(const Name: tbtstring; var Index: Cardinal): Boolean;
 var
   i: Longint;
 begin
@@ -665,7 +665,7 @@ begin
   Result := True;
 end;
 
-function TRoClass.ClassFunc_Find(const Name: string;
+function TRoClass.ClassFunc_Find(const Name: tbtstring;
   var Index: Cardinal): Boolean;
 begin
   if Name = 'CREATE' then

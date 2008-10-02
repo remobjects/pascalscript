@@ -894,6 +894,8 @@ type
   TPSOnTranslateLineInfoProc = procedure (Sender: TPSPascalCompiler; var Pos, Row, Col: Cardinal; var Name: tbtString);
   TPSOnNotify = function (Sender: TPSPascalCompiler): Boolean;
 
+  TPSOnFunction = procedure(name: tbtString; Pos, Row, Col: Integer) of object;
+
 
   TPSPascalCompiler = class
   protected
@@ -928,6 +930,8 @@ type
     FOnTranslateLineInfo: TPSOnTranslateLineInfoProc;
     FAutoFreeList: TPSList;
     FClasses: TPSList;
+    FOnFunctionStart: TPSOnFunction;
+    FOnFunctionEnd: TPSOnFunction;
 
 
 		FWithCount: Integer;
@@ -1150,6 +1154,10 @@ type
     property OnBeforeOutput: TPSOnNotify read FOnBeforeOutput write FOnBeforeOutput;
 
     property OnBeforeCleanup: TPSOnNotify read FOnBeforeCleanup write FOnBeforeCleanup;
+
+    property OnFunctionStart: TPSOnFunction read FOnFunctionStart write FOnFunctionStart;
+
+    property OnFunctionEnd: TPSOnFunction read FOnFunctionEnd write FOnFunctionEnd;
 	
     property IsUnit: Boolean read FIsUnit;
 	
@@ -4554,6 +4562,9 @@ begin
   else
     FunctionType := ftFunc;
   Func := nil;
+  EPos := FParser.CurrTokenPos;
+  ERow := FParser.Row;
+  ECol := FParser.Col;
   FParser.Next;
   Result := False;
   if FParser.CurrTokenId <> CSTI_Identifier then
@@ -4562,6 +4573,8 @@ begin
     att.free;
     exit;
   end;
+  if assigned(FOnFunctionStart) then
+     FOnFunctionStart(FParser.OriginalToken, EPos, ERow, ECol);
   EPos := FParser.CurrTokenPos;
   ERow := FParser.Row;
   ECol := FParser.Col;
@@ -4852,6 +4865,8 @@ begin
     Block.Free;
     CheckForUnusedVars(Func);
     Result := ProcessLabelForwards(Func);
+    if assigned(FOnFunctionEnd) then
+      OnFunctionEnd(OriginalName, FParser.CurrTokenPos, FParser.Row, FParser.Col);
   finally
     FunctionDecl.Free;
     att.Free;

@@ -10,8 +10,8 @@ uses
  
 Will register:
  
-function CreateOleObject(const ClassName: NativeString): IDispatch;
-function GetActiveOleObject(const ClassName: NativeString): IDispatch;
+function CreateOleObject(const ClassName: String): IDispatch;
+function GetActiveOleObject(const ClassName: String): IDispatch;
 
 }
 
@@ -21,8 +21,8 @@ implementation
 
 procedure SIRegister_ComObj(cl: TPSPascalCompiler);
 begin
-  cl.AddDelphiFunction('function CreateOleObject(const ClassName: NativeString): IDispatch;');
-  cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: NativeString): IDispatch;');
+  cl.AddDelphiFunction('function CreateOleObject(const ClassName: String): IDispatch;');
+  cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: String): IDispatch;');
 end;
 
 end.

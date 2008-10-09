@@ -104,7 +104,7 @@ begin
     RegisterMethod('Procedure DELETE( INDEX : INTEGER)');
     RegisterMethod('Procedure CLEAR');
     RegisterMethod('Procedure CLICK');
-    RegisterMethod('Function FIND( ACAPTION : NativeString) : TMENUITEM');
+    RegisterMethod('Function FIND( ACAPTION : String) : TMENUITEM');
     RegisterMethod('Function INDEXOF( ITEM : TMENUITEM) : INTEGER');
     RegisterMethod('Function ISLINE : BOOLEAN');
     RegisterMethod('Function GETIMAGELIST : TCUSTOMIMAGELIST');
@@ -131,14 +131,14 @@ begin
     RegisterProperty('AUTOHOTKEYS', 'TMENUITEMAUTOFLAG', iptrw);
     RegisterProperty('AUTOLINEREDUCTION', 'TMENUITEMAUTOFLAG', iptrw);
     RegisterProperty('BITMAP', 'TBITMAP', iptrw);
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('CHECKED', 'BOOLEAN', iptrw);
     RegisterProperty('SUBMENUIMAGES', 'TCUSTOMIMAGELIST', iptrw);
     RegisterProperty('DEFAULT', 'BOOLEAN', iptrw);
     RegisterProperty('ENABLED', 'BOOLEAN', iptrw);
     RegisterProperty('GROUPINDEX', 'BYTE', iptrw);
     RegisterProperty('HELPCONTEXT', 'THELPCONTEXT', iptrw);
-    RegisterProperty('HINT', 'NativeString', iptrw);
+    RegisterProperty('HINT', 'String', iptrw);
     RegisterProperty('IMAGEINDEX', 'TIMAGEINDEX', iptrw);
     RegisterProperty('RADIOITEM', 'BOOLEAN', iptrw);
     RegisterProperty('SHORTCUT', 'TSHORTCUT', iptrw);
@@ -191,19 +191,19 @@ begin
   Cl.AddDelphiFunction('Procedure SHORTCUTTOKEY( SHORTCUT : TSHORTCUT; var KEY '
  +': WORD; var SHIFT : TSHIFTSTATE)');
 {$ENDIF}
-  Cl.AddDelphiFunction('Function SHORTCUTTOTEXT( SHORTCUT : TSHORTCUT) : NativeString'
+  Cl.AddDelphiFunction('Function SHORTCUTTOTEXT( SHORTCUT : TSHORTCUT) : String'
    +'');
-  Cl.AddDelphiFunction('Function TEXTTOSHORTCUT( TEXT : NativeString) : TSHORTCUT');
+  Cl.AddDelphiFunction('Function TEXTTOSHORTCUT( TEXT : String) : TSHORTCUT');
   Cl.AddDelphiFunction('Function NEWMENU( OWNER : TCOMPONENT; const ANAME : STR'
    +'ING; ITEMS : array of TMenuItem) : TMAINMENU');
   Cl.AddDelphiFunction('Function NEWPOPUPMENU( OWNER : TCOMPONENT; const ANAME '
-   +': NativeString; ALIGNMENT : TPOPUPALIGNMENT; AUTOPOPUP : BOOLEAN; const ITEMS : array of '
+   +': String; ALIGNMENT : TPOPUPALIGNMENT; AUTOPOPUP : BOOLEAN; const ITEMS : array of '
    +'TCMENUITEM) : TPOPUPMENU');
-  Cl.AddDelphiFunction('Function NEWSUBMENU( const ACAPTION : NativeString; HCTX : WO'
-   +'RD; const ANAME : NativeString; ITEMS : array of TMenuItem; AENABLED : BOOLEAN) : TMENUITEM');
-  Cl.AddDelphiFunction('Function NEWITEM( const ACAPTION : NativeString; ASHORTCUT : '
+  Cl.AddDelphiFunction('Function NEWSUBMENU( const ACAPTION : String; HCTX : WO'
+   +'RD; const ANAME : String; ITEMS : array of TMenuItem; AENABLED : BOOLEAN) : TMENUITEM');
+  Cl.AddDelphiFunction('Function NEWITEM( const ACAPTION : String; ASHORTCUT : '
    +'TSHORTCUT; ACHECKED, AENABLED : BOOLEAN; AONCLICK : TNOTIFYEVENT; HCTX : W'
-   +'ORD; const ANAME : NativeString) : TMENUITEM');
+   +'ORD; const ANAME : String) : TMENUITEM');
   Cl.AddDelphiFunction('Function NEWLINE : TMENUITEM');
 {$IFNDEF FPC}
   Cl.AddDelphiFunction('Procedure DRAWMENUITEM( MENUITEM : TMENUITEM; ACANVAS :'

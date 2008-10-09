@@ -153,7 +153,7 @@ begin
     RegisterProperty('BEVELWIDTH', 'TBevelWidth', iptrw);
     RegisterProperty('BORDERWIDTH', 'TBorderWidth', iptrw);
     RegisterProperty('BORDERSTYLE', 'TBorderStyle', iptrw);
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('COLOR', 'TColor', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);
     RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
@@ -187,14 +187,14 @@ procedure SIRegisterTPAGE(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TCUSTOMCONTROL'), 'TPAGE') do
   begin
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
   end;
 end;
 procedure SIRegisterTNOTEBOOK(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TCUSTOMCONTROL'), 'TNOTEBOOK') do
   begin
-    RegisterProperty('ACTIVEPAGE', 'NativeString', iptrw);
+    RegisterProperty('ACTIVEPAGE', 'String', iptrw);
     RegisterProperty('COLOR', 'TColor', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);
     RegisterProperty('PAGEINDEX', 'INTEGER', iptrw);
@@ -255,7 +255,7 @@ procedure SIRegisterTRADIOGROUP(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TCUSTOMRADIOGROUP'), 'TRADIOGROUP') do
   begin
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('COLOR', 'TColor', iptrw);
     RegisterProperty('COLUMNS', 'Integer', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);

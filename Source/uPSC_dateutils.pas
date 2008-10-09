@@ -26,9 +26,9 @@ begin
   s.AddDelphiFunction('function DateTimeToUnix(D: TDateTime): Int64;');
   s.AddDelphiFunction('function UnixToDateTime(U: Int64): TDateTime;');
 
-  s.AddDelphiFunction('function DateToStr(D: TDateTime): NativeString;');
-  s.AddDelphiFunction('function StrToDate(const s: NativeString): TDateTime;');
-  s.AddDelphiFunction('function FormatDateTime(const fmt: NativeString; D: TDateTime): NativeString;');
+  s.AddDelphiFunction('function DateToStr(D: TDateTime): String;');
+  s.AddDelphiFunction('function StrToDate(const s: String): TDateTime;');
+  s.AddDelphiFunction('function FormatDateTime(const fmt: String; D: TDateTime): String;');
 end;
 
 end.

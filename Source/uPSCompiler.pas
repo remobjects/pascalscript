@@ -11847,10 +11847,12 @@ begin
   AddType('WideChar', btWideChar);
   AddType('WideString', btWideString);
   {$ENDIF}
-  AddType('String', btString);
+  AddType('AnsiString', btString);
   {$IFDEF DELPHI2009UP}
+  AddType('String', btWideString);
   ADdType('NativeString', btWideString);
   {$ELSE}
+  AddType('String', btString);
   AddType('NativeString', btString);
   {$ENDIF}
   FAnyString := AddType('AnyString', btString);

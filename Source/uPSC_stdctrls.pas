@@ -52,7 +52,7 @@ procedure SIRegisterTGROUPBOX(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TCUSTOMGROUPBOX'), 'TGROUPBOX') do
   begin
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('COLOR', 'TColor', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);
     RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
@@ -103,7 +103,7 @@ begin
   begin
     RegisterProperty('ALIGNMENT', 'TAlignment', iptrw);
     RegisterProperty('AUTOSIZE', 'Boolean', iptrw);
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('COLOR', 'TColor', iptrw);
     RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
     RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
@@ -144,8 +144,8 @@ begin
     RegisterProperty('MODIFIED', 'BOOLEAN', iptrw);
     RegisterProperty('SELLENGTH', 'INTEGER', iptrw);
     RegisterProperty('SELSTART', 'INTEGER', iptrw);
-    RegisterProperty('SELTEXT', 'NativeString', iptrw);
-    RegisterProperty('TEXT', 'NativeString', iptrw);
+    RegisterProperty('SELTEXT', 'String', iptrw);
+    RegisterProperty('TEXT', 'String', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterMethod('procedure COPYTOCLIPBOARD');
@@ -176,7 +176,7 @@ begin
     RegisterProperty('PARENTFONT', 'Boolean', iptrw);
     RegisterProperty('PASSWORDCHAR', 'Char', iptrw);
     RegisterProperty('READONLY', 'Boolean', iptrw);
-    RegisterProperty('TEXT', 'NativeString', iptrw);
+    RegisterProperty('TEXT', 'String', iptrw);
     RegisterProperty('ONCHANGE', 'TNotifyEvent', iptrw);
     RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
     RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
@@ -285,7 +285,7 @@ begin
     RegisterProperty('CANVAS', 'TCANVAS', iptr);
     RegisterProperty('SELLENGTH', 'INTEGER', iptrw);
     RegisterProperty('SELSTART', 'INTEGER', iptrw);
-    RegisterProperty('SELTEXT', 'NativeString', iptrw);
+    RegisterProperty('SELTEXT', 'String', iptrw);
     {$ENDIF}
   end;
 end;
@@ -303,7 +303,7 @@ begin
     RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
     RegisterProperty('PARENTFONT', 'Boolean', iptrw);
     RegisterProperty('SORTED', 'Boolean', iptrw);
-    RegisterProperty('TEXT', 'NativeString', iptrw);
+    RegisterProperty('TEXT', 'String', iptrw);
     RegisterProperty('ONCHANGE', 'TNotifyEvent', iptrw);
     RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
     RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
@@ -348,7 +348,7 @@ begin
   with Cl.AddClassN(cl.FindClass('TBUTTONCONTROL'),  'TBUTTON') do
   begin
     RegisterProperty('CANCEL', 'BOOLEAN', iptrw);
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('DEFAULT', 'BOOLEAN', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);
     RegisterProperty('MODALRESULT', 'LONGINT', iptrw);
@@ -393,7 +393,7 @@ begin
   begin
     RegisterProperty('ALIGNMENT', 'TAlignment', iptrw);
     RegisterProperty('ALLOWGRAYED', 'Boolean', iptrw);
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('CHECKED', 'Boolean', iptrw);
     RegisterProperty('COLOR', 'TColor', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);
@@ -434,7 +434,7 @@ begin
   with Cl.AddClassN(cl.FindClass('TBUTTONCONTROL'), 'TRADIOBUTTON') do
   begin
     RegisterProperty('ALIGNMENT', 'TALIGNMENT', iptrw);
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
+    RegisterProperty('CAPTION', 'String', iptrw);
     RegisterProperty('CHECKED', 'BOOLEAN', iptrw);
     RegisterProperty('COLOR', 'TColor', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);

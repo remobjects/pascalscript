@@ -9820,9 +9820,9 @@ begin
 end;
 
 
-function getMethodNo(P: TMethod): Cardinal;
+function getMethodNo(P: TMethod; SE: TPSExec): Cardinal;
 begin
-  if (p.Code <> @MyAllMethodsHandler) or (p.Data = nil) then
+  if (p.Code <> @MyAllMethodsHandler) or (p.Data = nil)or (PScriptMethodInfo(p.Data)^.Se <> se)  then
     Result := 0
   else
   begin
@@ -9907,7 +9907,7 @@ begin
       if (PPropInfo(p.Ext1)^.PropType^.Kind = tkMethod) and ((n.aType.BaseType = btu32) or (n.aType.BaseType = btprocptr)) then
       begin
         m := GetMethodProp(TObject(FSelf), PPropInfo(p.Ext1));
-        Cardinal(n.Dta^) := GetMethodNo(m);
+        Cardinal(n.Dta^) := GetMethodNo(m, Caller);
         if Cardinal(n.dta^) = 0 then
         begin
           Pointer(Pointer((IPointer(n.dta)+4))^) := m.Data;
@@ -10148,7 +10148,7 @@ begin
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
     finally
-      Cardinal(n.Dta^) := getMethodNo(TMethod(PPSVariantDouble(n2).Data));
+      Cardinal(n.Dta^) := getMethodNo(TMethod(PPSVariantDouble(n2).Data), Caller);
       if Cardinal(n.Dta^) = 0 then
       begin
         Pointer(Pointer((IPointer(n.dta)+4))^) := TMethod(PPSVariantDouble(n2).Data).Data;

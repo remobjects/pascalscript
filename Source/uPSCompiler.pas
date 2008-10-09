@@ -2084,13 +2084,13 @@ begin
               btSingle: VCType := FindAndAddType(Owner, '!OPENARRAYOFSINGLE', 'array of Single');
               btDouble: VCType := FindAndAddType(Owner, '!OPENARRAYOFDOUBLE', 'array of Double');
               btExtended: VCType := FindAndAddType(Owner, '!OPENARRAYOFEXTENDED', 'array of Extended');
-              btString: VCType := FindAndAddType(Owner, '!OPENARRAYOFSTRING', 'array of tbtString');
+              btString: VCType := FindAndAddType(Owner, '!OPENARRAYOFSTRING', 'array of String');
               btPChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFPCHAR', 'array of PChar');
               btNotificationVariant, btVariant: VCType := FindAndAddType(Owner, '!OPENARRAYOFVARIANT', 'array of variant');
             {$IFNDEF PS_NOINT64}btS64:  VCType := FindAndAddType(Owner, '!OPENARRAYOFS64', 'array of Int64');{$ENDIF}
               btChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFCHAR', 'array of Char');
             {$IFNDEF PS_NOWIDESTRING}
-              btWideString: VCType := FindAndAddType(Owner, '!OPENARRAYOFWIDESTRING', 'array of tbtwidestring');
+              btWideString: VCType := FindAndAddType(Owner, '!OPENARRAYOFWIDESTRING', 'array of WideString');
               btWideChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFWIDECHAR', 'array of WideChar');
             {$ENDIF}
               btClass: VCType := FindAndAddType(Owner, '!OPENARRAYOFTOBJECT', 'array of TObject');

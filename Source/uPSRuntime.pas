@@ -8227,12 +8227,12 @@ begin
     0: Stack.SetString(-1, IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2))); // inttostr
     1: Stack.SetInt(-1, StrToInt(Stack.GetString(-2))); // strtoint
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetString(-2), Stack.GetInt(-3))); // strtointdef
-    3: if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+    3: if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
         Stack.SetInt(-1, Pos(Stack.GetWideString(-2), Stack.GetWideString(-3)))// pos
       else
         Stack.SetInt(-1, Pos(Stack.GetString(-2), Stack.GetString(-3)));// pos
     4:
-      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+      if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
         Stack.SetWideString(-1, Copy(Stack.GetWideString(-2), Stack.GetInt(-3), Stack.GetInt(-4))) // copy
       else
         Stack.SetString(-1, Copy(Stack.GetString(-2), Stack.GetInt(-3), Stack.GetInt(-4))); // copy
@@ -8300,17 +8300,17 @@ begin
         tbtstring(temp.Dta^)[i] := tbtchar(Stack.GetInt(-1));
       end;
     10:
-      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+      if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
         Stack.SetWideString(-1, WideUpperCase(Stack.GetWideString(-2))) // Uppercase
       else
         Stack.SetString(-1, FastUppercase(Stack.GetString(-2))); // Uppercase
     11:
-      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+      if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
         Stack.SetWideString(-1, WideLowerCase(Stack.GetWideString(-2))) // Uppercase
       else
         Stack.SetString(-1, FastLowercase(Stack.GetString(-2)));// LowerCase
     12:
-      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+      if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
         Stack.SetWideString(-1, Trim(Stack.GetWideString(-2))) // Uppercase
       else
         Stack.SetString(-1, Trim(Stack.GetString(-2)));// Trim
@@ -8335,15 +8335,15 @@ begin
     22: Stack.SetReal(-1, Abs(Stack.GetReal(-2))); // Abs
     23: Stack.SetReal(-1, StrToFloat(Stack.GetString(-2))); // StrToFloat
     24: Stack.SetString(-1, FloatToStr(Stack.GetReal(-2)));// FloatToStr
-    25: if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+    25: if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
       Stack.SetWideString(-1, PadL(Stack.GetWideString(-2), Stack.GetInt(-3))) //  PadL
     else
       Stack.SetString(-1, PadL(Stack.GetString(-2), Stack.GetInt(-3))); //  PadL
-    26: if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+    26: if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
       Stack.SetWideString(-1, PadR(Stack.GetWideString(-2), Stack.GetInt(-3))) // PadR
     else
       Stack.SetString(-1, PadR(Stack.GetString(-2), Stack.GetInt(-3))); // PadR
-    27: if Stack.GetItem(-2)^.FType.BaseType = btWideString then 
+    27: if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then 
       Stack.SetWideString(-1, PadZ(Stack.GetWideString(-2), Stack.GetInt(-3)))// PadZ
     else
       Stack.SetString(-1, PadZ(Stack.GetString(-2), Stack.GetInt(-3)));// PadZ

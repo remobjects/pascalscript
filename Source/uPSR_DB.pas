@@ -232,10 +232,10 @@ begin Self.FILTERED := T; end;
 procedure TDATASETFILTERED_R(Self: TDATASET; var T: BOOLEAN);
 begin T := Self.FILTERED; end;
 
-procedure TDATASETFILTER_W(Self: TDATASET; const T: tbtstring);
+procedure TDATASETFILTER_W(Self: TDATASET; const T: String);
 begin Self.FILTER := T; end;
 
-procedure TDATASETFILTER_R(Self: TDATASET; var T: tbtstring);
+procedure TDATASETFILTER_R(Self: TDATASET; var T: String);
 begin T := Self.FILTER; end;
 
 procedure TDATASETSTATE_R(Self: TDATASET; var T: TDATASETSTATE);
@@ -280,10 +280,10 @@ begin T := Self.ISUNIDIRECTIONAL; end;
 procedure TDATASETFOUND_R(Self: TDATASET; var T: BOOLEAN);
 begin T := Self.FOUND; end;
 
-procedure TDATASETFIELDVALUES_W(Self: TDATASET; const T: VARIANT; const t1: tbtstring);
+procedure TDATASETFIELDVALUES_W(Self: TDATASET; const T: VARIANT; const t1: String);
 begin Self.FIELDVALUES[t1] := T; end;
 
-procedure TDATASETFIELDVALUES_R(Self: TDATASET; var T: VARIANT; const t1: tbtstring);
+procedure TDATASETFIELDVALUES_R(Self: TDATASET; var T: VARIANT; const t1: String);
 begin T := Self.FIELDVALUES[t1]; end;
 
 procedure TDATASETFIELDS_R(Self: TDATASET; var T: TFIELDS);
@@ -357,10 +357,10 @@ begin T := Self.CANMODIFY; end;
 procedure TDATASETBOF_R(Self: TDATASET; var T: BOOLEAN);
 begin T := Self.BOF; end;
 
-procedure TPARAMSPARAMVALUES_W(Self: TPARAMS; const T: VARIANT; const t1: tbtstring);
+procedure TPARAMSPARAMVALUES_W(Self: TPARAMS; const T: VARIANT; const t1: String);
 begin Self.PARAMVALUES[t1] := T; end;
 
-procedure TPARAMSPARAMVALUES_R(Self: TPARAMS; var T: VARIANT; const t1: tbtstring);
+procedure TPARAMSPARAMVALUES_R(Self: TPARAMS; var T: VARIANT; const t1: String);
 begin T := Self.PARAMVALUES[t1]; end;
 
 procedure TPARAMSITEMS_W(Self: TPARAMS; const T: TPARAM; const t1: INTEGER);
@@ -390,10 +390,10 @@ begin Self.PARAMTYPE := T; end;
 procedure TPARAMPARAMTYPE_R(Self: TPARAM; var T: TPARAMTYPE);
 begin T := Self.PARAMTYPE; end;
 
-procedure TPARAMNAME_W(Self: TPARAM; const T: tbtstring);
+procedure TPARAMNAME_W(Self: TPARAM; const T: String);
 begin Self.NAME := T; end;
 
-procedure TPARAMNAME_R(Self: TPARAM; var T: tbtstring);
+procedure TPARAMNAME_R(Self: TPARAM; var T: String);
 begin T := Self.NAME; end;
 
 {$IFDEF DELPHI6UP}
@@ -417,16 +417,16 @@ begin Self.DATATYPE := T; end;
 procedure TPARAMDATATYPE_R(Self: TPARAM; var T: TFIELDTYPE);
 begin T := Self.DATATYPE; end;
 
-procedure TPARAMTEXT_W(Self: TPARAM; const T: tbtstring);
+procedure TPARAMTEXT_W(Self: TPARAM; const T: String);
 begin Self.TEXT := T; end;
 
-procedure TPARAMTEXT_R(Self: TPARAM; var T: tbtstring);
+procedure TPARAMTEXT_R(Self: TPARAM; var T: String);
 begin T := Self.TEXT; end;
 
-procedure TPARAMNATIVESTR_W(Self: TPARAM; const T: tbtstring);
+procedure TPARAMNATIVESTR_W(Self: TPARAM; const T: String);
 begin Self.NATIVESTR := T; end;
 
-procedure TPARAMNATIVESTR_R(Self: TPARAM; var T: tbtstring);
+procedure TPARAMNATIVESTR_R(Self: TPARAM; var T: String);
 begin T := Self.NATIVESTR; end;
 
 procedure TPARAMISNULL_R(Self: TPARAM; var T: BOOLEAN);
@@ -450,16 +450,16 @@ begin Self.ASTIME := T; end;
 procedure TPARAMASTIME_R(Self: TPARAM; var T: TDATETIME);
 begin T := Self.ASTIME; end;
 
-procedure TPARAMASSTRING_W(Self: TPARAM; const T: tbtstring);
+procedure TPARAMASSTRING_W(Self: TPARAM; const T: String);
 begin Self.ASSTRING := T; end;
 
-procedure TPARAMASSTRING_R(Self: TPARAM; var T: tbtstring);
+procedure TPARAMASSTRING_R(Self: TPARAM; var T: String);
 begin T := Self.ASSTRING; end;
 
-procedure TPARAMASMEMO_W(Self: TPARAM; const T: tbtstring);
+procedure TPARAMASMEMO_W(Self: TPARAM; const T: String);
 begin Self.ASMEMO := T; end;
 
-procedure TPARAMASMEMO_R(Self: TPARAM; var T: tbtstring);
+procedure TPARAMASMEMO_R(Self: TPARAM; var T: String);
 begin T := Self.ASMEMO; end;
 
 procedure TPARAMASSMALLINT_W(Self: TPARAM; const T: LONGINT);
@@ -525,10 +525,10 @@ begin Self.ASBCD := T; end;
 procedure TPARAMASBCD_R(Self: TPARAM; var T: CURRENCY);
 begin T := Self.ASBCD; end;
 
-procedure TREFERENCEFIELDREFERENCETABLENAME_W(Self: TREFERENCEFIELD; const T: tbtstring);
+procedure TREFERENCEFIELDREFERENCETABLENAME_W(Self: TREFERENCEFIELD; const T: String);
 begin Self.REFERENCETABLENAME := T; end;
 
-procedure TREFERENCEFIELDREFERENCETABLENAME_R(Self: TREFERENCEFIELD; var T: tbtstring);
+procedure TREFERENCEFIELDREFERENCETABLENAME_R(Self: TREFERENCEFIELD; var T: String);
 begin T := Self.REFERENCETABLENAME; end;
 
 
@@ -541,10 +541,10 @@ begin T := Self.INCLUDEOBJECTFIELD; end;
 procedure TDATASETFIELDNESTEDDATASET_R(Self: TDATASETFIELD; var T: TDATASET);
 begin T := Self.NESTEDDATASET; end;
 
-procedure TOBJECTFIELDOBJECTTYPE_W(Self: TOBJECTFIELD; const T: tbtstring);
+procedure TOBJECTFIELDOBJECTTYPE_W(Self: TOBJECTFIELD; const T: String);
 begin Self.OBJECTTYPE := T; end;
 
-procedure TOBJECTFIELDOBJECTTYPE_R(Self: TOBJECTFIELD; var T: tbtstring);
+procedure TOBJECTFIELDOBJECTTYPE_R(Self: TOBJECTFIELD; var T: String);
 begin T := Self.OBJECTTYPE; end;
 
 procedure TOBJECTFIELDUNNAMED_R(Self: TOBJECTFIELD; var T: BOOLEAN);
@@ -586,7 +586,7 @@ begin Self.TRANSLITERATE := T; end;
 procedure TBLOBFIELDTRANSLITERATE_R(Self: TBLOBFIELD; var T: BOOLEAN);
 begin T := Self.TRANSLITERATE; end;
 
-procedure TBLOBFIELDVALUE_W(Self: TBLOBFIELD; const T: tbtstring);
+procedure TBLOBFIELDVALUE_W(Self: TBLOBFIELD; const T: String);
 {$IFDEF DELPHI2009UP}
 var
   b: TBytes;
@@ -600,7 +600,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TBLOBFIELDVALUE_R(Self: TBLOBFIELD; var T: tbtstring);
+procedure TBLOBFIELDVALUE_R(Self: TBLOBFIELD; var T: String);
 begin
 {$IFDEF DELPHI2009UP}
   SetLength(t, Length(SElf.Value));
@@ -627,16 +627,16 @@ begin Self.PRECISION := T; end;
 procedure TFMTBCDFIELDPRECISION_R(Self: TFMTBCDFIELD; var T: INTEGER);
 begin T := Self.PRECISION; end;
 
-procedure TFMTBCDFIELDMINVALUE_W(Self: TFMTBCDFIELD; const T: tbtstring);
+procedure TFMTBCDFIELDMINVALUE_W(Self: TFMTBCDFIELD; const T: String);
 begin Self.MINVALUE := T; end;
 
-procedure TFMTBCDFIELDMINVALUE_R(Self: TFMTBCDFIELD; var T: tbtstring);
+procedure TFMTBCDFIELDMINVALUE_R(Self: TFMTBCDFIELD; var T: String);
 begin T := Self.MINVALUE; end;
 
-procedure TFMTBCDFIELDMAXVALUE_W(Self: TFMTBCDFIELD; const T: tbtstring);
+procedure TFMTBCDFIELDMAXVALUE_W(Self: TFMTBCDFIELD; const T: String);
 begin Self.MAXVALUE := T; end;
 
-procedure TFMTBCDFIELDMAXVALUE_R(Self: TFMTBCDFIELD; var T: tbtstring);
+procedure TFMTBCDFIELDMAXVALUE_R(Self: TFMTBCDFIELD; var T: String);
 begin T := Self.MAXVALUE; end;
 
 procedure TFMTBCDFIELDCURRENCY_W(Self: TFMTBCDFIELD; const T: BOOLEAN);
@@ -684,10 +684,10 @@ begin T := Self.VALUE; end;
 {$ENDIF}
 
 
-procedure TDATETIMEFIELDDISPLAYFORMAT_W(Self: TDATETIMEFIELD; const T: tbtstring);
+procedure TDATETIMEFIELDDISPLAYFORMAT_W(Self: TDATETIMEFIELD; const T: String);
 begin Self.DISPLAYFORMAT := T; end;
 
-procedure TDATETIMEFIELDDISPLAYFORMAT_R(Self: TDATETIMEFIELD; var T: tbtstring);
+procedure TDATETIMEFIELDDISPLAYFORMAT_R(Self: TDATETIMEFIELD; var T: String);
 begin T := Self.DISPLAYFORMAT; end;
 
 procedure TDATETIMEFIELDVALUE_W(Self: TDATETIMEFIELD; const T: TDATETIME);
@@ -696,10 +696,10 @@ begin Self.VALUE := T; end;
 procedure TDATETIMEFIELDVALUE_R(Self: TDATETIMEFIELD; var T: TDATETIME);
 begin T := Self.VALUE; end;
 
-procedure TBOOLEANFIELDDISPLAYVALUES_W(Self: TBOOLEANFIELD; const T: tbtstring);
+procedure TBOOLEANFIELDDISPLAYVALUES_W(Self: TBOOLEANFIELD; const T: String);
 begin Self.DISPLAYVALUES := T; end;
 
-procedure TBOOLEANFIELDDISPLAYVALUES_R(Self: TBOOLEANFIELD; var T: tbtstring);
+procedure TBOOLEANFIELDDISPLAYVALUES_R(Self: TBOOLEANFIELD; var T: String);
 begin T := Self.DISPLAYVALUES; end;
 
 procedure TBOOLEANFIELDVALUE_W(Self: TBOOLEANFIELD; const T: BOOLEAN);
@@ -782,16 +782,16 @@ begin Self.VALUE := T; end;
 procedure TINTEGERFIELDVALUE_R(Self: TINTEGERFIELD; var T: LONGINT);
 begin T := Self.VALUE; end;
 
-procedure TNUMERICFIELDEDITFORMAT_W(Self: TNUMERICFIELD; const T: tbtstring);
+procedure TNUMERICFIELDEDITFORMAT_W(Self: TNUMERICFIELD; const T: String);
 begin Self.EDITFORMAT := T; end;
 
-procedure TNUMERICFIELDEDITFORMAT_R(Self: TNUMERICFIELD; var T: tbtstring);
+procedure TNUMERICFIELDEDITFORMAT_R(Self: TNUMERICFIELD; var T: String);
 begin T := Self.EDITFORMAT; end;
 
-procedure TNUMERICFIELDDISPLAYFORMAT_W(Self: TNUMERICFIELD; const T: tbtstring);
+procedure TNUMERICFIELDDISPLAYFORMAT_W(Self: TNUMERICFIELD; const T: String);
 begin Self.DISPLAYFORMAT := T; end;
 
-procedure TNUMERICFIELDDISPLAYFORMAT_R(Self: TNUMERICFIELD; var T: tbtstring);
+procedure TNUMERICFIELDDISPLAYFORMAT_R(Self: TNUMERICFIELD; var T: String);
 begin T := Self.DISPLAYFORMAT; end;
 
 {$IFNDEF FPC}
@@ -815,10 +815,10 @@ begin T := Self.FIXEDCHAR; end;
 {$ENDIF}
 
 
-procedure TSTRINGFIELDVALUE_W(Self: TSTRINGFIELD; const T: tbtstring);
+procedure TSTRINGFIELDVALUE_W(Self: TSTRINGFIELD; const T: String);
 begin Self.VALUE := T; end;
 
-procedure TSTRINGFIELDVALUE_R(Self: TSTRINGFIELD; var T: tbtstring);
+procedure TSTRINGFIELDVALUE_R(Self: TSTRINGFIELD; var T: String);
 begin T := Self.VALUE; end;
 
 procedure TFIELDONVALIDATE_W(Self: TFIELD; const T: TFIELDNOTIFYEVENT);
@@ -869,10 +869,10 @@ begin Self.PROVIDERFLAGS := T; end;
 procedure TFIELDPROVIDERFLAGS_R(Self: TFIELD; var T: TPROVIDERFLAGS);
 begin T := Self.PROVIDERFLAGS; end;
 
-procedure TFIELDORIGIN_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDORIGIN_W(Self: TFIELD; const T: String);
 begin Self.ORIGIN := T; end;
 
-procedure TFIELDORIGIN_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDORIGIN_R(Self: TFIELD; var T: String);
 begin T := Self.ORIGIN; end;
 
 procedure TFIELDLOOKUPCACHE_W(Self: TFIELD; const T: BOOLEAN);
@@ -881,22 +881,22 @@ begin Self.LOOKUPCACHE := T; end;
 procedure TFIELDLOOKUPCACHE_R(Self: TFIELD; var T: BOOLEAN);
 begin T := Self.LOOKUPCACHE; end;
 
-procedure TFIELDKEYFIELDS_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDKEYFIELDS_W(Self: TFIELD; const T: String);
 begin Self.KEYFIELDS := T; end;
 
-procedure TFIELDKEYFIELDS_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDKEYFIELDS_R(Self: TFIELD; var T: String);
 begin T := Self.KEYFIELDS; end;
 
-procedure TFIELDLOOKUPRESULTFIELD_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDLOOKUPRESULTFIELD_W(Self: TFIELD; const T: String);
 begin Self.LOOKUPRESULTFIELD := T; end;
 
-procedure TFIELDLOOKUPRESULTFIELD_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDLOOKUPRESULTFIELD_R(Self: TFIELD; var T: String);
 begin T := Self.LOOKUPRESULTFIELD; end;
 
-procedure TFIELDLOOKUPKEYFIELDS_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDLOOKUPKEYFIELDS_W(Self: TFIELD; const T: String);
 begin Self.LOOKUPKEYFIELDS := T; end;
 
-procedure TFIELDLOOKUPKEYFIELDS_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDLOOKUPKEYFIELDS_R(Self: TFIELD; var T: String);
 begin T := Self.LOOKUPKEYFIELDS; end;
 
 procedure TFIELDLOOKUPDATASET_W(Self: TFIELD; const T: TDATASET);
@@ -905,10 +905,10 @@ begin Self.LOOKUPDATASET := T; end;
 procedure TFIELDLOOKUPDATASET_R(Self: TFIELD; var T: TDATASET);
 begin T := Self.LOOKUPDATASET; end;
 
-procedure TFIELDIMPORTEDCONSTRAINT_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDIMPORTEDCONSTRAINT_W(Self: TFIELD; const T: String);
 begin Self.IMPORTEDCONSTRAINT := T; end;
 
-procedure TFIELDIMPORTEDCONSTRAINT_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDIMPORTEDCONSTRAINT_R(Self: TFIELD; var T: String);
 begin T := Self.IMPORTEDCONSTRAINT; end;
 
 procedure TFIELDINDEX_W(Self: TFIELD; const T: INTEGER);
@@ -920,10 +920,10 @@ begin T := Self.INDEX; end;
 procedure TFIELDHASCONSTRAINTS_R(Self: TFIELD; var T: BOOLEAN);
 begin T := Self.HASCONSTRAINTS; end;
 
-procedure TFIELDFIELDNAME_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDFIELDNAME_W(Self: TFIELD; const T: String);
 begin Self.FIELDNAME := T; end;
 
-procedure TFIELDFIELDNAME_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDFIELDNAME_R(Self: TFIELD; var T: String);
 begin T := Self.FIELDNAME; end;
 
 procedure TFIELDFIELDKIND_W(Self: TFIELD; const T: TFIELDKIND);
@@ -938,28 +938,28 @@ begin Self.DISPLAYWIDTH := T; end;
 procedure TFIELDDISPLAYWIDTH_R(Self: TFIELD; var T: INTEGER);
 begin T := Self.DISPLAYWIDTH; end;
 
-procedure TFIELDDISPLAYLABEL_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDDISPLAYLABEL_W(Self: TFIELD; const T: String);
 begin Self.DISPLAYLABEL := T; end;
 
-procedure TFIELDDISPLAYLABEL_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDDISPLAYLABEL_R(Self: TFIELD; var T: String);
 begin T := Self.DISPLAYLABEL; end;
 
-procedure TFIELDDEFAULTEXPRESSION_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDDEFAULTEXPRESSION_W(Self: TFIELD; const T: String);
 begin Self.DEFAULTEXPRESSION := T; end;
 
-procedure TFIELDDEFAULTEXPRESSION_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDDEFAULTEXPRESSION_R(Self: TFIELD; var T: String);
 begin T := Self.DEFAULTEXPRESSION; end;
 
-procedure TFIELDCONSTRAINTERRORMESSAGE_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDCONSTRAINTERRORMESSAGE_W(Self: TFIELD; const T: String);
 begin Self.CONSTRAINTERRORMESSAGE := T; end;
 
-procedure TFIELDCONSTRAINTERRORMESSAGE_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDCONSTRAINTERRORMESSAGE_R(Self: TFIELD; var T: String);
 begin T := Self.CONSTRAINTERRORMESSAGE; end;
 
-procedure TFIELDCUSTOMCONSTRAINT_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDCUSTOMCONSTRAINT_W(Self: TFIELD; const T: String);
 begin Self.CUSTOMCONSTRAINT := T; end;
 
-procedure TFIELDCUSTOMCONSTRAINT_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDCUSTOMCONSTRAINT_R(Self: TFIELD; var T: String);
 begin T := Self.CUSTOMCONSTRAINT; end;
 
 {$IFNDEF FPC}
@@ -998,10 +998,10 @@ begin Self.VALUE := T; end;
 procedure TFIELDVALUE_R(Self: TFIELD; var T: VARIANT);
 begin T := Self.VALUE; end;
 
-procedure TFIELDTEXT_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDTEXT_W(Self: TFIELD; const T: String);
 begin Self.TEXT := T; end;
 
-procedure TFIELDTEXT_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDTEXT_R(Self: TFIELD; var T: String);
 begin T := Self.TEXT; end;
 
 procedure TFIELDSIZE_W(Self: TFIELD; const T: INTEGER);
@@ -1032,17 +1032,17 @@ begin Self.LOOKUP := T; end;
 procedure TFIELDLOOKUP_R(Self: TFIELD; var T: BOOLEAN);
 begin T := Self.LOOKUP; end;
 
-procedure TFIELDFULLNAME_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDFULLNAME_R(Self: TFIELD; var T: String);
 begin T := Self.FULLNAME; end;
 
 
-procedure TFIELDEDITMASKPTR_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDEDITMASKPTR_R(Self: TFIELD; var T: String);
 begin T := Self.EDITMASKPTR; end;
 
-procedure TFIELDEDITMASK_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDEDITMASK_W(Self: TFIELD; const T: String);
 begin Self.EDITMASK := T; end;
 
-procedure TFIELDEDITMASK_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDEDITMASK_R(Self: TFIELD; var T: String);
 begin T := Self.EDITMASK; end;
 
 {$ENDIF}
@@ -1058,10 +1058,10 @@ begin T := Self.FIELDNO; end;
 
 
 
-procedure TFIELDDISPLAYTEXT_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDDISPLAYTEXT_R(Self: TFIELD; var T: String);
 begin T := Self.DISPLAYTEXT; end;
 
-procedure TFIELDDISPLAYNAME_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDDISPLAYNAME_R(Self: TFIELD; var T: String);
 begin T := Self.DISPLAYNAME; end;
 
 procedure TFIELDDATATYPE_R(Self: TFIELD; var T: TFIELDTYPE);
@@ -1088,10 +1088,10 @@ begin Self.CALCULATED := T; end;
 procedure TFIELDCALCULATED_R(Self: TFIELD; var T: BOOLEAN);
 begin T := Self.CALCULATED; end;
 
-procedure TFIELDATTRIBUTESET_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDATTRIBUTESET_W(Self: TFIELD; const T: String);
 begin Self.ATTRIBUTESET := T; end;
 
-procedure TFIELDATTRIBUTESET_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDATTRIBUTESET_R(Self: TFIELD; var T: String);
 begin T := Self.ATTRIBUTESET; end;
 
 procedure TFIELDASVARIANT_W(Self: TFIELD; const T: VARIANT);
@@ -1100,10 +1100,10 @@ begin Self.ASVARIANT := T; end;
 procedure TFIELDASVARIANT_R(Self: TFIELD; var T: VARIANT);
 begin T := Self.ASVARIANT; end;
 
-procedure TFIELDASSTRING_W(Self: TFIELD; const T: tbtstring);
+procedure TFIELDASSTRING_W(Self: TFIELD; const T: String);
 begin Self.ASSTRING := T; end;
 
-procedure TFIELDASSTRING_R(Self: TFIELD; var T: tbtstring);
+procedure TFIELDASSTRING_R(Self: TFIELD; var T: String);
 begin T := Self.ASSTRING; end;
 
 procedure TFIELDASINTEGER_W(Self: TFIELD; const T: LONGINT);
@@ -1182,10 +1182,10 @@ begin Self.ITEMS[t1] := T; end;
 procedure TINDEXDEFSITEMS_R(Self: TINDEXDEFS; var T: TINDEXDEF; const t1: INTEGER);
 begin T := Self.ITEMS[t1]; end;
 
-procedure TINDEXDEFSOURCE_W(Self: TINDEXDEF; const T: tbtstring);
+procedure TINDEXDEFSOURCE_W(Self: TINDEXDEF; const T: String);
 begin Self.SOURCE := T; end;
 
-procedure TINDEXDEFSOURCE_R(Self: TINDEXDEF; var T: tbtstring);
+procedure TINDEXDEFSOURCE_R(Self: TINDEXDEF; var T: String);
 begin T := Self.SOURCE; end;
 
 procedure TINDEXDEFOPTIONS_W(Self: TINDEXDEF; const T: TINDEXOPTIONS);
@@ -1194,33 +1194,33 @@ begin Self.OPTIONS := T; end;
 procedure TINDEXDEFOPTIONS_R(Self: TINDEXDEF; var T: TINDEXOPTIONS);
 begin T := Self.OPTIONS; end;
 
-procedure TINDEXDEFFIELDS_W(Self: TINDEXDEF; const T: tbtstring);
+procedure TINDEXDEFFIELDS_W(Self: TINDEXDEF; const T: String);
 begin Self.FIELDS := T; end;
 
-procedure TINDEXDEFFIELDS_R(Self: TINDEXDEF; var T: tbtstring);
+procedure TINDEXDEFFIELDS_R(Self: TINDEXDEF; var T: String);
 begin T := Self.FIELDS; end;
 
-procedure TINDEXDEFEXPRESSION_W(Self: TINDEXDEF; const T: tbtstring);
+procedure TINDEXDEFEXPRESSION_W(Self: TINDEXDEF; const T: String);
 begin {$IFNDEF FPC}Self.EXPRESSION := T; {$ENDIF}end;
 
-procedure TINDEXDEFEXPRESSION_R(Self: TINDEXDEF; var T: tbtstring);
+procedure TINDEXDEFEXPRESSION_R(Self: TINDEXDEF; var T: String);
 begin T := Self.EXPRESSION; end;
 
 {$IFNDEF FPC}
-procedure TINDEXDEFDESCFIELDS_W(Self: TINDEXDEF; const T: tbtstring);
+procedure TINDEXDEFDESCFIELDS_W(Self: TINDEXDEF; const T: String);
 begin Self.DESCFIELDS := T; end;
 
-procedure TINDEXDEFDESCFIELDS_R(Self: TINDEXDEF; var T: tbtstring);
+procedure TINDEXDEFDESCFIELDS_R(Self: TINDEXDEF; var T: String);
 begin T := Self.DESCFIELDS; end;
 
-procedure TINDEXDEFCASEINSFIELDS_W(Self: TINDEXDEF; const T: tbtstring);
+procedure TINDEXDEFCASEINSFIELDS_W(Self: TINDEXDEF; const T: String);
 begin Self.CASEINSFIELDS := T; end;
 
-procedure TINDEXDEFCASEINSFIELDS_R(Self: TINDEXDEF; var T: tbtstring);
+procedure TINDEXDEFCASEINSFIELDS_R(Self: TINDEXDEF; var T: String);
 begin T := Self.CASEINSFIELDS; end;
 
 
-procedure TINDEXDEFFIELDEXPRESSION_R(Self: TINDEXDEF; var T: tbtstring);
+procedure TINDEXDEFFIELDEXPRESSION_R(Self: TINDEXDEF; var T: String);
 begin T := Self.FIELDEXPRESSION; end;
 
 procedure TFIELDDEFSPARENTDEF_R(Self: TFIELDDEFS; var T: TFIELDDEF);
@@ -1301,10 +1301,10 @@ begin T := Self.UPDATED; end;
 procedure TDEFCOLLECTIONDATASET_R(Self: TDEFCOLLECTION; var T: TDATASET);
 begin T := Self.DATASET; end;
 
-procedure TNAMEDITEMNAME_W(Self: TNAMEDITEM; const T: tbtstring);
+procedure TNAMEDITEMNAME_W(Self: TNAMEDITEM; const T: String);
 begin Self.NAME := T; end;
 
-procedure TNAMEDITEMNAME_R(Self: TNAMEDITEM; var T: tbtstring);
+procedure TNAMEDITEMNAME_R(Self: TNAMEDITEM; var T: String);
 begin T := Self.NAME; end;
 
 

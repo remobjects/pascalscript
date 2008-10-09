@@ -95,7 +95,7 @@ begin
     RegisterProperty('ACTIVECONTROL', 'TWINCONTROL', iptrw);
     RegisterProperty('BORDERICONS', 'TBorderIcons', iptrw);
     RegisterProperty('BORDERSTYLE', 'TFORMBORDERSTYLE', iptrw);
-    RegisterProperty('CAPTION', 'STRING', iptrw);
+    RegisterProperty('CAPTION', 'NativeString', iptrw);
     RegisterProperty('AUTOSCROLL', 'BOOLEAN', iptrw);
     RegisterProperty('COLOR', 'TCOLOR', iptrw);
     RegisterProperty('FONT', 'TFONT', iptrw);
@@ -174,17 +174,17 @@ begin
     RegisterMethod('procedure RESTORE');
     RegisterMethod('procedure TERMINATE');
     RegisterProperty('ACTIVE', 'BOOLEAN', iptr);
-    RegisterProperty('EXENAME', 'STRING', iptr);
+    RegisterProperty('EXENAME', 'NativeString', iptr);
     {$IFNDEF CLX}
     RegisterProperty('HANDLE', 'LONGINT', iptrw);
     RegisterProperty('UPDATEFORMATSETTINGS', 'BOOLEAN', iptrw);
     {$ENDIF}
-    RegisterProperty('HINT', 'STRING', iptrw);
+    RegisterProperty('HINT', 'NativeString', iptrw);
     RegisterProperty('MAINFORM', 'TFORM', iptr);
     RegisterProperty('SHOWHINT', 'BOOLEAN', iptrw);
     RegisterProperty('SHOWMAINFORM', 'BOOLEAN', iptrw);
     RegisterProperty('TERMINATED', 'BOOLEAN', iptr);
-    RegisterProperty('TITLE', 'STRING', iptrw);
+    RegisterProperty('TITLE', 'NativeString', iptrw);
     RegisterProperty('ONACTIVATE', 'TNOTIFYEVENT', iptrw);
     RegisterProperty('ONDEACTIVATE', 'TNOTIFYEVENT', iptrw);
     RegisterProperty('ONIDLE', 'TIDLEEVENT', iptrw);
@@ -207,13 +207,13 @@ begin
     {$IFNDEF CLX}
     RegisterMethod('function HELPCOMMAND(COMMAND:INTEGER;DATA:LONGINT):BOOLEAN');
     RegisterMethod('function HELPCONTEXT(CONTEXT:THELPCONTEXT):BOOLEAN');
-    RegisterMethod('function HELPJUMP(JUMPID:STRING):BOOLEAN');
+    RegisterMethod('function HELPJUMP(JUMPID:NativeString):BOOLEAN');
     RegisterProperty('DIALOGHANDLE', 'LONGINT', iptrw);
     RegisterMethod('procedure CREATEHANDLE');
 //    RegisterMethod('procedure HOOKMAINWINDOW(HOOK:TWINDOWHOOK)');
 //    RegisterMethod('procedure UNHOOKMAINWINDOW(HOOK:TWINDOWHOOK)');
     {$ENDIF}
-    RegisterProperty('HELPFILE', 'STRING', iptrw);
+    RegisterProperty('HELPFILE', 'NativeString', iptrw);
     RegisterProperty('HINTCOLOR', 'TCOLOR', iptrw);
     RegisterProperty('HINTPAUSE', 'INTEGER', iptrw);
     RegisterProperty('HINTSHORTPAUSE', 'INTEGER', iptrw);

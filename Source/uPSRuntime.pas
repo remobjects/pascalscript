@@ -8227,27 +8227,43 @@ begin
     0: Stack.SetString(-1, IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2))); // inttostr
     1: Stack.SetInt(-1, StrToInt(Stack.GetString(-2))); // strtoint
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetString(-2), Stack.GetInt(-3))); // strtointdef
-    3: Stack.SetInt(-1, Pos(Stack.GetString(-2), Stack.GetString(-3)));// pos
-    4: Stack.SetString(-1, Copy(Stack.GetString(-2), Stack.GetInt(-3), Stack.GetInt(-4))); // copy
+    3: if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+        Stack.SetInt(-1, Pos(Stack.GetWideString(-2), Stack.GetWideString(-3)))// pos
+      else
+        Stack.SetInt(-1, Pos(Stack.GetString(-2), Stack.GetString(-3)));// pos
+    4:
+      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+        Stack.SetWideString(-1, Copy(Stack.GetWideString(-2), Stack.GetInt(-3), Stack.GetInt(-4))) // copy
+      else
+        Stack.SetString(-1, Copy(Stack.GetString(-2), Stack.GetInt(-3), Stack.GetInt(-4))); // copy
     5: //delete
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -1], True);
-        if (temp.Dta = nil) or (temp.aType.BaseType <> btString) then
+        if (temp.Dta <> nil) and (temp.aType.BaseType = btWideString) then
         begin
-          Result := False;
-          exit;
+          Delete(tbtwidestring(temp.Dta^), Stack.GetInt(-2), Stack.GetInt(-3));
+        end else begin
+          if (temp.Dta = nil) or (temp.aType.BaseType <> btString) then
+          begin
+            Result := False;
+            exit;
+          end;
+          Delete(tbtstring(temp.Dta^), Stack.GetInt(-2), Stack.GetInt(-3));
         end;
-        Delete(tbtstring(temp.Dta^), Stack.GetInt(-2), Stack.GetInt(-3));
       end;
     6: // insert
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], True);
-        if (temp.Dta = nil) or (temp.aType.BaseType <> btString) then
-        begin
-          Result := False;
-          exit;
+        if (temp.Dta <> nil) and (temp.aType.BaseType = btWideString) then begin
+          Insert(Stack.GetWideString(-1), tbtwidestring(temp.Dta^), Stack.GetInt(-3));
+        end else begin
+          if (temp.Dta = nil) or (temp.aType.BaseType <> btString) then
+          begin
+            Result := False;
+            exit;
+          end;
+          Insert(Stack.GetString(-1), tbtstring(temp.Dta^), Stack.GetInt(-3));
         end;
-        Insert(Stack.GetString(-1), tbtstring(temp.Dta^), Stack.GetInt(-3));
       end;
     7: // StrGet
       begin
@@ -8283,9 +8299,21 @@ begin
         end;
         tbtstring(temp.Dta^)[i] := tbtchar(Stack.GetInt(-1));
       end;
-    10: Stack.SetString(-1, FastUppercase(Stack.GetString(-2))); // Uppercase
-    11: Stack.SetString(-1, FastLowercase(Stack.GetString(-2)));// LowerCase
-    12: Stack.SetString(-1, Trim(Stack.GetString(-2)));// Trim
+    10:
+      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+        Stack.SetWideString(-1, WideUpperCase(Stack.GetWideString(-2))) // Uppercase
+      else
+        Stack.SetString(-1, FastUppercase(Stack.GetString(-2))); // Uppercase
+    11:
+      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+        Stack.SetWideString(-1, WideLowerCase(Stack.GetWideString(-2))) // Uppercase
+      else
+        Stack.SetString(-1, FastLowercase(Stack.GetString(-2)));// LowerCase
+    12:
+      if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+        Stack.SetWideString(-1, Trim(Stack.GetWideString(-2))) // Uppercase
+      else
+        Stack.SetString(-1, Trim(Stack.GetString(-2)));// Trim
     13: Stack.SetInt(-1, Length(Stack.GetString(-2))); // Length
     14: // SetLength
       begin
@@ -8307,9 +8335,18 @@ begin
     22: Stack.SetReal(-1, Abs(Stack.GetReal(-2))); // Abs
     23: Stack.SetReal(-1, StrToFloat(Stack.GetString(-2))); // StrToFloat
     24: Stack.SetString(-1, FloatToStr(Stack.GetReal(-2)));// FloatToStr
-    25: Stack.SetString(-1, PadL(Stack.GetString(-2), Stack.GetInt(-3))); //  PadL
-    26: Stack.SetString(-1, PadR(Stack.GetString(-2), Stack.GetInt(-3))); // PadR
-    27: Stack.SetString(-1, PadZ(Stack.GetString(-2), Stack.GetInt(-3)));// PadZ
+    25: if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+      Stack.SetWideString(-1, PadL(Stack.GetWideString(-2), Stack.GetInt(-3))) //  PadL
+    else
+      Stack.SetString(-1, PadL(Stack.GetString(-2), Stack.GetInt(-3))); //  PadL
+    26: if Stack.GetItem(-2)^.FType.BaseType = btWideString then
+      Stack.SetWideString(-1, PadR(Stack.GetWideString(-2), Stack.GetInt(-3))) // PadR
+    else
+      Stack.SetString(-1, PadR(Stack.GetString(-2), Stack.GetInt(-3))); // PadR
+    27: if Stack.GetItem(-2)^.FType.BaseType = btWideString then 
+      Stack.SetWideString(-1, PadZ(Stack.GetWideString(-2), Stack.GetInt(-3)))// PadZ
+    else
+      Stack.SetString(-1, PadZ(Stack.GetString(-2), Stack.GetInt(-3)));// PadZ
     28: Stack.SetString(-1, StringOfChar(tbtChar(Stack.GetInt(-2)), Stack.GetInt(-3))); // Replicate/StrOfChar
     29: // Assigned
       begin

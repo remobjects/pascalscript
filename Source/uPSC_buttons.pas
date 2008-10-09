@@ -28,7 +28,7 @@ begin
     RegisterProperty('ALLOWALLUP', 'BOOLEAN', iptrw);
     RegisterProperty('GROUPINDEX', 'INTEGER', iptrw);
     RegisterProperty('DOWN', 'BOOLEAN', iptrw);
-    RegisterProperty('CAPTION', 'String', iptrw);
+    RegisterProperty('CAPTION', 'NativeString', iptrw);
     RegisterProperty('FONT', 'TFont', iptrw);
     RegisterProperty('GLYPH', 'TBITMAP', iptrw);
     RegisterProperty('LAYOUT', 'TBUTTONLAYOUT', iptrw);

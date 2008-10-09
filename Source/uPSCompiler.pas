@@ -899,6 +899,7 @@ type
 
   TPSPascalCompiler = class
   protected
+    FAnyString: TPSType;
     FUnitName: tbtString;
     FID: Pointer;
     FOnExportCheck: TPSOnExportCheck;
@@ -4951,9 +4952,19 @@ begin
         exit;
       end;
         PType := Params[c].ExpectedType;
-        if (PType = nil) or ((PType.BaseType = btArray) and (TPSArrayType(PType).ArrayTypeNo = nil) and (GetTypeNo(BlockInfo, Params[c].Val).BaseType = btArray)) then
+        if (PType = nil) or ((PType.BaseType = btArray) and (TPSArrayType(PType).ArrayTypeNo = nil) and (GetTypeNo(BlockInfo, Params[c].Val).BaseType = btArray)) or
+          (PType = FAnyString) then
         begin
           Params[c].ExpectedType := GetTypeNo(BlockInfo, Params[c].Val);
+          if (Params[c].ExpectedType = nil) or not (Params[c].ExpectedType.BaseType in [btString, btWideString, btChar, btWideChar]) then begin
+            MakeError('', ecTypeMismatch, '');
+            Result := False;
+            exit;
+          end;
+          if Params[c].ExpectedType.BaseType = btChar then
+            Params[c].ExpectedType := FindBaseType(btString) else
+          if Params[c].ExpectedType.BaseType = btWideChar then
+            Params[c].ExpectedType := FindBaseType(btWideString);
         end else if (PType.BaseType = btArray) and (GetTypeNo(BlockInfo, Params[c].Val).BaseType = btArray) then
         begin
           if TPSArrayType(GetTypeNo(BlockInfo, Params[c].Val)).ArrayTypeNo <> TPSArrayType(PType).ArrayTypeNo then
@@ -5309,6 +5320,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
   function ProcessFunction2(ProcNo: Cardinal; Par: TPSParameters; ResultReg: TPSValue): Boolean;
   var
     Temp: TPSValueProcNo;
+    i: Integer;
   begin
     Temp := TPSValueProcNo.Create;
     Temp.Parameters := Par;
@@ -5317,6 +5329,12 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       Temp.ResultType := TPSInternalProcedure(FProcs[ProcNo]).Decl.Result
     else
       Temp.ResultType := TPSExternalProcedure(FProcs[ProcNo]).RegProc.Decl.Result;
+    if (Temp.ResultType <> nil) and (Temp.ResultType = FAnyString) then begin // workaround to make the result type match
+      for i := 0 to Par.Count -1 do begin
+        if Par[i].ExpectedType.BaseType in [btString, btWideString] then
+          Temp.ResultType := Par[i].ExpectedType;
+      end;
+    end;
     Result := _ProcessFunction(Temp, ResultReg);
     Temp.Parameters := nil;
     Temp.Free;
@@ -11835,6 +11853,7 @@ begin
   {$ELSE}
   AddType('NativeString', btString);
   {$ENDIF}
+  FAnyString := AddType('AnyString', btString);
   AddType('ShortInt', btS8);
   AddType('Word', btU16);
   AddType('SmallInt', btS16);
@@ -12470,10 +12489,10 @@ begin
   {$ENDIF}
   AddFunction('function StrToInt(s: String): Longint;');
   AddFunction('function StrToIntDef(s: String; def: Longint): Longint;');
-  AddFunction('function Copy(s: String; iFrom, iCount: Longint): String;');
-  AddFunction('function Pos(SubStr, S: String): Longint;');
-  AddFunction('procedure Delete(var s: String; ifrom, icount: Longint);');
-  AddFunction('procedure Insert(s: String; var s2: String; iPos: Longint);');
+  AddFunction('function Copy(s: AnyString; iFrom, iCount: Longint): AnyString;');
+  AddFunction('function Pos(SubStr, S: AnyString): Longint;');
+  AddFunction('procedure Delete(var s: AnyString; ifrom, icount: Longint);');
+  AddFunction('procedure Insert(s: AnyString; var s2: AnyString; iPos: Longint);');
   p := AddFunction('function GetArrayLength: integer;');
   with P.Decl.AddParam do
   begin
@@ -12500,9 +12519,9 @@ begin
   AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
   AddFunction('Function AnsiUppercase(s : String) : String;');
   AddFunction('Function AnsiLowercase(s : String) : String;');
-  AddFunction('Function Uppercase(s : String) : String;');
-  AddFunction('Function Lowercase(s : String) : String;');
-  AddFunction('Function Trim(s : String) : String;');
+  AddFunction('Function Uppercase(s : AnyString) : AnyString;');
+  AddFunction('Function Lowercase(s : AnyString) : AnyString;');
+  AddFunction('Function Trim(s : AnyString) : AnyString;');
   AddFunction('function Length: Integer;').Decl.AddParam.OrgName:='s';
   with AddFunction('procedure SetLength;').Decl do
   begin
@@ -12548,9 +12567,9 @@ begin
   AddFunction('Function Abs(e : Extended) : Extended;');
   AddFunction('function StrToFloat(s: String): Extended;');
   AddFunction('Function FloatToStr(e : Extended) : String;');
-  AddFunction('Function Padl(s : String;I : longInt) : String;');
-  AddFunction('Function Padr(s : String;I : longInt) : String;');
-  AddFunction('Function Padz(s : String;I : longInt) : String;');
+  AddFunction('Function Padl(s : AnyString;I : longInt) : AnyString;');
+  AddFunction('Function Padr(s : AnyString;I : longInt) : AnyString;');
+  AddFunction('Function Padz(s : AnyString;I : longInt) : AnyString;');
   AddFunction('Function Replicate(c : char;I : longInt) : String;');
   AddFunction('Function StringOfChar(c : char;I : longInt) : String;');
   AddTypeS('TVarType', 'Word');

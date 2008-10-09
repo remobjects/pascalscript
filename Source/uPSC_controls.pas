@@ -44,7 +44,7 @@ begin
     RegisterProperty('Top', 'Integer', iptRW);
     RegisterProperty('Width', 'Integer', iptRW);
     RegisterProperty('Height', 'Integer', iptRW);
-    RegisterProperty('Hint', 'String', iptRW);
+    RegisterProperty('Hint', 'NativeString', iptRW);
     RegisterProperty('Align', 'TAlign', iptRW);
     RegisterProperty('ClientHeight', 'Longint', iptRW);
     RegisterProperty('ClientWidth', 'Longint', iptRW);
@@ -203,7 +203,7 @@ begin
     RegisterMethod('Procedure Assign( Source : TDragObject)');
 {$ENDIF}
 {$IFNDEF FPC}
-    RegisterMethod('Function GetName : string');
+    RegisterMethod('Function GetName : NativeString');
     RegisterMethod('Function Instance : Longint');
 {$ENDIF}
     RegisterMethod('Procedure HideDragImage');

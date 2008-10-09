@@ -307,9 +307,10 @@ type
   tbtchar = {$IFDEF DELPHI4UP}AnsiChar{$ELSE}CHAR{$ENDIF};
 {$IFNDEF PS_NOWIDESTRING}
 
-  tbtwidestring = widestring;
+  tbtwidestring = {$IFDEF DELPHI2009UP}UnicodeString{$ELSE}widestring{$ENDIF};
 
   tbtwidechar = widechar;
+  tbtNativeString = {$IFDEF DELPHI2009UP}tbtWideString{$ELSE}tbtString{$ENDIF};
 {$ENDIF}
   IPointer = Cardinal;
   TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafeCall);

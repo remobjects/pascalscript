@@ -47,22 +47,22 @@ begin
   with Cl.AddClassN(cl.FindClass('TPersistent'), 'TSTRINGS') do
   begin
     IsAbstract := True;
-    RegisterMethod('function Add(S: string): Integer;');
-    RegisterMethod('procedure Append(S: string);');
-    RegisterMethod('procedure AddStrings(Strings: TStrings);');
+    RegisterMethod('function Add(S: NativeString): Integer;');
+    RegisterMethod('procedure Append(S: NativeString);');
+    RegisterMethod('procedure AddStrings(NativeString: TStrings);');
     RegisterMethod('procedure Clear;');
     RegisterMethod('procedure Delete(Index: Integer);');
-    RegisterMethod('function IndexOf(const S: string): Integer; ');
-    RegisterMethod('procedure Insert(Index: Integer; S: string); ');
+    RegisterMethod('function IndexOf(const S: NativeString): Integer; ');
+    RegisterMethod('procedure Insert(Index: Integer; S: NativeString); ');
     RegisterProperty('Count', 'Integer', iptR);
-    RegisterProperty('Text', 'String', iptrw);
-    RegisterProperty('CommaText', 'String', iptrw);
+    RegisterProperty('Text', 'NativeString', iptrw);
+    RegisterProperty('CommaText', 'NativeString', iptrw);
     if Streams then
     begin
-      RegisterMethod('procedure LoadFromFile(FileName: string); ');
-      RegisterMethod('procedure SaveToFile(FileName: string); ');
+      RegisterMethod('procedure LoadFromFile(FileName: NativeString); ');
+      RegisterMethod('procedure SaveToFile(FileName: NativeString); ');
     end;
-    RegisterProperty('Strings', 'String Integer', iptRW);
+    RegisterProperty('Strings', 'NativeString Integer', iptRW);
     SetDefaultPropery('Strings');
     RegisterProperty('Objects', 'TObject Integer', iptRW);
 
@@ -71,19 +71,19 @@ begin
     RegisterMethod('procedure EndUpdate;');
     RegisterMethod('function Equals(Strings: TStrings): Boolean;');
     RegisterMethod('procedure Exchange(Index1, Index2: Integer);');
-    RegisterMethod('function IndexOfName(Name: string): Integer;');
+    RegisterMethod('function IndexOfName(Name: NativeString): Integer;');
     if Streams then
       RegisterMethod('procedure LoadFromStream(Stream: TStream); ');
     RegisterMethod('procedure Move(CurIndex, NewIndex: Integer); ');
     if Streams then
       RegisterMethod('procedure SaveToStream(Stream: TStream); ');
     RegisterMethod('procedure SetText(Text: PChar); ');
-    RegisterProperty('Names', 'String Integer', iptr);
-    RegisterProperty('Values', 'String String', iptRW);
-    RegisterMethod('function ADDOBJECT(S:STRING;AOBJECT:TOBJECT):INTEGER');
+    RegisterProperty('Names', 'NativeString Integer', iptr);
+    RegisterProperty('Values', 'NativeString NativeString', iptRW);
+    RegisterMethod('function ADDOBJECT(S:NativeString;AOBJECT:TOBJECT):INTEGER');
     RegisterMethod('function GETTEXT:PCHAR');
     RegisterMethod('function INDEXOFOBJECT(AOBJECT:TOBJECT):INTEGER');
-    RegisterMethod('procedure INSERTOBJECT(INDEX:INTEGER;S:STRING;AOBJECT:TOBJECT)');
+    RegisterMethod('procedure INSERTOBJECT(INDEX:INTEGER;S:NativeString;AOBJECT:TOBJECT)');
     {$ENDIF}
   end;
 end;
@@ -149,7 +149,7 @@ begin
   begin
     RegisterMethod('procedure CLEAR');
     RegisterMethod('procedure LOADFROMSTREAM(STREAM:TSTREAM)');
-    RegisterMethod('procedure LOADFROMFILE(FILENAME:STRING)');
+    RegisterMethod('procedure LOADFROMFILE(FILENAME:NativeString)');
     RegisterMethod('procedure SETSIZE(NEWSIZE:LONGINT)');
   end;
 end;
@@ -159,7 +159,7 @@ procedure SIRegisterTFILESTREAM(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('THANDLESTREAM'), 'TFILESTREAM') do
   begin
-    RegisterMethod('constructor CREATE(FILENAME:STRING;MODE:WORD)');
+    RegisterMethod('constructor CREATE(FILENAME:NativeString;MODE:WORD)');
   end;
 end;
 
@@ -170,7 +170,7 @@ begin
   begin
     IsAbstract := True;
     RegisterMethod('procedure SAVETOSTREAM(STREAM:TSTREAM)');
-    RegisterMethod('procedure SAVETOFILE(FILENAME:STRING)');
+    RegisterMethod('procedure SAVETOFILE(FILENAME:NativeString)');
   end;
 end;
 
@@ -178,8 +178,8 @@ procedure SIRegisterTRESOURCESTREAM(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TCUSTOMMEMORYSTREAM'), 'TRESOURCESTREAM') do
   begin
-    RegisterMethod('constructor CREATE(INSTANCE:THANDLE;RESNAME:STRING;RESTYPE:PCHAR)');
-    RegisterMethod('constructor CREATEFROMID(INSTANCE:THANDLE;RESID:INTEGER;RESTYPE:PCHAR)');
+    RegisterMethod('constructor CREATE(INSTANCE:THANDLE;RESNAME:NativeString;RESTYPE:NativeString)');
+    RegisterMethod('constructor CREATEFROMID(INSTANCE:THANDLE;RESID:INTEGER;RESTYPE:NativeString)');
   end;
 end;
 
@@ -189,17 +189,17 @@ begin
   begin
     RegisterMethod('constructor CREATE(STREAM:TSTREAM)');
     RegisterMethod('procedure CHECKTOKEN(T:CHAR)');
-    RegisterMethod('procedure CHECKTOKENSYMBOL(S:STRING)');
+    RegisterMethod('procedure CHECKTOKENSYMBOL(S:NativeString)');
     RegisterMethod('procedure ERROR(IDENT:INTEGER)');
-    RegisterMethod('procedure ERRORSTR(MESSAGE:STRING)');
+    RegisterMethod('procedure ERRORSTR(MESSAGE:NativeString)');
     RegisterMethod('procedure HEXTOBINARY(STREAM:TSTREAM)');
     RegisterMethod('function NEXTTOKEN:CHAR');
     RegisterMethod('function SOURCEPOS:LONGINT');
-    RegisterMethod('function TOKENCOMPONENTIDENT:STRING');
+    RegisterMethod('function TOKENCOMPONENTIDENT:NativeString');
     RegisterMethod('function TOKENFLOAT:EXTENDED');
     RegisterMethod('function TOKENINT:LONGINT');
-    RegisterMethod('function TOKENSTRING:STRING');
-    RegisterMethod('function TOKENSYMBOLIS(S:STRING):BOOLEAN');
+    RegisterMethod('function TOKENSTRING:NativeString');
+    RegisterMethod('function TOKENSYMBOLIS(S:NativeString):BOOLEAN');
     RegisterProperty('SOURCELINE', 'INTEGER', iptr);
     RegisterProperty('TOKEN', 'CHAR', iptr);
   end;
@@ -214,7 +214,7 @@ Begin
   RegisterProperty('COLLECTION', 'TCOLLECTION', iptrw);
 {$IFDEF DELPHI3UP}  RegisterProperty('ID', 'INTEGER', iptr); {$ENDIF}
   RegisterProperty('INDEX', 'INTEGER', iptrw);
-{$IFDEF DELPHI3UP}  RegisterProperty('DISPLAYNAME', 'STRING', iptrw); {$ENDIF}
+{$IFDEF DELPHI3UP}  RegisterProperty('DISPLAYNAME', 'NativeString', iptrw); {$ENDIF}
   end;
 end;
 
@@ -276,7 +276,7 @@ begin
   cl.AddConstantN('DateDelta', 'Longint').Value.ts32 := 693594;
   cl.AddTypeS('TAlignment', '(taLeftJustify, taRightJustify, taCenter)');
   cl.AddTypeS('THelpEvent', 'function (Command: Word; Data: Longint; var CallHelp: Boolean): Boolean');
-  cl.AddTypeS('TGetStrProc', 'procedure(const S: string)');
+  cl.AddTypeS('TGetStrProc', 'procedure(const S: NativeString)');
   cl.AddTypeS('TDuplicates', '(dupIgnore, dupAccept, dupError)');
   cl.AddTypeS('TOperation', '(opInsert, opRemove)');
   cl.AddTypeS('THANDLE', 'Longint');

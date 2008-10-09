@@ -50,7 +50,7 @@ begin
 {$ENDIF}
     RegisterProperty('Color', 'TColor', iptRW);
     RegisterProperty('Height', 'Integer', iptRW);
-    RegisterProperty('Name', 'string', iptRW);
+    RegisterProperty('Name', 'NativeString', iptRW);
     RegisterProperty('Pitch', 'Byte', iptRW);
     RegisterProperty('Size', 'Integer', iptRW);
     RegisterProperty('PixelsPerInch', 'Integer', iptRW);
@@ -76,9 +76,9 @@ begin
     RegisterMethod('procedure Rectangle(X1, Y1, X2, Y2: Integer);');
     RegisterMethod('procedure Refresh;');
     RegisterMethod('procedure RoundRect(X1, Y1, X2, Y2, X3, Y3: Integer);');
-    RegisterMethod('function TextHeight(Text: string): Integer;');
-    RegisterMethod('procedure TextOut(X, Y: Integer; Text: string);');
-    RegisterMethod('function TextWidth(Text: string): Integer;');
+    RegisterMethod('function TextHeight(Text: NativeString): Integer;');
+    RegisterMethod('procedure TextOut(X, Y: Integer; Text: NativeString);');
+    RegisterMethod('function TextWidth(Text: NativeString): Integer;');
 {$IFNDEF CLX}
     RegisterProperty('Handle', 'Integer', iptRw);
 {$ENDIF}
@@ -214,8 +214,8 @@ begin
   with CL.AddClassN(CL.FindClass('TPersistent'),'TGraphic') do
   begin
     RegisterMethod('constructor Create');
-    RegisterMethod('Procedure LoadFromFile( const Filename : string)');
-    RegisterMethod('Procedure SaveToFile( const Filename : string)');
+    RegisterMethod('Procedure LoadFromFile( const Filename : NativeString)');
+    RegisterMethod('Procedure SaveToFile( const Filename : NativeString)');
     RegisterProperty('Empty', 'Boolean', iptr);
     RegisterProperty('Height', 'Integer', iptrw);
     RegisterProperty('Modified', 'Boolean', iptrw);
@@ -243,7 +243,7 @@ begin
 {$IFNDEF CLX}
     RegisterMethod('Procedure LoadFromClipboardFormat( AFormat : Word; AData : THandle; APalette : HPALETTE)');
 {$ENDIF}
-    RegisterMethod('Procedure LoadFromResourceName( Instance : THandle; const ResName : String)');
+    RegisterMethod('Procedure LoadFromResourceName( Instance : THandle; const ResName : NativeString)');
     RegisterMethod('Procedure LoadFromResourceID( Instance : THandle; ResID : Integer)');
 {$IFNDEF CLX}
     RegisterMethod('Function ReleaseHandle : HBITMAP');

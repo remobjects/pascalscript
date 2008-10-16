@@ -882,7 +882,7 @@ function PSGetReal(Src: Pointer; aType: TPSTypeRec): Extended;
 function PSGetCurrency(Src: Pointer; aType: TPSTypeRec): Currency;
 function PSGetInt(Src: Pointer; aType: TPSTypeRec): Longint;
 function PSGetString(Src: Pointer; aType: TPSTypeRec): string;
-function PSGetAnsiString(Src: Pointer; aType: TPSTypeRec): String;
+function PSGetAnsiString(Src: Pointer; aType: TPSTypeRec): tbtString;
 {$IFNDEF PS_NOWIDESTRING}
 function PSGetWideString(Src: Pointer; aType: TPSTypeRec): tbtWideString;
 {$ENDIF}
@@ -911,7 +911,7 @@ function VNGetReal(const Src: TPSVariantIFC): Extended;
 function VNGetCurrency(const Src: TPSVariantIFC): Currency;
 function VNGetInt(const Src: TPSVariantIFC): Longint;
 function VNGetString(const Src: TPSVariantIFC): tbtString;
-function VNGetAnsiString(const Src: TPSVariantIFC): String;
+function VNGetAnsiString(const Src: TPSVariantIFC): tbtString;
 {$IFNDEF PS_NOWIDESTRING}
 function VNGetWideString(const Src: TPSVariantIFC): tbtWideString;
 {$ENDIF}

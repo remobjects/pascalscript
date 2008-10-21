@@ -4956,6 +4956,7 @@ begin
           (PType = FAnyString) then
         begin
           Params[c].ExpectedType := GetTypeNo(BlockInfo, Params[c].Val);
+          if PType <> nil then
           if (Params[c].ExpectedType = nil) or not (Params[c].ExpectedType.BaseType in [btString, btWideString, btChar, btWideChar]) then begin
             MakeError('', ecTypeMismatch, '');
             Result := False;

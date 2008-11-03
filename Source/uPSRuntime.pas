@@ -22,7 +22,7 @@ type
     erOutOfGlobalVarsRange, erOutOfProcRange, ErOutOfRange, erOutOfStackRange,
     ErTypeMismatch, erUnexpectedEof, erVersionError, ErDivideByZero, ErMathError,
     erCouldNotCallProc, erOutofRecordRange, erOutOfMemory, erException,
-    erNullPointerException, erNullVariantError, eInterfaceNotSupported, erCustomError);
+    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError);
 
   TPSStatus = (isNotLoaded, isLoaded, isRunning, isPaused);
 
@@ -1631,7 +1631,7 @@ begin
     erNullVariantError: Result := tbtString(RPS_NullVariantError);
     erOutOfMemory: Result := tbtString(RPS_OutOfMemory);
     erException: Result := tbtString(Format (RPS_Exception, [Param]));
-    eInterfaceNotSupported: Result := tbtString(RPS_InterfaceNotSupported);
+    erInterfaceNotSupported: Result := tbtString(RPS_InterfaceNotSupported);
     erCustomError: Result := Param;
       else
     Result := tbtString(RPS_UnknownError);
@@ -4321,7 +4321,7 @@ begin
             if (TObject(Src^) = nil) or not TObject(Src^).GetInterface(TPSTypeRec_Interface(desttype).Guid, IUnknown(Dest^)) then
             begin
               Result := false;
-              Cmd_Err(eInterfaceNotSupported);
+              Cmd_Err(erInterfaceNotSupported);
               exit;
             end;
 {$ENDIF}

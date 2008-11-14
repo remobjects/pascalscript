@@ -140,7 +140,7 @@ type
   TPSPascalPreProcessorParser = class(TObject)
   private
     FData: tbtstring;
-    FText: Pchar;
+    FText: PAnsichar;
     FToken: tbtstring;
     FTokenId: TPSPascalPreProcessorType;
     FLastEnterPos, FLen, FRow, FCol, FPos: Cardinal;
@@ -475,7 +475,7 @@ end;
 procedure TPSPascalPreProcessorParser.SetText(const dta: tbtstring);
 begin
   FData := dta;
-  FText := pchar(FData);
+  FText := pAnsichar(FData);
   FLen := 0;
   FPos := 0;
   FCol := 1;

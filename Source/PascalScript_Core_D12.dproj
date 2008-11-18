@@ -13,23 +13,15 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
-			<DCC_CVT_WIDENING_STRING_LOST>error</DCC_CVT_WIDENING_STRING_LOST>
-			<DCC_IMPLICIT_STRING_CAST_LOSS>error</DCC_IMPLICIT_STRING_CAST_LOSS>
 			<DCC_Description>RemObjects Pascal Script - Core Package</DCC_Description>
 			<DCC_DependencyCheckOutputName>..\Dcu\D12\PascalScript_Core_D12.bpl</DCC_DependencyCheckOutputName>
 			<DCC_UnitSearchPath>..\Dcu\D12;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_CVT_ACHAR_TO_WCHAR>error</DCC_CVT_ACHAR_TO_WCHAR>
-			<DCC_CVT_WCHAR_TO_ACHAR>error</DCC_CVT_WCHAR_TO_ACHAR>
 			<DCC_BplOutput>..\Dcu\D12</DCC_BplOutput>
-			<DCC_EXPLICIT_STRING_CAST_LOSS>error</DCC_EXPLICIT_STRING_CAST_LOSS>
-			<DCC_EXPLICIT_STRING_CAST>error</DCC_EXPLICIT_STRING_CAST>
-			<DCC_CVT_NARROWING_STRING_LOST>error</DCC_CVT_NARROWING_STRING_LOST>
 			<DCC_DcuOutput>..\Dcu\D12</DCC_DcuOutput>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<GenDll>true</GenDll>
 			<DCC_DcpOutput>..\Dcu\D12</DCC_DcpOutput>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
-			<DCC_IMPLICIT_STRING_CAST>error</DCC_IMPLICIT_STRING_CAST>
 			<DesignOnlyPackage>true</DesignOnlyPackage>
 			<GenPackage>true</GenPackage>
 			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
@@ -87,48 +79,48 @@
 		</ItemGroup>
 		<Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
 		<ProjectExtensions>
-			<Borland.Personality>Delphi.Personality</Borland.Personality>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
 			<Borland.ProjectType>Package</Borland.ProjectType>
-			<BorlandProject><BorlandProject>
-	<Delphi.Personality>
-		<Parameters>
-			<Parameters Name="UseLauncher">False</Parameters>
-			<Parameters Name="LoadAllSymbols">True</Parameters>
-			<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-		</Parameters>
-		<VersionInfo>
-			<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
-			<VersionInfo Name="MajorVer">3</VersionInfo>
-			<VersionInfo Name="MinorVer">0</VersionInfo>
-			<VersionInfo Name="Release">29</VersionInfo>
-			<VersionInfo Name="Build">673</VersionInfo>
-			<VersionInfo Name="Debug">False</VersionInfo>
-			<VersionInfo Name="PreRelease">False</VersionInfo>
-			<VersionInfo Name="Special">False</VersionInfo>
-			<VersionInfo Name="Private">False</VersionInfo>
-			<VersionInfo Name="DLL">False</VersionInfo>
-			<VersionInfo Name="Locale">1033</VersionInfo>
-			<VersionInfo Name="CodePage">1252</VersionInfo>
-		</VersionInfo>
-		<VersionInfoKeys>
-			<VersionInfoKeys Name="CompanyName">RemObjects Software</VersionInfoKeys>
-			<VersionInfoKeys Name="FileDescription"></VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">3.0.29.673</VersionInfoKeys>
-			<VersionInfoKeys Name="InternalName"></VersionInfoKeys>
-			<VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys>
-			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
-			<VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys>
-			<VersionInfoKeys Name="ProductName">Pascal Script</VersionInfoKeys>
-			<VersionInfoKeys Name="ProductVersion">3.0.0.0</VersionInfoKeys>
-			<VersionInfoKeys Name="CompileDate">Friday, March 21, 2008 1:24 PM</VersionInfoKeys>
-			<VersionInfoKeys Name="Compile Date">Monday, February 28, 2005 3:33 PM</VersionInfoKeys>
-		</VersionInfoKeys>
-		<Source>
-			<Source Name="MainSource">PascalScript_Core_D12.dpk</Source>
-		</Source>
-	</Delphi.Personality>
-</BorlandProject>
-</BorlandProject>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Parameters>
+						<Parameters Name="UseLauncher">False</Parameters>
+						<Parameters Name="LoadAllSymbols">True</Parameters>
+						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+					</Parameters>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+						<VersionInfo Name="MajorVer">3</VersionInfo>
+						<VersionInfo Name="MinorVer">0</VersionInfo>
+						<VersionInfo Name="Release">29</VersionInfo>
+						<VersionInfo Name="Build">673</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">1033</VersionInfo>
+						<VersionInfo Name="CodePage">1252</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName">RemObjects Software</VersionInfoKeys>
+						<VersionInfoKeys Name="FileDescription"/>
+						<VersionInfoKeys Name="FileVersion">3.0.29.673</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName"/>
+						<VersionInfoKeys Name="LegalCopyright"/>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename"/>
+						<VersionInfoKeys Name="ProductName">Pascal Script</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductVersion">3.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="CompileDate">Friday, March 21, 2008 1:24 PM</VersionInfoKeys>
+						<VersionInfoKeys Name="Compile Date">Monday, February 28, 2005 3:33 PM</VersionInfoKeys>
+					</VersionInfoKeys>
+					<Source>
+						<Source Name="MainSource">PascalScript_Core_D12.dpk</Source>
+					</Source>
+				</Delphi.Personality>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
 		</ProjectExtensions>
 	</Project>

@@ -9740,7 +9740,11 @@ begin
       BlockWriteByte(BlockInfo, Cm_G);
       BlockWriteLong(BlockInfo, $12345678);
       EPos := Length(BlockInfo.Proc.Data);
+      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      unaligned(Longint((@BlockInfo.Proc.Data[SPos - 3])^)) := Length(BlockInfo.Proc.Data) - Longint(SPos);
+      {$else}
       Longint((@BlockInfo.Proc.Data[SPos - 3])^) := Length(BlockInfo.Proc.Data) - Longint(SPos);
+      {$endif}
       FParser.Next;
       Block := TPSBlockInfo.Create(BlockInfo);
       Block.SubType := tOneLiner;

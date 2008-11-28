@@ -2275,7 +2275,11 @@ var
                 Result := False;
                 exit;;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              PPSVariantU32(varp)^.Data := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               PPSVariantU32(varp)^.Data := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
             end;
           btProcPtr:
@@ -2287,7 +2291,11 @@ var
                 Result := False;
                 exit;;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              PPSVariantU32(varp)^.Data := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               PPSVariantU32(varp)^.Data := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               if PPSVariantU32(varp)^.Data = 0 then
               begin
                 PPSVariantProcPtr(varp)^.Ptr := nil;
@@ -6066,7 +6074,11 @@ begin
   end;
   VarType := FData^[FCurrentPosition];
   Inc(FCurrentPosition);
+  {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  Param := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+  {$else}
   Param := Cardinal((@FData^[FCurrentPosition])^);
+  {$endif}
   Inc(FCurrentPosition, 4);
   case VarType of
     0:
@@ -6171,7 +6183,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              tbtu16(dest.p^) := unaligned(tbtu16((@FData^[FCurrentPosition])^));
+	      {$else}
               tbtu16(dest.p^) := tbtu16((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 2);
             end;
           bts32, btU32:
@@ -6183,7 +6199,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              tbtu32(dest.p^) := unaligned(tbtu32((@FData^[FCurrentPosition])^));
+	      {$else}
               tbtu32(dest.p^) := tbtu32((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
             end;
           btProcPtr:
@@ -6195,7 +6215,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              tbtu32(dest.p^) := unaligned(tbtu32((@FData^[FCurrentPosition])^));
+	      {$else}
               tbtu32(dest.p^) := tbtu32((@FData^[FCurrentPosition])^);
+	      {$endif}
               tbtu32(Pointer(IPointer(dest.p)+4)^) := 0;
               tbtu32(Pointer(IPointer(dest.p)+8)^) := 0;
               Inc(FCurrentPosition, 4);
@@ -6210,7 +6234,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              tbts64(dest.p^) := unaligned(tbts64((@FData^[FCurrentPosition])^));
+	      {$else}
               tbts64(dest.p^) := tbts64((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 8);
             end;
           {$ENDIF}
@@ -6223,7 +6251,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              tbtsingle(dest.p^) := unaligned(tbtsingle((@FData^[FCurrentPosition])^));
+	      {$else}
               tbtsingle(dest.p^) := tbtsingle((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, Sizeof(Single));
             end;
           btDouble:
@@ -6235,7 +6267,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              tbtdouble(dest.p^) := unaligned(tbtdouble((@FData^[FCurrentPosition])^));
+	      {$else}
               tbtdouble(dest.p^) := tbtdouble((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, Sizeof(double));
             end;
 
@@ -6248,7 +6284,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              tbtextended(dest.p^) := unaligned(tbtextended((@FData^[FCurrentPosition])^));
+	      {$else}
               tbtextended(dest.p^) := tbtextended((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, sizeof(Extended));
             end;
           btPchar, btString:
@@ -6260,7 +6300,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              Param := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               Param := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               Pointer(Dest.P^) := nil;
               SetLength(tbtstring(Dest.P^), Param);
@@ -6282,7 +6326,11 @@ begin
                 Result := False;
                 exit;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              Param := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               Param := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               Pointer(Dest.P^) := nil;
               SetLength(tbtwidestring(Dest.P^), Param);
@@ -6346,7 +6394,11 @@ begin
           Result := False;
           exit;
         end;
+	{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        Param := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	{$else}
         Param := Cardinal((@FData^[FCurrentPosition])^);
+	{$endif}
         Inc(FCurrentPosition, 4);
         case Dest.aType.BaseType of
           btRecord:
@@ -6437,7 +6489,11 @@ begin
           Dest.aType := PPSVariantData(Tmp).vi.FType;
           Dest.P := @PPSVariantData(Tmp).Data;
         end;
+	{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        Param := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	{$else}
         Param := Cardinal((@FData^[FCurrentPosition])^);
+	{$endif}
         Inc(FCurrentPosition, 4);
         if Param < PSAddrNegativeStackStart then
         begin
@@ -6640,7 +6696,11 @@ end;
 function TPSExec.ReadLong(var b: Cardinal): Boolean;
 begin
   if FCurrentPosition + 3 < FDataLength then begin
+    {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    b := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+    {$else}
     b := Cardinal((@FData^[FCurrentPosition])^);
+    {$endif}
     Inc(FCurrentPosition, 4);
     Result := True;
   end
@@ -7446,7 +7506,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               if p >= FProcs.Count then begin
                 CMD_Err(erOutOfProcRange);
@@ -7521,7 +7585,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               FCurrentPosition := FCurrentPosition + p;
             end;
@@ -7534,7 +7602,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               FCurrentPosition := FCurrentPosition + p;
             end;
@@ -7545,7 +7617,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               FCurrentPosition := FCurrentPosition + p;
             end;
@@ -7556,7 +7632,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               btemp := true;
               if not ReadVariable(vs, btemp) then
@@ -7587,7 +7667,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               btemp := true;
               if not ReadVariable(vs, BTemp) then
@@ -7680,7 +7764,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               if p > FTypes.Count then
               begin
@@ -7755,7 +7843,11 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
+	      {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
+	      {$endif}
               Inc(FCurrentPosition, 4);
               if FJumpFlag then
                 FCurrentPosition := FCurrentPosition + p;
@@ -9159,6 +9251,8 @@ end;
     {$include x86.inc}
   {$elseif defined(cpupowerpc)}
     {$include powerpc.inc}
+  {$elseif defined(cpuarm)}
+    {$include arm.inc}
   {$else}
     {$fatal Pascal Script is not supported for your architecture at the moment!}
   {$ifend}
@@ -10830,11 +10924,12 @@ begin
 end;
 
 {$ifdef fpc}
-  {$if defined(cpupowerpc)}
-    {$define ppc}
+  {$if defined(cpupowerpc) or defined(cpuarm)}
+    {$define empty_methods_handler}
   {$ifend}
 {$endif}
-{$ifdef ppc}
+
+{$ifdef empty_methods_handler}
 procedure MyAllMethodsHandler;
 begin
 end;

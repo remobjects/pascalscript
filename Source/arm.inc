@@ -1,7 +1,33 @@
 { implementation of the arm procedure call standard for function calls in pascal script
   Copyright (c) 2008 by Henry Vermaak (henry.vermaak@gmail.com) 
   
-  todo: add eabi (define FPC_ABI_EABI) and wince support }
+  todo: add eabi (define FPC_ABI_EABI) and wince support 
+  
+  notes:
+
+  most arm cpus don't allow unaligned access.  by default (?) the linux kernel
+  is set up to try and correct unaligned access, which can lead to strange behaviour.
+  to turn this off, try (as root):
+
+  echo 4 > /proc/cpu/alignment
+
+  if you have an alignment problem, you will now get a crash with a backtrace like this:
+  (make sure you compile with -O- -gl)
+
+  An unhandled exception occurred at $0006C014 :
+  EBusError : Bus error or misaligned data access
+    $0006C014  PROCESSREPEAT,  line 9670 of upscompiler.pas
+    $00068AAC  TPSPASCALCOMPILER__PROCESSSUB,  line 10459 of upscompiler.pas
+    $0007D0B4  TPSPASCALCOMPILER__COMPILE,  line 11704 of upscompiler.pas
+
+  you can fix this by using the "unaligned" keyword around the pointer operation.
+  search for occurances of "unaligned" to see how this is done,
+  (use $ifdef FPC_REQUIRES_PROPER_ALIGNMENT).
+
+  for more information, visit:
+
+  http://www.aleph1.co.uk/oldsite/armlinux/book/afaq.html
+}   
 
 const
   rtINT = 0;

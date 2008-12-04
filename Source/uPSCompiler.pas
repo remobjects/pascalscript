@@ -11847,6 +11847,14 @@ begin
   begin
     HighValue := 2147483647; // make sure it's gonna be a 4 byte var
   end;
+  with TPSEnumType(AddType('WordBool', btEnum)) do
+  begin
+    HighValue := 65535; // make sure it's gonna be a 2 byte var
+  end;
+  with TPSEnumType(AddType('ByteBool', btEnum)) do
+  begin
+    HighValue := 255; // make sure it's gonna be a 1 byte var
+  end;
   AddType('Char', btChar);
   {$IFNDEF PS_NOWIDESTRING}
   AddType('WideChar', btWideChar);
@@ -12092,7 +12100,9 @@ type
 function TPSPascalCompiler.IsBoolean(aType: TPSType): Boolean;
 begin
   Result := (AType = FDefaultBoolType)
-    or (AType.Name = 'LONGBOOL');
+    or (AType.Name = 'LONGBOOL')
+    or (AType.Name = 'WORDBOOL')
+    or (AType.Name = 'BYTEBOOL');
 end;
 
 

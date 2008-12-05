@@ -9,7 +9,7 @@ uses
 {
   Will register files from:
     Classes (exception TPersistent and TComponent)
- 
+
   Register STD first
 
 }
@@ -44,23 +44,23 @@ implementation
 
 procedure SIRegisterTStrings(cl: TPSPascalCompiler; Streams: Boolean); // requires TPersistent
 begin
-  with Cl.AddClassN(cl.FindClass('TPersistent'), 'TSTRINGS') do
+  with Cl.AddClassN(cl.FindClass('TPersistent'), 'TStrings') do
   begin
     IsAbstract := True;
-    RegisterMethod('function Add(S: String): Integer;');
-    RegisterMethod('procedure Append(S: String);');
-    RegisterMethod('procedure AddStrings(String: TStrings);');
+    RegisterMethod('function Add(S: string): Integer;');
+    RegisterMethod('procedure Append(S: string);');
+    RegisterMethod('procedure AddStrings(Strings: TStrings);');
     RegisterMethod('procedure Clear;');
     RegisterMethod('procedure Delete(Index: Integer);');
-    RegisterMethod('function IndexOf(const S: String): Integer; ');
-    RegisterMethod('procedure Insert(Index: Integer; S: String); ');
+    RegisterMethod('function IndexOf(const S: string): Integer; ');
+    RegisterMethod('procedure Insert(Index: Integer; S: string); ');
     RegisterProperty('Count', 'Integer', iptR);
     RegisterProperty('Text', 'String', iptrw);
     RegisterProperty('CommaText', 'String', iptrw);
     if Streams then
     begin
-      RegisterMethod('procedure LoadFromFile(FileName: String); ');
-      RegisterMethod('procedure SaveToFile(FileName: String); ');
+      RegisterMethod('procedure LoadFromFile(FileName: string); ');
+      RegisterMethod('procedure SaveToFile(FileName: string); ');
     end;
     RegisterProperty('Strings', 'String Integer', iptRW);
     SetDefaultPropery('Strings');
@@ -71,7 +71,7 @@ begin
     RegisterMethod('procedure EndUpdate;');
     RegisterMethod('function Equals(Strings: TStrings): Boolean;');
     RegisterMethod('procedure Exchange(Index1, Index2: Integer);');
-    RegisterMethod('function IndexOfName(Name: String): Integer;');
+    RegisterMethod('function IndexOfName(Name: string): Integer;');
     if Streams then
       RegisterMethod('procedure LoadFromStream(Stream: TStream); ');
     RegisterMethod('procedure Move(CurIndex, NewIndex: Integer); ');
@@ -80,141 +80,141 @@ begin
     RegisterMethod('procedure SetText(Text: PChar); ');
     RegisterProperty('Names', 'String Integer', iptr);
     RegisterProperty('Values', 'String String', iptRW);
-    RegisterMethod('function ADDOBJECT(S:String;AOBJECT:TOBJECT):INTEGER');
-    RegisterMethod('function GETTEXT:PCHAR');
-    RegisterMethod('function INDEXOFOBJECT(AOBJECT:TOBJECT):INTEGER');
-    RegisterMethod('procedure INSERTOBJECT(INDEX:INTEGER;S:String;AOBJECT:TOBJECT)');
+    RegisterMethod('function AddObject(S:String;AObject:TObject):integer');
+    RegisterMethod('function GetText:PChar');
+    RegisterMethod('function IndexIfObject(AObject:tObject):Integer');
+    RegisterMethod('procedure InsertObject(Index:Integer;S:String;AObject:TObject)');
     {$ENDIF}
   end;
 end;
 
 procedure SIRegisterTSTRINGLIST(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TSTRINGS'), 'TSTRINGLIST') do
+  with Cl.AddClassN(cl.FindClass('TStrings'), 'TStringList') do
   begin
-    RegisterMethod('function FIND(S:STRING;var INDEX:INTEGER):BOOLEAN');
-    RegisterMethod('procedure SORT');
-    RegisterProperty('DUPLICATES', 'TDUPLICATES', iptrw);
-    RegisterProperty('SORTED', 'BOOLEAN', iptrw);
-    RegisterProperty('ONCHANGE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONCHANGING', 'TNOTIFYEVENT', iptrw);
+    RegisterMethod('function Find(S:String;var Index:Integer):Boolean');
+    RegisterMethod('procedure Sort');
+    RegisterProperty('Duplicates', 'TDuplicates', iptrw);
+    RegisterProperty('Sorted', 'Boolean', iptrw);
+    RegisterProperty('OnChange', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnChanging', 'TNotifyEvent', iptrw);
   end;
 end;
 
 {$IFNDEF PS_MINIVCL}
 procedure SIRegisterTBITS(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TObject'), 'TBITS') do
+  with Cl.AddClassN(cl.FindClass('TObject'), 'TBits') do
   begin
-    RegisterMethod('function OPENBIT:INTEGER');
-    RegisterProperty('BITS', 'BOOLEAN INTEGER', iptrw);
-    RegisterProperty('SIZE', 'INTEGER', iptrw);
+    RegisterMethod('function OpenBit:Integer');
+    RegisterProperty('Bits', 'Boolean Integer', iptrw);
+    RegisterProperty('Size', 'Integer', iptrw);
   end;
 end;
 {$ENDIF}
 
 procedure SIRegisterTSTREAM(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TOBJECT'), 'TSTREAM') do
+  with Cl.AddClassN(cl.FindClass('TOBJECT'), 'TStream') do
   begin
     IsAbstract := True;
-    RegisterMethod('function READ(BUFFER:STRING;COUNT:LONGINT):LONGINT');
-    RegisterMethod('function WRITE(BUFFER:STRING;COUNT:LONGINT):LONGINT');
-    RegisterMethod('function SEEK(OFFSET:LONGINT;ORIGIN:WORD):LONGINT');
-    RegisterMethod('procedure READBUFFER(BUFFER:STRING;COUNT:LONGINT)');
-    RegisterMethod('procedure WRITEBUFFER(BUFFER:STRING;COUNT:LONGINT)');
+    RegisterMethod('function Read(Buffer:String;Count:LongInt):LongInt');
+    RegisterMethod('function Write(Buffer:String;Count:LongInt):LongInt');
+    RegisterMethod('function Seek(Offset:LongInt;Origin:Word):LongInt');
+    RegisterMethod('procedure ReadBuffer(Buffer:String;Count:LongInt)');
+    RegisterMethod('procedure WriteBuffer(Buffer:String;Count:LongInt)');
     {$IFDEF DELPHI4UP}
-    RegisterMethod('function COPYFROM(SOURCE:TSTREAM;COUNT:INT64):LONGINT');
+    RegisterMethod('function CopyFrom(Source:TStream;Count:Int64):LongInt');
     {$ELSE}
-    RegisterMethod('function COPYFROM(SOURCE:TSTREAM;COUNT:Integer):LONGINT');
+    RegisterMethod('function FopyFrom(Source:TStream;Count:Integer):LongInt');
     {$ENDIF}
-    RegisterProperty('POSITION', 'LONGINT', iptrw);
-    RegisterProperty('SIZE', 'LONGINT', iptrw);
+    RegisterProperty('Position', 'LongInt', iptrw);
+    RegisterProperty('Size', 'LongInt', iptrw);
   end;
 end;
 
 procedure SIRegisterTHANDLESTREAM(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TSTREAM'), 'THANDLESTREAM') do
+  with Cl.AddClassN(cl.FindClass('TSTREAM'), 'THandleStream') do
   begin
-    RegisterMethod('constructor CREATE(AHANDLE:INTEGER)');
-    RegisterProperty('HANDLE', 'INTEGER', iptr);
+    RegisterMethod('constructor Create(AHandle:Integer)');
+    RegisterProperty('Handle', 'Integer', iptr);
   end;
 end;
 
 {$IFNDEF PS_MINIVCL}
 procedure SIRegisterTMEMORYSTREAM(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMMEMORYSTREAM'), 'TMEMORYSTREAM') do
+  with Cl.AddClassN(cl.FindClass('TCUSTOMMEMORYSTREAM'), 'TMemoryStream') do
   begin
-    RegisterMethod('procedure CLEAR');
-    RegisterMethod('procedure LOADFROMSTREAM(STREAM:TSTREAM)');
-    RegisterMethod('procedure LOADFROMFILE(FILENAME:String)');
-    RegisterMethod('procedure SETSIZE(NEWSIZE:LONGINT)');
+    RegisterMethod('procedure Clear');
+    RegisterMethod('procedure LoadFromStream(Stream:TStream)');
+    RegisterMethod('procedure LoadFromFile(FileName:String)');
+    RegisterMethod('procedure SetSize(NewSize:LongInt)');
   end;
 end;
 {$ENDIF}
 
 procedure SIRegisterTFILESTREAM(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('THANDLESTREAM'), 'TFILESTREAM') do
+  with Cl.AddClassN(cl.FindClass('THandleStream'), 'TFileStream') do
   begin
-    RegisterMethod('constructor CREATE(FILENAME:String;MODE:WORD)');
+    RegisterMethod('constructor Create(FileName:String;Mode:Word)');
   end;
 end;
 
 {$IFNDEF PS_MINIVCL}
 procedure SIRegisterTCUSTOMMEMORYSTREAM(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TSTREAM'), 'TCUSTOMMEMORYSTREAM') do
+  with Cl.AddClassN(cl.FindClass('TSTREAM'), 'TCustomMemoryStream') do
   begin
     IsAbstract := True;
-    RegisterMethod('procedure SAVETOSTREAM(STREAM:TSTREAM)');
-    RegisterMethod('procedure SAVETOFILE(FILENAME:String)');
+    RegisterMethod('procedure SaveToStream(Stream:TStream)');
+    RegisterMethod('procedure SaveToFile(FileName:String)');
   end;
 end;
 
 procedure SIRegisterTRESOURCESTREAM(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMMEMORYSTREAM'), 'TRESOURCESTREAM') do
+  with Cl.AddClassN(cl.FindClass('TCUSTOMMEMORYSTREAM'), 'TResourceStream') do
   begin
-    RegisterMethod('constructor CREATE(INSTANCE:THANDLE;RESNAME:String;RESTYPE:String)');
-    RegisterMethod('constructor CREATEFROMID(INSTANCE:THANDLE;RESID:INTEGER;RESTYPE:String)');
+    RegisterMethod('constructor Create(Instance:THandle;ResName:String;ResType:PChar)');
+    RegisterMethod('constructor CreateFromId(Instance:THandle;ResId:Integer;ResType:PChar)');
   end;
 end;
 
 procedure SIRegisterTPARSER(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TOBJECT'), 'TPARSER') do
+  with Cl.AddClassN(cl.FindClass('TOBJECT'), 'TParser') do
   begin
-    RegisterMethod('constructor CREATE(STREAM:TSTREAM)');
-    RegisterMethod('procedure CHECKTOKEN(T:CHAR)');
-    RegisterMethod('procedure CHECKTOKENSYMBOL(S:String)');
-    RegisterMethod('procedure ERROR(IDENT:INTEGER)');
-    RegisterMethod('procedure ERRORSTR(MESSAGE:String)');
-    RegisterMethod('procedure HEXTOBINARY(STREAM:TSTREAM)');
-    RegisterMethod('function NEXTTOKEN:CHAR');
-    RegisterMethod('function SOURCEPOS:LONGINT');
-    RegisterMethod('function TOKENCOMPONENTIDENT:String');
-    RegisterMethod('function TOKENFLOAT:EXTENDED');
-    RegisterMethod('function TOKENINT:LONGINT');
-    RegisterMethod('function TOKENSTRING:String');
-    RegisterMethod('function TOKENSYMBOLIS(S:String):BOOLEAN');
-    RegisterProperty('SOURCELINE', 'INTEGER', iptr);
-    RegisterProperty('TOKEN', 'CHAR', iptr);
+    RegisterMethod('constructor Create(Stream:TStream)');
+    RegisterMethod('procedure CheckToken(t:char)');
+    RegisterMethod('procedure CheckTokenSymbol(s:string)');
+    RegisterMethod('procedure Error(Ident:Integer)');
+    RegisterMethod('procedure ErrorStr(Message:String)');
+    RegisterMethod('procedure HexToBinary(Stream:TStream)');
+    RegisterMethod('function NextToken:Char');
+    RegisterMethod('function SourcePos:LongInt');
+    RegisterMethod('function TokenComponentIdent:String');
+    RegisterMethod('function TokenFloat:Extended');
+    RegisterMethod('function TokenInt:LongInt');
+    RegisterMethod('function TokenString:String');
+    RegisterMethod('function TokenSymbolIs(S:String):Boolean');
+    RegisterProperty('SourceLine', 'Integer', iptr);
+    RegisterProperty('Token', 'Char', iptr);
   end;
 end;
 
 procedure SIRegisterTCOLLECTIONITEM(CL: TPSPascalCompiler);
 Begin
-  if cl.FindClass('TCOLLECTION') = nil then cl.AddClassN(cl.FindClass('TPERSISTENT'), 'TCOLLECTION');
-  With cl.AddClassN(cl.FindClass('TPERSISTENT'),'TCOLLECTIONITEM') do
+  if cl.FindClass('TCOLLECTION') = nil then cl.AddClassN(cl.FindClass('TPERSISTENT'), 'TCollection');
+  With cl.AddClassN(cl.FindClass('TPERSISTENT'),'TCollectionItem') do
   begin
-  RegisterMethod('Constructor CREATE( COLLECTION : TCOLLECTION)');
-  RegisterProperty('COLLECTION', 'TCOLLECTION', iptrw);
-{$IFDEF DELPHI3UP}  RegisterProperty('ID', 'INTEGER', iptr); {$ENDIF}
-  RegisterProperty('INDEX', 'INTEGER', iptrw);
-{$IFDEF DELPHI3UP}  RegisterProperty('DISPLAYNAME', 'String', iptrw); {$ENDIF}
+  RegisterMethod('Constructor Create( Collection : TCollection)');
+  RegisterProperty('Collection', 'TCollection', iptrw);
+{$IFDEF DELPHI3UP}  RegisterProperty('Id', 'Integer', iptr); {$ENDIF}
+  RegisterProperty('Index', 'Integer', iptrw);
+{$IFDEF DELPHI3UP}  RegisterProperty('DisplayName', 'String', iptrw); {$ENDIF}
   end;
 end;
 
@@ -223,28 +223,28 @@ var
   cr: TPSCompileTimeClass;
 Begin
   cr := CL.FindClass('TCOLLECTION');
-  if cr = nil then cr := cl.AddClassN(cl.FindClass('TPERSISTENT'), 'TCOLLECTION');
+  if cr = nil then cr := cl.AddClassN(cl.FindClass('TPERSISTENT'), 'TCollection');
 With cr do
   begin
-//  RegisterMethod('Constructor CREATE( ITEMCLASS : TCOLLECTIONITEMCLASS)');
-{$IFDEF DELPHI3UP}  RegisterMethod('Function OWNER : TPERSISTENT'); {$ENDIF}
-  RegisterMethod('Function ADD : TCOLLECTIONITEM');
-  RegisterMethod('Procedure BEGINUPDATE');
-  RegisterMethod('Procedure CLEAR');
-{$IFDEF DELPHI5UP}  RegisterMethod('Procedure DELETE( INDEX : INTEGER)'); {$ENDIF}
-  RegisterMethod('Procedure ENDUPDATE');
-{$IFDEF DELPHI3UP}  RegisterMethod('Function FINDITEMID( ID : INTEGER) : TCOLLECTIONITEM'); {$ENDIF}
-{$IFDEF DELPHI3UP}  RegisterMethod('Function INSERT( INDEX : INTEGER) : TCOLLECTIONITEM'); {$ENDIF}
-  RegisterProperty('COUNT', 'INTEGER', iptr);
-{$IFDEF DELPHI3UP}  RegisterProperty('ITEMCLASS', 'TCOLLECTIONITEMCLASS', iptr); {$ENDIF}
-  RegisterProperty('ITEMS', 'TCOLLECTIONITEM INTEGER', iptrw);
+//  RegisterMethod('constructor Create( ItemClass : TCollectionItemClass)');
+{$IFDEF DELPHI3UP}  RegisterMethod('function Owner : TPersistent'); {$ENDIF}
+  RegisterMethod('function Add : TCollectionItem');
+  RegisterMethod('procedure BeginUpdate');
+  RegisterMethod('procedure Clear');
+{$IFDEF DELPHI5UP}  RegisterMethod('procedure Delete( Index : Integer)'); {$ENDIF}
+  RegisterMethod('procedure EndUpdate');
+{$IFDEF DELPHI3UP}  RegisterMethod('function FindItemId( Id : Integer) : TCollectionItem'); {$ENDIF}
+{$IFDEF DELPHI3UP}  RegisterMethod('function Insert( Index : Integer) : TCollectionItem'); {$ENDIF}
+  RegisterProperty('Count', 'Integer', iptr);
+{$IFDEF DELPHI3UP}  RegisterProperty('ItemClass', 'TCollectionItemClass', iptr); {$ENDIF}
+  RegisterProperty('Items', 'TCollectionItem Integer', iptrw);
   end;
 end;
 
 {$IFDEF DELPHI3UP}
 procedure SIRegisterTOWNEDCOLLECTION(CL: TPSPascalCompiler);
 Begin
-With Cl.AddClassN(cl.FindClass('TCOLLECTION'),'TOWNEDCOLLECTION') do
+With Cl.AddClassN(cl.FindClass('TCOLLECTION'),'TOwnedCollection') do
   begin
 //  RegisterMethod('Constructor CREATE( AOWNER : TPERSISTENT; ITEMCLASS : TCOLLECTIONITEMCLASS)');
   end;
@@ -276,7 +276,7 @@ begin
   cl.AddConstantN('DateDelta', 'Longint').Value.ts32 := 693594;
   cl.AddTypeS('TAlignment', '(taLeftJustify, taRightJustify, taCenter)');
   cl.AddTypeS('THelpEvent', 'function (Command: Word; Data: Longint; var CallHelp: Boolean): Boolean');
-  cl.AddTypeS('TGetStrProc', 'procedure(const S: String)');
+  cl.AddTypeS('TGetStrProc', 'procedure(const S: string)');
   cl.AddTypeS('TDuplicates', '(dupIgnore, dupAccept, dupError)');
   cl.AddTypeS('TOperation', '(opInsert, opRemove)');
   cl.AddTypeS('THANDLE', 'Longint');

@@ -82,7 +82,7 @@ begin
     RegisterProperty('Values', 'String String', iptRW);
     RegisterMethod('function AddObject(S:String;AObject:TObject):integer');
     RegisterMethod('function GetText:PChar');
-    RegisterMethod('function IndexIfObject(AObject:tObject):Integer');
+    RegisterMethod('function IndexofObject(AObject:tObject):Integer');
     RegisterMethod('procedure InsertObject(Index:Integer;S:String;AObject:TObject)');
     {$ENDIF}
   end;

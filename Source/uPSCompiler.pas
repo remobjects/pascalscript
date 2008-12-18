@@ -11717,7 +11717,7 @@ begin
       begin
         Block := TPSBlockInfo.Create(nil); //nvds
         Block.SubType := tUnitInit;        //nvds
-        Block.Proc := NewProc(PSMainProcNameOrg+'_'+fModule, PSMainProcName+'_'+fModule); //nvds
+        Block.Proc := NewProc(PSMainProcNameOrg+'_'+fModule, FastUpperCase(PSMainProcName+'_'+fModule)); //nvds
         Block.ProcNo := FindProc(PSMainProcName+'_'+fModule);  //nvds
         Block.Proc.DeclareUnit:= fModule;
         Block.Proc.DeclarePos := FParser.CurrTokenPos;

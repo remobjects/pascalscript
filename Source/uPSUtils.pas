@@ -3,7 +3,7 @@ unit uPSUtils;
 
 interface
 uses
-  Classes, SysUtils;
+  Classes, SysUtils {$IFDEF VER130}, Windows {$ENDIF};
 
 const
 
@@ -575,7 +575,10 @@ const
   FMaxCheckCount = (FCapacityInc div 4) * 64;
 {$ENDIF}
 
-
+{$IFDEF VER130}
+function WideUpperCase(const S: WideString): WideString;
+function WideLowerCase(const S: WideString): WideString;
+{$ENDIF}
 implementation
 
 {$IFDEF DELPHI3UP }
@@ -584,6 +587,41 @@ resourceString
 const
 {$ENDIF }
   RPS_InvalidFloat = 'Invalid float';
+
+{$IFDEF VER130}
+
+function WideUpperCase(const S: WideString): WideString;
+var
+  Len: Integer;
+begin
+  // CharUpperBuffW is stubbed out on Win9x platofmrs
+  if Win32Platform = VER_PLATFORM_WIN32_NT then
+  begin
+    Len := Length(S);
+    SetString(Result, PWideChar(S), Len);
+    if Len > 0 then CharUpperBuffW(Pointer(Result), Len);
+  end
+  else
+    Result := AnsiUpperCase(S);
+end;
+
+function WideLowerCase(const S: WideString): WideString;
+var
+  Len: Integer;
+begin
+  // CharLowerBuffW is stubbed out on Win9x platofmrs
+  if Win32Platform = VER_PLATFORM_WIN32_NT then
+  begin
+    Len := Length(S);
+    SetString(Result, PWideChar(S), Len);
+    if Len > 0 then CharLowerBuffW(Pointer(Result), Len);
+  end
+  else
+    Result := AnsiLowerCase(S);
+end;
+
+{$ENDIF}
+
 
 function MakeHash(const s: TbtString): Longint;
 {small hash maker}

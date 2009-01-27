@@ -7,7 +7,7 @@ interface
 uses
   uPSRuntime, uPSUtils, sysutils;
 
-function IFPS3DataToText(const Input: string; var Output: string): Boolean;
+function IFPS3DataToText(const Input: tbtstring; var Output: string): Boolean;
 implementation
 
 type
@@ -44,7 +44,7 @@ begin
 end;
 
 
-function IFPS3DataToText(const Input: string; var Output: string): Boolean;
+function IFPS3DataToText(const Input: tbtstring; var Output: string): Boolean;
 var
   I: TMyPSExec;
 
@@ -177,7 +177,7 @@ var
           e: extended;
           ss: single;
           d: double;
-          s: string;
+          s: ansistring;
           c: char;
           {$IFNDEF PS_NOWIDESTRING}
           wc: WideChar;
@@ -215,7 +215,7 @@ var
             {$ENDIF}
           end;
         end;
-        function AddressToStr(a: Cardinal): string;
+        function AddressToStr(a: Cardinal): String;
         begin
           if a < PSAddrNegativeStackStart then
             Result := 'GlobalVar['+inttostr(a)+']'

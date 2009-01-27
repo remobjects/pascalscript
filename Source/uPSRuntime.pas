@@ -910,7 +910,7 @@ function VNGetInt64(const Src: TPSVariantIFC): Int64;
 function VNGetReal(const Src: TPSVariantIFC): Extended;
 function VNGetCurrency(const Src: TPSVariantIFC): Currency;
 function VNGetInt(const Src: TPSVariantIFC): Longint;
-function VNGetString(const Src: TPSVariantIFC): tbtString;
+function VNGetString(const Src: TPSVariantIFC): String;
 function VNGetAnsiString(const Src: TPSVariantIFC): tbtString;
 {$IFNDEF PS_NOWIDESTRING}
 function VNGetWideString(const Src: TPSVariantIFC): tbtWideString;
@@ -3040,7 +3040,7 @@ begin
   PSSetAnsiString(Src.Dta, Src.aType, Dummy, Val);
 end;
 
-function VNGetString(const Src: TPSVariantIFC): tbtString;
+function VNGetString(const Src: TPSVariantIFC): String;
 begin
   {$IFDEF DELPHI2009UP}
   Result := VNGetWideString(Src);

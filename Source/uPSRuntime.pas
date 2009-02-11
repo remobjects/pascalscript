@@ -771,7 +771,7 @@ type
     function IsValidResource(Proc, P: Pointer): Boolean;
 	
     procedure DeleteResource(P: Pointer);
-	
+
     function FindProcResource(Proc: Pointer): Pointer;
 
     function FindProcResource2(Proc: Pointer; var StartAt: Longint): Pointer;
@@ -11737,8 +11737,15 @@ begin
       OOFS := FLength;
     Move(FDataPtr^, p^, OOFS);
     OOFS := IPointer(P) - IPointer(FDataPtr);
-    for i := Count -1 downto 0 do
+
+    for i := Count -1 downto 0 do begin
       Data[i] := Pointer(IPointer(Data[i]) + OOFS);
+      if Items[i].FType.FBaseType = btPointer then begin // check if pointer points to moved stack data
+        if (IPointer(PPSVariantPointer(Data[i]).DataDest) >= IPointer(FDataPtr)) and
+           (IPointer(PPSVariantPointer(Data[i]).DataDest) <  IPointer(FDataPtr)+IPointer(FLength)) then
+          PPSVariantPointer(Data[i]).DataDest := Pointer(IPointer(PPSVariantPointer(Data[i]).DataDest) + OOFS);
+      end;
+    end;
 
     FreeMem(FDataPtr, FCapacity);
   end;

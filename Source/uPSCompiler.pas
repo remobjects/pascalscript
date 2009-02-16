@@ -1730,7 +1730,7 @@ const
   RPS_UnknownIdentifier = 'Unknown identifier ''%s''';
   RPS_IdentifierExpected = 'Identifier expected';
   RPS_CommentError = 'Comment error';
-  RPS_StringError = 'tbtString error';
+  RPS_StringError = 'String error';
   RPS_CharError = 'Char error';
   RPS_SyntaxError = 'Syntax error';
   RPS_EOF = 'Unexpected end of file';
@@ -1740,26 +1740,26 @@ const
   RPS_DuplicateIdent = 'Duplicate identifier ''%s''';
   RPS_ColonExpected = 'colon ('':'') expected';
   RPS_UnknownType = 'Unknown type ''%s''';
-  RPS_CloseRoundExpected = 'Close round expected';
+  RPS_CloseRoundExpected = 'Closing parenthesis expected';
   RPS_TypeMismatch = 'Type mismatch';
   RPS_InternalError = 'Internal error (%s)';
   RPS_AssignmentExpected = 'Assignment expected';
   RPS_ThenExpected = '''THEN'' expected';
   RPS_DoExpected = '''DO'' expected';
   RPS_NoResult = 'No result';
-  RPS_OpenRoundExpected = 'open round (''('')expected';
+  RPS_OpenRoundExpected = 'opening parenthesis (''('')expected';
   RPS_CommaExpected = 'comma ('','') expected';
   RPS_ToExpected = '''TO'' expected';
   RPS_IsExpected = 'is (''='') expected';
   RPS_OfExpected = '''OF'' expected';
-  RPS_CloseBlockExpected = 'Close block('']'') expected';
+  RPS_CloseBlockExpected = 'Closing square bracket ('']'') expected';
   RPS_VariableExpected = 'Variable Expected';
-  RPS_StringExpected = 'tbtString Expected';
+  RPS_StringExpected = 'String Expected';
   RPS_EndExpected = '''END'' expected';
   RPS_UnSetLabel = 'Label ''%s'' not set';
   RPS_NotInLoop = 'Not in a loop';
   RPS_InvalidJump = 'Invalid jump';
-  RPS_OpenBlockExpected = 'Open Block (''['') expected';
+  RPS_OpenBlockExpected = 'Opening square brackets (''['') expected';
   RPS_WriteOnlyProperty = 'Write-only property';
   RPS_ReadOnlyProperty = 'Read-only property';
   RPS_ClassTypeExpected = 'Class type expected';
@@ -9299,6 +9299,23 @@ begin
       VariableVar.Free;
       InitVal.Free;
       exit;
+    end;
+    lType := GetTypeNo(BlockInfo, finVal);
+    if lType = nil then begin
+      MakeError('', ecTypeMismatch, '');
+      VariableVar.Free;
+      InitVal.Free;
+      exit;
+    end;
+    case lType.BaseType of
+      btU8, btS8, btU16, btS16, btU32, btS32: ;
+    else
+      begin
+        MakeError('', ecTypeMismatch, '');
+        VariableVar.Free;
+        InitVal.Free;
+        exit;
+      end;
     end;
     if FParser.CurrTokenId <> CSTII_do then
     begin

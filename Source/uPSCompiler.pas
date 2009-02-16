@@ -644,6 +644,7 @@ type
   PIFPSVar = TPSVar;
 
   TPSConstant = class(TObject)
+  private
 
     FOrgName: tbtString;
 
@@ -659,7 +660,6 @@ type
     FDeclareCol: Cardinal;
 
     FValue: PIfRVariant;
-  private
     procedure SetName(const Value: tbtString);
   public
 
@@ -1040,7 +1040,7 @@ type
 
      function UseExternalProc(const Name: tbtString): TPSParametersDecl;
 
-    function FindProc(const Name: tbtString): Cardinal;
+    function FindProc(const aName: tbtString): Cardinal;
 
     function GetTypeCount: Longint;
 
@@ -2178,14 +2178,22 @@ end;
 
 
 
-function TPSPascalCompiler.FindProc(const Name: tbtString): Cardinal;
+function TPSPascalCompiler.FindProc(const aName: tbtString): Cardinal;
 var
   l, h: Longint;
   x: TPSProcedure;
   xr: TPSRegProc;
+  name: tbtString;
 
 begin
+  name := FastUpperCase(aName);
   h := MakeHash(Name);
+  if FProcs = nil then
+  begin
+    result := InvalidVal;
+    Exit;
+  end;
+
   for l := FProcs.Count - 1 downto 0 do
   begin
     x := FProcs.Data^[l];
@@ -4575,7 +4583,11 @@ begin
     exit;
   end;
   if assigned(FOnFunctionStart) then
+  {$IFDEF PS_USESSUPPORT}
+     FOnFunctionStart(fModule + '.' + FParser.OriginalToken, EPos, ERow, ECol);
+  {$ELSE}
      FOnFunctionStart(FParser.OriginalToken, EPos, ERow, ECol);
+  {$ENDIF}
   EPos := FParser.CurrTokenPos;
   ERow := FParser.Row;
   ECol := FParser.Col;
@@ -4867,7 +4879,11 @@ begin
     CheckForUnusedVars(Func);
     Result := ProcessLabelForwards(Func);
     if assigned(FOnFunctionEnd) then
+    {$IFDEF PS_USESSUPPORT}
+      OnFunctionEnd(fModule + '.' + OriginalName, FParser.CurrTokenPos, FParser.Row, FParser.Col);
+    {$ELSE}
       OnFunctionEnd(OriginalName, FParser.CurrTokenPos, FParser.Row, FParser.Col);
+    {$ENDIF}
   finally
     FunctionDecl.Free;
     att.Free;
@@ -15286,4 +15302,3 @@ Internal error counter: 00020 (increase and then use)
 
 }
 end.
-

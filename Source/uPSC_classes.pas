@@ -126,7 +126,7 @@ begin
     {$IFDEF DELPHI4UP}
     RegisterMethod('function CopyFrom(Source:TStream;Count:Int64):LongInt');
     {$ELSE}
-    RegisterMethod('function FopyFrom(Source:TStream;Count:Integer):LongInt');
+    RegisterMethod('function CopyFrom(Source:TStream;Count:Integer):LongInt');
     {$ENDIF}
     RegisterProperty('Position', 'LongInt', iptrw);
     RegisterProperty('Size', 'LongInt', iptrw);

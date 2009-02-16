@@ -4491,6 +4491,7 @@ begin
                   btS32: b := tbts32(var1^) >= tbts32(Var2^);
                   btDouble: b := PSGetReal(Var1, var1type) >= tbtdouble(var2^);
                   btSingle: B := psGetReal(Var1, var1Type) >= tbtsingle(var2^);
+                  btExtended: B := psGetReal(Var1, var1Type) >= tbtExtended(var2^);
               {$IFNDEF PS_NOINT64} btS64: b := tbts32(var1^) >= tbts64(Var2^);{$ENDIF}
                   btChar: b := tbts32(var1^) >= Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) >= Ord(tbtwidechar(Var2^));{$ENDIF}
@@ -4565,6 +4566,7 @@ begin
                   btS32: b := tbts32(var1^) <= tbts32(Var2^);
                   btDouble: b := PSGetReal(Var1, var1type) <= tbtdouble(var2^);
                   btSingle: B := psGetReal(Var1, var1Type) <= tbtsingle(var2^);
+                  btExtended: B := psGetReal(Var1, var1Type) <= tbtExtended(var2^);
               {$IFNDEF PS_NOINT64} btS64: b := tbts32(var1^) <= tbts64(Var2^);{$ENDIF}
                   btChar: b := tbts32(var1^) <= Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) <= Ord(tbtwidechar(Var2^));{$ENDIF}
@@ -4638,6 +4640,7 @@ begin
                   btS32: b := tbts32(var1^) > tbts32(Var2^);
                   btDouble: b := PSGetReal(Var1, var1type) > tbtdouble(var2^);
                   btSingle: B := psGetReal(Var1, var1Type) > tbtsingle(var2^);
+                  btExtended: B := psGetReal(Var1, var1Type) > tbtExtended(var2^);
               {$IFNDEF PS_NOINT64} btS64: b := tbts32(var1^) > tbts64(Var2^);{$ENDIF}
                   btChar: b := tbts32(var1^) > Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) = Ord(tbtwidechar(Var2^));{$ENDIF}
@@ -4704,6 +4707,7 @@ begin
                   btS32: b := tbts32(var1^) < tbts32(Var2^);
                   btDouble: b := PSGetReal(Var1, var1type) < tbtdouble(var2^);
                   btSingle: B := psGetReal(Var1, var1Type) < tbtsingle(var2^);
+                  btExtended: B := psGetReal(Var1, var1Type) < tbtExtended(var2^);
               {$IFNDEF PS_NOINT64} btS64: b := tbts32(var1^) < tbts64(Var2^);{$ENDIF}
                   btChar: b := tbts32(var1^) < Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) < Ord(tbtwidechar(Var2^));{$ENDIF}
@@ -4795,6 +4799,7 @@ begin
                   btS32: b := tbts32(var1^) <> tbts32(Var2^);
                   btDouble: b := PSGetReal(Var1, var1type) <> tbtdouble(var2^);
                   btSingle: B := psGetReal(Var1, var1Type) <> tbtsingle(var2^);
+                  btExtended: B := psGetReal(Var1, var1Type) <> tbtExtended(var2^);
               {$IFNDEF PS_NOINT64} btS64: b := tbts32(var1^) <> tbts64(Var2^);{$ENDIF}
                   btChar: b := tbts32(var1^) <> Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) <> Ord(tbtwidechar(Var2^));{$ENDIF}
@@ -4894,6 +4899,7 @@ begin
                   btS32: b := tbts32(var1^) = tbts32(Var2^);
                   btDouble: b := PSGetReal(Var1, var1type) = tbtdouble(var2^);
                   btSingle: B := psGetReal(Var1, var1Type) = tbtsingle(var2^);
+                  btExtended: B := psGetReal(Var1, var1Type) = tbtExtended(var2^);
               {$IFNDEF PS_NOINT64} btS64: b := tbts32(var1^) = tbts64(Var2^);{$ENDIF}
                   btChar: b := tbts32(var1^) = Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) = Ord(tbtwidechar(Var2^));{$ENDIF}

@@ -4435,6 +4435,25 @@ begin
   end;
 end;
 
+type
+  TVariantArray = array of Variant;
+  PVariantArray = ^TVariantArray;
+function VariantInArray(var1: Pointer; var1Type: TPSTypeRec; var2: PVariantArray): Boolean;
+var
+  lDest: Variant;
+  i: Integer;
+begin
+  IntPIFVariantToVariant(var1, var1Type, lDest);
+  result := false;
+  for i := 0 to Length(var2^) -1 do begin
+    if var2^[i] = lDest then begin
+      result := true;
+      break;
+    end;
+  end;
+end;
+
+
 function TPSExec.DoBooleanCalc(var1, Var2, into: Pointer; var1Type, var2type, intotype: TPSTypeRec; Cmd: Cardinal): Boolean;
 var
   b: Boolean;
@@ -4946,6 +4965,11 @@ begin
           SetBoolean(b, Result);
         end;
       6: begin { in }
+          if (var2Type.BaseType = btArray) and (TPSTypeRec_Array(var2type).ArrayType.BaseType = btVariant) then
+          begin
+            b := VariantInArray(var1, var1Type, var2);
+            SetBoolean(b, Result);
+          end else
           if var2Type.BaseType = btSet then
           begin
             Cmd := PSGetUInt(var1, var1type);

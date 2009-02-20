@@ -3,7 +3,7 @@ program sample1;
 uses
   uPSCompiler, uPSRuntime;
 
-function ScriptOnUses(Sender: TPSPascalCompiler; const Name: string): Boolean;
+function ScriptOnUses(Sender: TPSPascalCompiler; const Name: AnsiString): Boolean;
 { the OnUses callback function is called for each "uses" in the script.
   It's always called with the parameter 'SYSTEM' at the top of the script. 
   For example: uses ii1, ii2;   
@@ -25,7 +25,7 @@ var
   Exec: TPSExec;
    { TPSExec is the executer part of the scriptengine. It uses the output of
     the compiler to run a script. }
-  Data: string;
+  Data: AnsiString;
 begin
   Compiler := TPSPascalCompiler.Create; // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.

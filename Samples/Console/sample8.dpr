@@ -15,7 +15,11 @@ begin
   ShowMessage(Data);
 end;
 
+{$IFDEF UNICODE}
+function ScriptOnExportCheck(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: AnsiString): Boolean;
+{$ELSE}
 function ScriptOnExportCheck(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: string): Boolean;
+{$ENDIF}
 {
   The OnExportCheck callback function is called for each function in the script
   (Also for the main proc, with '!MAIN' as a Proc^.Name). ProcDecl contains the
@@ -39,7 +43,11 @@ begin
   end else Result := True;
 end;
 
+{$IFDEF UNICODE}
+function ScriptOnUses(Sender: TPSPascalCompiler; const Name: AnsiString): Boolean;
+{$ELSE}
 function ScriptOnUses(Sender: TPSPascalCompiler; const Name: string): Boolean;
+{$ENDIF}
 { the OnUses callback function is called for each "uses" in the script.
   It's always called with the parameter 'SYSTEM' at the top of the script.
   For example: uses ii1, ii2;
@@ -70,7 +78,7 @@ var
   Exec: TPSExec;
    { TPSExec is the executer part of the scriptengine. It uses the output of
     the compiler to run a script. }
-  Data: string;
+  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string{$ENDIF}
 
   TestFunc: TTestFunction;
 begin

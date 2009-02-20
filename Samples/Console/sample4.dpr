@@ -1,5 +1,5 @@
 program sample4;
-
+{$APPTYPE CONSOLE}
 uses
   uPSCompiler,
   uPSRuntime,
@@ -15,7 +15,11 @@ uses
 
   ;
 
+{$IFDEF UNICODE}
+function ScriptOnUses(Sender: TPSPascalCompiler; const Name: AnsiString): Boolean;
+{$ELSE}
 function ScriptOnUses(Sender: TPSPascalCompiler; const Name: string): Boolean;
+{$ENDIF}
 { the OnUses callback function is called for each "uses" in the script. 
   It's always called with the parameter 'SYSTEM' at the top of the script. 
   For example: uses ii1, ii2;   
@@ -54,13 +58,17 @@ var
   Exec: TPSExec;
    { TPSExec is the executer part of the scriptengine. It uses the output of
     the compiler to run a script. }
-  Data: string;
-  CI: TPSRuntimeClassImporter; 
+  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string{$ENDIF}
+  i: Integer;
+  CI: TPSRuntimeClassImporter;
 begin
   Compiler := TPSPascalCompiler.Create; // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.
   if not Compiler.Compile(Script) then  // Compile the Pascal script into bytecode.
   begin
+
+    for i := 0 to Compiler.MsgCount -1 do
+      Writeln(Compiler.Msg[i].MessageToString);
     Compiler.Free;
      // You could raise an exception here.
     Exit;
@@ -71,7 +79,7 @@ begin
 
   CI := TPSRuntimeClassImporter.Create;
   { Create an instance of the runtime class importer.}
-  
+
   RIRegister_Std(CI);  // uPSR_std.pas unit.
   RIRegister_stdctrls(CI);  // uPSR_stdctrls.pas unit.
   RIRegister_Controls(CI); // uPSR_controls.pas unit.
@@ -81,7 +89,7 @@ begin
 
   RegisterClassLibraryRuntime(Exec, CI);
   // Assign the runtime class importer to the executer.
-  
+
   if not  Exec.LoadData(Data) then // Load the data from the Data string.
   begin
     { For some reason the script could not be loaded. This is usually the case when a

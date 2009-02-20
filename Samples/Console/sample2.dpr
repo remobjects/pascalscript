@@ -14,7 +14,12 @@ begin
   ShowMessage(Data);
 end;
 
+{$IFDEF UNICODE}
+function ScriptOnUses(Sender: TPSPascalCompiler; const Name: AnsiString): Boolean;
+{$ELSE}
 function ScriptOnUses(Sender: TPSPascalCompiler; const Name: string): Boolean;
+{$ENDIF}
+
 { the OnUses callback function is called for each "uses" in the script.
   It's always called with the parameter 'SYSTEM' at the top of the script.
   For example: uses ii1, ii2;
@@ -40,7 +45,7 @@ var
   Exec: TPSExec;
    { TPSExec is the executer part of the scriptengine. It uses the output of
     the compiler to run a script. }
-  Data: string;
+  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string{$ENDIF}
 begin
   Compiler := TPSPascalCompiler.Create; // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.

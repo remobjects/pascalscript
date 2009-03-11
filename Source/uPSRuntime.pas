@@ -4162,6 +4162,9 @@ begin
             btChar: tbts32(Dest^) := Ord(tbtchar(Src^));
         {$IFNDEF PS_NOWIDESTRING}  btWideChar: tbts32(Dest^) := Ord(tbtwidechar(Src^));{$ENDIF}
             btVariant: tbts32(Dest^) := Variant(src^);
+            // nx change start - allow assignment of class
+            btClass: tbtu32(Dest^) := tbtu32(src^);
+            // nx change start
             else raise Exception.Create(RPS_TypeMismatch);
           end;
         end;
@@ -4306,6 +4309,11 @@ begin
           if srctype.BaseType = btClass then
             TObject(Dest^) := TObject(Src^)
           else
+          // nx change start
+          if (srctype.BaseType in [btS32, btU32]) then
+            TbtU32(Dest^) := TbtU32(Src^)
+          else
+          // nx change end
             Result := False;
         end;
 {$IFNDEF PS_NOINTERFACES}
@@ -7355,6 +7363,14 @@ begin
               end;
               if not ReadVariable(vs, True) then
                 Break;
+              // nx change end
+{              if (vd.aType.BaseType = btClass) and (vs.aType.BaseType in [btS32]) then
+                DWord(vd.P^):=Dword(vs.P^)
+              else
+              if (vd.aType.BaseType in [btS32]) and (vs.aType.BaseType = btClass) then
+                DWord(vd.P^):=Dword(vs.P^)
+              else}
+              // nx change start
               if not SetVariantValue(vd.P, vs.P, vd.aType, vs.aType) then
               begin
                 if vs.FreeType <> vtNone then

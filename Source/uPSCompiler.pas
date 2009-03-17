@@ -8921,6 +8921,9 @@ begin
       Result := False;
       if Outreg is TPSValueReplace
         then Outreg:=TPSValueReplace(Outreg).OldValue;
+      if Where is TPSValueVar then begin
+        if TPSValueVar(Where).GetRecCount > 0 then result := true;
+      end else
       if Where.ClassType = TPSUnValueOp then
       begin
         if CheckOutReg(TPSUnValueOp(Where).Val1, OutReg) then

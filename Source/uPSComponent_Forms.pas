@@ -10,7 +10,7 @@ type
   private
     FEnableForms: Boolean;
     FEnableMenus: Boolean;
-  protected
+  public
     procedure CompileImport1(CompExec: TPSScript); override;
     procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); override;
   public

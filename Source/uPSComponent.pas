@@ -24,26 +24,24 @@ type
   TPSRuntimeClassImporter = uPSRuntime.TPSRuntimeClassImporter;
   
   TPSPlugin = class(TComponent)
-  protected
-    
-    procedure CompOnUses(CompExec: TPSScript); virtual;
-    
-    procedure ExecOnUses(CompExec: TPSScript); virtual;
-    
-    procedure CompileImport1(CompExec: TPSScript); virtual;
-    
-    procedure CompileImport2(CompExec: TPSScript); virtual;
-    
-    procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); virtual;
-    
-    procedure ExecImport2(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); virtual;
   public
+    procedure CompOnUses(CompExec: TPSScript); virtual;
+
+    procedure ExecOnUses(CompExec: TPSScript); virtual;
+
+    procedure CompileImport1(CompExec: TPSScript); virtual;
+
+    procedure CompileImport2(CompExec: TPSScript); virtual;
+
+    procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); virtual;
+
+    procedure ExecImport2(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); virtual;
   end;
   
   TIFPS3Plugin = class(TPSPlugin);
   
   TPSDllPlugin = class(TPSPlugin)
-  protected
+  public
     procedure CompOnUses(CompExec: TPSScript); override;
     procedure ExecOnUses(CompExec: TPSScript); override;
   end;
@@ -176,6 +174,7 @@ type
                 const DirectiveName, DirectiveParam: tbtstring;
                 Var Continue: Boolean); virtual;
   public
+    property RuntimeImporter: TPSRuntimeClassImporter read RI;
 
     function FindNamedType(const Name: tbtstring): TPSTypeRec;
 
@@ -376,7 +375,7 @@ type
     FOnCompileImport1: TPSEvent;
     FOnExecImport1: TPSOnExecImport;
     FOnExecImport2: TPSOnExecImport;
-  protected
+  public
     procedure CompOnUses(CompExec: TPSScript); override;
     procedure ExecOnUses(CompExec: TPSScript); override;
     procedure CompileImport1(CompExec: TPSScript); override;

@@ -7,7 +7,7 @@ uses
 type
 
   TPSImport_DateUtils = class(TPSPlugin)
-  protected
+  public
     procedure CompOnUses(CompExec: TPSScript); override;
     procedure ExecOnUses(CompExec: TPSScript); override;
   end;
@@ -16,7 +16,7 @@ type
   private
     FEnableStreams: Boolean;
     FEnableClasses: Boolean;
-  protected
+  public
     procedure CompileImport1(CompExec: TPSScript); override;
     procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); override;
   public

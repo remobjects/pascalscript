@@ -29,9 +29,10 @@ type
     FEnableBinary: Boolean;
     function GetHaveRodl: Boolean;
     function MkStructName(Struct: TRODLStruct): string;
-  protected
+  public
     procedure CompileImport1(CompExec: TPSScript); override;
     procedure ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter); override;
+  protected
     procedure Loaded; override;
   public
     
@@ -770,14 +771,28 @@ begin
       RecType := TPSRecordType(TempType).AddRecVal;
       RecType.FieldOrgName := Struct.Items[i1].Info.Name;
       RecType.aType := CompExec.Comp.FindType(Struct.Items[i1].DataType);
+      if RecType.aType = nil then begin
+        Arr := fRodl.FindArray(Struct.Items[i1].DataType);
+        if Arr <> nil then begin
+          RecType.aType := CompExec.Comp.AddType(Arr.Info.Name, btArray);
+          TPSArrayType(RecType.aType).ArrayTypeNo := CompExec.Comp.FindType(Arr.ElementType);
+        end;
+      end;
     end;
     CompExec.Comp.AddTypeCopy(Struct.Info.Name, TempType);
   end;
   for i := 0 to FRodl.ArrayCount -1 do
   begin
     Arr := FRodl.Arrays[i];
-    TempType := CompExec.Comp.AddType(Arr.Info.Name, btArray);
-    TPSArrayType(TempType).ArrayTypeNo := CompExec.Comp.FindType(Arr.ElementType);
+    TempType := CompExec.Comp.FindType(Arr.Info.Name);
+    if TempType <> nil then begin
+      if not (TempType is TPSArrayType) or (CompExec.Comp.FindType(Arr.ElementType) <> TPSArrayType(TempType).ArrayTypeNo) then begin
+        CompExec.Comp.MakeError('ROPS', ecDuplicateIdentifier, Arr.Info.Name);
+      end;
+    end else begin
+      TempType := CompExec.Comp.AddType(Arr.Info.Name, btArray);
+      TPSArrayType(TempType).ArrayTypeNo := CompExec.Comp.FindType(Arr.ElementType);
+    end;
   end;
   for i := 0 to FRodl.ServiceCount -1 do
   begin

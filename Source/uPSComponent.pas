@@ -781,7 +781,10 @@ begin
 
     DoOnCompile;
 
-    Result := True;
+    Result := true;
+    for i := 0 to Sender.MsgCount -1 do begin
+      if Sender.Msg[i] is TPSPascalCompilerError then Result := false;
+    end;
   end
   else begin
     Result := DoOnUnknowUses (Sender, Name);

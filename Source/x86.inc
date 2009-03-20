@@ -320,7 +320,7 @@ var
         btRecord,
         btInterface,
         btClass,
-        {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
+        {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
         {$IFNDEF PS_NOINT64}, bts64{$ENDIF}:
           begin
@@ -448,6 +448,10 @@ var
             TempStr := #0#0#0#0;
             Pointer((@TempStr[1])^) := pointer(fvar^.dta^);
           end;
+        btUnicodeString: begin
+            TempStr := #0#0#0#0;
+            Pointer((@TempStr[1])^) := pointer(fvar^.dta^);
+          end;
           {$ENDIF}
 
         btProcPtr:
@@ -516,7 +520,7 @@ begin
           end;
           if assigned(res) then begin
             case res^.aType.BaseType of
-              {$IFNDEF PS_NOWIDESTRING}btWideString, {$ENDIF}
+              {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}
               btInterface, btArray, btrecord, {$IFNDEF PS_FPCSTRINGWORKAROUND}btstring, {$ENDIF}btVariant, btStaticArray: GetPtr(res);
               btSet:
                 begin
@@ -559,7 +563,7 @@ begin
               btCurrency:    tbtCurrency(res.Dta^) := RealFloatCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4) / 10000;
               btInterface,
               btVariant,
-              {$IFNDEF PS_NOWIDESTRING}btWidestring, {$ENDIF}
+              {$IFNDEF PS_NOWIDESTRING}btWidestring,btUnicodestring, {$ENDIF}
               btStaticArray, btArray, btrecord{$IFNDEF PS_FPCSTRINGWORKAROUND}, btstring {$ENDIF}:      RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
               {$IFDEF PS_FPCSTRINGWORKAROUND}
               btstring: begin
@@ -581,7 +585,7 @@ begin
           end;
           if assigned(res) then begin
             case res^.aType.BaseType of
-              {$IFNDEF PS_NOWIDESTRING}btWideString, {$ENDIF}btInterface, btArray, btrecord, btstring, btVariant: GetPtr(res);
+              {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}btInterface, btArray, btrecord, btstring, btVariant: GetPtr(res);
             end;
           end;
           if assigned(_Self) then begin
@@ -652,7 +656,7 @@ begin
                   tbts64(res^.Dta^) := Int64(EAX) shl 32 or EDX;
                 end;
               {$ENDIF}
-              btVariant, {$IFNDEF PS_NOWIDESTRING}btWideString, {$ENDIF}
+              btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}
               btInterface,
               btArray, btrecord, btstring:      begin GetPtr(res); RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil); end;
             else
@@ -687,7 +691,7 @@ begin
                   tbts64(res^.dta^) := Int64(EAX) shl 32 or EDX;
                 end;
               {$ENDIF}
-              btVariant, {$IFNDEF PS_NOWIDESTRING}btWideString, {$ENDIF}
+              btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}
               btInterface, btArray, btrecord, btstring: begin GetPtr(res); RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil); end;
             else
               exit;

@@ -217,7 +217,7 @@ begin
       then begin  { var param }
         case fvar.aType.BaseType of
           { add var params here }
-          btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
+          btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF}
           btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
           {$IFNDEF PS_NOINT64}, bts64{$ENDIF}: addgen(dword(fvar.dta));
           else begin

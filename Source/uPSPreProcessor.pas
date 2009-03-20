@@ -596,7 +596,7 @@ begin
         end;
         //-- end_jgv
 
-        if pos(' ', s) = 0 then
+        if pos(tbtChar(' '), s) = 0 then
         begin
           name := uppercase(s);
           s := '';

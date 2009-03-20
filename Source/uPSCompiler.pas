@@ -154,6 +154,7 @@ type
       20: (twidechar: tbtwidechar);
       {$ENDIF}
       21: (ttype: TPSType);
+      22: (tunistring: Pointer);
   end;
 
   TPSRecordFieldTypeDef = class(TObject)
@@ -701,6 +702,7 @@ type
     procedure SetWideChar(const val: WideChar);
 
     procedure SetWideString(const val: tbtwidestring);
+    procedure SetUnicodeString(const val: tbtunicodestring);
     {$ENDIF}
 
     procedure SetExtended(const Val: Extended);
@@ -958,6 +960,7 @@ type
     {$IFNDEF PS_NOWIDESTRING}
 
     function GetWideString(Src: PIfRVariant; var s: Boolean): tbtwidestring;
+    function GetUnicodeString(Src: PIfRVariant; var s: Boolean): tbtunicodestring;
     {$ENDIF}
     function PreCalc(FUseUsedTypes: Boolean; Var1Mod: Byte; var1: PIFRVariant; Var2Mod: Byte;
       Var2: PIfRVariant; Cmd: TPSBinOperatorType; Pos, Row, Col: Cardinal): Boolean;
@@ -1846,6 +1849,11 @@ begin
       BlockWriteLong(BlockInfo, Length(tbtWideString(p^.twidestring)));
       BlockWriteData(BlockInfo, tbtwidestring(p^.twidestring)[1], 2*Length(tbtWideString(p^.twidestring)));
     end;
+  btUnicodeString:
+    begin
+      BlockWriteLong(BlockInfo, Length(tbtUnicodeString(p^.twidestring)));
+      BlockWriteData(BlockInfo, tbtUnicodeString(p^.twidestring)[1], 2*Length(tbtUnicodeString(p^.twidestring)));
+    end;
   btWideChar: BlockWriteData(BlockInfo, p^.twidechar, 2);
   {$ENDIF}
   btSingle: BlockWriteData(BlockInfo, p^.tsingle, sizeof(tbtSingle));
@@ -2091,6 +2099,7 @@ begin
               btChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFCHAR', 'array of Char');
             {$IFNDEF PS_NOWIDESTRING}
               btWideString: VCType := FindAndAddType(Owner, '!OPENARRAYOFWIDESTRING', 'array of WideString');
+              btUnicodeString: VCType := FindAndAddType(Owner, '!OPENARRAYOFUNICODESTRING', 'array of UnicodeString');
               btWideChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFWIDECHAR', 'array of WideChar');
             {$ENDIF}
               btClass: VCType := FindAndAddType(Owner, '!OPENARRAYOFTOBJECT', 'array of TObject');
@@ -2561,6 +2570,7 @@ begin
     {$IFNDEF PS_NOINT64}bts64: dest^.ts64 := src^.ts64;{$ENDIF}
     btset, btstring: tbtstring(dest^.tstring) := tbtstring(src^.tstring);
     {$IFNDEF PS_NOWIDESTRING}
+    btunicodestring: tbtunicodestring(dest^.tunistring) := tbtunicodestring(src^.tunistring);
     btwidestring: tbtwidestring(dest^.twidestring) := tbtwidestring(src^.twidestring);
     btwidechar: Dest^.tchar := src^.tchar;
     {$ENDIF}
@@ -2594,6 +2604,7 @@ end;
 {$IFDEF FPC}
 procedure Finalize(var s: tbtString); overload; begin s := ''; end;
 procedure Finalize(var s: tbtwidestring); overload; begin s := ''; end;
+procedure Finalize(var s: tbtunicodestring); overload; begin s := ''; end;
 {$ENDIF}
 
 procedure FinalizeVariant(var p: TIfRVariant);
@@ -2602,7 +2613,9 @@ begin
     finalize(tbtstring(p.tstring))
   {$IFNDEF PS_NOWIDESTRING}
   else if p.FType.BaseType = btWideString then
-    finalize(tbtWideString(p.twidestring)); // tbtwidestring
+    finalize(tbtWideString(p.twidestring)) // tbtwidestring
+  else if p.FType.BaseType = btUnicodeString then
+    finalize(tbtUnicodeString(p.tunistring)); // tbtwidestring
   {$ENDIF}
 end;
 
@@ -2812,6 +2825,7 @@ begin
     {$IFNDEF PS_NOWIDESTRING}
     btWideChar: Result := tbtstring(src^.twidechar);
     btWideString: Result := tbtstring(tbtWideString(src^.twidestring));
+    btUnicodeString: Result := tbtstring(tbtUnicodeString(src^.tunistring));
     {$ENDIF}
   else
     begin
@@ -2829,6 +2843,22 @@ begin
     btString: Result := tbtWidestring(tbtstring(src^.tstring));
     btWideChar: Result := src^.twidechar;
     btWideString: Result := tbtWideString(src^.twidestring);
+    btUnicodeString: result := tbtUnicodeString(src^.tunistring);
+  else
+    begin
+      s := False;
+      Result := '';
+    end;
+  end;
+end;
+function TPSPascalCompiler.GetUnicodeString(Src: PIfRVariant; var s: Boolean): tbtunicodestring;
+begin
+  case Src.FType.BaseType of
+    btChar: Result := tbtWidestring(Src^.tchar);
+    btString: Result := tbtWidestring(tbtstring(src^.tstring));
+    btWideChar: Result := src^.twidechar;
+    btWideString: Result := tbtWideString(src^.twidestring);
+    btUnicodeString: result := tbtUnicodeString(src^.tunistring);
   else
     begin
       s := False;
@@ -2930,17 +2960,17 @@ begin
   tbtstring(var1^.tstring) := s;
 end;
 {$IFNDEF PS_NOWIDESTRING}
-procedure ConvertToWideString(SE: TPSPascalCompiler; FUseUsedTypes: Boolean; var1: PIFRVariant; const s: tbtwidestring);
+procedure ConvertToUnicodeString(SE: TPSPascalCompiler; FUseUsedTypes: Boolean; var1: PIFRVariant; const s: tbtunicodestring);
 var
   atype: TPSType;
 begin
   FinalizeVariant(var1^);
-  atype := se.FindBaseType(btWideString);
+  atype := se.FindBaseType(btUnicodeString);
   if FUseUsedTypes then
     InitializeVariant(var1, se.at2ut(atype))
   else
     InitializeVariant(var1, atype);
-  tbtwidestring(var1^.twidestring) := s;
+  tbtunicodestring(var1^.tunistring) := s;
 end;
 {$ENDIF}
 procedure ConvertToFloat(SE: TPSPascalCompiler; FUseUsedTypes: Boolean; var1: PIfRVariant; NewType: TPSType);
@@ -3010,9 +3040,13 @@ begin
     ((p1.BaseType = btWideChar) and (p2.BaseType = btWideChar)) or
     ((p1.BaseType = btWidestring) and (p2.BaseType = btChar)) or
     ((p1.BaseType = btWidestring) and (p2.BaseType = btWideChar)) or
-    ((p1.BaseType = btWidestring) and ((p2.BaseType = btString) or (p2.BaseType = btPchar))) or
-    ((p1.BaseType = btWidestring) and (p2.BaseType = btWidestring)) or
-    (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btWideString)) or
+    ((p1.BaseType = btWidestring) and ((p2.BaseType = btString) or (p2.BaseType = btPchar) or (p2.BaseType = btUnicodeString))) or
+    ((p1.BaseType = btWidestring) and ((p2.BaseType = btWidestring))) or
+    ((p1.BaseType = btUnicodeString) and (p2.BaseType = btChar)) or
+    ((p1.BaseType = btUnicodeString) and (p2.BaseType = btWideChar)) or
+    ((p1.BaseType = btUnicodeString) and ((p2.BaseType = btString) or (p2.BaseType = btPchar) or (p2.BaseType = btUnicodeString))) or
+    ((p1.BaseType = btUnicodeString) and (p2.BaseType = btWidestring)) or
+    (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btWideString)or (p2.BaseType = btUnicodeString)) or
     (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btWidechar)) or
     (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btchar)) or
     {$ENDIF}
@@ -3080,9 +3114,10 @@ begin
             btString: tbtstring(var1^.tstring) := tbtstring(var1^.tstring) + GetString(Var2, Result);
             {$IFNDEF PS_NOWIDESTRING}
             btwideString: tbtwidestring(var1^.twidestring) := tbtwidestring(var1^.twidestring) + GetWideString(Var2, Result);
+            btUnicodeString: tbtunicodestring(var1^.tunistring) := tbtunicodestring(var1^.tunistring) + GetUnicodeString(Var2, Result);
             btWidechar:
               begin
-                ConvertToWideString(Self, FUseUsedTypes, var1, GetWideString(Var1, b)+GetWideString(Var2, b));
+                ConvertToUnicodeString(Self, FUseUsedTypes, var1, GetUnicodeString(Var1, b)+GetUnicodeString(Var2, b));
               end;
             {$ENDIF}
             else Result := False;
@@ -3343,7 +3378,8 @@ begin
             btChar: b := var1^.tchar <> GetString(var2, Result);
             {$IFNDEF PS_NOWIDESTRING}
             btWideString: b := tbtWideString(var1^.twidestring) <> GetWideString(var2, Result);
-            btWideChar: b := var1^.twidechar <> GetWideString(var2, Result);
+            btUnicodeString: b := tbtUnicodeString(var1^.tunistring) <> GetUnicodeString(var2, Result);
+            btWideChar: b := var1^.twidechar <> GetUnicodeString(var2, Result);
             {$ENDIF}
             btSet:
               begin
@@ -3377,7 +3413,8 @@ begin
             btChar: b := var1^.tchar = GetString(var2, Result);
             {$IFNDEF PS_NOWIDESTRING}
             btWideString: b := tbtWideString(var1^.twidestring) = GetWideString(var2, Result);
-            btWideChar: b := var1^.twidechar = GetWideString(var2, Result);
+            btUnicodeString: b := tbtUnicodeString(var1^.twidestring) = GetUnicodeString(var2, Result);
+            btWideChar: b := var1^.twidechar = GetUnicodeString(var2, Result);
             {$ENDIF}
             btSet:
               begin
@@ -4977,7 +5014,7 @@ begin
         begin
           Params[c].ExpectedType := GetTypeNo(BlockInfo, Params[c].Val);
           if PType <> nil then
-          if (Params[c].ExpectedType = nil) or not (Params[c].ExpectedType.BaseType in [btString, btWideString, btChar, btWideChar]) then begin
+          if (Params[c].ExpectedType = nil) or not (Params[c].ExpectedType.BaseType in [btString, btWideString, btUnicodeString, btChar, btWideChar]) then begin
             MakeError('', ecTypeMismatch, '');
             Result := False;
             exit;
@@ -4985,7 +5022,7 @@ begin
           if Params[c].ExpectedType.BaseType = btChar then
             Params[c].ExpectedType := FindBaseType(btString) else
           if Params[c].ExpectedType.BaseType = btWideChar then
-            Params[c].ExpectedType := FindBaseType(btWideString);
+            Params[c].ExpectedType := FindBaseType(btUnicodeString);
         end else if (PType.BaseType = btArray) and (GetTypeNo(BlockInfo, Params[c].Val).BaseType = btArray) then
         begin
           if TPSArrayType(GetTypeNo(BlockInfo, Params[c].Val)).ArrayTypeNo <> TPSArrayType(PType).ArrayTypeNo then
@@ -5111,9 +5148,9 @@ end;
 function TPSPascalCompiler.ReadString: PIfRVariant;
 {$IFNDEF PS_NOWIDESTRING}var wchar: Boolean;{$ENDIF}
 
-  function ParseString({$IFNDEF PS_NOWIDESTRING}var res: tbtwidestring{$ELSE}var res: tbtString{$ENDIF}): Boolean;
+  function ParseString({$IFNDEF PS_NOWIDESTRING}var res: tbtunicodestring{$ELSE}var res: tbtString{$ENDIF}): Boolean;
   var
-    temp3: {$IFNDEF PS_NOWIDESTRING}tbtwidestring{$ELSE}tbtString{$ENDIF};
+    temp3: {$IFNDEF PS_NOWIDESTRING}tbtunicodestring{$ELSE}tbtString{$ENDIF};
 
     function ChrToStr(s: tbtString): {$IFNDEF PS_NOWIDESTRING}widechar{$ELSE}tbtchar{$ENDIF};
     var
@@ -5156,7 +5193,7 @@ function TPSPascalCompiler.ReadString: PIfRVariant;
         temp3 := temp3 + {$IFNDEF PS_NOWIDESTRING}{$IFDEF DELPHI6UP}System.{$IFDEF DELPHI2009UP}UTF8ToWidestring{$ELSE}UTF8Decode{$ENDIF}{$ENDIF}{$ENDIF}(PString(FParser.GetToken));
         {$IFNDEF PS_NOWIDESTRING}wchar:=true;{$ENDIF}
         end else
-          temp3 := temp3 + tbtwidestring(PString(FParser.GetToken));
+          temp3 := temp3 + tbtUnicodestring(PString(FParser.GetToken));
 
         FParser.Next;
         if FParser.CurrTokenId = CSTI_String then
@@ -5179,7 +5216,7 @@ function TPSPascalCompiler.ReadString: PIfRVariant;
   end;
 var
 {$IFNDEF PS_NOWIDESTRING}
-  w: tbtwidestring;
+  w: tbtunicodestring;
 {$ENDIF}
   s: tbtString;
 begin
@@ -5198,8 +5235,8 @@ begin
       InitializeVariant(Result, at2ut(FindBaseType(btwidechar)));
       Result^.twidechar := w[1];
     end else begin
-      InitializeVariant(Result, at2ut(FindBaseType(btwidestring)));
-      tbtwidestring(Result^.twidestring) := w;
+      InitializeVariant(Result, at2ut(FindBaseType(btUnicodeString)));
+      tbtunicodestring(Result^.tunistring) := w;
      end;
   end else begin
     s := tbtstring(w);
@@ -11971,9 +12008,10 @@ begin
   AddType('WideString', btWideString);
   {$ENDIF}
   AddType('AnsiString', btString);
+  AddType('UnicodeString', btUnicodeString);
   {$IFDEF DELPHI2009UP}
-  AddType('String', btWideString);
-  ADdType('NativeString', btWideString);
+  AddType('String', btUnicodeString);
+  ADdType('NativeString', btUnicodeString);
   {$ELSE}
   AddType('String', btString);
   AddType('NativeString', btString);
@@ -12640,8 +12678,8 @@ begin
   AddFunction('Function StrGet(var S : String; I : Integer) : Char;');
   AddFunction('procedure StrSet(c : Char; I : Integer; var s : String);');
   {$IFNDEF PS_NOWIDESTRING}
-  AddFunction('Function WStrGet(var S : widestring; I : Integer) : WideChar;');
-  AddFunction('procedure WStrSet(c : WideChar; I : Integer; var s : widestring);');
+  AddFunction('Function WStrGet(var S : AnyString; I : Integer) : WideChar;');
+  AddFunction('procedure WStrSet(c : AnyString; I : Integer; var s : AnyString);');
   {$ENDIF}
   AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
   AddFunction('Function AnsiUppercase(s : String) : String;');
@@ -13617,6 +13655,21 @@ begin
     case FValue.FType.BaseType of
       btString: tbtString(FValue.tstring) := tbtstring(val);
       btWideString: tbtwidestring(FValue.twidestring) := val;
+      btUnicodeString: tbtunicodestring(FValue.tunistring) := val;
+    else
+      raise EPSCompilerException.Create(RPS_ConstantValueMismatch);
+    end;
+  end else
+    raise EPSCompilerException.Create(RPS_ConstantValueNotAssigned)
+end;
+procedure TPSConstant.SetUnicodeString(const val: tbtunicodestring);
+begin
+  if (FValue <> nil) then
+  begin
+    case FValue.FType.BaseType of
+      btString: tbtString(FValue.tstring) := tbtstring(val);
+      btWideString: tbtwidestring(FValue.twidestring) := val;
+      btUnicodeString: tbtunicodestring(FValue.tunistring) := val;
     else
       raise EPSCompilerException.Create(RPS_ConstantValueMismatch);
     end;

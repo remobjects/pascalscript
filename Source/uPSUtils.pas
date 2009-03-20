@@ -91,6 +91,8 @@ const
 
   btNotificationVariant = 27;
 
+  btUnicodeString = 28;
+
   btType = 130;
 
   btEnum = 129;
@@ -307,10 +309,11 @@ type
   tbtchar = {$IFDEF DELPHI4UP}AnsiChar{$ELSE}CHAR{$ENDIF};
 {$IFNDEF PS_NOWIDESTRING}
 
-  tbtwidestring = {$IFDEF DELPHI2009UP}UnicodeString{$ELSE}widestring{$ENDIF};
+  tbtwidestring = widestring;
+  tbtunicodestring = {$IFDEF DELPHI2009UP}UnicodeString{$ELSE}widestring{$ENDIF};
 
   tbtwidechar = widechar;
-  tbtNativeString = {$IFDEF DELPHI2009UP}tbtWideString{$ELSE}tbtString{$ENDIF};
+  tbtNativeString = {$IFDEF DELPHI2009UP}tbtUnicodeString{$ELSE}tbtString{$ENDIF};
 {$ENDIF}
   IPointer = Cardinal;
   TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafeCall);

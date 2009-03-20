@@ -6299,7 +6299,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         {$IFNDEF PS_NOIDISPATCH}or ((u.BaseType = btVariant) or (u.BaseType = btNotificationVariant)){$ENDIF} or (u.BaseType = btExtClass) then exit;
         if FParser.CurrTokenId = CSTI_OpenBlock then
         begin
-          if (u.BaseType = btString) {$IFNDEF PS_NOWIDESTRING} or (u.BaseType = btWideString) {$ENDIF} then
+          if (u.BaseType = btString) {$IFNDEF PS_NOWIDESTRING} or (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) {$ENDIF} then
           begin
              FParser.Next;
             tmp := Calc(CSTI_CloseBlock);
@@ -6321,7 +6321,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             if FParser.CurrTokenId = CSTI_Assignment then
             begin
               {$IFNDEF PS_NOWIDESTRING}
-              if u.BaseType = btWideString then
+              if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
                 l := FindProc('WSTRSET')
               else
               {$ENDIF}
@@ -6384,7 +6384,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
 {$ENDIF}
             end else begin
               {$IFNDEF PS_NOWIDESTRING}
-              if u.BaseType = btWideString then
+              if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
                 l := FindProc('WSTRGET')
               else
               {$ENDIF}

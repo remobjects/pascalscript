@@ -13601,6 +13601,7 @@ begin
       btString: tbtString(FValue.tstring) := val;
       {$IFNDEF PS_NOWIDESTRING}
       btWideString: tbtwidestring(FValue.twidestring) := tbtwidestring(val);
+      btUnicodeString: tbtunicodestring(FValue.tunistring) := tbtunicodestring(val);
       {$ENDIF}
     else
       raise EPSCompilerException.Create(RPS_ConstantValueMismatch);

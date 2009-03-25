@@ -60,13 +60,14 @@ function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; con
 var
   FuncName,
   Name,
-  FuncCC, s: AnsiString;
+  FuncCC, s, s2: AnsiString;
   CC: TDllCallingConvention;
-  DelayLoad: Boolean;
+  DelayLoad, LoadWithAlteredSearchPath: Boolean;
 
 begin
   Name := FastUpperCase(OriginalName);
   DelayLoad := False;
+  LoadWithAlteredSearchPath := false;
   FuncCC := FExternal;
 
   if (pos(tbtChar('@'), FuncCC) = 0) then
@@ -95,14 +96,29 @@ begin
       s := Copy(FuncCC, pos(tbtchar(' '), Funccc)+1, MaxInt);
       FuncCC := FastUpperCase(Copy(FuncCC, 1, pos(tbtchar(' '), FuncCC)-1));
       Delete(FuncCC, pos(tbtchar(' '), Funccc), MaxInt);
-      if FastUppercase(s) = 'DELAYLOAD' then
-        DelayLoad := True
-      else
-      begin
-        Sender.MakeError('', ecCustomError, tbtstring(RPS_Invalid_External));
-        Result := nil;
-        exit;
-      end;
+      repeat
+        if pos(' ', s) > 0 then begin
+          s2 := Copy(s, 1, pos(' ', s)-1);
+          delete(s, 1, pos(' ', s));
+        end else begin
+          s2 := s;
+          s := '';
+        end;
+        if FastUppercase(s2) = 'DELAYLOAD' then
+          DelayLoad := True
+        {$IFNDEF LINUX}
+        else
+        if FastUppercase(s2) = 'LOADWITHALTEREDSEARCHPATH' then
+          LoadWithAlteredSearchPath := True
+        {$ENDIF}
+        else
+        begin
+          Sender.MakeError('', ecCustomError, 'Invalid External');
+          Result := nil;
+          exit;
+        end;
+      until s = '';
+
     end else
       FuncCC := FastUpperCase(FuncCC);
     if FuncCC = 'STDCALL' then cc := ClStdCall else
@@ -120,7 +136,7 @@ begin
     FuncCC := '';
     cc := DefaultCC;
   end;
-  FuncName := 'dll:'+FuncName+tbtchar(cc)+tbtchar(bytebool(DelayLoad)) + declToBits(Decl);
+  FuncName := 'dll:'+FuncName+tbtchar(cc)+tbtchar(bytebool(DelayLoad)) +tbtchar(bytebool(LoadWithAlteredSearchPath))+ declToBits(Decl);
   Result := TPSRegProc.Create;
   Result.ImportDecl := FuncName;
   Result.Decl.Assign(Decl);

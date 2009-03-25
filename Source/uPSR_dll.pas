@@ -24,7 +24,7 @@ uses
 {
 p^.Ext1 contains the pointer to the Proc function
 p^.ExportDecl:
-  'dll:'+DllName+#0+FunctionName+#0+chr(Cc)+Chr(DelayLoad)+VarParams
+  'dll:'+DllName+#0+FunctionName+#0+chr(Cc)+Chr(DelayLoad)+Chr(AlternateSearchPath)+VarParams
 }
 
 type
@@ -83,7 +83,7 @@ end;
 
 function LoadDll(Caller: TPSExec; P: TPSExternalProcRec): Boolean;
 var
-  s, s2: tbtstring;
+  s, s2, s3: tbtstring;
   h, i: Longint;
   ph: PLoadedDll;
   {$IFDEF LINUX}
@@ -91,12 +91,16 @@ var
   {$ELSE}
   dllhandle: THandle;
   {$ENDIF}
+  loadwithalteredsearchpath: Boolean;
 begin
   s := p.Decl;
   Delete(s, 1, 4);
   s2 := copy(s, 1, pos(tbtchar(#0), s)-1);
   delete(s, 1, length(s2)+1);
   h := makehash(s2);
+  s3 := copy(s, 1, pos(#0, s)-1);
+  delete(s, 1, length(s3)+1);
+  loadwithalteredsearchpath := bytebool(s[3]);
   i := 2147483647; // maxint
   dllhandle := 0;
   repeat
@@ -113,7 +117,10 @@ begin
       {$IFDEF LINUX}
       dllhandle := dlopen(PChar(s2), RTLD_LAZY);
       {$ELSE}
-      dllhandle := LoadLibraryA(PAnsiChar(AnsiString(s2)));
+      if loadwithalteredsearchpath then
+        dllhandle := LoadLibraryExA(Pchar(s2), 0, LOAD_WITH_ALTERED_SEARCH_PATH)
+      else
+        dllhandle := LoadLibraryA(Pchar(s2));
       {$ENDIF}
       if dllhandle = {$IFDEF LINUX}nil{$ELSE}0{$ENDIF}then
       begin
@@ -133,9 +140,9 @@ begin
     end;
   until dllhandle <> {$IFDEF LINUX}nil{$ELSE}0{$ENDIF};
   {$IFDEF LINUX}
-  p.Ext1 := dlsym(dllhandle, pchar(copy(s, 1, pos(#0, s)-1)));
+  p.Ext1 := dlsym(dllhandle, pchar(s3));
   {$ELSE}
-  p.Ext1 := GetProcAddress(dllhandle, PAnsiChar(copy(s, 1, pos(tbtchar(#0), s)-1)));
+  p.Ext1 := GetProcAddress(dllhandle, pansichar(s3));
   {$ENDIF}
   if p.Ext1 = nil then
   begin
@@ -179,7 +186,7 @@ begin
     exit;
   end;
   cc := TPSCallingConvention(s[1]);
-  delete(s, 1, 2); // cc + delayload (delayload might also be forced!)
+  delete(s, 1, 3); // cc + delayload + alternatesearchpath (delayload might also be forced!)
   CurrStack := Cardinal(Stack.Count) - Cardinal(length(s));
   if s[1] = #0 then inc(CurrStack);
   MyList := tIfList.Create;

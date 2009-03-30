@@ -39,7 +39,7 @@ type
     procedure RODLLoadFromFile(const FileName: string);
     
     procedure RODLLoadFromResource;
-    
+
     procedure RODLLoadFromStream(S: TStream);
     
     procedure ClearRodl;
@@ -114,6 +114,78 @@ with Cl.Add(TROMESSAGE) do
   end;
 end;
 
+ 
+(*----------------------------------------------------------------------------*)
+procedure SIRegister_TROBinaryMemoryStream(CL: TPSPascalCompiler);
+begin
+  //with RegClassS(CL,'TMemoryStream', 'TROBinaryMemoryStream') do
+  with CL.AddClassN(CL.FindClass('TMemoryStream'),'TROBinaryMemoryStream') do
+  begin
+    RegisterMethod('Constructor Create2( const iString : Ansistring);');
+    RegisterMethod('Constructor Create;');
+    RegisterMethod('Procedure Assign( iSource : TStream)');
+    RegisterMethod('Function Clone : TROBinaryMemoryStream');
+    RegisterMethod('Procedure LoadFromString( const iString : Ansistring)');
+    RegisterMethod('Procedure LoadFromHexString( const iString : Ansistring)');
+    RegisterMethod('Function ToString : AnsiString');
+    RegisterMethod('Function ToHexString : Ansistring');
+    RegisterMethod('Function ToReadableString : Ansistring');
+    RegisterMethod('Function WriteAnsiString( AString : AnsiString) : integer');
+    RegisterProperty('CapacityIncrement', 'integer', iptrw);
+  end;
+end;
+
+(*----------------------------------------------------------------------------*)
+procedure SIRegister_uROClasses(CL: TPSPascalCompiler);
+begin
+  SIRegister_TROBinaryMemoryStream(CL);
+end;
+
+(* === run-time registration functions === *)
+(*----------------------------------------------------------------------------*)
+procedure TROBinaryMemoryStreamCapacityIncrement_W(Self: TROBinaryMemoryStream; const T: integer);
+begin Self.CapacityIncrement := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TROBinaryMemoryStreamCapacityIncrement_R(Self: TROBinaryMemoryStream; var T: integer);
+begin T := Self.CapacityIncrement; end;
+
+(*----------------------------------------------------------------------------*)
+Function TROBinaryMemoryStreamCreate_P(Self: TClass; CreateNewInstance: Boolean):TObject;
+Begin Result := TROBinaryMemoryStream.Create; END;
+
+(*----------------------------------------------------------------------------*)
+Function TROBinaryMemoryStreamCreate2_P(Self: TClass; CreateNewInstance: Boolean;  const iString : Ansistring):TObject;
+Begin Result := TROBinaryMemoryStream.Create(iString); END;
+
+(*----------------------------------------------------------------------------*)
+procedure RIRegister_TROBinaryMemoryStream(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TROBinaryMemoryStream) do
+  begin
+    RegisterConstructor(@TROBinaryMemoryStreamCreate2_P, 'Create2');
+    RegisterConstructor(@TROBinaryMemoryStreamCreate_P, 'Create');
+    RegisterMethod(@TROBinaryMemoryStream.Assign, 'Assign');
+    RegisterMethod(@TROBinaryMemoryStream.Clone, 'Clone');
+    RegisterMethod(@TROBinaryMemoryStream.LoadFromString, 'LoadFromString');
+    RegisterMethod(@TROBinaryMemoryStream.LoadFromHexString, 'LoadFromHexString');
+    RegisterMethod(@TROBinaryMemoryStream.ToString, 'ToString');
+    RegisterMethod(@TROBinaryMemoryStream.ToHexString, 'ToHexString');
+    RegisterMethod(@TROBinaryMemoryStream.ToReadableString, 'ToReadableString');
+    RegisterMethod(@TROBinaryMemoryStream.WriteAnsiString, 'WriteAnsiString');
+    RegisterPropertyHelper(@TROBinaryMemoryStreamCapacityIncrement_R,@TROBinaryMemoryStreamCapacityIncrement_W,'CapacityIncrement');
+  end;
+end;
+
+(*----------------------------------------------------------------------------*)
+procedure RIRegister_uROClasses(CL: TPSRuntimeClassImporter);
+begin
+  RIRegister_TROBinaryMemoryStream(CL);
+end;
+
+ 
+
+(*----------------------------------------------------------------------------*)
 
 type
   TRoObjectInstance = class;
@@ -744,8 +816,12 @@ begin
   if FRODL = nil then exit;
   if CompExec.Comp.FindType('TDateTime') = nil then
     raise Exception.Create('Please register the DateUtils library first');
+  if CompExec.Comp.FindType('TStream') = nil then
+    raise Exception.Create('Please register the sysutils/classes library first');
   SIRegisterTROTRANSPORTCHANNEL(CompExec.Comp);
   SIRegisterTROMESSAGE(CompExec.Comp);
+  SIRegister_uROClasses(CompExec.Comp);
+  CompExec.Comp.AddTypeCopyN('Binary', 'TROBinaryMemoryStream');
   if CompExec.Comp.FindType('DateTime') = nil then
     CompExec.Comp.AddTypeCopyN('DateTime', 'TDateTime');
   if CompExec.Comp.FindType('Currency') = nil then
@@ -786,13 +862,13 @@ begin
     Arr := FRodl.Arrays[i];
     TempType := CompExec.Comp.FindType(Arr.Info.Name);
     if TempType <> nil then begin
-      if not (TempType is TPSArrayType) or (CompExec.Comp.FindType(Arr.ElementType) <> TPSArrayType(TempType).ArrayTypeNo) then begin
+      if not (TempType is TPSArrayType) then begin
         CompExec.Comp.MakeError('ROPS', ecDuplicateIdentifier, Arr.Info.Name);
       end;
     end else begin
       TempType := CompExec.Comp.AddType(Arr.Info.Name, btArray);
-      TPSArrayType(TempType).ArrayTypeNo := CompExec.Comp.FindType(Arr.ElementType);
     end;
+    TPSArrayType(TempType).ArrayTypeNo := CompExec.Comp.FindType(Arr.ElementType);
   end;
   for i := 0 to FRodl.ServiceCount -1 do
   begin
@@ -824,6 +900,7 @@ begin
   CompExec.Exec.AddSpecialProcImport('roclass', SProcImport, nil);
   RIRegisterTROTRANSPORTCHANNEL(ri);
   RIRegisterTROMESSAGE(ri);
+  RIRegister_TROBinaryMemoryStream(ri);
   for i := 0 to FModules.Count -1 do
     TPSROModuleClass(FModules[i]).ExecImp(CompExec.Exec, ri);
 end;

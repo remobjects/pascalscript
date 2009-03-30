@@ -256,7 +256,7 @@ var
   ph: PLoadedDll;
   sname, s: tbtstring;
 begin
-  sname := Stack.GetAnsiString(-1);
+  sname := Stack.GetString(-1);
   for i := Caller.GetProcCount -1 downto 0 do
   begin
     pv := Caller.GetProcNo(i);

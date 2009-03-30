@@ -1150,7 +1150,7 @@ type
     property OnExportCheck: TPSOnExportCheck read FOnExportCheck write FOnExportCheck;
 	
     property OnWriteLine: TPSOnWriteLineEvent read FOnWriteLine write FOnWriteLine;
-	
+
     property OnExternalProc: TPSOnExternalProc read FOnExternalProc write FOnExternalProc;
 	
     property OnUseVariable: TPSOnUseVariable read FOnUseVariable write FOnUseVariable;
@@ -10803,6 +10803,9 @@ begin
   end;
   if not p.Used then
   begin
+    p.Use;
+    p.FFinalTypeNo := FCurrUsedTypeNo;
+    inc(FCurrUsedTypeNo);
     case p.BaseType of
       btStaticArray, btArray: TPSArrayType(p).ArrayTypeNo := at2ut(TPSArrayType(p).ArrayTypeNo);
       btRecord:
@@ -10818,9 +10821,6 @@ begin
           UseProc(TPSProceduralType(p).ProcDef);
         end;
     end;
-    p.Use;
-    p.FFinalTypeNo := FCurrUsedTypeNo;
-    inc(FCurrUsedTypeNo);
   end;
   Result := p;
 end;

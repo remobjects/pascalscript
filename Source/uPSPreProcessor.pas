@@ -31,9 +31,9 @@ type
     FFileName: tbtstring;
     FLineOffsets: TIfList;
   public
-
+    
     property FileName: tbtstring read FFileName;
-
+    
     property StartPos: Cardinal read FStartPos;
     
     property EndPos: Cardinal read FEndPos;
@@ -181,6 +181,7 @@ type
     function GetCount: Longint;
     function GetItem(I: Integer): TPSDefineState;
     function GetWrite: Boolean;
+    function GetPrevWrite: Boolean; //JeromeWelsh - nesting fix
   public
 
     property Count: Longint read GetCount;
@@ -199,6 +200,7 @@ type
     procedure Clear;
     
     property DoWrite: Boolean read GetWrite;
+    property DoPrevWrite: Boolean read GetPrevWrite; //JeromeWelsh - nesting fix
   end;
 
 implementation
@@ -641,11 +643,15 @@ begin
           end else if (Name = 'IFDEF') then
           begin
             if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
-            FDefineState.Add.DoWrite := FCurrentDefines.IndexOf(Uppercase(s)) <> -1;
+            //JeromeWelsh - nesting fix
+            FDefineState.Add.DoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) <> -1)
+              and FDefineState.DoWrite;
           end else if (Name = 'IFNDEF') then
           begin
             if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
-            FDefineState.Add.DoWrite := FCurrentDefines.IndexOf(Uppercase(s)) = -1;
+            //JeromeWelsh - nesting fix
+            FDefineState.Add.DoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) = -1)
+              and FDefineState.DoWrite;
           end else if (Name = 'ENDIF') then
           begin
             //- jgv remove - borland use it (sysutils.pas)
@@ -662,7 +668,8 @@ begin
             if ds.InElse then
               raise EPSPreProcessor.CreateFmt(RPS_ElseTwice, [Parser.Row, Parser.Col]);
             ds.FInElse := True;
-            ds.DoWrite := not ds.DoWrite;
+            //JeromeWelsh - nesting fix
+            ds.DoWrite := not ds.DoWrite and FDefineState.DoPrevWrite;
           end
 
           //-- 20050710_jgv custom application error process
@@ -775,6 +782,14 @@ begin
   if FItems.Count = 0 then
     result := true
   else Result := TPSDefineState(FItems[FItems.Count -1]).DoWrite;
+end;
+
+//JeromeWelsh - nesting fix
+function TPSDefineStates.GetPrevWrite: Boolean;
+begin
+  if FItems.Count < 2 then
+    result := true
+  else Result := TPSDefineState(FItems[FItems.Count -2]).DoWrite;
 end;
 
 end.

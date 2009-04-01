@@ -11203,7 +11203,7 @@ end;
 
 function TPSRuntimeClassImporter.Add(aClass: TClass): TPSRuntimeClass;
 begin
-  Result := FindClass(aClass.ClassName);
+  Result := FindClass(tbtstring(aClass.ClassName));
   if Result <> nil then exit;
   Result := TPSRuntimeClass.Create(aClass, '');
   FClasses.Add(Result);
@@ -11617,7 +11617,7 @@ end;
 function TPSRuntimeClassImporter.FindClass(const Name: tbtString): TPSRuntimeClass;
 var
   h, i: Longint;
-  lName: string;
+  lName: tbtstring;
   p: TPSRuntimeClass;
 begin
   lName := FastUpperCase(Name);

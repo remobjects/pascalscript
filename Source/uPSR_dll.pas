@@ -98,7 +98,7 @@ begin
   s2 := copy(s, 1, pos(tbtchar(#0), s)-1);
   delete(s, 1, length(s2)+1);
   h := makehash(s2);
-  s3 := copy(s, 1, pos(#0, s)-1);
+  s3 := copy(s, 1, pos(tbtchar(#0), s)-1);
   delete(s, 1, length(s3)+1);
   loadwithalteredsearchpath := bytebool(s[3]);
   i := 2147483647; // maxint
@@ -118,9 +118,9 @@ begin
       dllhandle := dlopen(PChar(s2), RTLD_LAZY);
       {$ELSE}
       if loadwithalteredsearchpath then
-        dllhandle := LoadLibraryExA(Pchar(s2), 0, LOAD_WITH_ALTERED_SEARCH_PATH)
+        dllhandle := LoadLibraryExA(PAnsiChar(AnsiString(s2)), 0, LOAD_WITH_ALTERED_SEARCH_PATH)
       else
-        dllhandle := LoadLibraryA(Pchar(s2));
+        dllhandle := LoadLibraryA(PAnsiChar(AnsiString(s2)));
       {$ENDIF}
       if dllhandle = {$IFDEF LINUX}nil{$ELSE}0{$ENDIF}then
       begin
@@ -256,7 +256,7 @@ var
   ph: PLoadedDll;
   sname, s: tbtstring;
 begin
-  sname := Stack.GetString(-1);
+  sname := Stack.GetAnsiString(-1);
   for i := Caller.GetProcCount -1 downto 0 do
   begin
     pv := Caller.GetProcNo(i);

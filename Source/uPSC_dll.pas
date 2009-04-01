@@ -97,9 +97,9 @@ begin
       FuncCC := FastUpperCase(Copy(FuncCC, 1, pos(tbtchar(' '), FuncCC)-1));
       Delete(FuncCC, pos(tbtchar(' '), Funccc), MaxInt);
       repeat
-        if pos(' ', s) > 0 then begin
-          s2 := Copy(s, 1, pos(' ', s)-1);
-          delete(s, 1, pos(' ', s));
+        if pos(tbtchar(' '), s) > 0 then begin
+          s2 := Copy(s, 1, pos(tbtchar(' '), s)-1);
+          delete(s, 1, pos(tbtchar(' '), s));
         end else begin
           s2 := s;
           s := '';

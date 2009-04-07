@@ -12009,8 +12009,9 @@ begin
   begin
     HighValue := 255; // make sure it's gonna be a 1 byte var
   end;
-  AddType({$IFDEF UNICODE}'AnsiChar'{$ELSE}'Char'{$ENDIF}, btChar);
-  {$IFDEF UNICODE}
+  //following 2 IFDEFs should actually be UNICODE IFDEFs...
+  AddType({$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}, btChar);
+  {$IFDEF PS_PANSICHAR}
   AddType('Char', btWideChar);
   {$ENDIF}
   {$IFNDEF PS_NOWIDESTRING}

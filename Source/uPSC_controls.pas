@@ -140,7 +140,11 @@ begin
   cl.AddTypeS('TMouseEvent', 'procedure (Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);');
   cl.AddTypeS('TMouseMoveEvent', 'procedure(Sender: TObject; Shift: TShiftState; X, Y: Integer);');
   cl.AddTypeS('TKeyEvent', 'procedure (Sender: TObject; var Key: Word; Shift: TShiftState);');
+{$IFDEF UNICODE}
+  cl.AddTypeS('TKeyPressEvent', 'procedure(Sender: TObject; var Key: WideChar);');
+{$ELSE}
   cl.AddTypeS('TKeyPressEvent', 'procedure(Sender: TObject; var Key: Char);');
+{$ENDIF}
   cl.AddTypeS('TDragOverEvent', 'procedure(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean)');
   cl.AddTypeS('TDragDropEvent', 'procedure(Sender, Source: TObject;X, Y: Integer)');
   cl.AddTypeS('HWND', 'Longint');

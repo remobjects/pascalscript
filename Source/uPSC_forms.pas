@@ -168,7 +168,11 @@ begin
   with Cl.AddClassN(cl.FindClass('TCOMPONENT'), 'TAPPLICATION') do
   begin
     RegisterMethod('procedure BRINGTOFRONT');
+{$IFDEF PS_PANSICHAR}
+    RegisterMethod('function MESSAGEBOX(TEXT,CAPTION:PANSICHAR;FLAGS:WORD):INTEGER');
+{$ELSE}
     RegisterMethod('function MESSAGEBOX(TEXT,CAPTION:PCHAR;FLAGS:WORD):INTEGER');
+{$ENDIF}
     RegisterMethod('procedure MINIMIZE');
     RegisterMethod('procedure PROCESSMESSAGES');
     RegisterMethod('procedure RESTORE');

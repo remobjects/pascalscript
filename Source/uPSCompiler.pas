@@ -2096,7 +2096,7 @@ begin
               btPChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFPCHAR', {$IFDEF PS_PANSICHAR}'array of PAnsiChar'{$ELSE}'array of PChar'{$ENDIF});
               btNotificationVariant, btVariant: VCType := FindAndAddType(Owner, '!OPENARRAYOFVARIANT', 'array of variant');
             {$IFNDEF PS_NOINT64}btS64:  VCType := FindAndAddType(Owner, '!OPENARRAYOFS64', 'array of Int64');{$ENDIF}
-              btChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFCHAR', {$IFDEF PS_PANSICHAR}'array of AnsiChar'{$ELSE}'array of Char'{$ENDIF});
+              btChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFCHAR', 'array of Char');
             {$IFNDEF PS_NOWIDESTRING}
               btWideString: VCType := FindAndAddType(Owner, '!OPENARRAYOFWIDESTRING', 'array of WideString');
               btUnicodeString: VCType := FindAndAddType(Owner, '!OPENARRAYOFUNICODESTRING', 'array of UnicodeString');
@@ -12009,7 +12009,10 @@ begin
   begin
     HighValue := 255; // make sure it's gonna be a 1 byte var
   end;
-  AddType({$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}, btChar);
+  AddType({$IFDEF UNICODE}'AnsiChar'{$ELSE}'Char'{$ENDIF}, btChar);
+  {$IFDEF UNICODE}
+  AddType('Char', btWideChar);
+  {$ENDIF}
   {$IFNDEF PS_NOWIDESTRING}
   AddType('WideChar', btWideChar);
   AddType('WideString', btWideString);
@@ -12682,15 +12685,9 @@ begin
     OrgName := 'count';
     aType := FindBaseType(btS32);
   end;
-  {$IFDEF PS_PANSICHAR}
-  AddFunction('Function StrGet(var S : String; I : Integer) : AnsiChar;');
-  AddFunction('Function StrGet2(S : String; I : Integer) : AnsiChar;');
-  AddFunction('procedure StrSet(c : AnsiChar; I : Integer; var s : String);');
-  {$ELSE}
   AddFunction('Function StrGet(var S : String; I : Integer) : Char;');
   AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
   AddFunction('procedure StrSet(c : Char; I : Integer; var s : String);');
-  {$ENDIF}
   {$IFNDEF PS_NOWIDESTRING}
   AddFunction('Function WStrGet(var S : AnyString; I : Integer) : WideChar;');
   AddFunction('procedure WStrSet(c : AnyString; I : Integer; var s : AnyString);');
@@ -12748,13 +12745,8 @@ begin
   AddFunction('Function Padl(s : AnyString;I : longInt) : AnyString;');
   AddFunction('Function Padr(s : AnyString;I : longInt) : AnyString;');
   AddFunction('Function Padz(s : AnyString;I : longInt) : AnyString;');
-  {$IFDEF PS_PANSICHAR}
-  AddFunction('Function Replicate(c : AnsiChar;I : longInt) : String;');
-  AddFunction('Function StringOfChar(c : AnsiChar;I : longInt) : String;');
-  {$ELSE}
   AddFunction('Function Replicate(c : char;I : longInt) : String;');
   AddFunction('Function StringOfChar(c : char;I : longInt) : String;');
-  {$ENDIF}
   AddTypeS('TVarType', 'Word');
   AddConstantN('varEmpty', 'Word').Value.tu16 := varempty;
   AddConstantN('varNull', 'Word').Value.tu16 := varnull;
@@ -13617,6 +13609,7 @@ begin
   begin
     case FValue.FType.BaseType of
       btChar: FValue.tchar := (Val+#0)[1];
+      btWideChar: FValue.twidechar := WideChar((Val+#0)[1]);
       btString: tbtString(FValue.tstring) := val;
       {$IFNDEF PS_NOWIDESTRING}
       btWideString: tbtwidestring(FValue.twidestring) := tbtwidestring(val);

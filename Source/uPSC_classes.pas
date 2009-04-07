@@ -257,11 +257,11 @@ begin
   cl.AddConstantN('soFromBeginning', 'Longint').Value.ts32 := 0;
   cl.AddConstantN('soFromCurrent', 'Longint').Value.ts32 := 1;
   cl.AddConstantN('soFromEnd', 'Longint').Value.ts32 := 2;
-  cl.AddConstantN('toEOF', {$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}).Value.tchar := #0;
-  cl.AddConstantN('toSymbol', {$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}).Value.tchar := #1;
-  cl.AddConstantN('toString', {$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}).Value.tchar := #2;
-  cl.AddConstantN('toInteger', {$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}).Value.tchar := #3;
-  cl.AddConstantN('toFloat', {$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}).Value.tchar := #4;
+  cl.AddConstantN('toEOF', 'Char').SetString(#0);
+  cl.AddConstantN('toSymbol', 'Char').SetString(#1);
+  cl.AddConstantN('toString', 'Char').SetString(#2);
+  cl.AddConstantN('toInteger', 'Char').SetString(#3);
+  cl.AddConstantN('toFloat', 'Char').SetString(#4);
   cl.AddConstantN('fmCreate', 'Longint').Value.ts32 := $FFFF;
   cl.AddConstantN('fmOpenRead', 'Longint').Value.ts32 := 0;
   cl.AddConstantN('fmOpenWrite', 'Longint').Value.ts32 := 1;

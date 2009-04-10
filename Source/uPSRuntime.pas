@@ -7765,8 +7765,11 @@ begin
               u := FProcs.Data^[p];
               if u.ClassType = TPSExternalProcRec then begin
                 try
-                  if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then
+                  if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then begin
+                    if ExEx = erNoError then
+                      CMD_Err(erCouldNotCallProc);
                     Break;
+                  end;
                 except
                   {$IFDEF DELPHI6UP}
                   Tmp := AcquireExceptionObject;
@@ -8448,8 +8451,11 @@ begin
                 u := FProcs.Data^[p];
                 if u.ClassType = TPSExternalProcRec then begin
                   try
-                    if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then
+                    if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then begin
+                      if ExEx = erNoError then
+                        CMD_Err(erCouldNotCallProc);
                       Break;
+                    end;
                   except
                     {$IFDEF DELPHI6UP}
                     Tmp := AcquireExceptionObject;

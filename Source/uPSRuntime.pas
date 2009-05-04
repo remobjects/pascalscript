@@ -8845,7 +8845,7 @@ begin
     38: Stack.SetAnsiString(-1, tbtString(AnsiLowercase(string(Stack.GetAnsiString(-2))))); // AnsiLowerCase
 {$IFNDEF PS_NOINT64}
     39: Stack.SetInt64(-1, StrToInt64(string(Stack.GetAnsiString(-2))));  // StrToInt64
-    40: Stack.SetAnsiString(-1, IntToStr(Stack.GetInt64(-2)));// Int64ToStr
+    40: Stack.SetAnsiString(-1, SysUtils.IntToStr(Stack.GetInt64(-2)));// Int64ToStr
 {$ENDIF}
     41:  // sizeof
       begin

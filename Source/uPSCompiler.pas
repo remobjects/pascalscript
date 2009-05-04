@@ -8953,7 +8953,7 @@ begin
 
   function WriteCalculation(InData, OutReg: TPSValue): Boolean;
 
-    function CheckOutreg(Where, Outreg: TPSValue): Boolean;
+    function CheckOutreg(Where, Outreg: TPSValue; aRoot: Boolean): Boolean;
     var
       i: Longint;
     begin
@@ -8962,14 +8962,16 @@ begin
         then Outreg:=TPSValueReplace(Outreg).OldValue;
       if Where is TPSValueVar then begin
         if TPSValueVar(Where).GetRecCount > 0 then result := true;
+        if SAmeReg(Where, OutReg) and not aRoot then
+          result := true;
       end else
       if Where.ClassType = TPSUnValueOp then
       begin
-        if CheckOutReg(TPSUnValueOp(Where).Val1, OutReg) then
+        if CheckOutReg(TPSUnValueOp(Where).Val1, OutReg, aRoot) then
           Result := True;
       end else if Where.ClassType = TPSBinValueOp then
       begin
-        if CheckOutreg(TPSBinValueOp(Where).Val1, OutReg) or CheckOutreg(TPSBinValueOp(Where).Val2, OutReg) then
+        if CheckOutreg(TPSBinValueOp(Where).Val1, OutReg, aRoot) or CheckOutreg(TPSBinValueOp(Where).Val2, OutReg, False) then
           Result := True;
       end else if Where is TPSValueVar then
       begin
@@ -8979,7 +8981,7 @@ begin
       begin
         for i := 0 to TPSValueProc(Where).Parameters.Count -1 do
         begin
-          if Checkoutreg(TPSValueProc(Where).Parameters[i].Val, Outreg) then
+          if Checkoutreg(TPSValueProc(Where).Parameters[i].Val, Outreg, false) then
           begin
             Result := True;
             break;
@@ -9008,7 +9010,7 @@ begin
         Result := False;
         exit;
       end;
-      if (not CheckOutReg(InData, OutReg)) and (InData is TPSBinValueOp) or (InData is TPSUnValueOp) then
+      if (not CheckOutReg(InData, OutReg, true)) and (InData is TPSBinValueOp) or (InData is TPSUnValueOp) then
       begin
         if InData is TPSBinValueOp then
         begin
@@ -9027,7 +9029,7 @@ begin
             exit;
           end;
         end;
-      end else if (InData is TPSBinValueOp) and (not CheckOutReg(TPSBinValueOp(InData).Val2, OutReg)) then
+      end else if (InData is TPSBinValueOp) and (not CheckOutReg(TPSBinValueOp(InData).Val2, OutReg, false)) then
       begin
         if not DoBinCalc(TPSBinValueOp(InData), OutReg) then
         begin
@@ -9327,7 +9329,7 @@ begin
       exit;
     end;
     case lType.BaseType of
-      btU8, btS8, btU16, btS16, btU32, btS32: ;
+      btU8, btS8, btU16, btS16, btU32, btS32, btS64, btVariant: ; 
     else
       begin
         MakeError('', ecTypeMismatch, '');

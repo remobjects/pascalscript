@@ -2604,7 +2604,9 @@ end;
 {$IFDEF FPC}
 procedure Finalize(var s: tbtString); overload; begin s := ''; end;
 procedure Finalize(var s: tbtwidestring); overload; begin s := ''; end;
-procedure Finalize(var s: tbtunicodestring); overload; begin s := ''; end;
+{$IFDEF FPC_OLD_FIX}
+ procedure Finalize(var s: tbtunicodestring); overload; begin s := ''; end;
+{$ENDIF}
 {$ENDIF}
 
 procedure FinalizeVariant(var p: TIfRVariant);

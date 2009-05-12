@@ -11690,6 +11690,10 @@ function DelphiFunctionProc_Stdcall(Caller: TPSExec; p: TPSExternalProcRec; Glob
 begin
   Result := DelphiFunctionProc(Caller, p, Global, Stack, cdStdCall);
 end;
+function DelphiFunctionProc_Safecall(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+begin
+  Result := DelphiFunctionProc(Caller, p, Global, Stack, cdSafeCall);
+end;
 
 procedure TPSExec.RegisterDelphiFunction(ProcPtr: Pointer;
   const Name: tbtString; CC: TPSCallingConvention);
@@ -11704,6 +11708,7 @@ begin
     cdRegister: RegisterFunctionName(FastUppercase(Name), DelphiFunctionProc_Register, ProcPtr, Slf);
     cdPascal: RegisterFunctionName(FastUppercase(Name), DelphiFunctionProc_Pascal, ProcPtr, Slf);
     cdStdCall: RegisterFunctionName(FastUppercase(Name), DelphiFunctionProc_Stdcall, ProcPtr, Slf);
+    cdSafeCall: RegisterFunctionName(FastUppercase(Name), DelphiFunctionProc_Safecall, ProcPtr, Slf);
     cdCdecl: RegisterFunctionName(FastUppercase(Name), DelphiFunctionProc_CDECL, ProcPtr, Slf);
   end;
 end;

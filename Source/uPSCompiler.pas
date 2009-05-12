@@ -9331,7 +9331,7 @@ begin
       exit;
     end;
     case lType.BaseType of
-      btU8, btS8, btU16, btS16, btU32, btS32, btS64, btVariant: ; 
+      btU8, btS8, btU16, btS16, btU32, btS32, {$IFNDEF PS_NOINT64} btS64, {$ENDIF} btVariant: ;
     else
       begin
         MakeError('', ecTypeMismatch, '');

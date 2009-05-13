@@ -3052,7 +3052,7 @@ begin
     (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btWidechar)) or
     (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btchar)) or
     {$ENDIF}
-    ((p1.BaseType = btRecord) and (p2.BaseType = btrecord)) or
+    ((p1.BaseType = btRecord) and (p2.BaseType = btrecord) and (not IsVarInCompatible(p1, p2))) or
     ((p1.BaseType = btEnum) and (p2.BaseType = btEnum)) or
     (Cast and IsIntType(P1.BaseType) and (p2.baseType = btEnum)) or
     (Cast and (p1.baseType = btEnum) and IsIntType(P2.BaseType))
@@ -9120,6 +9120,7 @@ begin
       if (ResultRegister = nil) or (Res <> GetTypeNo(BlockInfo, ResultRegister)) then
       begin
         resreg := AllocStackReg(res);
+
       end else resreg := ResultRegister;
     end
     else

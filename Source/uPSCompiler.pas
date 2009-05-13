@@ -6322,6 +6322,13 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             FParser.Next;
             if FParser.CurrTokenId = CSTI_Assignment then
             begin
+              if not (x is TPSValueVar) then begin
+                MakeError('', ecVariableExpected, '');
+                tmp.Free;
+                x.Free;
+                x := nil;
+                exit;
+              end;
               {$IFNDEF PS_NOWIDESTRING}
               if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
                 l := FindProc('WSTRSET')

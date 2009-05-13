@@ -4179,7 +4179,7 @@ begin
   v := VarNames;
   while Pos(tbtchar('|'), v) > 0 do
   begin
-    if copy(v, 1, Pos(tbtchar('|'), v) - 1) = s then
+    if FastUppercase(copy(v, 1, Pos(tbtchar('|'), v) - 1)) = s then
     begin
       Result := True;
       exit;

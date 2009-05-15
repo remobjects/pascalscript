@@ -8867,17 +8867,6 @@ begin
           btWideString:
             begin
               I := Stack.GetInt(-3);
-              if (i<1) or (i>length(tbtUnicodeString(temp.Dta^))) then
-              begin
-                Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
-                Result := False;
-                exit;
-              end;
-              Stack.SetInt(-1,Ord(tbtUnicodeString(temp.Dta^)[i]));
-            end;
-          btUnicodeString:
-            begin
-              I := Stack.GetInt(-3);
               if (i<1) or (i>length(tbtwidestring(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
@@ -8885,6 +8874,17 @@ begin
                 exit;
               end;
               Stack.SetInt(-1,Ord(tbtwidestring(temp.Dta^)[i]));
+            end;
+          btUnicodeString:
+            begin
+              I := Stack.GetInt(-3);
+              if (i<1) or (i>length(tbtUnicodeString(temp.Dta^))) then
+              begin
+                Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
+                Result := False;
+                exit;
+              end;
+              Stack.SetInt(-1,Ord(tbtUnicodeString(temp.Dta^)[i]));
             end;
 
         else
@@ -8906,18 +8906,6 @@ begin
           btWideString:
             begin
               I := Stack.GetInt(-2);
-              if (i<1) or (i>length(tbtunicodestring(temp.Dta^))) then
-              begin
-                Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
-                Result := True;
-                exit;
-              end;
-              tbtunicodestring(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
-            end;
-
-          btUnicodeString:
-            begin
-              I := Stack.GetInt(-2);
               if (i<1) or (i>length(tbtWidestring(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
@@ -8925,6 +8913,18 @@ begin
                 exit;
               end;
               tbtWidestring(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
+            end;
+
+          btUnicodeString:
+            begin
+              I := Stack.GetInt(-2);
+              if (i<1) or (i>length(tbtunicodestring(temp.Dta^))) then
+              begin
+                Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
+                Result := True;
+                exit;
+              end;
+              tbtunicodestring(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
             end;
         else
           begin

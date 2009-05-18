@@ -58,17 +58,5 @@ Defines:
 {$ENDIF}
 
 {$IFDEF FPC}
-  {$DEFINE PS_HAVEVARIANT}
-  {$DEFINE PS_DYNARRAY}
-  {$DEFINE PS_NOIDISPATCH}
-  {$if defined(fpc_version) and defined(fpc_patch) and defined(fpc_release) and (fpc_version=Integer(2)) and (fpc_release>=Integer(3)) and (fpc_patch>=Integer(1))}
-    {$UNDEF FPC_OLD_FIX}
-    {$UNDEF PS_FPCSTRINGWORKAROUND}
-  {FreePascal 2.3.1 and above has much Delphi compatibility bugs fixed}
-  {$else}
-    {$DEFINE FPC_OLD_FIX}
-    {$DEFINE PS_FPCSTRINGWORKAROUND}
-  {$ifend}
-  {$DEFINE DELPHI3UP}
-  {$DEFINE DELPHI6UP}
+  {$I PascalScriptFPC.inc}
 {$ENDIF}

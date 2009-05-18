@@ -15,8 +15,12 @@ function UnloadProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSSt
 
 implementation
 uses
-  {$IFDEF LINUX}
+  {$IFDEF UNIX}
+  {$IFDEF Darwin}
+  LCLIntf, Unix, baseunix, dynlibs, termio, sockets;
+  {$ELSE}
   LibC{$IFNDEF FPC}, Windows{$ENDIF};
+  {$ENDIF}
   {$ELSE}
   Windows;
   {$ENDIF}
@@ -114,8 +118,12 @@ begin
         Result := False;
         exit;
       end;
-      {$IFDEF LINUX}
+      {$IFDEF UNIX}
+	  {$IFDEF DARWIN}
+	  dllhandle := LoadLibrary(PChar(s2));
+	  {$ELSE}
       dllhandle := dlopen(PChar(s2), RTLD_LAZY);
+	  {$ENDIF}
       {$ELSE}
       if loadwithalteredsearchpath then
         dllhandle := LoadLibraryExA(PAnsiChar(AnsiString(s2)), 0, LOAD_WITH_ALTERED_SEARCH_PATH)

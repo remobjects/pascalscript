@@ -2601,23 +2601,20 @@ begin
   New(Result);
   InitializeVariant(Result, FType);
 end;
-{$IFDEF FPC}
-procedure Finalize(var s: tbtString); overload; begin s := ''; end;
-procedure Finalize(var s: tbtwidestring); overload; begin s := ''; end;
-{$IFDEF FPC_OLD_FIX}
- procedure Finalize(var s: tbtunicodestring); overload; begin s := ''; end;
-{$ENDIF}
-{$ENDIF}
+
+procedure FinalizeA(var s: tbtString); overload; begin s := ''; end;
+procedure FinalizeW(var s: tbtwidestring); overload; begin s := ''; end;
+procedure FinalizeU(var s: tbtunicodestring); overload; begin s := ''; end;
 
 procedure FinalizeVariant(var p: TIfRVariant);
 begin
   if (p.FType.BaseType = btString) or (p.FType.basetype = btSet) then
-    finalize(tbtstring(p.tstring))
+    finalizeA(tbtstring(p.tstring))
   {$IFNDEF PS_NOWIDESTRING}
   else if p.FType.BaseType = btWideString then
-    finalize(tbtWideString(p.twidestring)) // tbtwidestring
+    finalizeW(tbtWideString(p.twidestring)) // tbtwidestring
   else if p.FType.BaseType = btUnicodeString then
-    finalize(tbtUnicodeString(p.tunistring)); // tbtwidestring
+    finalizeU(tbtUnicodeString(p.tunistring)); // tbtwidestring
   {$ENDIF}
 end;
 

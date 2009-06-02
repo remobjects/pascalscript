@@ -22,7 +22,7 @@ package PascalScript_RO_D7;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'RemObjects Pascal Script - RemObjects SDK 3.0 Integration'}
+{$DESCRIPTION 'RemObjects Pascal Script - RemObjects SDK 4.0 Integration'}
 {$IMPLICITBUILD OFF}
 
 requires

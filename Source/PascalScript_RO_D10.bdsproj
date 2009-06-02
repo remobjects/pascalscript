@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<PersonalityInfo>
 		<Option>
@@ -100,10 +100,11 @@
 			<Compiler Name="UnsafeCast">False</Compiler>
 			<Compiler Name="OptionTruncated">True</Compiler>
 			<Compiler Name="WideCharReduced">True</Compiler>
-			<Compiler Name="DuplicatesIgnored">True</Compiler>  <Compiler Name="UnitInitSeq">True</Compiler>
-      <Compiler Name="LocalPInvoke">True</Compiler>
-      <Compiler Name="CodePage"></Compiler>
-    </Compiler>
+			<Compiler Name="DuplicatesIgnored">True</Compiler>
+			<Compiler Name="UnitInitSeq">True</Compiler>
+			<Compiler Name="LocalPInvoke">True</Compiler>
+			<Compiler Name="CodePage"></Compiler>
+		</Compiler>
 		<Linker>
 			<Linker Name="MapFile">0</Linker>
 			<Linker Name="OutputObjs">0</Linker>
@@ -114,14 +115,15 @@
 			<Linker Name="MinStackSize">16384</Linker>
 			<Linker Name="MaxStackSize">1048576</Linker>
 			<Linker Name="ImageBase">4194304</Linker>
-			<Linker Name="ExeDescription">RemObjects Pascal Script - RemObjects SDK 3.0 Integration</Linker>  <Linker Name="GenerateHpps">False</Linker>
-    </Linker>
+			<Linker Name="ExeDescription">RemObjects Pascal Script - RemObjects SDK 4.0 Integration</Linker>
+			<Linker Name="GenerateHpps">False</Linker>
+		</Linker>
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
-			<Directories Name="UnitOutputDir">..\Dcu\D9</Directories>
-			<Directories Name="PackageDLLOutputDir">..\Dcu\D9</Directories>
+			<Directories Name="UnitOutputDir">..\Dcu\D10</Directories>
+			<Directories Name="PackageDLLOutputDir">..\Dcu\D10</Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</Directories>
+			<Directories Name="SearchPath">..\Dcu\D10;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D10</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
@@ -137,10 +139,11 @@
 			<Parameters Name="RemotePath"></Parameters>
 			<Parameters Name="RemoteLauncher"></Parameters>
 			<Parameters Name="RemoteCWD"></Parameters>
-			<Parameters Name="RemoteDebug">False</Parameters>  <Parameters Name="Debug Symbols Search Path"></Parameters>
-      <Parameters Name="LoadAllSymbols">True</Parameters>
-      <Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-    </Parameters>
+			<Parameters Name="RemoteDebug">False</Parameters>
+			<Parameters Name="Debug Symbols Search Path"></Parameters>
+			<Parameters Name="LoadAllSymbols">True</Parameters>
+			<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+		</Parameters>
 		<Language>
 			<Language Name="ActiveLang"></Language>
 			<Language Name="ProjectLang">$00000000</Language>
@@ -148,29 +151,29 @@
 		</Language>
 		<VersionInfo>
 			<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-			<VersionInfo Name="AutoIncBuild">0</VersionInfo>
-			<VersionInfo Name="MajorVer">0</VersionInfo>
+			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+			<VersionInfo Name="MajorVer">3</VersionInfo>
 			<VersionInfo Name="MinorVer">0</VersionInfo>
-			<VersionInfo Name="Release">0</VersionInfo>
-			<VersionInfo Name="Build">0</VersionInfo>
-			<VersionInfo Name="Debug">0</VersionInfo>
-			<VersionInfo Name="PreRelease">0</VersionInfo>
-			<VersionInfo Name="Special">0</VersionInfo>
-			<VersionInfo Name="Private">0</VersionInfo>
-			<VersionInfo Name="DLL">0</VersionInfo>
+			<VersionInfo Name="Release">38</VersionInfo>
+			<VersionInfo Name="Build">769</VersionInfo>
+			<VersionInfo Name="Debug">False</VersionInfo>
+			<VersionInfo Name="PreRelease">False</VersionInfo>
+			<VersionInfo Name="Special">False</VersionInfo>
+			<VersionInfo Name="Private">False</VersionInfo>
+			<VersionInfo Name="DLL">False</VersionInfo>
 			<VersionInfo Name="Locale">1033</VersionInfo>
 			<VersionInfo Name="CodePage">1252</VersionInfo>
 		</VersionInfo>
 		<VersionInfoKeys>
 			<VersionInfoKeys Name="CompanyName">RemObjects Software</VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription"></VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">0.0.0.0</VersionInfoKeys>
+			<VersionInfoKeys Name="FileVersion">3.0.38.769</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName"></VersionInfoKeys>
 			<VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
 			<VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">Pascal Script</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductVersion">3.0.0.0</VersionInfoKeys>
-			<VersionInfoKeys Name="CompileDate">Monday, December 19, 2005 4:43 PM</VersionInfoKeys></VersionInfoKeys>
+			<VersionInfoKeys Name="CompileDate">Friday, May 15, 2009 1:36 PM</VersionInfoKeys></VersionInfoKeys>
 	</Delphi.Personality>
 </BorlandProject>

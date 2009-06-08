@@ -9384,7 +9384,7 @@ begin
       exit;
     end;
     case lType.BaseType of
-      btU8, btS8, btU16, btS16, btU32, btS32: ;
+      btVariant, btU8, btS8, btU16, btS16, btU32, btS32: ;
     else
       begin
         MakeError('', ecTypeMismatch, '');

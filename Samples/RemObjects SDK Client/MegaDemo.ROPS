@@ -61,10 +61,10 @@ begin
     TestPerson;
     Writeln('MegaDemo Test');
     Writeln('First number:');
-    s := readln('First Number');
+    readln(s);
     i1 := StrToInt(s);
     Writeln('Second number:');
-    s := readln('Second Number');
+    readln(s);
     i2 := StrToInt(s);
     i3 := Service.Sum(i1,i2);
     writeln(inttostr(i1)+'+'+inttostr(i2)+' -> Server, Result:'+inttostr(i3));
@@ -89,4 +89,3 @@ begin
     message.Free;
   end;
 end.
-

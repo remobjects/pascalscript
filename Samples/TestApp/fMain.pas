@@ -4,8 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, uPSComponent, uPSCompiler, uPSUtils,
-  Menus, uPSRuntime;
+  ExtCtrls, StdCtrls, uPSComponent, uPSCompiler, Menus, uPSRuntime;
 
 type
   TForm1 = class(TForm)
@@ -25,7 +24,6 @@ type
     procedure Compile1Click(Sender: TObject);
     procedure PSScriptExecute(Sender: TPSScript);
   private
-    MyVar: Longint;
     { Private declarations }
   public
     { Public declarations }
@@ -96,9 +94,8 @@ begin
   Sender.AddFunction(@ImportTest, 'function ImportTest(S1: string; s2: Longint; s3: Byte; s4: word; var s5: string): string;');
   Sender.AddRegisteredVariable('Application', 'TApplication');
   Sender.AddRegisteredVariable('Self', 'TForm');
+  Sender.AddRegisteredVariable('Memo1', 'TMemo');
   Sender.AddRegisteredVariable('Memo2', 'TMemo');
-  Sender.AddRegisteredPTRVariable('Memo1', 'TMemo');
-  Sender.AddRegisteredPTRVariable('MyVar', 'Longint');
 end;
 
 procedure TForm1.Compile1Click(Sender: TObject);
@@ -145,8 +142,6 @@ begin
   PSScript.SetVarToInstance('SELF', Self);
   PSScript.SetVarToInstance('MEMO1', Memo1);
   PSScript.SetVarToInstance('MEMO2', Memo2);
-  PSScript.SetPointerToData('MyVar', @MyVar, PSScript.FindBaseType(bts32));
-  PSScript.SetPointerToData('Memo1', @Memo1, PSScript.FindNamedType('TMemo'));
 end;
 
 end.

@@ -359,11 +359,13 @@ begin
               inc(ci);
             FLastEnterPos := ci -1;
             if @FOnNewLine <> nil then FOnNewLine(Self, FRow, FPos - FLastEnterPos + 1, ci+1);
+            break;
           end else if FText[ci] = #10 then
           begin
             inc(FRow);
             FLastEnterPos := ci -1;
             if @FOnNewLine <> nil then FOnNewLine(Self, FRow, FPos - FLastEnterPos + 1, ci+1);
+            break;
           end;
         end;
         FLen := ci - FPos + 1;

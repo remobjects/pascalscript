@@ -11858,9 +11858,8 @@ begin
     begin
       Block := TPSBlockInfo.Create(nil);
       Block.SubType := tUnitFinish;
-
-      Block.Proc := NewProc('Finish proc_'+fModule, '!FINISH_'+fModule);
-      Block.ProcNo := FindProc('!FINISH_'+fModule);
+      Block.Proc := NewProc('!Finish_'+fModule, '!FINISH_'+FastUppercase(fModule));
+      Block.ProcNo := FindProc('!FINISH_'+FastUppercase(fModule));
       Block.Proc.DeclareUnit:= fModule;
 
       Block.Proc.DeclarePos := FParser.CurrTokenPos;

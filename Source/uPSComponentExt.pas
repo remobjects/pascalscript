@@ -3,6 +3,8 @@
 A component wrapper for IFPS3, including debugging support.
 
 }
+{$I PascalScript.inc}
+
 unit uPSComponentExt;
 
 interface

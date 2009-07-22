@@ -1,0 +1,101 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{0eefdf9b-7853-40e5-9b29-b631f51beeda}</ProjectGuid>
+			<MainSource>PascalScript_RO_D14.dpk</MainSource>
+			<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+			<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+			<DCC_DependencyCheckOutputName>..\Dcu\D12\PascalScript_RO_D12.bpl</DCC_DependencyCheckOutputName>
+			<ProjectVersion>11.1</ProjectVersion>
+			<Config Condition="'$(Config)'==''">Base</Config>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_SymbolReferenceInfo>1</DCC_SymbolReferenceInfo>
+			<DCC_Description>RemObjects Pascal Script - RemObjects SDK 5.0 Integration</DCC_Description>
+			<DCC_DependencyCheckOutputName>..\Dcu\D14\PascalScript_RO_D14.bpl</DCC_DependencyCheckOutputName>
+			<DCC_UnitSearchPath>..\Dcu\D14;..\..\RemObjects SDK for Dephi\Dcu\D14;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_BplOutput>..\Dcu\D14</DCC_BplOutput>
+			<DCC_DcuOutput>..\Dcu\D14</DCC_DcuOutput>
+			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
+			<GenDll>true</GenDll>
+			<DCC_DcpOutput>..\Dcu\D14</DCC_DcpOutput>
+			<DCC_ImageBase>00400000</DCC_ImageBase>
+			<DesignOnlyPackage>false</DesignOnlyPackage>
+			<GenPackage>true</GenPackage>
+			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+		</PropertyGroup>
+		<ItemGroup>
+			<DelphiCompile Include="PascalScript_RO_D14.dpk">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<DCCReference Include="rtl.dcp"/>
+			<DCCReference Include="IndyCore.dcp"/>
+			<DCCReference Include="IndySystem.dcp"/>
+			<DCCReference Include="IndyProtocols.dcp"/>
+			<DCCReference Include="PascalScript_Core_D14.dcp"/>
+			<DCCReference Include="RemObjects_Core_D14.dcp"/>
+			<DCCReference Include="RemObjects_Indy_D1.dcp"/>
+			<DCCReference Include="dbrtl.dcp"/>
+			<DCCReference Include="vcl.dcp"/>
+			<DCCReference Include="vclx.dcp"/>
+			<DCCReference Include="PascalScript_RO_Reg.pas"/>
+			<DCCReference Include="uROPSServerLink.pas"/>
+			<DCCReference Include="uROPSImports.pas"/>
+			<DCCReference Include="RemObjects_Indy_D12.dcp"/>
+			<DCCReference Include="RemObjects_Core_D1.dcp"/>
+			<DCCReference Include="RemObjects_Core_D12.dcp"/>
+			<DCCReference Include="PascalScript_Core_D1.dcp"/>
+			<DCCReference Include="PascalScript_Core_D12.dcp"/>
+			<BuildConfiguration Include="Base">
+				<Key>Base</Key>
+			</BuildConfiguration>
+		</ItemGroup>
+		<Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType>Package</Borland.ProjectType>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Parameters>
+						<Parameters Name="UseLauncher">False</Parameters>
+						<Parameters Name="LoadAllSymbols">True</Parameters>
+						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+					</Parameters>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+						<VersionInfo Name="MajorVer">3</VersionInfo>
+						<VersionInfo Name="MinorVer">0</VersionInfo>
+						<VersionInfo Name="Release">6</VersionInfo>
+						<VersionInfo Name="Build">442</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">1033</VersionInfo>
+						<VersionInfo Name="CodePage">1252</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName">RemObjects Software</VersionInfoKeys>
+						<VersionInfoKeys Name="FileDescription"/>
+						<VersionInfoKeys Name="FileVersion">3.0.6.442</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName"/>
+						<VersionInfoKeys Name="LegalCopyright"/>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename"/>
+						<VersionInfoKeys Name="ProductName">Pascal Script</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductVersion">3.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="CompileDate">Tuesday, March 21, 2006 1:32 PM</VersionInfoKeys>
+					</VersionInfoKeys>
+					<Source>
+						<Source Name="MainSource">PascalScript_RO_D14.dpk</Source>
+					</Source>
+				</Delphi.Personality>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
+	</Project>

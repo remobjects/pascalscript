@@ -12343,8 +12343,15 @@ begin
         if PVarData(@Par[High(Par)-i]).VType = varString then
         begin
           DispParam.rgvarg[i].vt := VT_BSTR;
-          DispParam.rgvarg[i].bstrVal := StringToOleStr(Par[High(Par)-i]);
+          DispParam.rgvarg[i].bstrVal := StringToOleStr(AnsiString(Par[High(Par)-i]));
           WSFreeList.Add(DispParam.rgvarg[i].bstrVal);
+        {$IFDEF UNICODE}
+        end else if (PVarData(@Par[High(Par)-i]).VType = varOleStr) or (PVarData(@Par[High(Par)-i]).VType = varUString) then
+        begin
+          DispParam.rgvarg[i].vt := VT_BSTR;
+          DispParam.rgvarg[i].bstrVal := StringToOleStr(UnicodeString(Par[High(Par)-i]));
+          WSFreeList.Add(DispParam.rgvarg[i].bstrVal);
+        {$ENDIF}
         end else
         begin
           DispParam.rgvarg[i].vt := VT_VARIANT or VT_BYREF;

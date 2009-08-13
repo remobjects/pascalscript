@@ -1703,7 +1703,7 @@ begin
     {$IFNDEF PS_NOWIDESTRING}btWideString,
     btUnicodeString,
     {$ENDIF}{$IFNDEF PS_NOINTERFACES}btInterface, {$ENDIF}btSingle, bts32, btU32,
-    btclass, btPChar, btString: FrealSize := 4;
+    btclass, btPChar, btString: FrealSize := PointerSize;
     btProcPtr: FRealSize := 2 * sizeof(Pointer) + sizeof(Cardinal);
     btCurrency: FrealSize := Sizeof(Currency);
     btPointer: FRealSize := 12; // ptr, type, freewhendone
@@ -1733,7 +1733,7 @@ procedure TPSTypeRec_Record.CalcSize;
 begin
   inherited;
   FrealSize := TPSTypeRec(FFieldTypes[FFieldTypes.Count-1]).RealSize +
-    Cardinal(RealFieldOffsets[RealFieldOffsets.Count -1]);
+    IPointer(RealFieldOffsets[RealFieldOffsets.Count -1]);
 end;
 
 constructor TPSTypeRec_Record.Create(Owner: TPSExec);
@@ -1768,14 +1768,14 @@ begin
     btPointer:
       begin
         Pointer(p^) := nil;
-        Pointer(Pointer(IPointer(p)+4)^) := nil;
-        Pointer(Pointer(IPointer(p)+8)^) := nil;
+        Pointer(Pointer(IPointer(p)+PointerSize)^) := nil;
+        Pointer(Pointer(IPointer(p)+(2*PointerSize))^) := nil;
       end;
     btProcPtr:
       begin
         Longint(p^) := 0;
-        Pointer(Pointer(IPointer(p)+4)^) := nil;
-        Pointer(Pointer(IPointer(p)+8)^) := nil;
+        Pointer(Pointer(IPointer(p)+PointerSize)^) := nil;
+        Pointer(Pointer(IPointer(p)+(2*PointerSize))^) := nil;
       end;
     btCurrency: tbtCurrency(P^) := 0;
     btDouble{$IFNDEF PS_NOINT64}, bts64{$ENDIF}: {$IFNDEF PS_NOINT64}tbtS64(P^) := 0{$ELSE}tbtdouble(p^) := 0 {$ENDIF};
@@ -1841,23 +1841,23 @@ begin
       end;
     end;
     btPointer:
-      if Pointer(Pointer(IPointer(p)+8)^) <> nil then
+      if Pointer(Pointer(IPointer(p)+PointerSize2)^) <> nil then
       begin
-        DestroyHeapVariant2(Pointer(p^), Pointer(Pointer(IPointer(p)+4)^));
+        DestroyHeapVariant2(Pointer(p^), Pointer(Pointer(IPointer(p)+PointerSize)^));
         Pointer(p^) := nil;
       end;
     btArray:
       begin
         if IPointer(P^) = 0 then exit;
-        darr := Pointer(IPointer(p^) - 8);
+        darr := Pointer(IPointer(p^) - PointerSize2);
         if Longint(darr^) < 0 then exit;// refcount < 0 means don't free
         Dec(Longint(darr^));
         if Longint(darr^) <> 0 then exit;
         t := TPSTypeRec_Array(aType).ArrayType;
         elsize := t.RealSize;
-        darr := Pointer(IPointer(darr) + 4);
+        darr := Pointer(IPointer(darr) + PointerSize);
         l := Longint(darr^);
-        darr := Pointer(IPointer(darr) + 4);
+        darr := Pointer(IPointer(darr) + PointerSize);
         case t.BaseType of
           btString, {$IFNDEF PS_NOWIDESTRING}
           btUnicodeString, btWideString, {$ENDIF}{$IFNDEF PS_NOINTERFACES}btInterface, {$ENDIF}btArray, btStaticArray,
@@ -1870,7 +1870,7 @@ begin
               end;
             end;
         end;
-        FreeMem(Pointer(IPointer(p^) - 8), Cardinal(l) * elsize + 8);
+        FreeMem(Pointer(IPointer(p^) - IPointer(PointerSize2)), IPointer(Cardinal(l) * elsize) + IPointer(PointerSize2));
         Pointer(P^) := nil;
       end;
     btRecord:
@@ -1924,14 +1924,14 @@ begin
   aSize := aType.RealSize + RTTISize;
   GetMem(Result, aSize);
   Result.FType := aType;
-  InitializeVariant(Pointer(IPointer(Result)+4), aType);
+  InitializeVariant(Pointer(IPointer(Result)+PointerSize), aType);
 end;
 
 procedure DestroyHeapVariant(v: PPSVariant);
 begin
   if v = nil then exit;
   if v.FType.BaseType in NeedFinalization then
-    FinalizeVariant(Pointer(IPointer(v)+4), v.FType);
+    FinalizeVariant(Pointer(IPointer(v)+PointerSize), v.FType);
   FreeMem(v, v.FType.RealSize + RTTISize);
 end;
 
@@ -1974,7 +1974,7 @@ end;
 
 class function TPSExec.About: tbtString;
 begin
-  Result := 'RemObjects Pascal Script. Copyright (c) 2004 by RemObjects Software';
+  Result := 'RemObjects Pascal Script. Copyright (c) 2004-2009 by RemObjects Software';
 end;
 
 procedure TPSExec.Cleanup;
@@ -1990,8 +1990,8 @@ begin
   begin
     p := FGlobalVars.Items[i];
     if PIFTypeRec(P^).BaseType in NeedFinalization then
-      FinalizeVariant(Pointer(IPointer(p)+4), Pointer(P^));
-    InitializeVariant(Pointer(IPointer(p)+4), Pointer(P^));
+      FinalizeVariant(Pointer(IPointer(p)+PointerSize), Pointer(P^));
+    InitializeVariant(Pointer(IPointer(p)+PointerSize), Pointer(P^));
   end;
 end;
 
@@ -3030,8 +3030,8 @@ begin
     if atype.BaseType in NeedFinalization then
       FinalizeVariant(src.Dta, Src.aType);
     Pointer(Src.Dta^) := Data;
-    Pointer(Pointer(IPointer(Src.Dta)+4)^) := aType;
-    Pointer(Pointer(IPointer(Src.Dta)+8)^) := nil;
+    Pointer(Pointer(IPointer(Src.Dta)+PointerSize)^) := aType;
+    Pointer(Pointer(IPointer(Src.Dta)+(2*PointerSize))^) := nil;
   end;
 end;
 
@@ -3312,7 +3312,7 @@ function PSGetUInt(Src: Pointer; aType: TPSTypeRec): Cardinal;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3352,7 +3352,7 @@ function PSGetObject(Src: Pointer; aType: TPSTypeRec): TObject;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3366,7 +3366,7 @@ procedure PSSetObject(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; Const va
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3382,7 +3382,7 @@ function PSGetInt64(Src: Pointer; aType: TPSTypeRec): Int64;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3410,7 +3410,7 @@ function PSGetReal(Src: Pointer; aType: TPSTypeRec): Extended;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3435,7 +3435,7 @@ function PSGetCurrency(Src: Pointer; aType: TPSTypeRec): Currency;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3461,7 +3461,7 @@ function PSGetInt(Src: Pointer; aType: TPSTypeRec): Longint;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3485,7 +3485,7 @@ function PSGetAnsiString(Src: Pointer; aType: TPSTypeRec): tbtString;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3507,7 +3507,7 @@ function PSGetWideString(Src: Pointer; aType: TPSTypeRec): tbtWideString;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3529,7 +3529,7 @@ function PSGetUnicodeString(Src: Pointer; aType: TPSTypeRec): tbtunicodestring;
 begin
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
   end;
@@ -3553,7 +3553,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3565,8 +3565,8 @@ begin
     btProcPtr:
       begin
         tbtu32(src^) := Val;
-        Pointer(Pointer(IPointer(Src)+4)^) := nil;
-        Pointer(Pointer(IPointer(Src)+8)^) := nil;
+        Pointer(Pointer(IPointer(Src)+PointerSize)^) := nil;
+        Pointer(Pointer(IPointer(Src)+PointerSize2)^) := nil;
       end;
     btU32: tbtu32(src^) := Val;
     btS32: tbts32(src^) := Val;
@@ -3595,7 +3595,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3635,7 +3635,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3661,7 +3661,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3687,7 +3687,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3699,8 +3699,8 @@ begin
     btProcPtr:
       begin
         tbtu32(src^) := Val;
-        Pointer(Pointer(IPointer(Src)+4)^) := nil;
-        Pointer(Pointer(IPointer(Src)+8)^) := nil;
+        Pointer(Pointer(IPointer(Src)+PointerSize)^) := nil;
+        Pointer(Pointer(IPointer(Src)+PointerSize2)^) := nil;
       end;
     btU32: tbtu32(src^) := Val;
     btS32: tbts32(src^) := Val;
@@ -3728,7 +3728,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3754,7 +3754,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3778,7 +3778,7 @@ begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
   if aType.BaseType = btPointer then
   begin
-    atype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+    atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
@@ -3847,7 +3847,7 @@ begin
   for i := 0 to VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) do begin
     v := src[i + VarArrayLowBound(src, 1)];
     if not Exec.SetVariantValue(r, @v, desttype, lVarType) then begin result := false; exit; end;
-    r := Pointer(Longint(r) + Longint(DestType.RealSize));
+    r := Pointer(IPointer(r) + Longint(DestType.RealSize));
   end;
   Result := true;
 end;
@@ -3879,14 +3879,21 @@ begin
           tbtU32(Dest^) := tbtU32(Src^);
           Dest := Pointer(IPointer(Dest) + 4);
           Src := Pointer(IPointer(Src) + 4);
-          tbtU32(Dest^) := tbtU32(Src^);
-          Dest := Pointer(IPointer(Dest) + 4);
-          Src := Pointer(IPointer(Src) + 4);
-          tbtU32(Dest^) := tbtU32(Src^);
-          Dest := Pointer(IPointer(Dest) + 4);
-          Src := Pointer(IPointer(Src) + 4);
+          Pointer(Dest^) := Pointer(Src^);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
+          Pointer(Dest^) := Pointer(Src^);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
         end;
-      btU32, btS32, btClass, btSingle, btpchar:
+      btClass, btpchar:
+        for i := 0 to Len -1 do
+        begin
+          Pointer(Dest^) := Pointer(Src^);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
+        end;
+      btU32, btS32, btSingle:
         for i := 0 to Len -1 do
         begin
           tbtU32(Dest^) := tbtU32(Src^);
@@ -3932,23 +3939,23 @@ begin
         for i := 0 to Len -1 do
         begin
           tbtString(Dest^) := tbtString(Src^);
-          Dest := Pointer(IPointer(Dest) + 4);
-          Src := Pointer(IPointer(Src) + 4);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
         end;
       {$IFNDEF PS_NOWIDESTRING}
       btUnicodeString:
         for i := 0 to Len -1 do
         begin
           tbtunicodestring(Dest^) := tbtunicodestring(Src^);
-          Dest := Pointer(IPointer(Dest) + 4);
-          Src := Pointer(IPointer(Src) + 4);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
         end;
       btWideString:
         for i := 0 to Len -1 do
         begin
           tbtWideString(Dest^) := tbtWideString(Src^);
-          Dest := Pointer(IPointer(Dest) + 4);
-          Src := Pointer(IPointer(Src) + 4);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
         end;
     {$ENDIF}
       btStaticArray:
@@ -3972,10 +3979,10 @@ begin
             Pointer(Dest^) := Pointer(Src^);
             if Pointer(Dest^) <> nil then
             begin
-              Inc(Longint(Pointer(IPointer(Dest^)-8)^)); // RefCount
+              Inc(Longint(Pointer(IPointer(Dest^)-(2*PointerSize))^)); // RefCount
             end;
-            Dest := Pointer(IPointer(Dest) + 4);
-            Src := Pointer(IPointer(Src) + 4);
+            Dest := Pointer(IPointer(Dest) + PointerSize);
+            Src := Pointer(IPointer(Src) + PointerSize);
           end;
         end;
       btRecord:
@@ -4019,45 +4026,45 @@ begin
             if IUnknown(Dest^) <> nil then
               IUnknown(Dest^).AddRef;
             {$ENDIF}
-            Dest := Pointer(IPointer(Dest) + 4);
-            Src := Pointer(IPointer(Src) + 4);
+            Dest := Pointer(IPointer(Dest) + PointerSize);
+            Src := Pointer(IPointer(Src) + PointerSize);
           end;
         end;
 {$ENDIF}
       btPointer:
         begin
-          if (Pointer(Pointer(IPointer(Dest)+8)^) = nil) and (Pointer(Pointer(IPointer(Src)+8)^) = nil) then
+          if (Pointer(Pointer(IPointer(Dest)+PointerSize2)^) = nil) and (Pointer(Pointer(IPointer(Src)+PointerSize2)^) = nil) then
           begin
             for i := 0 to Len -1 do
             begin
               Pointer(Dest^) := Pointer(Src^);
-              Dest := Pointer(IPointer(Dest) + 4);
-              Src := Pointer(IPointer(Src) + 4);
+              Dest := Pointer(IPointer(Dest) + PointerSize);
+              Src := Pointer(IPointer(Src) + PointerSize);
               Pointer(Dest^) := Pointer(Src^);
-              Dest := Pointer(IPointer(Dest) + 4);
-              Src := Pointer(IPointer(Src) + 4);
-              Pointer(Dest^) := nil;
-              Dest := Pointer(IPointer(Dest) + 4);
-              Src := Pointer(IPointer(Src) + 4);
+              Dest := Pointer(IPointer(Dest) + PointerSize);
+              Src := Pointer(IPointer(Src) + PointerSize);
+              LongBool(Dest^) := false;
+              Dest := Pointer(IPointer(Dest) + sizeof(LongBool));
+              Src := Pointer(IPointer(Src) + sizeof(LongBool));
             end;
           end else begin
             for i := 0 to Len -1 do
             begin
-              if Pointer(Pointer(IPointer(Dest)+8)^) <> nil then
-                DestroyHeapVariant2(Pointer(Dest^), Pointer(Pointer(IPointer(Dest)+4)^));
+              if Pointer(Pointer(IPointer(Dest)+PointerSize2)^) <> nil then
+                DestroyHeapVariant2(Pointer(Dest^), Pointer(Pointer(IPointer(Dest)+PointerSize)^));
               if Pointer(Src^) <> nil then
               begin
-                if Pointer(Pointer(IPointer(Src) + 8)^) = nil then
+                if not LongBool(Pointer(IPointer(Src) + PointerSize2)^) then
                 begin
                   Pointer(Dest^) := Pointer(Src^);
-                  Pointer(Pointer(IPointer(Dest) + 4)^) := Pointer(Pointer(IPointer(Src) + 4)^);
-                  Pointer(Pointer(IPointer(Dest) + 8)^) := Pointer(Pointer(IPointer(Src) + 8)^);
+                  Pointer(Pointer(IPointer(Dest) + PointerSize)^) := Pointer(Pointer(IPointer(Src) + PointerSize)^);
+                  Pointer(Pointer(IPointer(Dest) + PointerSize2)^) := Pointer(Pointer(IPointer(Src) + PointerSize2)^);
                 end else
                 begin
-                  Pointer(Dest^) := CreateHeapVariant2(Pointer(Pointer(IPointer(Src) + 4)^));
-                  Pointer(Pointer(IPointer(Dest) + 4)^) := Pointer(Pointer(IPointer(Src) + 4)^);
-                  Pointer(Pointer(IPointer(Dest) + 8)^) := Pointer(1);
-                  if not CopyArrayContents(Pointer(Dest^), Pointer(Src^), 1, Pointer(Pointer(IPointer(Dest) + 4)^)) then
+                  Pointer(Dest^) := CreateHeapVariant2(Pointer(Pointer(IPointer(Src) + PointerSize)^));
+                  Pointer(Pointer(IPointer(Dest) + PointerSize)^) := Pointer(Pointer(IPointer(Src) + PointerSize)^);
+                  LongBool(Pointer(IPointer(Dest) + PointerSize2)^) := true;
+                  if not CopyArrayContents(Pointer(Dest^), Pointer(Src^), 1, Pointer(Pointer(IPointer(Dest) + PointerSize)^)) then
                   begin
                     Result := false;
                     exit;
@@ -4066,11 +4073,11 @@ begin
               end else
               begin
                 Pointer(Dest^) := nil;
-                Pointer(Pointer(IPointer(Dest) + 4)^) := nil;
-                Pointer(Pointer(IPointer(Dest) + 8)^) := nil;
+                Pointer(Pointer(IPointer(Dest) + PointerSize)^) := nil;
+                Pointer(Pointer(IPointer(Dest) + PointerSize2)^) := nil;
               end;
-              Dest := Pointer(IPointer(Dest) + 12);
-              Src := Pointer(IPointer(Src) + 12);
+              Dest := Pointer(IPointer(Dest) + PointerSize*2+sizeof(LongBool));
+              Src := Pointer(IPointer(Src) + PointerSize*2+sizeof(LongBool));
             end;
           end;
         end;
@@ -4101,7 +4108,7 @@ end;
 function PSDynArrayGetLength(arr: Pointer; aType: TPSTypeRec): Longint;
 begin
   if aType.BaseType <> btArray then raise Exception.Create(RPS_InvalidArray);
-  if arr = nil then Result := 0 else Result := Longint(Pointer(IPointer(arr)-4)^);
+  if arr = nil then Result := 0 else Result := Longint(Pointer(IPointer(arr)-PointerSize)^);
 end;
 
 procedure PSDynArraySetLength(var arr: Pointer; aType: TPSTypeRec; NewLength: Longint);
@@ -4113,24 +4120,24 @@ begin
   OldLen := PSDynArrayGetLength(arr, aType);
   elSize := TPSTypeRec_Array(aType).ArrayType.RealSize;
   if (OldLen = 0) and (NewLength = 0) then exit; // already are both 0
-  if (OldLen <> 0) and (Longint(Pointer(IPointer(Arr)-8)^) = 1) then // unique copy of this dynamic array
+  if (OldLen <> 0) and (Longint(Pointer(IPointer(Arr)-PointerSize2)^) = 1) then // unique copy of this dynamic array
   begin
     for i := NewLength to OldLen -1 do
     begin
       if TPSTypeRec_Array(aType).ArrayType.BaseType in NeedFinalization then
         FinalizeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
     end;
-    arr := Pointer(IPointer(Arr)-8);
+    arr := Pointer(IPointer(Arr)-PointerSize2);
     if NewLength <= 0 then
     begin
-      FreeMem(arr, NewLength * elsize + 8);
+      FreeMem(arr, NewLength * elsize + PointerSize2);
       arr := nil;
       exit;
     end;
-    ReallocMem(arr, NewLength * elSize + 8);
-    arr := Pointer(IPointer(Arr)+4);
+    ReallocMem(arr, NewLength * elSize + PointerSize2);
+    arr := Pointer(IPointer(Arr)+PointerSize);
     Longint(Arr^) := NewLength;
-    arr := Pointer(IPointer(Arr)+4);
+    arr := Pointer(IPointer(Arr)+PointerSize);
     for i := OldLen to NewLength -1 do
     begin
       InitializeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
@@ -4139,18 +4146,18 @@ begin
   begin
     if NewLength = 0 then
     begin
-      if Longint(Pointer(IPointer(Arr)-8)^) = 1 then
-        FreeMem(Pointer(IPointer(Arr)-8), OldLen * elSize + 8)
-      else if Longint(Pointer(IPointer(Arr)-8)^) > 0 then
-        Dec(Longint(Pointer(IPointer(Arr)-8)^));
+      if Longint(Pointer(IPointer(Arr)-PointerSize2)^) = 1 then
+        FreeMem(Pointer(IPointer(Arr)-PointerSize2), OldLen * elSize + PointerSize2)
+      else if Longint(Pointer(IPointer(Arr)-PointerSize2)^) > 0 then
+        Dec(Longint(Pointer(IPointer(Arr)-PointerSize2)^));
       arr := nil;
       exit;
     end;
-    GetMem(p, NewLength * elSize + 8);
+    GetMem(p, NewLength * elSize + PointerSize2);
     Longint(p^) := 1;
-    p:= Pointer(IPointer(p)+4);
+    p:= Pointer(IPointer(p)+PointerSize);
     Longint(p^) := NewLength;
-    p := Pointer(IPointer(p)+4);
+    p := Pointer(IPointer(p)+PointerSize);
     if OldLen <> 0 then
     begin
       if OldLen > NewLength then
@@ -4270,7 +4277,7 @@ begin
         begin
           if srctype.BaseType = btPointer then
           begin
-            srctype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
             if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
           end;
@@ -4282,8 +4289,8 @@ begin
             btProcPtr:
               begin
                 Pointer(Dest^) := Pointer(Src^);
-                Pointer(Pointer(IPointer(Dest)+4)^) := Pointer(Pointer(IPointer(Src)+4)^);
-                Pointer(Pointer(IPointer(Dest)+8)^) := Pointer(Pointer(IPointer(Src)+8)^);
+                Pointer(Pointer(IPointer(Dest)+PointerSize)^) := Pointer(Pointer(IPointer(Src)+PointerSize)^);
+                Pointer(Pointer(IPointer(Dest)+PointerSize2)^) := Pointer(Pointer(IPointer(Src)+PointerSize2)^);
               end;
             else raise Exception.Create(RPS_TypeMismatch);
           end;
@@ -4292,7 +4299,7 @@ begin
         begin
           if srctype.BaseType = btPointer then
           begin
-            srctype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
             if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
           end;
@@ -4314,7 +4321,7 @@ begin
         begin
           if srctype.BaseType = btPointer then
           begin
-            srctype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
             if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
           end;
@@ -4342,7 +4349,7 @@ begin
         begin
           if srctype.BaseType = btPointer then
           begin
-            srctype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
             if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
           end;
@@ -4366,7 +4373,7 @@ begin
         begin
           if srctype.BaseType = btPointer then
           begin
-            srctype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
             if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
           end;
@@ -4391,7 +4398,7 @@ begin
         begin
           if srctype.BaseType = btPointer then
           begin
-            srctype := PIFTypeRec(Pointer(IPointer(Src)+4)^);
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
             if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
           end;
@@ -4673,7 +4680,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -4749,7 +4756,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -4824,7 +4831,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -4892,7 +4899,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -4974,8 +4981,8 @@ begin
                 if Pointer(Var1^) = Pointer(Var2^) then
                 begin
                   if Longint(Var1^) = 0 then
-                    b := ((Pointer(Pointer(IPointer(Var1)+8)^) <> Pointer(Pointer(IPointer(Var2)+8)^)) or
-                   (Pointer(Pointer(IPointer(Var1)+8)^) <> Pointer(Pointer(IPointer(Var2)+8)^)))
+                    b := ((Pointer(Pointer(IPointer(Var1)+PointerSize2)^) <> Pointer(Pointer(IPointer(Var2)+PointerSize2)^)) or
+                   (Pointer(Pointer(IPointer(Var1)+PointerSize2)^) <> Pointer(Pointer(IPointer(Var2)+PointerSize2)^)))
                   else
                     b := False;
                 end else b := True;
@@ -4985,7 +4992,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5076,8 +5083,8 @@ begin
                 if Pointer(Var1^) = Pointer(Var2^) then
                 begin
                   if Longint(Var1^) = 0 then
-                    b := ((Pointer(Pointer(IPointer(Var1)+8)^) = Pointer(Pointer(IPointer(Var2)+8)^)) and
-                   (Pointer(Pointer(IPointer(Var1)+8)^) = Pointer(Pointer(IPointer(Var2)+8)^)))
+                    b := ((Pointer(Pointer(IPointer(Var1)+PointerSize2)^) = Pointer(Pointer(IPointer(Var2)+PointerSize2)^)) and
+                   (Pointer(Pointer(IPointer(Var1)+PointerSize2)^) = Pointer(Pointer(IPointer(Var2)+PointerSize2)^)))
                   else
                     b := True;
                 end else b := False;
@@ -5086,7 +5093,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5278,7 +5285,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5300,7 +5307,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5325,7 +5332,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5349,7 +5356,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5373,7 +5380,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5397,7 +5404,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5426,6 +5433,7 @@ begin
             {$ENDIF}
             btVariant:
               begin
+                tvar := null;
                 if not IntPIFVariantToVariant(var2, var2type, tvar) then
                 begin
                   Result := false;
@@ -5460,7 +5468,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5482,7 +5490,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5507,7 +5515,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5531,7 +5539,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5555,7 +5563,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5579,7 +5587,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5638,7 +5646,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5660,7 +5668,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5685,7 +5693,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5709,7 +5717,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5733,7 +5741,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5757,7 +5765,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5812,7 +5820,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5834,7 +5842,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5859,7 +5867,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5883,7 +5891,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5907,7 +5915,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5931,7 +5939,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5984,7 +5992,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -6006,7 +6014,7 @@ begin
               begin
                 if var2type.BaseType = btPointer then
                 begin
-                  var2type := PIFTypeRec(Pointer(IPointer(var2)+4)^);
+                  var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
                   if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -6433,8 +6441,8 @@ begin
 	      {$else}
               tbtu32(dest.p^) := tbtu32((@FData^[FCurrentPosition])^);
 	      {$endif}
-              tbtu32(Pointer(IPointer(dest.p)+4)^) := 0;
-              tbtu32(Pointer(IPointer(dest.p)+8)^) := 0;
+              tbtu32(Pointer(IPointer(dest.p)+PointerSize)^) := 0;
+              tbtu32(Pointer(IPointer(dest.p)+PointerSize)^) := 0;
               Inc(FCurrentPosition, 4);
             end;
           {$IFNDEF PS_NOINT64}
@@ -6680,7 +6688,7 @@ begin
 
         if UsePointer and (Dest.aType.BaseType = btPointer) then
         begin
-          Dest.aType := TPSTypeRec(Pointer(IPointer(Dest.p)+4)^);
+          Dest.aType := TPSTypeRec(Pointer(IPointer(Dest.p)+PointerSize)^);
           Dest.P := Pointer(Dest.p^);
           if Dest.P = nil then
           begin
@@ -6831,7 +6839,7 @@ begin
         end;
         if UsePointer and (Dest.aType.BaseType = btPointer) then
         begin
-          Dest.aType := TPSTypeRec(Pointer(IPointer(Dest.p)+4)^);
+          Dest.aType := TPSTypeRec(Pointer(IPointer(Dest.p)+PointerSize)^);
           Dest.P := Pointer(Dest.p^);
           if Dest.P = nil then
           begin
@@ -7666,7 +7674,7 @@ begin
               if not ReadVariable(vs, True) then
                 Break;
               vtemp := FStack.PushType(vs.aType);
-              vd.P := Pointer(IPointer(vtemp)+4);
+              vd.P := Pointer(IPointer(vtemp)+PointerSize);
               vd.aType := Pointer(vtemp^);
               vd.FreeType := vtNone;
               if not SetVariantValue(Vd.P, vs.P, vd.aType, vs.aType) then
@@ -7714,7 +7722,7 @@ begin
               if vs.aType.BaseType = btPointer then
               begin
                 PPSVariantPointer(vtemp).DataDest := Pointer(vs.p^);
-                PPSVariantPointer(vtemp).DestType := Pointer(Pointer(IPointer(vs.P)+4)^);
+                PPSVariantPointer(vtemp).DestType := Pointer(Pointer(IPointer(vs.P)+PointerSize)^);
                 PPSVariantPointer(vtemp).FreeIt := False;
               end
               else
@@ -7743,7 +7751,7 @@ begin
               {$ENDIF}
               FStack.FLength := Longint(IPointer(vtemp) - IPointer(FStack.DataPtr));
               if TPSTypeRec(vtemp^).BaseType in NeedFinalization then
-                FinalizeVariant(Pointer(IPointer(vtemp)+4), Pointer(vtemp^));
+                FinalizeVariant(Pointer(IPointer(vtemp)+PointerSize), Pointer(vtemp^));
               if ((FStack.FCapacity - FStack.FLength) shr 12) > 2 then FStack.AdjustLength;
             end;
           Cm_C: begin
@@ -7812,7 +7820,7 @@ begin
               end
               else begin
                 Vtemp := Fstack.PushType(FReturnAddressType);
-                vd.P := Pointer(IPointer(VTemp)+4);
+                vd.P := Pointer(IPointer(VTemp)+PointerSize);
                 vd.aType := pointer(vtemp^);
                 vd.FreeType := vtNone;
                 PPSVariantReturnAddress(vtemp).Addr.ProcNo := FCurrProc;
@@ -8298,16 +8306,16 @@ begin
               end;
               if not ReadVariable(vs, False) then
                 Break;
-              if Pointer(Pointer(IPointer(vD.P)+8)^) <> nil then
-                DestroyHeapVariant2(Pointer(vD.P^), Pointer(Pointer(IPointer(vd.P)+4)^));
+              if Pointer(Pointer(IPointer(vD.P)+PointerSize2)^) <> nil then
+                DestroyHeapVariant2(Pointer(vD.P^), Pointer(Pointer(IPointer(vd.P)+PointerSize)^));
               if vs.aType.BaseType = btPointer then
               begin
                 if Pointer(vs.P^) <> nil then
                 begin
-                  Pointer(vd.P^) := CreateHeapVariant2(Pointer(Pointer(IPointer(vs.P) + 4)^));
-                  Pointer(Pointer(IPointer(vd.P) + 4)^) := Pointer(Pointer(IPointer(vs.P) + 4)^);
-                  Pointer(Pointer(IPointer(vd.P) + 8)^) := Pointer(1);
-                  if not CopyArrayContents(Pointer(vd.P^), Pointer(vs.P^), 1, Pointer(Pointer(IPointer(vd.P) + 4)^)) then
+                  Pointer(vd.P^) := CreateHeapVariant2(Pointer(Pointer(IPointer(vs.P) + PointerSize)^));
+                  Pointer(Pointer(IPointer(vd.P) + PointerSize)^) := Pointer(Pointer(IPointer(vs.P) + PointerSize)^);
+                  Pointer(Pointer(IPointer(vd.P) + PointerSize2)^) := Pointer(1);
+                  if not CopyArrayContents(Pointer(vd.P^), Pointer(vs.P^), 1, Pointer(Pointer(IPointer(vd.P) + PointerSize)^)) then
                   begin
                     if vs.FreeType <> vtNone then
                       FTempVars.Pop;
@@ -8317,13 +8325,13 @@ begin
                 end else
                 begin
                   Pointer(vd.P^) := nil;
-                  Pointer(Pointer(IPointer(vd.P) + 4)^) := nil;
-                  Pointer(Pointer(IPointer(vd.P) + 8)^) := nil;
+                  Pointer(Pointer(IPointer(vd.P) + PointerSize)^) := nil;
+                  Pointer(Pointer(IPointer(vd.P) + PointerSize2)^) := nil;
                 end;
               end else begin
                 Pointer(vd.P^) := CreateHeapVariant2(vs.aType);
-                Pointer(Pointer(IPointer(vd.P) + 4)^) := vs.aType;
-                Pointer(Pointer(IPointer(vd.P) + 8)^) := Pointer(1);
+                Pointer(Pointer(IPointer(vd.P) + PointerSize)^) := vs.aType;
+                LongBool(Pointer(IPointer(vd.P) + PointerSize2)^) := true;
                 if not CopyArrayContents(Pointer(vd.P^), vs.P, 1, vs.aType) then
                 begin
                   if vs.FreeType <> vtNone then
@@ -8417,12 +8425,12 @@ begin
               if vs.aType.BaseType = btPointer then
               begin
                 Pointer(vd.P^) := Pointer(vs.p^);
-                Pointer(Pointer(IPointer(vd.P)+4)^) := Pointer(Pointer(IPointer(vs.P)+4)^);
+                Pointer(Pointer(IPointer(vd.P)+PointerSize)^) := Pointer(Pointer(IPointer(vs.P)+PointerSize)^);
               end
               else
               begin
                 Pointer(vd.P^) := vs.P;
-                Pointer(Pointer(IPointer(vd.P)+4)^) := vs.aType;
+                Pointer(Pointer(IPointer(vd.P)+PointerSize)^) := vs.aType;
               end;
             end;
           Cm_cv:
@@ -8439,9 +8447,9 @@ begin
               p := tbtu32(vd.P^);
               if vd.FreeType <> vtNone then
                 FTempVars.Pop;
-              if (p = 0) and (Pointer(Pointer(IPointer(vd.p)+8)^) <> nil) then
+              if (p = 0) and (Pointer(Pointer(IPointer(vd.p)+PointerSize2)^) <> nil) then
               begin
-                if not InvokeExternalMethod(TPSTypeRec_ProcPtr(vd.aType), Pointer(Pointer(IPointer(vd.p)+4)^), Pointer(Pointer(IPointer(vd.p)+8)^)) then
+                if not InvokeExternalMethod(TPSTypeRec_ProcPtr(vd.aType), Pointer(Pointer(IPointer(vd.p)+PointerSize)^), Pointer(Pointer(IPointer(vd.p)+PointerSize2)^)) then
                   Break;
               end else begin
                 if (p >= FProcs.Count) or (p = FMainProc) then begin
@@ -9256,7 +9264,7 @@ begin
   end;
   if aType.BaseType = btPointer then
   begin
-    aType := TPSTypeRec(Pointer(IPointer(src)+4)^);
+    aType := TPSTypeRec(Pointer(IPointer(src)+PointerSize)^);
     Src := Pointer(Pointer(Src)^);
   end;
 
@@ -9373,7 +9381,7 @@ begin
   FillChar(p^, Result^.ItemCount * Result^.ElementSize, 0);
   for i := 0 to Result^.ItemCount -1 do
   begin
-    ctype := Pointer(Pointer(IPointer(datap)+4)^);
+    ctype := Pointer(Pointer(IPointer(datap)+PointerSize)^);
     cp := Pointer(Datap^);
     if cp = nil then
     begin
@@ -9503,7 +9511,7 @@ begin
       datap := Pointer(v.OrgVar.Dta^);
     for i := 0 to v^.ItemCount -1 do
     begin
-      ctype := Pointer(Pointer(IPointer(datap)+4)^);
+      ctype := Pointer(Pointer(IPointer(datap)+PointerSize)^);
       cp := Pointer(Datap^);
       case ctype.BaseType of
         btU8:
@@ -9617,6 +9625,8 @@ end;
     {$include powerpc.inc}
   {$elseif defined(cpuarm)}
     {$include arm.inc}
+  {$elseif defined(CPUX86_64)}
+    {$include x64.inc}
   {$else}
     {$fatal Pascal Script is not supported for your architecture at the moment!}
   {$ifend}
@@ -9748,11 +9758,11 @@ begin
       begin
         if I <> ({$IFDEF VER90}-44{$ELSE}vmtTypeInfo{$ENDIF} div SizeOf(Pointer)) then
         begin // from GExperts code
-          if (Longint(p^[I]) > Longint(p)) and ((Longint(p^[I]) - Longint(p))
+          if (IPointer(p^[I]) > IPointer(p)) and ((IPointer(p^[I]) - IPointer(p))
             div
-            4 < Ret.FEndOfVMT) then
+            PointerSize < Ret.FEndOfVMT) then
           begin
-            Ret.FEndOfVMT := (Longint(p^[I]) - Longint(p)) div SizeOf(Pointer);
+            Ret.FEndOfVMT := (IPointer(p^[I]) - IPointer(p)) div SizeOf(Pointer);
           end;
         end;
       end;
@@ -9819,7 +9829,7 @@ begin
     result.Dta := @PPSVariantData(avar).Data;
     if Result.aType.BaseType = btPointer then
     begin
-      Result.aType := Pointer(Pointer(IPointer(result.dta)+4)^);
+      Result.aType := Pointer(Pointer(IPointer(result.dta)+ PointerSize)^);
       Result.Dta := Pointer(Result.dta^);
     end;
   end;
@@ -10057,7 +10067,7 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
-    Result := Caller.InnerfuseCall(FSelf, p.Ext1, cc, MyList, v);
+    Result := Caller.InnerfuseCall(FSelf, p.Ext1, TPSCallingConvention(Integer(cc) or 64), MyList, v);
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);
@@ -10307,7 +10317,7 @@ begin
     n2 := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else n2 := nil;
   try
-    Caller.InnerfuseCall(FSelf, Pointer(Pointer(Cardinal(FSelf^) + (Cardinal(p.Ext1) * Sizeof(Pointer)))^), cc, MyList, n2);
+    Caller.InnerfuseCall(FSelf, Pointer(Pointer(IPointer(FSelf^) + (Cardinal(p.Ext1) * Sizeof(Pointer)))^), cc, MyList, n2);
     result := true;
   finally
     DisposePPSVariantIFC(n2);
@@ -10440,8 +10450,8 @@ begin
         Cardinal(n.Dta^) := GetMethodNo(m, Caller);
         if Cardinal(n.dta^) = 0 then
         begin
-          Pointer(Pointer((IPointer(n.dta)+4))^) := m.Data;
-          Pointer(Pointer((IPointer(n.dta)+8))^) := m.Code;
+          Pointer(Pointer((IPointer(n.dta)+PointerSize))^) := m.Data;
+          Pointer(Pointer((IPointer(n.dta)+PointerSize2))^) := m.Code;
         end;
       end else
       case n.aType.BaseType of
@@ -10640,6 +10650,7 @@ var
   I, ParamCount: Longint;
   Params: TPSList;
   n: TPSVariantIFC;
+  data: TMethod;
   n2: PIFVariant;
   FSelf: Pointer;
 begin
@@ -10670,27 +10681,31 @@ begin
       Caller.CMD_Err(erNullPointerException);
       exit;
     end;
-    n2 := CreateHeapVariant(Caller.FindType2(btDouble));
+    n2 := CreateHeapVariant(Caller.FindType2(btPChar));
     if n2 = nil then
     begin
       Result := False;
       exit;
     end;
-    TMethod(PPSVariantDouble(n2).Data).Code := nil;
-    TMethod(PPSVariantDouble(n2).Data).Data := nil;
     Params := TPSList.Create;
-    Params.Add(NewPPSVariantIFC(n2, True));
+//{$IFDEF CPU64}
+//{$ELSE}
+    data.Code := nil;
+    data.Data := nil;
+//{$ENDIF}
+    PPSVariantDynamicArray(n2)^.Data:= @data;
+    Params.Add(NewPPSVariantIFC(n2, false));
     for i := Stack.Count -3 downto Longint(Stack.Count) - ParamCount -2 do
       Params.Add(NewPPSVariantIFC(Stack[i], False));
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
     finally
-      Cardinal(n.Dta^) := getMethodNo(TMethod(PPSVariantDouble(n2).Data), Caller);
+      Cardinal(n.Dta^) := getMethodNo(data, Caller);
       if Cardinal(n.Dta^) = 0 then
       begin
-        Pointer(Pointer((IPointer(n.dta)+4))^) := TMethod(PPSVariantDouble(n2).Data).Data;
-        Pointer(Pointer((IPointer(n.dta)+8))^) := TMethod(PPSVariantDouble(n2).Data).Code;
-      end;
+        Pointer(Pointer((IPointer(n.dta)+PointerSize))^) := data.Data;
+        Pointer(Pointer((IPointer(n.dta)+PointerSize2))^) := data.Code;
+      end;                         
       DestroyHeapVariant(n2);
       DisposePPSVariantIFCList(Params);
     end;
@@ -10710,13 +10725,17 @@ begin
       Caller.CMD_Err(erNullPointerException);
       exit;
     end;
-    n2 := CreateHeapVariant(Caller.FindType2(btDouble));
+    n2 := CreateHeapVariant(Caller.FindType2(btPchar));
     if n2 = nil then
     begin
       Result := False;
       exit;
     end;
-    TMethod(PPSVariantDouble(n2).Data) := MkMethod(Caller, cardinal(n.dta^));
+
+    if (n.aType.BaseType = btProcPtr) and (cardinal(n.dta^) = 0) then
+      data := TMethod(Pointer(IPointer(n.dta^)+4)^)
+    else
+      data := MkMethod(Caller, cardinal(n.dta^));
     Params := TPSList.Create;
     Params.Add(NewPPSVariantIFC(n2, False));
 
@@ -11300,7 +11319,7 @@ begin
 end;
 
 {$ifdef fpc}
-  {$if defined(cpupowerpc) or defined(cpuarm)}
+  {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
     {$define empty_methods_handler}
   {$ifend}
 {$endif}
@@ -11359,8 +11378,8 @@ begin
     btChar,
     btclass,
     btEnum: Result := true;
-    btSet: Result := b.RealSize <= 4;
-    btStaticArray: Result := b.RealSize <= 4;
+    btSet: Result := b.RealSize <= PointerSize;
+    btStaticArray: Result := b.RealSize <= PointerSize;
   else
     Result := false;
   end;
@@ -11389,8 +11408,8 @@ begin
     btChar,
     btArray,
     btEnum: Result := true;
-    btSet: Result := b.RealSize <= 4;
-    btStaticArray: Result := b.RealSize <= 4;
+    btSet: Result := b.RealSize <= PointerSize;
+    btStaticArray: Result := b.RealSize <= PointerSize;
   else
     Result := false;
   end;
@@ -11400,9 +11419,9 @@ function AlwaysAsVariable(aType: TPSTypeRec): Boolean;
 begin
   case atype.BaseType of
     btVariant: Result := true;
-    btSet: Result := atype.RealSize > 4;
-    btRecord: Result := atype.RealSize > 4;
-    btStaticArray: Result := atype.RealSize > 4;
+    btSet: Result := atype.RealSize > PointerSize;
+    btRecord: Result := atype.RealSize > PointerSize;
+    btStaticArray: Result := atype.RealSize > PointerSize;
   else
     Result := false;
   end;
@@ -11519,7 +11538,7 @@ begin
           end;
         else begin
             PPSVariantPointer(Res).DataDest := Pointer(FStack^);
-            Inc(Result, 4);
+            Inc(Result, PointerSize);
           end;
       end;
     end else
@@ -11543,8 +11562,8 @@ begin
       PPSVariantPointer(tmp).DestType := cpt;
       Params[i] := tmp;
       PPSVariantPointer(tmp).DataDest := Pointer(FStack^);
-      FStack := Pointer(IPointer(FStack) + 4);
-      Inc(Result, 4);
+      FStack := Pointer(IPointer(FStack) + PointerSize);
+      Inc(Result, PointerSize);
     end
 (*    else if SupportsRegister(cpt) then
     begin
@@ -11599,7 +11618,7 @@ begin
 {$IFNDEF PS_NOINT64}
         if res^.FType.BaseType <> btS64 then
 {$ENDIF}
-          CopyArrayContents(Pointer(Longint(Stack)-8), @PPSVariantData(res)^.Data, 1, Res^.FType);
+          CopyArrayContents(Pointer(Longint(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
       end;
     end;
     DestroyHeapVariant(res);
@@ -11851,7 +11870,7 @@ end;
 
 procedure TPSTypeRec_Array.CalcSize;
 begin
-  FrealSize := 4;
+  FrealSize := PointerSize;
 end;
 
 { TPSTypeRec_StaticArray }
@@ -11891,7 +11910,7 @@ begin
   begin
     v := Data[i];
     if TPSTypeRec(v^).BaseType in NeedFinalization then
-      FinalizeVariant(Pointer(IPointer(v)+4), TPSTypeRec(v^));
+      FinalizeVariant(Pointer(IPointer(v)+PointerSize), TPSTypeRec(v^));
   end;
   inherited Clear;
   FLength := 0;
@@ -11915,7 +11934,7 @@ begin
   begin
     v := Data[i];
     if TPSTypeRec(v^).BaseType in NeedFinalization then
-    FinalizeVariant(Pointer(IPointer(v)+4), Pointer(v^));
+    FinalizeVariant(Pointer(IPointer(v)+PointerSize), Pointer(v^));
   end;
   FreeMem(FDataPtr, FCapacity);
   inherited Destroy;
@@ -12058,7 +12077,7 @@ begin
   DeleteLast;
   FLength := IPointer(p1) - IPointer(FDataPtr);
   if TPSTypeRec(p1^).BaseType in NeedFinalization then
-    FinalizeVariant(Pointer(IPointer(p1)+4), Pointer(p1^));
+    FinalizeVariant(Pointer(IPointer(p1)+PointerSize), Pointer(p1^));
   if ((FCapacity - FLength) shr 12) > 2 then AdjustLength;
 end;
 
@@ -12087,7 +12106,7 @@ begin
   Add(p);
   Result := P;
   Result.FType := aType;
-  InitializeVariant(Pointer(IPointer(Result)+4), aType);
+  InitializeVariant(Pointer(IPointer(Result)+PointerSize), aType);
 end;
 
 procedure TPSStack.SetBool(ItemNo: Longint; const Data: Boolean);

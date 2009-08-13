@@ -178,7 +178,7 @@ var
   st: packed array of byte;	{ stack }
   i, j, rindex, findex, stindex: integer;
   fvar: PPSVariantIFC;
-
+  IsConstructor: Boolean;
   { add a dword to stack }
   procedure addstackdword(value: dword);
   begin
@@ -229,6 +229,11 @@ var
   end;
 
 begin
+  if (Integer(CallingConv) and 64) <> 0 then begin
+    IsConstructor := true;
+    CAllingConv := TPSCallingConvention(Integer(CallingConv) and not 64);
+  end else IsConstructor := false;
+
   rindex := 1;
   findex := 1;
   stindex := 24;

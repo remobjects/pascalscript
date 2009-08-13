@@ -1496,23 +1496,23 @@ type
     function CastToType(IntoType: TPSType; var ProcNo: Cardinal): Boolean;
 
 
-    function Property_Find(const Name: tbtString; var Index: Cardinal): Boolean;
+    function Property_Find(const Name: tbtString; var Index: IPointer): Boolean;
 
-    function Property_Get(Index: Cardinal; var ProcNo: Cardinal): Boolean;
+    function Property_Get(Index: IPointer; var ProcNo: Cardinal): Boolean;
 
-    function Property_Set(Index: Cardinal; var ProcNo: Cardinal): Boolean;
+    function Property_Set(Index: IPointer; var ProcNo: Cardinal): Boolean;
 
-    function Property_GetHeader(Index: Cardinal; Dest: TPSParametersDecl): Boolean;
-
-
-    function Func_Find(const Name: tbtString; var Index: Cardinal): Boolean;
-
-    function Func_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean;
+    function Property_GetHeader(Index: IPointer; Dest: TPSParametersDecl): Boolean;
 
 
-    function ClassFunc_Find(const Name: tbtString; var Index: Cardinal): Boolean;
+    function Func_Find(const Name: tbtString; var Index: IPointer): Boolean;
 
-    function ClassFunc_Call(Index: Cardinal; var ProcNo: Cardinal): Boolean;
+    function Func_Call(Index: IPointer; var ProcNo: Cardinal): Boolean;
+
+
+    function ClassFunc_Find(const Name: tbtString; var Index: IPointer): Boolean;
+
+    function ClassFunc_Call(Index: IPointer; var ProcNo: Cardinal): Boolean;
   end;
 
   TPSDelphiClassItem = class(TObject)
@@ -2978,6 +2978,7 @@ var
   b: Boolean;
 begin
   New(vartemp);
+  b := false;
   if FUseUsedTypes then
     NewType := se.at2ut(NewType);
   InitializeVariant(vartemp, var1.FType);
@@ -4213,6 +4214,7 @@ begin
     exit;
   end;
   repeat
+    VarNAme := '';
     if VarIsDuplicate(proc, VarName, FParser.GetToken) then
     begin
       MakeError('', ecDuplicateIdentifier, FParser.OriginalToken);
@@ -4695,6 +4697,7 @@ begin
           E2Pos := FParser.CurrTokenPos;
           E2Row := FParser.Row;
           E2Col := FParser.Col;
+          FunctionParamNames := '';
           if ProcIsDuplic(FunctionDecl, FunctionName, FunctionParamNames, FParser.GetToken, Func) then
           begin
             MakeError('', ecDuplicateIdentifier, FParser.OriginalToken);
@@ -6587,7 +6590,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     var
       Tempp: TPSValue;
       aType: TPSClassType;
-      procno, Idx: Cardinal;
+      procno: Cardinal;
+      Idx: IPointer;
       Decl: TPSParametersDecl;
     begin
       if p = nil then exit;
@@ -6722,7 +6726,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
 
     procedure CheckClass(var P: TPSValue; const VarType: TPSVariableType; VarNo: Cardinal; ImplicitPeriod: Boolean);
     var
-      Procno, Idx: Cardinal;
+      Procno: Cardinal;
+      Idx: IPointer;
       FType: TPSType;
       TempP: TPSValue;
       Decl: TPSParametersDecl;
@@ -6734,6 +6739,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     begin
       FType := GetTypeNo(BlockInfo, p);
       if FType = nil then exit;
+      pinfo := '';
       if (FType.BaseType <> btClass) then Exit;
       while (FParser.CurrTokenID = CSTI_Period) or (ImplicitPeriod) do
       begin
@@ -7046,7 +7052,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     function CheckClassType(TypeNo: TPSType; const ParserPos: Cardinal): TPSValue;
     var
       FType2: TPSType;
-      ProcNo, Idx: Cardinal;
+      ProcNo: Cardinal;
+      Idx: IPointer;
       Temp, ResV: TPSValue;
       dta: PIfRVariant;
     begin
@@ -9519,7 +9526,7 @@ begin
     {$endif}
     for i := 0 to FBreakOffsets.Count -1 do
     begin
-      EPos := Cardinal(FBreakOffsets[I]);
+      EPos := IPointer(FBreakOffsets[I]);
       {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
       unaligned(Longint((@BlockInfo.Proc.Data[EPos - 3])^)) := Length(BlockInfo.Proc.Data) - Longint(EPos);
       {$else}
@@ -9528,7 +9535,7 @@ begin
     end;
     for i := 0 to FContinueOffsets.Count -1 do
     begin
-      EPos := Cardinal(FContinueOffsets[I]);
+      EPos := IPointer(FContinueOffsets[I]);
       {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
       unaligned(Longint((@BlockInfo.Proc.Data[EPos - 3])^)) := Longint(FPos) - Longint(EPos);
       {$else}
@@ -10298,7 +10305,7 @@ begin
       TPSValueReplace(aReplace).FreeNewValue := True;
       TPSValueReplace(aReplace).OldValue := aVar;
 
-      if aVar.InheritsFrom(TPSVar) then TPSVar(aVar).Use;
+      //if aVar.InheritsFrom(TPSVar) then TPSVar(aVar).Use;
       tmp := AllocPointer(GetTypeNo(BlockInfo, aVar));
       TPSProcVar(BlockInfo.Proc.ProcVars[TPSValueAllocatedStackVar(tmp).LocalVarNo]).Use;
       PreWriteOutRec(tmp,GetTypeNo(BlockInfo, tmp));
@@ -14163,7 +14170,7 @@ begin
 end;
 
 
-function TPSCompileTimeClass.ClassFunc_Call(Index: Cardinal;
+function TPSCompileTimeClass.ClassFunc_Call(Index: IPointer;
   var ProcNo: Cardinal): Boolean;
 var
   C: TPSDelphiClassItemConstructor;
@@ -14202,7 +14209,7 @@ begin
 end;
 
 function TPSCompileTimeClass.ClassFunc_Find(const Name: tbtString;
-  var Index: Cardinal): Boolean;
+  var Index: IPointer): Boolean;
 var
   H: Longint;
   I: Longint;
@@ -14260,7 +14267,7 @@ begin
 end;
 
 
-function TPSCompileTimeClass.Func_Call(Index: Cardinal;
+function TPSCompileTimeClass.Func_Call(Index: IPointer;
   var ProcNo: Cardinal): Boolean;
 var
   C: TPSDelphiClassItemMethod;
@@ -14297,7 +14304,7 @@ begin
 end;
 
 function TPSCompileTimeClass.Func_Find(const Name: tbtString;
-  var Index: Cardinal): Boolean;
+  var Index: IPointer): Boolean;
 var
   H: Longint;
   I: Longint;
@@ -14356,7 +14363,7 @@ begin
 end;
 
 function TPSCompileTimeClass.Property_Find(const Name: tbtString;
-  var Index: Cardinal): Boolean;
+  var Index: IPointer): Boolean;
 var
   H: Longint;
   I: Longint;
@@ -14398,7 +14405,7 @@ begin
   Result := False;
 end;
 
-function TPSCompileTimeClass.Property_Get(Index: Cardinal;
+function TPSCompileTimeClass.Property_Get(Index: IPointer;
   var ProcNo: Cardinal): Boolean;
 var
   C: TPSDelphiClassItemProperty;
@@ -14428,7 +14435,7 @@ begin
   Result := True;
 end;
 
-function TPSCompileTimeClass.Property_GetHeader(Index: Cardinal;
+function TPSCompileTimeClass.Property_GetHeader(Index: IPointer;
   Dest: TPSParametersDecl): Boolean;
 var
   c: TPSDelphiClassItemProperty;
@@ -14439,7 +14446,7 @@ begin
   Result := True;
 end;
 
-function TPSCompileTimeClass.Property_Set(Index: Cardinal;
+function TPSCompileTimeClass.Property_Set(Index: IPointer;
   var ProcNo: Cardinal): Boolean;
 var
   C: TPSDelphiClassItemProperty;

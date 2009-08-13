@@ -315,12 +315,18 @@ type
   tbtwidechar = widechar;
   tbtNativeString = {$IFDEF DELPHI2009UP}tbtUnicodeString{$ELSE}tbtString{$ENDIF};
 {$ENDIF}
-  IPointer = Cardinal;
+{$IFDEF FPC}
+  IPointer = PtrUInt;
+{$ELSE}
+  {$IFDEF CPU64} IPointer = LongWord;{$ELSE}  IPointer = Cardinal;{$ENDIF}
+{$ENDIF}
   TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafeCall);
 
 
 const
 
+  PointerSize = IPointer({$IFDEF CPU64}8{$ELSE}4{$ENDIF});
+  PointerSize2 = IPointer(2*PointerSize);
   MaxListSize = Maxint div 16;
 
 type
@@ -734,7 +740,7 @@ begin
   {$IFNDEF PS_NOSMARTLIST}
   FCheckCount := 0;
   {$ENDIF}
-  GetMem(FData, 64);
+  GetMem(FData, FCapacity * PointerSize);
 end;
 
 
@@ -758,12 +764,12 @@ begin
   FCheckCount := 0;
   NewCapacity := mm(FCount, FCapacityInc);
   if NewCapacity < 64 then NewCapacity := 64;
-  GetMem(NewData, NewCapacity * 4);
+  GetMem(NewData, NewCapacity * PointerSize);
   for I := 0 to Longint(FCount) -1 do
   begin
     NewData^[i] := FData^[I];
   end;
-  FreeMem(FData, FCapacity * 4);
+  FreeMem(FData, FCapacity * PointerSize);
   FData := NewData;
   FCapacity := NewCapacity;
 end;
@@ -776,7 +782,7 @@ begin
   if FCount >= FCapacity then
   begin
     Inc(FCapacity, FCapacityInc);// := FCount + 1;
-    ReAllocMem(FData, FCapacity shl 2);
+    ReAllocMem(FData, FCapacity * PointerSize);
   end;
   FData[FCount] := P; // Instead of SetItem
   Result := FCount;
@@ -795,7 +801,7 @@ begin
   if Longint(FCount) + Count > Longint(FCapacity) then
   begin
     Inc(FCapacity, mm(Count, FCapacityInc));
-    ReAllocMem(FData, FCapacity shl 2);
+    ReAllocMem(FData, FCapacity *PointerSize);
   end;
   for L := 0 to Count -1 do
   begin
@@ -828,7 +834,7 @@ begin
   if FCount = 0 then Exit;
   if Nr < FCount then
   begin
-    Move(FData[Nr + 1], FData[Nr], (FCount - Nr) * 4);
+    Move(FData[Nr + 1], FData[Nr], (FCount - Nr) * PointerSize);
     Dec(FCount);
 {$IFNDEF PS_NOSMARTLIST}
     Inc(FCheckCount);
@@ -867,7 +873,7 @@ end;
 
 destructor TPSList.Destroy;
 begin
-  FreeMem(FData, FCapacity * 4);
+  FreeMem(FData, FCapacity * PointerSize);
   inherited Destroy;
 end;
 //-------------------------------------------------------------------
@@ -1507,8 +1513,8 @@ begin
     Exit;
   end;
   repeat
-    FRealPosition := FRealPosition + FTokenLength;
-    Err := ParseToken(FRealPosition, FTokenLength, FTokenID);
+    FRealPosition := FRealPosition + Cardinal(FTokenLength);
+    Err := ParseToken(FRealPosition, Cardinal(FTokenLength), FTokenID);
     if Err <> iNoError then
     begin
       FTokenLength := 0;

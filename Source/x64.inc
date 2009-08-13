@@ -1,255 +1,15 @@
 { implementation of x86 abi }
 
-function RealFloatCall_Register(p: Pointer;
-  _EAX, _EDX, _ECX: Cardinal;
-  StackData: Pointer;
-  StackDataLen: Longint // stack length are in 4 bytes. (so 1 = 4 bytes)
-  ): Extended; Stdcall; // make sure all things are on stack
-var
-  E: Extended;
-begin
-  asm
-    mov ecx, stackdatalen
-    jecxz @@2
-    mov eax, stackdata
-    @@1:
-    mov edx, [eax]
-    push edx
-    sub eax, 4
-    dec ecx
-    or ecx, ecx
-    jnz @@1
-    @@2:
-    mov eax,_EAX
-    mov edx,_EDX
-    mov ecx,_ECX
-    call p
-    fstp tbyte ptr [e]
-  end;
-  Result := E;
-end;
-
-function RealFloatCall_Other(p: Pointer;
-  StackData: Pointer;
-  StackDataLen: Longint // stack length are in 4 bytes. (so 1 = 4 bytes)
-  ): Extended; Stdcall; // make sure all things are on stack
-var
-  E: Extended;
-begin
-  asm
-    mov ecx, stackdatalen
-    jecxz @@2
-    mov eax, stackdata
-    @@1:
-    mov edx, [eax]
-    push edx
-    sub eax, 4
-    dec ecx
-    or ecx, ecx
-    jnz @@1
-    @@2:
-    call p
-    fstp tbyte ptr [e]
-  end;
-  Result := E;
-end;
-
-function RealFloatCall_CDecl(p: Pointer;
-  StackData: Pointer;
-  StackDataLen: Longint // stack length are in 4 bytes. (so 1 = 4 bytes)
-  ): Extended; Stdcall; // make sure all things are on stack
-var
-  E: Extended;
-begin
-  asm
-    mov ecx, stackdatalen
-    jecxz @@2
-    mov eax, stackdata
-    @@1:
-    mov edx, [eax]
-    push edx
-    sub eax, 4
-    dec ecx
-    or ecx, ecx
-    jnz @@1
-    @@2:
-    call p
-    fstp tbyte ptr [e]
-    @@5:
-    mov ecx, stackdatalen
-    jecxz @@2
-    @@6:
-    pop edx
-    dec ecx
-    or ecx, ecx
-    jnz @@6
-  end;
-  Result := E;
-end;
-
-function RealCall_Register(p: Pointer;
-  _EAX, _EDX, _ECX: Cardinal;
-  StackData: Pointer;
-  StackDataLen: Longint; // stack length are in 4 bytes. (so 1 = 4 bytes)
-  ResultLength: Longint; ResEDX: Pointer): Longint; Stdcall; // make sure all things are on stack
-var
-  r: Longint;
-begin
-  asm
-    mov ecx, stackdatalen
-    jecxz @@2
-    mov eax, stackdata
-    @@1:
-    mov edx, [eax]
-    push edx
-    sub eax, 4
-    dec ecx
-    or ecx, ecx
-    jnz @@1
-    @@2:
-    mov eax,_EAX
-    mov edx,_EDX
-    mov ecx,_ECX
-    call p
-    mov ecx, resultlength
-    cmp ecx, 0
-    je @@5
-    cmp ecx, 1
-    je @@3
-    cmp ecx, 2
-    je @@4
-    mov r, eax
-    jmp @@5
-    @@3:
-    xor ecx, ecx
-    mov cl, al
-    mov r, ecx
-    jmp @@5
-    @@4:
-    xor ecx, ecx
-    mov cx, ax
-    mov r, ecx
-    @@5:
-    mov ecx, resedx
-    jecxz @@6
-    mov [ecx], edx
-    @@6:
-  end;
-  Result := r;
-end;
-
-function RealCall_Other(p: Pointer;
-  StackData: Pointer;
-  StackDataLen: Longint; // stack length are in 4 bytes. (so 1 = 4 bytes)
-  ResultLength: Longint; ResEDX: Pointer): Longint; Stdcall; // make sure all things are on stack
-var
-  r: Longint;
-begin
-  asm
-    mov ecx, stackdatalen
-    jecxz @@2
-    mov eax, stackdata
-    @@1:
-    mov edx, [eax]
-    push edx
-    sub eax, 4
-    dec ecx
-    or ecx, ecx
-    jnz @@1
-    @@2:
-    call p
-    mov ecx, resultlength
-    cmp ecx, 0
-    je @@5
-    cmp ecx, 1
-    je @@3
-    cmp ecx, 2
-    je @@4
-    mov r, eax
-    jmp @@5
-    @@3:
-    xor ecx, ecx
-    mov cl, al
-    mov r, ecx
-    jmp @@5
-    @@4:
-    xor ecx, ecx
-    mov cx, ax
-    mov r, ecx
-    @@5:
-    mov ecx, resedx
-    jecxz @@6
-    mov [ecx], edx
-    @@6:
-  end;
-  Result := r;
-end;
-
-function RealCall_CDecl(p: Pointer;
-  StackData: Pointer;
-  StackDataLen: Longint; // stack length are in 4 bytes. (so 1 = 4 bytes)
-  ResultLength: Longint; ResEDX: Pointer): Longint; Stdcall; // make sure all things are on stack
-var
-  r: Longint;
-begin
-  asm
-    mov ecx, stackdatalen
-    jecxz @@2
-    mov eax, stackdata
-    @@1:
-    mov edx, [eax]
-    push edx
-    sub eax, 4
-    dec ecx
-    or ecx, ecx
-    jnz @@1
-    @@2:
-    call p
-    mov ecx, resultlength
-    cmp ecx, 0
-    je @@5
-    cmp ecx, 1
-    je @@3
-    cmp ecx, 2
-    je @@4
-    mov r, eax
-    jmp @@5
-    @@3:
-    xor ecx, ecx
-    mov cl, al
-    mov r, ecx
-    jmp @@5
-    @@4:
-    xor ecx, ecx
-    mov cx, ax
-    mov r, ecx
-    @@5:
-    mov ecx, stackdatalen
-    jecxz @@7
-    @@6:
-    pop eax
-    dec ecx
-    or ecx, ecx
-    jnz @@6
-    mov ecx, resedx
-    jecxz @@7
-    mov [ecx], edx
-    @@7:
-  end;
-  Result := r;
-end;
-
 const
   EmptyPchar: array[0..0] of char = #0;
 
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
-var
+(*var
   Stack: ansistring;
   I: Longint;
   RegUsage: Byte;
   CallData: TPSList;
   pp: ^Byte;
-  IsConstructor: Boolean;
 
   EAX, EDX, ECX: Longint;
 
@@ -494,15 +254,10 @@ var
       end;
     end;
     Result := True;
-  end;
+  end;*)
 begin
-  if (Integer(CallingConv) and 64) <> 0 then begin
-    IsConstructor := true;
-    CAllingConv := TPSCallingConvention(Integer(CallingConv) and not 64);
-  end else IsConstructor := false;
-
   InnerfuseCall := False;
-  if Address = nil then
+(*  if Address = nil then
     exit; // need address
   Stack := '';
   CallData := TPSList.Create;
@@ -516,20 +271,10 @@ begin
           EDX := 0;
           ECX := 0;
           RegUsage := 0;
-
-{$IFDEF FPC} // FIX FOR FPC constructor calls
-          if IsConstructor then begin
-            if not GetPtr(rp(Params[0])) then exit; // this goes first
-            RegUsage := 2;
-            EDX := Longint(_Self);
-            Params.Delete(0);
-          end else
-{$ENDIF}
           if assigned(_Self) then begin
             RegUsage := 1;
             EAX := Longint(_Self);
           end;
-
           for I := 0 to Params.Count - 1 do
           begin
             if not GetPtr(rp(Params[I])) then Exit;
@@ -728,7 +473,7 @@ begin
       end;
     end;
     CallData.Free;
-  end;
+  end;*)
 end;
 
 

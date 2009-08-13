@@ -722,27 +722,27 @@ type
 
 
     constructor Create;
-	
+
     destructor Destroy; Override;
 
-	
+
     function RunScript: Boolean;
 
-	
+
     function LoadData(const s: tbtstring): Boolean; virtual;
 
     procedure Clear; Virtual;
-	
+
     procedure Cleanup; Virtual;
 
     procedure Stop; Virtual;
-	
+
     procedure Pause; Virtual;
 
     property CallCleanup: Boolean read FCallCleanup write FCallCleanup;
 
     property Status: TPSStatus Read FStatus;
-	
+
     property OnRunLine: TPSOnLineEvent Read FOnRunLine Write FOnRunLine;
 
     procedure ClearspecialProcImports;
@@ -761,23 +761,23 @@ type
     function GetProcAsMethodN(const ProcName: tbtstring): TMethod;
 
     procedure RegisterAttributeType(useproc: TPSAttributeUseProc; const TypeName: tbtstring);
-	
+
     procedure ClearFunctionList;
 
     property ExceptionProcNo: Cardinal Read ExProc;
-	
+
     property ExceptionPos: Cardinal Read ExPos;
-	
+
     property ExceptionCode: TPSError Read ExEx;
-	
+
     property ExceptionString: tbtstring read ExParam;
 
     property ExceptionObject: TObject read ExObject write ExObject;
 
     procedure AddResource(Proc, P: Pointer);
-	
+
     function IsValidResource(Proc, P: Pointer): Boolean;
-	
+
     procedure DeleteResource(P: Pointer);
 
     function FindProcResource(Proc: Pointer): Pointer;
@@ -1002,13 +1002,13 @@ type
   public
 
     procedure RegisterConstructor(ProcPtr: Pointer; const Name: tbtstring);
-	
+
     procedure RegisterVirtualConstructor(ProcPtr: Pointer; const Name: tbtstring);
 
     procedure RegisterMethod(ProcPtr: Pointer; const Name: tbtstring);
 
     procedure RegisterVirtualMethod(ProcPtr: Pointer; const Name: tbtstring);
-	
+
     procedure RegisterVirtualAbstractMethod(ClassDef: TClass; ProcPtr: Pointer; const Name: tbtstring);
 
     procedure RegisterPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
@@ -1018,7 +1018,7 @@ type
     procedure RegisterEventPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
 
     constructor Create(aClass: TClass; const AName: tbtstring);
-	
+
     destructor Destroy; override;
   end;
 
@@ -1030,7 +1030,7 @@ type
     constructor Create;
 
     constructor CreateAndRegister(Exec: TPSexec; AutoFree: Boolean);
-	
+
     destructor Destroy; override;
 
     function Add(aClass: TClass): TPSRuntimeClass;
@@ -10705,7 +10705,7 @@ begin
       begin
         Pointer(Pointer((IPointer(n.dta)+PointerSize))^) := data.Data;
         Pointer(Pointer((IPointer(n.dta)+PointerSize2))^) := data.Code;
-      end;                         
+      end;
       DestroyHeapVariant(n2);
       DisposePPSVariantIFCList(Params);
     end;

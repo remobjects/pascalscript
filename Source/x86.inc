@@ -1,5 +1,7 @@
 { implementation of x86         abi }
-
+{$ifdef FPC}
+{$define PS_ARRAY_ON_STACK}
+{$endif}
 function RealFloatCall_Register(p: Pointer;
   _EAX, _EDX, _ECX: Cardinal;
   StackData: Pointer;
@@ -28,7 +30,7 @@ begin
   end;
   Result := E;
 end;
-
+                 
 function RealFloatCall_Other(p: Pointer;
   StackData: Pointer;
   StackDataLen: Longint // stack length are in 4 bytes. (so 1 = 4 bytes)
@@ -385,6 +387,9 @@ var
             {$IFDEF PS_DYNARRAY}
               TempStr := StringOfChar(AnsiChar(#0),4);
               Pointer((@TempStr[1])^) := Pointer(fvar.Dta^);
+            {$IFDEF PS_ARRAY_ON_STACK}
+            UseReg := false;
+            {$ENDIF}
             {$ELSE}
               Exit;
             {$ENDIF}

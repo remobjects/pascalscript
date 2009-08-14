@@ -2,8 +2,8 @@ unit uPSRuntime;
 {$I PascalScript.inc}
 {
 
-Innerfuse Pascal Script III
-Copyright (C) 2000-2004 by Carlo Kok (ck@carlo-kok.com)
+RemObjects Pascal Script III
+Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 }
 interface
@@ -1706,7 +1706,7 @@ begin
     btclass, btPChar, btString: FrealSize := PointerSize;
     btProcPtr: FRealSize := 2 * sizeof(Pointer) + sizeof(Cardinal);
     btCurrency: FrealSize := Sizeof(Currency);
-    btPointer: FRealSize := 12; // ptr, type, freewhendone
+    btPointer: FRealSize := 2 * sizeof(Pointer) + sizeof(LongBool); // ptr, type, freewhendone
     btDouble{$IFNDEF PS_NOINT64}, bts64{$ENDIF}: FrealSize := 8;
     btExtended: FrealSize := SizeOf(Extended);
     btReturnAddress: FrealSize := Sizeof(TBTReturnAddress);
@@ -1764,7 +1764,7 @@ begin
     {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}bts16, btU16: tbtu16(p^) := 0;
     btSingle, bts32, btU32,
     btPChar, btString, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}btClass,
-    btInterface, btArray: tbtu32(P^) := 0;
+    btInterface, btArray: Pointer(P^) := nil;
     btPointer:
       begin
         Pointer(p^) := nil;
@@ -9491,7 +9491,7 @@ begin
 {$ENDIF}
       end;
     end;
-    datap := Pointer(IPointer(datap)+12);
+    datap := Pointer(IPointer(datap)+ (2*sizeof(Pointer)+sizeof(Longbool)));
     p := PansiChar(p) + Result^.ElementSize;
   end;
 end;
@@ -9607,7 +9607,7 @@ begin
 {$ENDIF}
 {$ENDIF}
       end;
-      datap := Pointer(IPointer(datap)+12);
+      datap := Pointer(IPointer(datap)+ (2*sizeof(Pointer)+sizeof(LongBool)));
       p := Pointer(IPointer(p) + Cardinal(v^.ElementSize));
     end;
     FreeMem(v.Data, v.ElementSize * v.ItemCount);
@@ -12447,7 +12447,7 @@ end;
 
 procedure TPSTypeRec_ProcPtr.CalcSize;
 begin
-  FRealSize := 12;
+  FRealSize := 2 * sizeof(Pointer) + Sizeof(Cardinal);
 end;
 
 end.

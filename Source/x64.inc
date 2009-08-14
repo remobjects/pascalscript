@@ -9,7 +9,7 @@ procedure x64call(
   _RCX, _RDX, _R8, _R9: IPointer;
   var _XMM0: Double;
   _XMM1, _XMM2, _XMM3: Double;
-  aStack: Pointer; aItems: Integer);
+  aStack: Pointer; aItems: Integer); assembler; nostackframe;
 asm
 (* Registers:
     RCX: Address
@@ -19,17 +19,20 @@ asm
 
     fpc inserts an 20h emty space
 *)
+  push ebp
+  mov ebp,esp
+//  call debugbreak
   push rcx  // address
   push rdx  // _rax
   push r8   // _rcx
   push r9   // _rdx
   mov rcx, aItems
+  mov rdx, aStack
   jmp @compareitems
 @work:
-  mov rdx,[aStack]
-  push rdx
+  push [rdx]
   dec rcx
-  add aStack,8
+  sub rdx,8
 @compareitems:
   or rcx, rcx
   jnz @work
@@ -39,16 +42,21 @@ asm
   movd xmm1,_XMM1
   movd xmm2,_XMM2
   movd xmm3,_XMM3
-  mov RAX, [rbp-40]
-  mov RCX, [rbp-56]
-  mov RDX, [rbp-62]
+  mov RAX, [rbp-8]
+  mov RCX, [rbp-24]
+  mov RDX, [rbp-32]
   mov R8, _R8
   mov R9, _R9
 
+  // weird thing on windows, it needs 32 bytes in the CALLEE side to do whatever in
+  sub RSP, 32
+
   call RAX
 
+  add RSP, 32 // undo the damage done earlier
+
   // copy result back
-  mov RDX, [rbp-48]
+  mov RDX, [rbp-16]
   mov [RDX], RAX
   movd [_XMM0],xmm0
 
@@ -56,6 +64,8 @@ asm
   pop r8
   pop rdx
   pop rcx
+  leave
+  ret
 end;
 
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
@@ -94,7 +104,7 @@ var
       3: begin inc(RegUsage); _R9:=Data; end;
     else begin
       SetLength(Stack, Length(Stack)+8);
-      p := @Stack[LEngth(Stack)-7];
+      p := @Stack[LEngth(Stack)-8];
       IPointer(p^) := data;
     end;
     end;
@@ -110,7 +120,7 @@ var
         SetLength(Stack, Length(Stack)+ (16-(Length(Stack) mod 16)));
       end;
     SetLength(Stack, Length(Stack)+Len);
-    p := @Stack[Length(Stack)-Len-1];
+    p := @Stack[Length(Stack)-Len];
     Move(aData, p^, Len);
   end;
 
@@ -124,7 +134,7 @@ var
       3: begin inc(RegUsage); _XMM3:=Data; end;
     else begin
       SetLength(Stack, Length(Stack)+8);
-      p := @Stack[LEngth(Stack)-7];
+      p := @Stack[LEngth(Stack)-8];
       Double(p^) := data;
     end;
     end;
@@ -303,10 +313,8 @@ begin
             if TPSTypeRec_Set(res.aType).aByteSize > PointerSize then GetPtr(res);
           end;
       end;
-      if Length(Stack) = 0 then
-        x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, Stack, 0)
-      else
-        x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, @Stack[0], Length(Stack) div 8);
+      if Stack = nil then pp := nil else pp := @Stack[Length(Stack) -8];
+      x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, pp, Length(Stack) div 8);
       case res^.aType.BaseType of
         btSet:
           begin
@@ -336,10 +344,8 @@ begin
         exit;
       end;
     end else begin
-      if Length(Stack) = 0 then
-        x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, Stack, 0)
-      else
-       x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, @Stack[0], Length(Stack) div 8);
+      if Stack = nil then pp := nil else pp := @Stack[Length(Stack) -8];
+       x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, pp, Length(Stack) div 8);
     end;
     Result := True;
   finally

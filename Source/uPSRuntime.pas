@@ -7744,7 +7744,8 @@ begin
                 CMD_Err(erOutOfStackRange);
                 break;
               end;
-              Dec(FStack.FCount);
+              FStack.Pop;
+(*              Dec(FStack.FCount);
               {$IFNDEF PS_NOSMARTLIST}
               Inc(FStack.FCheckCount);
               if FStack.FCheckCount > FMaxCheckCount then FStack.Recreate;
@@ -7752,7 +7753,7 @@ begin
               FStack.FLength := Longint(IPointer(vtemp) - IPointer(FStack.DataPtr));
               if TPSTypeRec(vtemp^).BaseType in NeedFinalization then
                 FinalizeVariant(Pointer(IPointer(vtemp)+PointerSize), Pointer(vtemp^));
-              if ((FStack.FCapacity - FStack.FLength) shr 12) > 2 then FStack.AdjustLength;
+              if ((FStack.FCapacity - FStack.FLength) shr 12) > 2 then FStack.AdjustLength;*)
             end;
           Cm_C: begin
               if FCurrentPosition + 3 >= FDataLength then
@@ -12087,7 +12088,9 @@ var
   p: Pointer;
 begin
   o := FLength;
-  FLength := (FLength + TotalSize) and not 3;
+  FLength := (FLength + TotalSize);
+  if FLength mod PointerSize <> 0 then
+    FLength := FLength + (PointerSize - (FLength mod PointerSize));
   if FLength > FCapacity then AdjustLength;
   p := Pointer(IPointer(FDataPtr) + IPointer(o));
   Add(p);
@@ -12099,12 +12102,7 @@ var
   o: Cardinal;
   p: Pointer;
 begin
-  o := FLength;
-  FLength := (FLength + Longint(aType.RealSize) + Longint(RTTISize + 3)) and not 3;
-  if FLength > FCapacity then AdjustLength;
-  p := Pointer(IPointer(FDataPtr) + IPointer(o));
-  Add(p);
-  Result := P;
+  Result := Push(aType.RealSize + Sizeof(Pointer));
   Result.FType := aType;
   InitializeVariant(Pointer(IPointer(Result)+PointerSize), aType);
 end;

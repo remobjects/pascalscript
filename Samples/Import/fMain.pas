@@ -85,7 +85,7 @@ begin
   end;
 end;
 
-function OnNeedFile(Sender: TPSPreProcessor; const callingfilename: string; var FileName, Output: string): Boolean;
+function OnNeedFile(Sender: TPSPreProcessor; const callingfilename: AnsiString; var FileName, Output: AnsiString): Boolean;
 var
   s: string;
 begin
@@ -100,7 +100,7 @@ begin
     Result := False;
 end;
 
-function MyOnUses(Sender: TPSPascalCompiler; const Name: string): Boolean;
+function MyOnUses(Sender: TPSPascalCompiler; const Name: AnsiString): Boolean;
 begin
   if Name = 'SYSTEM' then
   begin
@@ -172,7 +172,7 @@ begin
   if i = 0 then Application.ProcessMessages;
 end;
 
-function MyExportCheck(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: string): Boolean;
+function MyExportCheck(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: AnsiString): Boolean;
 begin
   Result := True;
 end;
@@ -183,7 +183,7 @@ var
   x1: TPSPascalCompiler;
   x2: TPSDebugExec;
   xpre: TPSPreProcessor;
-  s, d: string;
+  s, d: AnsiString;
 
   procedure Outputtxt(const s: string);
   begin
@@ -378,7 +378,8 @@ procedure TMainForm.CompileandDisassemble1Click(Sender: TObject);
 var
   x1: TPSPascalCompiler;
   xpre: TPSPreProcessor;
-  s, s2: string;
+  s: AnsiString;
+  s2: string;
 
   procedure OutputMsgs;
   var

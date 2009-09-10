@@ -81,7 +81,7 @@ var
   Exec: TPSExec;
    { TPSExec is the executer part of the scriptengine. It uses the output of
     the compiler to run a script. }
-  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string{$ENDIF}
+  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string;{$ENDIF}
 
   N: PIfVariant;
   { The variant in which we are going to store the parameter }

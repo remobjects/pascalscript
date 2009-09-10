@@ -42,7 +42,7 @@ var
   Exec: TPSExec;
    { TPSExec is the executer part of the scriptengine. It uses the output of
     the compiler to run a script. }
-  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string{$ENDIF}
+  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string;{$ENDIF}
 begin
   Compiler := TPSPascalCompiler.Create; // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.

@@ -58,7 +58,7 @@ var
   Exec: TPSExec;
    { TPSExec is the executer part of the scriptengine. It uses the output of
     the compiler to run a script. }
-  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string{$ENDIF}
+  {$IFDEF UNICODE}Data: AnsiString;{$ELSE}Data: string;{$ENDIF}
   i: Integer;
   CI: TPSRuntimeClassImporter;
 begin

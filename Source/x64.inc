@@ -165,7 +165,7 @@ var
               Exit;
             end else begin
               varptr := fvar.Dta;
-              Exit;
+//              Exit;
             end;
           end;
         btVariant,
@@ -306,8 +306,10 @@ begin
 
     if assigned(res) then begin
       case res^.aType.BaseType of
-        btWideString, btUnicodeString,
-        btInterface, btArray, btrecord, btstring, btVariant, btStaticArray: GetPtr(res);
+        {$IFDEF x64_string_result_as_varparameter}
+        btstring, btWideString, btUnicodeString,
+        {$ENDIF}
+        btInterface, btArray, btrecord, btVariant, btStaticArray: GetPtr(res);
         btSet:
           begin
             if TPSTypeRec_Set(res.aType).aByteSize > PointerSize then GetPtr(res);
@@ -338,8 +340,13 @@ begin
         btCurrency:    tbtCurrency(res.Dta^) := Int64(_RAX);
         btInterface,
         btVariant,
-        btWidestring,btUnicodestring,
-        btStaticArray, btArray, btrecord, btstring :;
+        {$IFDEF x64_string_result_as_varparameter}
+        btWidestring,btUnicodestring, btstring ,
+        {$ENDIF}
+        btStaticArray, btArray, btrecord:;
+        {$IFNDEF x64_string_result_as_varparameter}
+        btUnicodeString, btWideString, btstring:  Int64(res.dta^) := _RAX;
+        {$ENDIF}
       else
         exit;
       end;

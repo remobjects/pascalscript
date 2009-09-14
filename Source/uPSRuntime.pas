@@ -4108,7 +4108,7 @@ end;
 function PSDynArrayGetLength(arr: Pointer; aType: TPSTypeRec): Longint;
 begin
   if aType.BaseType <> btArray then raise Exception.Create(RPS_InvalidArray);
-  if arr = nil then Result := 0 else Result := Longint(Pointer(IPointer(arr)-PointerSize)^);
+  if arr = nil then Result := 0 else Result := Longint(Pointer(IPointer(arr)-PointerSize)^) {$IFDEF FPC} +1 {$ENDIF};
 end;
 
 procedure PSDynArraySetLength(var arr: Pointer; aType: TPSTypeRec; NewLength: Longint);
@@ -4136,7 +4136,7 @@ begin
     end;
     ReallocMem(arr, NewLength * elSize + PointerSize2);
     arr := Pointer(IPointer(Arr)+PointerSize);
-    Longint(Arr^) := NewLength;
+    Longint(Arr^) := NewLength {$IFDEF FPC} -1 {$ENDIF};
     arr := Pointer(IPointer(Arr)+PointerSize);
     for i := OldLen to NewLength -1 do
     begin
@@ -4156,7 +4156,7 @@ begin
     GetMem(p, NewLength * elSize + PointerSize2);
     Longint(p^) := 1;
     p:= Pointer(IPointer(p)+PointerSize);
-    Longint(p^) := NewLength;
+    Longint(p^) := NewLength {$IFDEF FPC} -1 {$ENDIF};
     p := Pointer(IPointer(p)+PointerSize);
     if OldLen <> 0 then
     begin

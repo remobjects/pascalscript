@@ -21,8 +21,8 @@ asm
 
     fpc inserts an 20h emty space
 *)
-  push ebp
-  mov ebp,esp
+  push rbp
+  mov rbp,rsp
 //  call debugbreak
   push rcx  // address
   push rdx  // _rax
@@ -70,80 +70,92 @@ asm
   ret
 end;
 {$ELSE}
+type
+  TRegisters = packed record
+    _RDI,               //  0
+    _RSI,               //  8
+    _RDX,               // 16
+    _RCX,               // 24
+    _R8,                // 32
+    _R9: IPointer;      // 40
+    _XMM1,              // 48
+    _XMM2,              // 56
+    _XMM3,              // 64
+    _XMM4,              // 72
+    _XMM5,              // 80
+    _XMM6,              // 88
+    _XMM7: Double;      // 96
+  end;
+
 procedure x64call(
   Address: Pointer;
   out _RAX: IPointer;
-  _RDI, _RSI, _RDX, _RCX, _R8, _R9: IPointer;
-  var _XMM0: Double;
-  _XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7: Double;
-  aStack: Pointer; aItems: Integer); assembler; nostackframe;
+
+  var Registers: TRegisters;
+  aStack: Pointer; aItems: Integer; var _XMM0: Double); assembler; nostackframe;
 
 
 asm
 (* Registers:
     RDI: Address
     RSI: _RAX
-    RDX: _RDI
-    RCX: _RSI
-    R8:  _RDX
-    R9:  _RCX
+    RDX: Registers
+    RCX: aStack
+    R8:  aItems
+    R9:  XMM0
 
-
+    rbp-8    addr
+    rbp-16   _rax
+    rbp-24   _xmm0
 *)
-  push ebp
-  mov ebp,esp
+  push rbp
+  mov rbp,rsp
   push rdi  // address
   push rsi  // _rax
-  push rdx  // _rdi
-  push rcx  // _rsi
-  push r8   // _rdx
-  push r9   // _rcx
-  mov rcx, aItems
-  mov rdx, aStack
+  push r9   // xmm0
+  mov rax, rdx
   jmp @compareitems
 @work:
-  push [rdx]
-  dec rcx
-  sub rdx,8
+  push [rcx]
+  dec r8
+  sub rcx,8
 @compareitems:
-  or rcx, rcx
+  or r8, r8
   jnz @work
 
   // copy registers
-  movd xmm0,[_XMM0]
-  movd xmm1,_XMM1
-  movd xmm2,_XMM2
-  movd xmm3,_XMM3
-  movd xmm4,_XMM4
-  movd xmm5,_XMM5
-  movd xmm6,_XMM6
-  movd xmm7,_XMM7
-  mov RAX, [rbp-8]
-  mov RDI, [rbp-24]
-  mov RSI, [rbp-32]
-  mov RDX, [rbp-40]
-  mov RCX, [rbp-48]
-  mov R8, _R8
-  mov R9, _R9
+  movd xmm0,[rbp-24]
+  movd xmm1,[rax+48]
+  movd xmm2,[rax+56]
+  movd xmm3,[rax+64]
+  movd xmm4,[rax+72]
+  movd xmm5,[rax+80]
+  movd xmm6,[rax+88]
+  movd xmm7,[rax+96]
+  mov RDI, [rax]
+  mov RSI, [rax+ 8]
+  mov RDX, [rax+16]
+  mov RCX, [rax+24]
+  mov R8,  [rax+32]
+  mov R9,  [rax+40]
 
   // weird thing on windows, it needs 32 bytes in the CALLEE side to do whatever in; not sure about linux
   //sub RSP, 32
 
+  mov rax, [rbp-8]
   call RAX
 
   // add RSP, 32 // undo the damage done earlier
 
   // copy result back
-  mov RDX, [rbp-16]
-  mov [RDX], RAX
-  movd [_XMM0],xmm0
+  mov rsi, [rbp-16]
+  mov [rsi], RAX
+  mov rsi, [rbp-24]
+  movd [rsi],xmm0
 
-  pop r9
-  pop r8
-  pop rdx
-  pop rcx
-  pop rsi
-  pop rdi
+  pop r9   // xmm0
+  pop rsi  // _rax
+  pop rdi  // address
   leave
   ret
 end;
@@ -152,13 +164,13 @@ end;
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   Stack: array of Byte;
-  _RAX,
+  _RAX: IPointer;
 {$IFDEF WINDOWS}
   _RCX, _RDX, _R8, _R9: IPointer;
   _XMM0, _XMM1, _XMM2, _XMM3: Double;
 {$ELSE}
-  _RDI, _RSI, _RDX, _RCX, _R8, _R9: IPointer;
-  _XMM0, _XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7: Double;
+_XMM0: Double;
+  Registers: TRegisters;
   RegUsageFloat: Byte;
 {$ENDIF}
   RegUsage: Byte;
@@ -201,12 +213,12 @@ var
   var p: Pointer;
   begin
     case RegUsage of
-      0: begin inc(RegUsage); _RDI:=Data; end;
-      1: begin inc(RegUsage); _RSI:=Data; end;
-      2: begin inc(RegUsage); _RDX:=Data; end;
-      3: begin inc(RegUsage); _RCX:=Data; end;
-      4: begin inc(RegUsage); _R8:=Data; end;
-      5: begin inc(RegUsage); _R9:=Data; end;
+      0: begin inc(RegUsage); Registers._RDI:=Data; end;
+      1: begin inc(RegUsage); Registers._RSI:=Data; end;
+      2: begin inc(RegUsage); Registers._RDX:=Data; end;
+      3: begin inc(RegUsage); Registers._RCX:=Data; end;
+      4: begin inc(RegUsage); Registers._R8:=Data; end;
+      5: begin inc(RegUsage); Registers._R9:=Data; end;
     else begin
       SetLength(Stack, Length(Stack)+8);
       p := @Stack[LEngth(Stack)-8];
@@ -251,13 +263,13 @@ var
   begin
     case RegUsageFloat of
       0: begin inc(RegUsageFloat); _XMM0:=Data; end;
-      1: begin inc(RegUsageFloat); _XMM1:=Data; end;
-      2: begin inc(RegUsageFloat); _XMM2:=Data; end;
-      3: begin inc(RegUsageFloat); _XMM3:=Data; end;
-      4: begin inc(RegUsageFloat); _XMM4:=Data; end;
-      5: begin inc(RegUsageFloat); _XMM5:=Data; end;
-      6: begin inc(RegUsageFloat); _XMM6:=Data; end;
-      7: begin inc(RegUsageFloat); _XMM7:=Data; end;
+      1: begin inc(RegUsageFloat); Registers._XMM1:=Data; end;
+      2: begin inc(RegUsageFloat); Registers._XMM2:=Data; end;
+      3: begin inc(RegUsageFloat); Registers._XMM3:=Data; end;
+      4: begin inc(RegUsageFloat); Registers._XMM4:=Data; end;
+      5: begin inc(RegUsageFloat); Registers._XMM5:=Data; end;
+      6: begin inc(RegUsageFloat); Registers._XMM6:=Data; end;
+      7: begin inc(RegUsageFloat); Registers._XMM7:=Data; end;
     else begin
       SetLength(Stack, Length(Stack)+8);
       p := @Stack[LEngth(Stack)-8];
@@ -413,14 +425,16 @@ begin
     res.VarParam := true;
   try
 {$IFNDEF WINDOWS}
-    _RSI := 0;
+    (*_RSI := 0;
     _RDI := 0;
     _XMM4 := 0;
     _XMM5 := 0;
     _XMM6 := 0;
-    _XMM7 := 0;
+    _XMM7 := 0;*)
+    FillChar(Registers, Sizeof(REgisters), 0);
+    _XMM0 := 0;
     RegUsageFloat := 0;
-{$ENDIF}
+{$ELSE}
     _RCX := 0;
     _RDX := 0;
     _R8 := 0;
@@ -429,10 +443,11 @@ begin
     _XMM1 := 0;
     _XMM2 := 0;
     _XMM3 := 0;
+{$ENDIF}
+    _RAX := 0;
     RegUsage := 0;
     if assigned(_Self) then begin
-      RegUsage := 1;
-      _RCX := IPointer(_Self);
+      StoreReg(IPointer(_Self));
     end;
     for I := 0 to Params.Count - 1 do
     begin
@@ -454,7 +469,7 @@ begin
 {$IFDEF WINDOWS}
       x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, pp, Length(Stack) div 8);
 {$ELSE}
-      x64call(Address, _RAX, _RDI, _RSI, _RDX, _RCX, _R8, _R9,_XMM0,_XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7, pp, Length(Stack) div 8);
+      x64call(Address, _RAX, Registers, pp, Length(Stack) div 8, _XMM0);
 {$ENDIF}
       case res^.aType.BaseType of
         btSet:
@@ -494,7 +509,7 @@ begin
 {$IFDEF WINDOWS}
        x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, pp, Length(Stack) div 8);
 {$ELSE}
-       x64call(Address, _RAX, _RDI, _RSI, _RDX, _RCX, _R8, _R9,_XMM0,_XMM1, _XMM2, _XMM3, _XMM4, _XMM5, _XMM6, _XMM7, pp, Length(Stack) div 8);
+       x64call(Address, _RAX, Registers, pp, Length(Stack) div 8, _XMM0);
 {$ENDIF}
     end;
     Result := True;

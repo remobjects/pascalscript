@@ -1,4 +1,3 @@
-
 unit uPSR_dll;
 
 {$I PascalScript.inc}
@@ -16,11 +15,7 @@ function UnloadProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSSt
 implementation
 uses
   {$IFDEF UNIX}
-  {$IFDEF Darwin}
   LCLIntf, Unix, baseunix, dynlibs, termio, sockets;
-  {$ELSE}
-  LibC{$IFNDEF FPC}, Windows{$ENDIF};
-  {$ENDIF}
   {$ELSE}
   Windows;
   {$ENDIF}
@@ -36,11 +31,7 @@ type
   TLoadedDll = record
     dllnamehash: Longint;
     dllname: tbtstring;
-    {$IFDEF LINUX}
-    dllhandle: Pointer;
-    {$ELSE}
     dllhandle: THandle;
-    {$ENDIF}
   end;
   TMyExec = class(TPSExec);
   PInteger = ^Integer;
@@ -77,11 +68,7 @@ end;
 
 procedure DllFree(Sender: TPSExec; P: PLoadedDll);
 begin
-  {$IFDEF LINUX}
-  dlclose(p^.dllhandle);
-  {$ELSE}
   FreeLibrary(p^.dllhandle);
-  {$ENDIF}
   Dispose(p);
 end;
 
@@ -90,11 +77,7 @@ var
   s, s2, s3: tbtstring;
   h, i: Longint;
   ph: PLoadedDll;
-  {$IFDEF LINUX}
-  dllhandle: Pointer;
-  {$ELSE}
   dllhandle: THandle;
-  {$ENDIF}
   loadwithalteredsearchpath: Boolean;
 begin
   s := p.Decl;
@@ -119,18 +102,14 @@ begin
         exit;
       end;
       {$IFDEF UNIX}
-	  {$IFDEF DARWIN}
 	  dllhandle := LoadLibrary(PChar(s2));
-	  {$ELSE}
-      dllhandle := dlopen(PChar(s2), RTLD_LAZY);
-	  {$ENDIF}
       {$ELSE}
       if loadwithalteredsearchpath then
         dllhandle := LoadLibraryExA(PAnsiChar(AnsiString(s2)), 0, LOAD_WITH_ALTERED_SEARCH_PATH)
       else
         dllhandle := LoadLibraryA(PAnsiChar(AnsiString(s2)));
       {$ENDIF}
-      if dllhandle = {$IFDEF LINUX}nil{$ELSE}0{$ENDIF}then
+      if dllhandle = 0 then
       begin
         p.Ext2 := Pointer(1);
         Result := False;
@@ -146,12 +125,8 @@ begin
     begin
       dllhandle := ph^.dllhandle;
     end;
-  until dllhandle <> {$IFDEF LINUX}nil{$ELSE}0{$ENDIF};
-  {$IFDEF LINUX}
-  p.Ext1 := dlsym(dllhandle, pchar(s3));
-  {$ELSE}
+  until dllhandle <> 0;
   p.Ext1 := GetProcAddress(dllhandle, pansichar(s3));
-  {$ENDIF}
   if p.Ext1 = nil then
   begin
     p.Ext2 := Pointer(1);
@@ -284,11 +259,7 @@ begin
     if (ph = nil) then break;
     if (ph.dllnamehash = h) and (ph.dllname = sname) then
     begin
-      {$IFDEF LINUX}
-      dlclose(ph^.dllhandle);
-      {$ELSE}
       FreeLibrary(ph^.dllhandle);
-      {$ENDIF}
       Caller.DeleteResource(ph);
       dispose(ph);
     end;

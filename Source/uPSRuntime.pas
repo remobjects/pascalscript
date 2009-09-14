@@ -1856,7 +1856,7 @@ begin
         t := TPSTypeRec_Array(aType).ArrayType;
         elsize := t.RealSize;
         darr := Pointer(IPointer(darr) + PointerSize);
-        l := Longint(darr^);
+        l := Longint(darr^) {$IFDEF FPC}+1{$ENDIF};
         darr := Pointer(IPointer(darr) + PointerSize);
         case t.BaseType of
           btString, {$IFNDEF PS_NOWIDESTRING}

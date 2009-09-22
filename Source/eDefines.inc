@@ -148,6 +148,12 @@
   {$ENDIF}
 {$ENDIF}
 
+{$IFDEF WIN32}
+  {$DEFINE MSWINDOWS} //not automatically defined for Delphi 2 thru 5
+  {$DEFINE 32BIT}
+  {$DEFINE CPU32}
+{$ENDIF}
+
 { defines for Delphi 1.0 thru 7.0 }
 {$IFDEF MSWINDOWS}
 
@@ -402,11 +408,6 @@
   {$ENDIF}
   
 
-  {$IFDEF WIN32}
-    {$DEFINE MSWINDOWS} //not automatically defined for Delphi 2 thru 5
-    {$DEFINE 32BIT}
-    {$DEFINE CPU32}
-  {$ENDIF}
 
 {$ENDIF MSWINDOWS}
 

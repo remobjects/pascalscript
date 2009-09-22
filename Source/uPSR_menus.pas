@@ -22,7 +22,7 @@ Uses
   Libc, SysUtils, Classes, QControls, QMenus, QGraphics;
 {$ELSE}
 Uses
-  Libc, SysUtils, Classes, Controls, Menus, Graphics, LCLType, ImgList;
+  SysUtils, Classes, Controls, Menus, Graphics, LCLType, ImgList;
 {$ENDIF}
 {$ELSE}
 Uses {$IFNDEF FPC}WINDOWS,{$ELSE} LCLType,{$ENDIF} SYSUTILS, CLASSES, CONTNRS, MESSAGES, GRAPHICS, IMGLIST, ACTNLIST, Menus;

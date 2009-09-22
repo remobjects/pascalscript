@@ -9113,6 +9113,18 @@ begin
 
   begin
     Res := ProcCall.ResultType;
+    if ProcCall.ResultType = FAnyString then
+    begin
+      for l := ProcCall.Parameters.Count - 1 downto 0 do
+      begin
+        Tmp := ProcCall.Parameters[l];
+        if (Tmp.ParamMode <> pmOut) and (Tmp.ExpectedType = FAnyString) then
+        begin
+          Res := GetTypeNo(BlockInfo, tmp.Val);
+          Break;
+        end;
+      end;
+    end;
     Result := False;
     if (res = nil) and (ResultRegister <> nil) then
     begin
@@ -9196,7 +9208,7 @@ begin
       end
       else
       begin
-        if Tmp.ExpectedType = nil then
+        if (Tmp.ExpectedType = nil) or (Tmp.ExpectedType = FAnyString) then
           Tmp.ExpectedType := GetTypeNo(BlockInfo, tmp.Val);
         if Tmp.ExpectedType.BaseType = btPChar then
         begin

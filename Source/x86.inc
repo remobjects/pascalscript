@@ -251,7 +251,9 @@ var
   RegUsage: Byte;
   CallData: TPSList;
   pp: ^Byte;
+{$IFDEF FPC}
   IsConstructor: Boolean;
+{$ENDIF}
 
   EAX, EDX, ECX: Longint;
 
@@ -502,10 +504,15 @@ var
   end;
 begin
   if (Integer(CallingConv) and 64) <> 0 then begin
-    IsConstructor := true;
+    {$IFDEF FPC}
+      IsConstructor := true;
+    {$ENDIF}
     CAllingConv := TPSCallingConvention(Integer(CallingConv) and not 64);
-  end else IsConstructor := false;
-
+  end else begin
+    {$IFDEF FPC}
+      IsConstructor := false;
+    {$ENDIF}
+  end;
   InnerfuseCall := False;
   if Address = nil then
     exit; // need address

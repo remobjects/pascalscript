@@ -89,6 +89,12 @@ end;
 
 procedure RIRegister_ComObj(cl: TPSExec);
 begin
+{$IFNDEF PS_NOINTERFACES}
+{$IFDEF DELPHI3UP}
+  cl.RegisterDelphiFunction(@StringToGUID, 'StringToGUID', cdRegister);
+  cl.RegisterDelphiFunction(@CreateComObject, 'CreateComObject', cdRegister);
+{$ENDIF}
+{$ENDIF}
   cl.RegisterDelphiFunction(@CreateOleObject, 'CREATEOLEOBJECT', cdRegister);
   cl.RegisterDelphiFunction(@GetActiveOleObject, 'GETACTIVEOLEOBJECT', cdRegister);
 end;

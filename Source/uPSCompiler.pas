@@ -4163,7 +4163,7 @@ begin
     Intf := AddInterface(FindInterface(InheritedFrom), Guid, Name);
     FParser.Next;
     repeat
-      if not Intf.RegisterMethodEx('', cdSafeCall, FParser) then begin
+      if not Intf.RegisterMethodEx('', cdStdCall, FParser) then begin
         MakeError('', ecCustomError, 'Invalid method');
         Result := nil;
         Exit;

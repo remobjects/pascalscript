@@ -1472,7 +1472,7 @@ type
     property ClassInheritsFrom: TPSCompileTimeClass read FInheritsFrom write FInheritsFrom;
 
     function RegisterMethod(const Decl: tbtString): Boolean;
-	
+
     procedure RegisterProperty(const PropertyName, PropertyType: tbtString; PropAC: TPSPropType);
 
     procedure RegisterPublishedProperties;
@@ -1599,6 +1599,8 @@ type
 
     function RegisterMethod(const Declaration: tbtString; const cc: TPSCallingConvention): Boolean;
 
+    function RegisterMethodEx(const Declaration: tbtString; const cc: TPSCallingConvention; const CustomParser: TPSPascalParser): Boolean;
+
     procedure RegisterDummyMethod;
 
     function IsCompatibleWith(aType: TPSType): Boolean;
@@ -1703,6 +1705,7 @@ type
 function PS_mi2s(i: Cardinal): tbtString;
 
 function ParseMethod(Owner: TPSPascalCompiler; const FClassName: tbtString; Decl: tbtString; var OrgName: tbtString; DestDecl: TPSParametersDecl; var Func: TPMFuncType): Boolean;
+function ParseMethodEx(Owner: TPSPascalCompiler; const FClassName: tbtString; Decl: tbtString; var OrgName: tbtString; DestDecl: TPSParametersDecl; var Func: TPMFuncType; CustomParser: TPSPascalParser): Boolean;
 
 function DeclToBits(const Decl: TPSParametersDecl): tbtString;
 
@@ -1969,8 +1972,12 @@ begin
   end;
 end;
 
-
 function ParseMethod(Owner: TPSPascalCompiler; const FClassName: tbtString; Decl: tbtString; var OrgName: tbtString; DestDecl: TPSParametersDecl; var Func: TPMFuncType): Boolean;
+begin
+  Result := ParseMethodEx(Owner, FClassName, Decl, OrgName, DestDecl, Func, nil);
+end;
+
+function ParseMethodEx(Owner: TPSPascalCompiler; const FClassName: tbtString; Decl: tbtString; var OrgName: tbtString; DestDecl: TPSParametersDecl; var Func: TPMFuncType; CustomParser: TPSPascalParser): Boolean;
 var
   Parser: TPSPascalParser;
   FuncType: Byte;
@@ -1980,8 +1987,11 @@ var
   ERow, EPos, ECol: Integer;
 
 begin
-  Parser := TPSPascalParser.Create;
-  Parser.SetText(Decl);
+  if CustomParser = nil then begin
+    Parser := TPSPascalParser.Create;
+    Parser.SetText(Decl);
+  end else
+    Parser := CustomParser;
   if Parser.CurrTokenId = CSTII_Function then
     FuncType:= 0
   else if Parser.CurrTokenId = CSTII_Procedure then
@@ -1990,14 +2000,16 @@ begin
     FuncType := 2
   else
   begin
-    Parser.Free;
+    if Parser <> CustomParser then
+      Parser.Free;
     Result := False;
     exit;
   end;
   Parser.Next;
   if Parser.CurrTokenId <> CSTI_Identifier then
   begin
-    Parser.Free;
+    if Parser <> CustomParser then
+      Parser.Free;
     Result := False;
     exit;
   end; {if}
@@ -2031,7 +2043,8 @@ begin
           modifier := pmIn;
         if Parser.CurrTokenId <> CSTI_Identifier then
         begin
-          Parser.Free;
+          if Parser <> CustomParser then
+            Parser.Free;
           Result := False;
           exit;
         end;
@@ -2046,7 +2059,8 @@ begin
           Parser.Next;
           if Parser.CurrTokenId <> CSTI_Identifier then
           begin
-            Parser.Free;
+            if Parser <> CustomParser then
+              Parser.Free;
             Result := False;
             exit;
           end;
@@ -2055,7 +2069,8 @@ begin
         end;
         if Parser.CurrTokenId <> CSTI_Colon then
         begin
-          Parser.Free;
+          if Parser <> CustomParser then
+            Parser.Free;
           Result := False;
           exit;
         end;
@@ -2065,7 +2080,8 @@ begin
           Parser.nExt;
           if Parser.CurrTokenId <> CSTII_Of then
           begin
-            Parser.Free;
+            if Parser <> CustomParser then
+              Parser.Free;
             Result := False;
             exit;
           end;
@@ -2078,7 +2094,8 @@ begin
             VCType := Owner.GetTypeCopyLink(Owner.FindType(Parser.GetToken));
             if VCType = nil then
             begin
-              Parser.Free;
+              if Parser <> CustomParser then
+                Parser.Free;
               Result := False;
               exit;
             end;
@@ -2106,7 +2123,8 @@ begin
               btRecord: VCType := FindAndAddType(Owner, '!OPENARRAYOFRECORD_'+FastUpperCase(Parser.OriginalToken), 'array of ' +FastUpperCase(Parser.OriginalToken));
             else
               begin
-                Parser.Free;
+                if Parser <> CustomParser then
+                  Parser.Free;
                 Result := False;
                 exit;
               end;
@@ -2118,7 +2136,8 @@ begin
           VCType := Owner.FindType(Parser.GetToken);
           if VCType = nil then
           begin
-            Parser.Free;
+            if Parser <> CustomParser then
+              Parser.Free;
             Result := False;
             exit;
           end;
@@ -2144,7 +2163,8 @@ begin
           break;
         if Parser.CurrTokenId <> CSTI_Semicolon then
         begin
-          Parser.Free;
+          if Parser <> CustomParser then
+            Parser.Free;
           Result := False;
           exit;
         end;
@@ -2157,7 +2177,8 @@ begin
   begin
     if Parser.CurrTokenId <> CSTI_Colon then
     begin
-      Parser.Free;
+      if Parser <> CustomParser then
+        Parser.Free;
       Result := False;
       exit;
     end;
@@ -2166,7 +2187,8 @@ begin
     VCType := Owner.FindType(Parser.GetToken);
     if VCType = nil then
     begin
-      Parser.Free;
+      if Parser <> CustomParser then
+        Parser.Free;
       Result := False;
       exit;
     end;
@@ -2177,7 +2199,8 @@ begin
   end else
     VCType := nil;
   DestDecl.Result := VCType;
-  Parser.Free;
+  if Parser <> CustomParser then
+    Parser.Free;
   if FuncType = 2 then
     Func := mftConstructor
   else
@@ -3719,7 +3742,11 @@ var
   rvv: PIFPSRecordFieldTypeDef;
   p, p2: TPSType;
   tempf: PIfRVariant;
-
+{$IFNDEF PS_NOINTERFACES}
+  InheritedFrom: tbtString;
+  Guid: TGUID;
+  Intf: TPSInterface;
+{$ENDIF}
 begin
   if (FParser.CurrTokenID = CSTII_Function) or (FParser.CurrTokenID = CSTII_Procedure) then
   begin
@@ -4059,6 +4086,94 @@ begin
     FTypes.Add(p);
     Result := p;
     Exit;
+{$IFNDEF PS_NOINTERFACES}
+  end else if FParser.CurrTokenId = CSTII_Interface then
+  begin
+    FParser.Next;
+    if FParser.CurrTokenId <> CSTI_OpenRound then
+    begin
+      MakeError('', ecOpenRoundExpected, '');
+      Result := nil;
+      Exit;
+    end;
+    FParser.Next;
+    if FParser.CurrTokenID <> CSTI_Identifier then
+    begin
+      MakeError('', ecIdentifierExpected, '');
+      Result := nil;
+      exit;
+    end;
+    InheritedFrom := FParser.GetToken;
+    TypeNo := FindType(InheritedFrom);
+    if TypeNo = nil then
+    begin
+      MakeError('', ecUnknownIdentifier, '');
+      Result := nil;
+      exit;
+    end;
+    if TypeNo.BaseType <> btInterface then
+    begin
+      MakeError('', ecTypeMismatch, '');
+      Result := nil;
+      Exit;
+    end;
+    FParser.Next;
+    if FParser.CurrTokenId <> CSTI_CloseRound then
+    begin
+      MakeError('', ecCloseRoundExpected, '');
+      Result := nil;
+      Exit;
+    end;
+{$IFNDEF PS_NOINTERFACEGUIDBRACKETS}
+    FParser.Next;
+    if FParser.CurrTokenId <> CSTI_OpenBlock then
+    begin
+      MakeError('', ecOpenBlockExpected, '');
+      Result := nil;
+      Exit;
+    end;
+{$ENDIF}
+    FParser.Next;
+    if FParser.CurrTokenId <> CSTI_String then
+    begin
+      MakeError('', ecStringExpected, '');
+      Result := nil;
+      Exit;
+    end;
+    s := FParser.GetToken;
+    try
+      Guid := StringToGuid(String(Copy(s, 2, Length(s)-2)));
+    except
+      on e: Exception do
+      begin
+        MakeError('', ecCustomError, tbtstring(e.Message));
+        Result := nil;
+        Exit;
+      end;
+    end;
+{$IFNDEF PS_NOINTERFACEGUIDBRACKETS}
+    FParser.Next;
+    if FParser.CurrTokenId <> CSTI_CloseBlock then
+    begin
+      MakeError('', ecCloseBlockExpected, '');
+      Result := nil;
+      Exit;
+    end;
+{$ENDIF}
+    Intf := AddInterface(FindInterface(InheritedFrom), Guid, Name);
+    FParser.Next;
+    repeat
+      if not Intf.RegisterMethodEx('', cdSafeCall, FParser) then begin
+        MakeError('', ecCustomError, 'Invalid method');
+        Result := nil;
+        Exit;
+      end;
+      FParser.Next;
+    until FParser.CurrTokenId = CSTII_End;
+    FParser.Next; // skip CSTII_End
+    Result := Intf.FType;
+    Exit;
+{$ENDIF}
   end else if FParser.CurrTokenId = CSTI_Identifier then
   begin
     s := FParser.GetToken;
@@ -15226,13 +15341,19 @@ end;
 
 function TPSInterface.RegisterMethod(const Declaration: tbtString;
   const cc: TPSCallingConvention): Boolean;
+begin
+  Result := RegisterMethodEx(Declaration, cc, nil);
+end;
+
+function TPSInterface.RegisterMethodEx(const Declaration: tbtString;
+  const cc: TPSCallingConvention; const CustomParser: TPSPascalParser): Boolean;
 var
   M: TPSInterfaceMethod;
   DOrgName: tbtString;
   Func: TPMFuncType;
 begin
   M := TPSInterfaceMethod.Create(Self);
-  if not ParseMethod(FOwner, '', Declaration, DOrgname, m.Decl, Func) then
+  if not ParseMethodEx(FOwner, '', Declaration, DOrgname, m.Decl, Func, CustomParser) then
   begin
     FItems.Add(m); // in any case, add a dummy item
     Result := False;

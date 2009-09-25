@@ -21,7 +21,11 @@ implementation
 
 procedure SIRegister_ComObj(cl: TPSPascalCompiler);
 begin
+  cl.AddTypeS('HResult', 'LongInt');
   cl.AddTypeS('TGUID', 'record D1: LongWord; D2: Word; D3: Word; D4: array[0..7] of Byte; end;');
+  cl.AddTypeS('TCLSID', 'TGUID');
+  cl.AddTypeS('TIID', 'TGUID');
+  cl.AddDelphiFunction('procedure OleCheck(Result: HResult)');
 {$IFNDEF PS_NOINTERFACES}
 {$IFDEF DELPHI3UP}
   cl.AddDelphiFunction('function StringToGUID(const S: string): TGUID;');

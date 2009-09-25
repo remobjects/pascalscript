@@ -89,6 +89,7 @@ end;
 
 procedure RIRegister_ComObj(cl: TPSExec);
 begin
+  cl.RegisterDelphiFunction(@OleCheck, 'OleCheck', cdRegister);
 {$IFNDEF PS_NOINTERFACES}
 {$IFDEF DELPHI3UP}
   cl.RegisterDelphiFunction(@StringToGUID, 'StringToGUID', cdRegister);

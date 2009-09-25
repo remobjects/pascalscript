@@ -2192,6 +2192,7 @@ begin
       Result := False;
       exit;
     end;
+    Parser.Next;
   end
   else if FuncType = 2 then {constructor}
   begin

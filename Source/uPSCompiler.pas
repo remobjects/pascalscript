@@ -2009,7 +2009,9 @@ begin
   if Parser.CurrTokenId <> CSTI_Identifier then
   begin
     if Parser <> CustomParser then
-      Parser.Free;
+      Parser.Free
+    else
+      Owner.MakeError('', ecIdentifierExpected, '');
     Result := False;
     exit;
   end; {if}
@@ -2044,7 +2046,9 @@ begin
         if Parser.CurrTokenId <> CSTI_Identifier then
         begin
           if Parser <> CustomParser then
-            Parser.Free;
+            Parser.Free
+          else
+            Owner.MakeError('', ecIdentifierExpected, '');
           Result := False;
           exit;
         end;
@@ -2060,7 +2064,9 @@ begin
           if Parser.CurrTokenId <> CSTI_Identifier then
           begin
             if Parser <> CustomParser then
-              Parser.Free;
+              Parser.Free
+            else
+              Owner.MakeError('', ecIdentifierExpected, '');
             Result := False;
             exit;
           end;
@@ -2070,7 +2076,9 @@ begin
         if Parser.CurrTokenId <> CSTI_Colon then
         begin
           if Parser <> CustomParser then
-            Parser.Free;
+            Parser.Free
+          else
+            Owner.MakeError('', ecColonExpected, '');
           Result := False;
           exit;
         end;
@@ -2081,7 +2089,9 @@ begin
           if Parser.CurrTokenId <> CSTII_Of then
           begin
             if Parser <> CustomParser then
-              Parser.Free;
+              Parser.Free
+            else
+              Owner.MakeError('', ecOfExpected, '');
             Result := False;
             exit;
           end;
@@ -2095,7 +2105,9 @@ begin
             if VCType = nil then
             begin
               if Parser <> CustomParser then
-                Parser.Free;
+                Parser.Free
+              else
+                Owner.MakeError('', ecUnknownType, Parser.GetToken);
               Result := False;
               exit;
             end;
@@ -2137,7 +2149,9 @@ begin
           if VCType = nil then
           begin
             if Parser <> CustomParser then
-              Parser.Free;
+              Parser.Free
+            else
+              Owner.MakeError('', ecUnknownType, Parser.GetToken);
             Result := False;
             exit;
           end;
@@ -2164,7 +2178,9 @@ begin
         if Parser.CurrTokenId <> CSTI_Semicolon then
         begin
           if Parser <> CustomParser then
-            Parser.Free;
+            Parser.Free
+          else
+            Owner.MakeError('', ecSemiColonExpected, '');
           Result := False;
           exit;
         end;
@@ -2178,7 +2194,9 @@ begin
     if Parser.CurrTokenId <> CSTI_Colon then
     begin
       if Parser <> CustomParser then
-        Parser.Free;
+        Parser.Free
+      else
+        Owner.MakeError('', ecColonExpected, '');
       Result := False;
       exit;
     end;
@@ -2188,7 +2206,9 @@ begin
     if VCType = nil then
     begin
       if Parser <> CustomParser then
-        Parser.Free;
+        Parser.Free
+      else
+        Owner.MakeError('', ecUnknownType, Parser.GetToken);
       Result := False;
       exit;
     end;
@@ -4108,7 +4128,7 @@ begin
     TypeNo := FindType(InheritedFrom);
     if TypeNo = nil then
     begin
-      MakeError('', ecUnknownIdentifier, '');
+      MakeError('', ecUnknownType, FParser.GetToken);
       Result := nil;
       exit;
     end;

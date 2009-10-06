@@ -121,6 +121,7 @@ With RegClassS(cl,'TCOMPONENT','TDATASET') do
 {$ELSE}
   RegisterMethod('Function FIELDBYNAME( const FIELDNAME : WIDESTRING) : TFIELD');
   RegisterMethod('Function FINDFIELD( const FIELDNAME : WideString) : TFIELD');
+{$ENDIF}
 {$ELSE}
   RegisterMethod('Function FIELDBYNAME( const FIELDNAME : STRING) : TFIELD');
   RegisterMethod('Function FINDFIELD( const FIELDNAME : STRING) : TFIELD');

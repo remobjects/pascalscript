@@ -13051,12 +13051,16 @@ end;
 function TPSPascalCompiler.AddVariable(const Name: tbtString; FType: TPSType): TPSVar;
 var
   P: TPSVar;
+  s:string;
 begin
   if FProcs = nil then raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   if FType = nil then raise EPSCompilerException.CreateFmt(RPS_InvalidTypeForVar, [Name]);
+  s := Fastuppercase(Name);
+  if IsDuplicate(s,[dcVars]) then raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [Name]);
+
   p := TPSVar.Create;
   p.OrgName := Name;
-  p.Name := Fastuppercase(Name);
+  p.Name := s;
   p.FType := AT2UT(FType);
   p.exportname := p.Name;
   FVars.Add(p);

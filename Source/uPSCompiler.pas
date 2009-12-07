@@ -6368,15 +6368,6 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     end;
   end;
 
-
-  function GetIdentifier(const FType: Byte): TPSValue;
-    {
-      FType:
-        0 = Anything
-        1 = Only variables
-        2 = Not constants
-    }
-
     procedure CheckProcCall(var x: TPSValue);
     var
       aType: TPSType;
@@ -6660,17 +6651,17 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             begin
               ImplicitPeriod := False;
               FParser.Next;
- 
+
               tmp := AllocStackReg(u);
               WriteCalculation(x,tmp);
               TPSVar(BlockInfo.Proc.FProcVars[TPSValueAllocatedStackVar(tmp).LocalVarNo]).Use;
- 
+
               rr := TPSSubNumber.Create;
               TPSValueVar(tmp).RecAdd(rr);
               TPSSubNumber(rr).SubNo := t;
               rr.aType := TPSRecordType(u).RecVal(t).FType;
               u := rr.aType;
- 
+
               tmpn := TPSValueReplace.Create;
               with TPSValueReplace(tmpn) do
               begin
@@ -6680,7 +6671,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 NewValue := AllocStackReg(u);
                 PreWriteAllocated := true;
               end;
- 
+
               if not WriteCalculation(tmp,TPSValueReplace(tmpn).NewValue) then
               begin
                 {MakeError('',ecInternalError,'');}
@@ -7328,6 +7319,15 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         Result := nil;
       end;
     end;
+
+  function GetIdentifier(const FType: Byte): TPSValue;
+    {
+      FType:
+        0 = Anything
+        1 = Only variables
+        2 = Not constants
+    }
+
 
   var
     vt: TPSVariableType;
@@ -8383,6 +8383,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     function ReadTerm: TPSValue;
     var
       F1, F2: TPSValue;
+      fType: TPSType;
       F: TPSBinValueOp;
       Token: TPSPasToken;
       Op: TPSBinOperatorType;
@@ -8415,19 +8416,30 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         else
           Op := otAdd;
         end;
-        F := TPSBinValueOp.Create;
-        f.Val1 := F1;
-        f.Val2 := F2;
-        f.Operator := Op;
-        f.aType := GetResultType(F1, F2, Op);
-        if f.aType = nil then
-        begin
-          MakeError('', ecTypeMismatch, '');
-          f.Free;
-          Result := nil;
-          exit;
+        if (Op = otAs) and (f2 is TPSValueData) and (TPSValueData(f2).Data.FType.BaseType = btType) then begin
+          fType := TPSValueData(f2).Data.ttype;
+          f2.Free;
+          f2 := TPSUnValueOp.Create;
+          TPSUnValueOp(F2).Val1 := f1;
+          TPSUnValueOp(F2).SetParserPos(FParser);
+          TPSUnValueOp(f2).FType := fType;
+          TPSUnValueOp(f2).&Operator := otCast;
+          f1 := f2;
+        end else begin
+          F := TPSBinValueOp.Create;
+          f.Val1 := F1;
+          f.Val2 := F2;
+          f.Operator := Op;
+          f.aType := GetResultType(F1, F2, Op);
+          if f.aType = nil then
+          begin
+            MakeError('', ecTypeMismatch, '');
+            f.Free;
+            Result := nil;
+            exit;
+          end;
+          f1 := f;
         end;
-        f1 := f;
       end;
       Result := F1;
     end;  // ReadTerm
@@ -8863,7 +8875,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     end;
 
   var
-    Val: TPSValue;
+    Temp, Val: TPSValue;
+    vt: TPSVariableType;
 
 begin
     Val := ReadExpression;
@@ -8872,6 +8885,17 @@ begin
       Result := nil;
       exit;
     end;
+    vt := ivtGlobal;
+    repeat
+      Temp := Val;
+      if Val <> nil then CheckFurther(Val, False);
+      if Val <> nil then CheckClass(Val, vt, InvalidVal, False);
+      if Val <> nil then  CheckExtClass(Val, vt, InvalidVal, False);
+{$IFNDEF PS_NOIDISPATCH}if Val <> nil then CheckIntf(Val, vt, InvalidVal, False);{$ENDIF}
+      if Val <> nil then CheckProcCall(Val);
+      if Val<> nil then CheckClassArrayProperty(Val, vt, InvalidVal);
+    until (Val = nil) or (Temp = Val);
+
     if not TryEvalConst(Val) then
     begin
       Val.Free;
@@ -10101,7 +10125,7 @@ begin
   begin
     Result := False;
     Debug_WriteLine(BlockInfo);
-    vin := GetIdentifier(2);
+    vin := Calc(CSTI_Assignment);//GetIdentifier(2);
     if vin <> nil then
     begin
       if vin is TPSValueVar then
@@ -10786,6 +10810,7 @@ begin
           if (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = TOneLiner) then
             break;
         end;
+      CSTI_OpenRound,
       CSTI_Identifier:
         begin
           case _ProcessLabel of

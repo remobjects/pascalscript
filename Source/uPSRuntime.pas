@@ -5042,6 +5042,15 @@ begin
                   b := not b;
                 end else result := False;
               end;
+            btRecord:
+              begin
+                if var1Type = var2Type then
+                begin
+                  Set_Equal(var1, var2, TPSTypeRec_Record(var1Type).RealSize, b);
+                  b := not b;
+                end else result := False;
+              end
+
           else begin
               CMD_Err(erTypeMismatch);
               exit;
@@ -5142,6 +5151,13 @@ begin
                   Set_Equal(var1, var2, TPSTypeRec_Set(var1Type).aByteSize, b);
                 end else result := False;
               end;
+            btRecord:
+              begin
+                if var1Type = var2Type then
+                begin
+                  Set_Equal(var1, var2, TPSTypeRec_Record(var1Type).RealSize, b);
+                end else result := False;
+              end
           else begin
               CMD_Err(erTypeMismatch);
               exit;

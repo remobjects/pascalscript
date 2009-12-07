@@ -8476,7 +8476,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           TPSUnValueOp(F2).Val1 := f1;
           TPSUnValueOp(F2).SetParserPos(FParser);
           TPSUnValueOp(f2).FType := fType;
-          TPSUnValueOp(f2).&Operator := otCast;
+          TPSUnValueOp(f2).Operator := otCast;
           f1 := f2;
         end else begin
           F := TPSBinValueOp.Create;

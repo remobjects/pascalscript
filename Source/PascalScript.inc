@@ -48,7 +48,11 @@
 
 {
 Defines:
-  IFPS3_NOSMARTLIST    - Don't use the smart list option
+  PS_NOSMARTLIST    - Don't use the smart list option
+  PS_NOIDISPATCH
+  PS_NOWIDESTRING
+  PS_NOINT64
+  PS_DELPHIDIV
 }
 
 {$UNDEF DEBUG}

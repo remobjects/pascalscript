@@ -873,7 +873,7 @@ type
 
 
 
-  TPSBinOperatorType = (otAdd, otSub, otMul, otDiv, otMod, otShl, otShr, otAnd, otOr, otXor, otAs,
+  TPSBinOperatorType = (otAdd, otSub, otMul, otDiv, otMod, otShl, otShr, otAnd, otOr, otXor, otAs, otIntDiv,
                           otGreaterEqual, otLessEqual, otGreater, otLess, otEqual,
                           otNotEqual, otIs, otIn);
 
@@ -3215,7 +3215,34 @@ begin
             else Result := False;
           end;
         end;
+{$IFDEF PS_DELPHIDIV}
       otDiv:
+        begin { / }
+          if IsIntType(var1.FType.BaseType) then
+            ConvertToFloat(self, FUseUsedTypes, var1, Self.FindType('EXTENDED'));
+          case Var1.FType.BaseType of
+            btSingle: var1^.tsingle := var1^.tsingle / GetReal( Var2, Result);
+            btDouble: var1^.tdouble := var1^.tdouble / GetReal( Var2, Result);
+            btExtended: var1^.textended := var1^.textended / GetReal( Var2, Result);
+            btCurrency: var1^.tcurrency := var1^.tcurrency / GetReal( Var2, Result);
+            else Result := False;
+          end;
+        end;
+      otIntDiv:
+        begin { / }
+          case Var1.FType.BaseType of
+            btU8: var1^.tu8 := var1^.tu8 div GetUint(Var2, Result);
+            btS8: var1^.ts8 := var1^.ts8 div Getint(Var2, Result);
+            btU16: var1^.tu16 := var1^.tu16 div GetUint(Var2, Result);
+            btS16: var1^.ts16 := var1^.ts16 div Getint(Var2, Result);
+            btU32: var1^.tu32 := var1^.tu32 div GetUint(Var2, Result);
+            btS32: var1^.ts32 := var1^.ts32 div Getint(Var2, Result);
+            {$IFNDEF PS_NOINT64}btS64: var1^.ts64 := var1^.ts64 div GetInt64(Var2, Result); {$ENDIF}
+            else Result := False;
+          end;
+        end;
+{$ELSE}
+      otDiv, otIntDiv:
         begin { / }
           case Var1.FType.BaseType of
             btU8: var1^.tu8 := var1^.tu8 div GetUint(Var2, Result);
@@ -3232,6 +3259,7 @@ begin
             else Result := False;
           end;
         end;
+{$ENDIF}
       otMod:
         begin { MOD }
           case Var1.FType.BaseType of
@@ -5791,6 +5819,16 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         BVal.Val2 := tmpp;
       end;
     end else begin
+      if (BVal.aType <> nil) and (BVal.aType <> GetTypeNo(BlockInfo, Output)) then begin
+        tmpp := AllocStackReg(BVal.aType);
+        PreWriteOutrec(tmpp, nil);
+        DoBinCalc(BVal, tmpp);
+        afterwriteoutrec(tmpp);
+        result := WriteCalculation(tmpp, output);
+        tmpp.Free;
+        exit;
+      end;
+
       if not PreWriteOutRec(Output, nil) then
       begin
         Result := False;
@@ -5836,7 +5874,10 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         exit;
       end;
       BlockWriteByte(BlockInfo, Cm_CA);
-      BlockWriteByte(BlockInfo, Ord(BVal.Operator));
+      if BVAL.Operator = otIntDiv then
+        BlockWriteByte(BlockInfo, Ord(otDiv))
+      else
+        BlockWriteByte(BlockInfo, Ord(BVal.Operator));
       if not (WriteOutRec(Output, False) and WriteOutRec(BVal.FVal2, True)) then
       begin
         Result := False;
@@ -8122,7 +8163,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             else
               Result := nil;
           end;
-        otSub, otMul, otDiv: { -  * / }
+
+        otSub, otMul, otIntDiv, otDiv: { -  * / }
           begin
             if ((t1.BaseType = btVariant) or (t1.BaseType = btNotificationVariant)) and (
               ((t2.BaseType = btVariant) or (t2.BaseType = btNotificationVariant)) or
@@ -8139,15 +8181,23 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               ((t1.BaseType = btVariant) or (t1.BaseType = btNotificationVariant)) or
               (isIntRealType(t1.BaseType))) then
               Result := t2
-            else if IsIntType(t1.BaseType) and IsIntType(t2.BaseType) then
-              Result := t1
-            else if IsIntRealType(t1.BaseType) and
+            else if IsIntType(t1.BaseType) and IsIntType(t2.BaseType) then begin
+              Result := t1;
+{$IFDEF PS_DELPHIDIV}
+              if Cmd = otDiv then
+                result := FindBaseType(btExtended);
+{$ENDIF}
+            end else if IsIntRealType(t1.BaseType) and
               IsIntRealType(t2.BaseType) then
             begin
               if IsRealType(t1.BaseType) then
                 Result := t1
               else
                 Result := t2;
+{$IFDEF PS_DELPHIDIV}
+              if Cmd = otIntDiv then //intdiv only works
+                result := nil;
+{$ENDIF}
             end
             else
               Result := nil;
@@ -8409,7 +8459,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         end;
         case Token of
           CSTI_Multiply: Op := otMul;
-          CSTII_div, CSTI_Divide: Op := otDiv;
+          CSTI_Divide: Op := otDiv;
+          CSTII_div: Op := otIntDiv;
           CSTII_mod: Op := otMod;
           CSTII_and: Op := otAnd;
           CSTII_shl: Op := otShl;
@@ -12603,7 +12654,8 @@ function TPSPascalCompiler.ReadConstant(FParser: TPSPascalParser; StopOn: TPSPas
       end;
       case Token of
         CSTI_Multiply: Op := otMul;
-        CSTII_div, CSTI_Divide: Op := otDiv;
+        CSTI_Divide: Op := otDiv;
+        CSTII_Div: Op := otIntDiv;
         CSTII_mod: Op := otMod;
         CSTII_and: Op := otAnd;
         CSTII_shl: Op := otShl;

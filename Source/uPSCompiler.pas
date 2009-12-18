@@ -1020,7 +1020,9 @@ type
     function IsCompatibleType(p1, p2: TPSType; Cast: Boolean): Boolean;
 
     function IsDuplicate(const s: tbtString; const check: TPSDuplicCheck): Boolean;
+    {$IFDEF PS_USESSUPPORT}
     function IsInLocalUnitList(s: tbtString): Boolean;
+	{$ENDIF}
 
     function NewProc(const OriginalName, Name: tbtString): TPSInternalProcedure;
 
@@ -2267,8 +2269,8 @@ begin
     else
     begin
       if (TPSExternalProcedure(x).RegProc.NameHash = h) and
-        (TPSExternalProcedure(x).RegProc.Name = Name)  and
-        (IsInLocalUnitList(TPSInternalProcedure(x).DeclareUnit)) then
+        (TPSExternalProcedure(x).RegProc.Name = Name)     {$IFDEF PS_USESSUPPORT} and
+        (IsInLocalUnitList(TPSInternalProcedure(x).DeclareUnit)){$ENDIF} then
       begin
         Result := l;
         exit;
@@ -3565,7 +3567,6 @@ begin
     exit;
   end;
   if dcTypes in Check then
-  begin
   for l := FTypes.Count - 1 downto 0 do
   begin
     if (TPSType(FTypes.Data[l]).NameHash = h) and
@@ -7535,8 +7536,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     for l := 0 to FVars.Count - 1 do
     begin
       if (TPSVar(FVars[l]).NameHash = h) and
-        (TPSVar(FVars[l]).Name = s) and
-        (IsInLocalUnitList(TPSVar(FVars[l]).FDeclareUnit)) then
+        (TPSVar(FVars[l]).Name = s)    {$IFDEF PS_USESSUPPORT} and
+        (IsInLocalUnitList(TPSVar(FVars[l]).FDeclareUnit)){$ENDIF} then
       begin
         TPSVar(FVars[l]).Use;
         Result := TPSValueGlobalVar.Create;
@@ -7623,8 +7624,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     for l := 0 to FConstants.Count -1 do
     begin
       t := TPSConstant(FConstants[l]);
-      if (t.NameHash = h) and (t.Name = s)  and
-        (IsInLocalUnitList(t.FDeclareUnit)) then
+      if (t.NameHash = h) and (t.Name = s)     {$IFDEF PS_USESSUPPORT}  and
+        (IsInLocalUnitList(t.FDeclareUnit)) {$ENDIF} then
       begin
         if FType <> 0 then
         begin
@@ -11752,6 +11753,7 @@ var
           {$ENDIF}
         end;
       end;
+    {$IFDEF PS_USESSUPPORT}
       if fUnits.GetUnit(S).HasUses(fModule) then
       begin
         MakeError('', ecCrossReference, s);
@@ -11761,7 +11763,6 @@ var
 
       fUnit.AddUses(S);
 
-      {$IFDEF PS_USESSUPPORT}
       if Parse then
       begin
       {$ENDIF}
@@ -13596,6 +13597,7 @@ begin
   result := nil;
 end;
 
+{$IFDEF PS_USESSUPPORT}
 function TPSPascalCompiler.IsInLocalUnitList(s: string): Boolean;
 begin
   s:=FastUpperCase(s);
@@ -13606,6 +13608,7 @@ begin
   end;
   result:=fUnit.HasUses(S);
 end;
+{$ENDIF}
 
 { TPSType }
 

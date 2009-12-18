@@ -405,6 +405,40 @@ type
   end;
   TIFStringList = TPsStringList;
 
+  TPSUnitList = class;
+
+  TPSUnit = class(TObject)
+  private
+    fList     : TPSUnitList;
+    fUnits    : TPSList;
+    fUnitName : TbtString;
+    procedure SetUnitName(const Value: TbtString);
+  public
+    constructor Create(List: TPSUnitList);
+
+    destructor Destroy; override;
+
+    procedure AddUses(pUnitName: TbtString);
+
+    function HasUses(pUnitName: TbtString): Boolean;
+
+    property UnitName: TbtString read fUnitName write SetUnitName;
+  end;
+
+  TPSUnitList = class
+  private
+    fList: TPSList;
+    function Add: TPSUnit;
+
+  public
+    constructor Create;
+
+    function GetUnit(UnitName: TbtString): TPSUnit;
+
+    destructor Destroy; override;
+  end;
+
+
 
 type
 
@@ -1586,6 +1620,103 @@ begin
   end;
   result := -1;
 end;
+
+{ TPSUnitList }
+
+function TPSUnitList.Add: TPSUnit;
+begin
+  result:=TPSUnit.Create(Self);
+
+  fList.Add(result);
+end;
+
+constructor TPSUnitList.Create;
+begin
+  fList:=TPSList.Create;
+end;
+
+destructor TPSUnitList.Destroy;
+var
+  Dummy: Integer;
+begin
+  for Dummy:=0 to fList.Count-1 do
+    TObject(fList[Dummy]).Free;
+
+  FreeAndNil(fList);
+  
+  inherited;
+end;
+
+function TPSUnitList.GetUnit(UnitName: TbtString): TPSUnit;
+var
+  Dummy: Integer;
+begin
+  UnitName:=FastUpperCase(UnitName);
+  for Dummy:=0 to fList.Count-1 do
+  begin
+    if TPSUnit(fList[Dummy]).UnitName=UnitName then
+    begin
+      result:=TPSUnit(fList[Dummy]);
+      exit;
+    end;
+  end;
+
+  result:=Add;
+
+  result.UnitName:=UnitName;
+end;
+
+{ TPSUnit }
+
+procedure TPSUnit.AddUses(pUnitName: TbtString);
+var
+  UsesUnit: TPSUnit;
+begin
+  UsesUnit:=fList.GetUnit(pUnitName);
+  fUnits.Add(UsesUnit);
+end;
+
+constructor TPSUnit.Create(List: TPSUnitList);
+begin
+  fUnits:=TPSList.Create;
+
+  fList:=List;
+end;
+
+destructor TPSUnit.Destroy;
+begin
+  FreeAndNIl(fUnits);
+  inherited;
+end;
+
+function TPSUnit.HasUses(pUnitName: TbtString): Boolean;
+var
+  Dummy: Integer;
+begin
+  pUnitName:=FastUpperCase(pUnitName);
+
+  if fUnitName=pUnitName then
+  begin
+    result:=true;
+    exit;
+  end;
+
+  result:=false;
+
+  for Dummy:=0 to fUnits.Count-1 do
+  begin
+    result:=TPSUnit(fUnits[Dummy]).HasUses(pUnitName);
+
+    if result then
+      exit;
+  end;
+end;
+
+procedure TPSUnit.SetUnitName(const Value: TbtString);
+begin
+  fUnitName := FastUpperCase(Value);
+end;
+
 
 end.
 

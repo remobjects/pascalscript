@@ -758,7 +758,8 @@ type
     ecInvalidnumberOfParameters
     {$IFDEF PS_USESSUPPORT}
     , ecNotAllowed,
-    ecUnitNotFoundOrContainsErrors
+    ecUnitNotFoundOrContainsErrors,
+    ecCrossReference
     {$ENDIF}
     );
 
@@ -945,7 +946,9 @@ type
     {$IFDEF PS_USESSUPPORT}
     FUnitInits : TPSList; //nvds
     FUnitFinits: TPSList; //nvds
-    FUses      : TIFStringList;
+    FUses      : TPSStringList;
+    fUnits     : TPSUnitList;
+    fUnit      : TPSUnit;
     fModule    : tbtString;
     {$ENDIF}
     fInCompile : Integer;
@@ -1017,6 +1020,7 @@ type
     function IsCompatibleType(p1, p2: TPSType; Cast: Boolean): Boolean;
 
     function IsDuplicate(const s: tbtString; const check: TPSDuplicCheck): Boolean;
+    function IsInLocalUnitList(s: tbtString): Boolean;
 
     function NewProc(const OriginalName, Name: tbtString): TPSInternalProcedure;
 
@@ -1778,6 +1782,7 @@ const
   {$IFDEF PS_USESSUPPORT}
   RPS_NotAllowed = '%s is not allowed at this position';
   RPS_UnitNotFound = 'Unit ''%s'' not found or contains errors';
+  RPS_CrossReference = 'Cross-Reference error of ''%s''';
   {$ENDIF}
 
 
@@ -2262,7 +2267,8 @@ begin
     else
     begin
       if (TPSExternalProcedure(x).RegProc.NameHash = h) and
-        (TPSExternalProcedure(x).RegProc.Name = Name) then
+        (TPSExternalProcedure(x).RegProc.Name = Name)  and
+        (IsInLocalUnitList(TPSInternalProcedure(x).DeclareUnit)) then
       begin
         Result := l;
         exit;
@@ -3559,6 +3565,7 @@ begin
     exit;
   end;
   if dcTypes in Check then
+  begin
   for l := FTypes.Count - 1 downto 0 do
   begin
     if (TPSType(FTypes.Data[l]).NameHash = h) and
@@ -7528,7 +7535,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     for l := 0 to FVars.Count - 1 do
     begin
       if (TPSVar(FVars[l]).NameHash = h) and
-        (TPSVar(FVars[l]).Name = s) then
+        (TPSVar(FVars[l]).Name = s) and
+        (IsInLocalUnitList(TPSVar(FVars[l]).FDeclareUnit)) then
       begin
         TPSVar(FVars[l]).Use;
         Result := TPSValueGlobalVar.Create;
@@ -7615,7 +7623,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     for l := 0 to FConstants.Count -1 do
     begin
       t := TPSConstant(FConstants[l]);
-      if (t.NameHash = h) and (t.Name = s) then
+      if (t.NameHash = h) and (t.Name = s)  and
+        (IsInLocalUnitList(t.FDeclareUnit)) then
       begin
         if FType <> 0 then
         begin
@@ -11104,6 +11113,7 @@ var
   OldFileName: tbtString;
   OldParser  : TPSPascalParser;
   OldIsUnit  : Boolean;
+  OldUnit    : TPSUnit;
   {$ENDIF}
 
   procedure Cleanup;
@@ -11181,8 +11191,8 @@ var
     FUnitFinits.Free;                            //
     FUnitFinits := nil;                          //
 
-    FUses.Free;
-    FUses:=nil;
+    FreeAndNil(fUnits);
+    FreeAndNil(FUses);
     fInCompile:=0;
     {$ENDIF}
   end;
@@ -11742,6 +11752,15 @@ var
           {$ENDIF}
         end;
       end;
+      if fUnits.GetUnit(S).HasUses(fModule) then
+      begin
+        MakeError('', ecCrossReference, s);
+        Result := False;
+        exit;
+      end;
+
+      fUnit.AddUses(S);
+
       {$IFDEF PS_USESSUPPORT}
       if Parse then
       begin
@@ -11838,6 +11857,7 @@ begin
     FUnitFinits:= TPSList.Create; //nvds
 
     FUses:=TIFStringList.Create;
+    FUnits:=TPSUnitList.Create;
     {$ENDIF}
   {$IFNDEF PS_NOINTERFACES}  FInterfaces := TPSList.Create;{$ENDIF}
 
@@ -11876,15 +11896,19 @@ begin
   {$IFDEF PS_USESSUPPORT}
     fModule:=OldFileName;
     OldParser:=nil;
+    OldUnit:=nil;
     OldIsUnit:=false; // defaults
   end
   else
   begin
     OldParser:=FParser;
     OldIsUnit:=FIsUnit;
+    OldUnit:=fUnit;
     FParser:=TPSPascalParser.Create;
     FParser.SetText(s);
   end;
+
+  fUnit:=fUnits.GetUnit(fModule);
 
   inc(fInCompile);
   {$ENDIF}
@@ -12182,6 +12206,7 @@ begin
     fParser.Free;
     fParser:=OldParser;
     fIsUnit:=OldIsUnit;
+    fUnit:=OldUnit;
     result:=true;
   end;
   {$ENDIF}
@@ -13571,6 +13596,17 @@ begin
   result := nil;
 end;
 
+function TPSPascalCompiler.IsInLocalUnitList(s: string): Boolean;
+begin
+  s:=FastUpperCase(s);
+  if (s=FastUpperCase(fModule)) or (s='SYSTEM') then
+  begin
+    result:=true;
+    exit;
+  end;
+  result:=fUnit.HasUses(S);
+end;
+
 { TPSType }
 
 constructor TPSType.Create;
@@ -13996,6 +14032,7 @@ begin
     {$IFDEF PS_USESSUPPORT}
     ecNotAllowed : Result:=tbtstring(Format(RPS_NotAllowed,[Param]));
     ecUnitNotFoundOrContainsErrors: Result:=tbtstring(Format(RPS_UnitNotFound,[Param]));
+    ecCrossReference: Result:=Format(RPS_CrossReference,[Param]);
     {$ENDIF}
   else
     Result := tbtstring(RPS_UnknownError);

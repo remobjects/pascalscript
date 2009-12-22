@@ -13156,7 +13156,7 @@ end;
 function TPSPascalCompiler.AddVariable(const Name: tbtString; FType: TPSType): TPSVar;
 var
   P: TPSVar;
-  s:string;
+  s:tbtString;
 begin
   if FProcs = nil then raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   if FType = nil then raise EPSCompilerException.CreateFmt(RPS_InvalidTypeForVar, [Name]);

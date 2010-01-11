@@ -13598,7 +13598,7 @@ begin
 end;
 
 {$IFDEF PS_USESSUPPORT}
-function TPSPascalCompiler.IsInLocalUnitList(s: string): Boolean;
+function TPSPascalCompiler.IsInLocalUnitList(s: tbtstring): Boolean;
 begin
   s:=FastUpperCase(s);
   if (s=FastUpperCase(fModule)) or (s='SYSTEM') then

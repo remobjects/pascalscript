@@ -113,6 +113,12 @@ asm
   push rdi  // address
   push rsi  // _rax
   push r9   // xmm0
+{$IFDEF PS_STACKALIGN}
+  bt r8, 0
+  jc @skipjump
+  sub rsp, 8
+@skipjump:
+{$ENDIF}
   mov rax, rdx
   jmp @compareitems
 @work:
@@ -144,6 +150,8 @@ asm
 
   mov rax, [rbp-8]
   call RAX
+
+//  add rsp, 8
 
   // add RSP, 32 // undo the damage done earlier
 

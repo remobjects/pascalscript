@@ -1,4 +1,5 @@
 unit uPSRuntime;
+
 {$I PascalScript.inc}
 {
 
@@ -1702,8 +1703,9 @@ begin
     {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}bts16, btU16: FrealSize := 2;
     {$IFNDEF PS_NOWIDESTRING}btWideString,
     btUnicodeString,
-    {$ENDIF}{$IFNDEF PS_NOINTERFACES}btInterface, {$ENDIF}btSingle, bts32, btU32,
+    {$ENDIF}{$IFNDEF PS_NOINTERFACES}btInterface, {$ENDIF}
     btclass, btPChar, btString: FrealSize := PointerSize;
+    btSingle, bts32, btU32: FRealSize := 4;
     btProcPtr: FRealSize := 2 * sizeof(Pointer) + sizeof(Cardinal);
     btCurrency: FrealSize := Sizeof(Currency);
     btPointer: FRealSize := 2 * sizeof(Pointer) + sizeof(LongBool); // ptr, type, freewhendone
@@ -6545,12 +6547,15 @@ begin
               Inc(FCurrentPosition, 4);
               Pointer(Dest.P^) := nil;
               SetLength(tbtstring(Dest.P^), Param);
-              if not ReadData(tbtstring(Dest.P^)[1], Param) then
-              begin
-                CMD_Err(erOutOfRange);
-                FTempVars.Pop;
-                Result := False;
-                exit;
+              if Param <> 0 then begin
+                if not ReadData(tbtstring(Dest.P^)[1], Param) then
+                begin
+                  CMD_Err(erOutOfRange);
+                  FTempVars.Pop;
+                  Result := False;
+                  exit;
+                end;
+                pansichar(dest.p^)[Param] := #0;
               end;
             end;
           {$IFNDEF PS_NOWIDESTRING}

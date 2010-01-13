@@ -361,8 +361,15 @@ _XMM0: Double;
               StoreReg(IPointer(FVar.Dta^));
             end;
           end;
+        btRecord:
+          begin
+            if fvar^.aType.RealSize <= sizeof(IPointer) then
+              StoreReg(IPointer(fvar.dta^))
+            else
+              StoreReg(IPointer(fVar.Dta));
+          end;
         btVariant
-        , btStaticArray, btRecord:
+        , btStaticArray:
           begin
             StoreReg(IPointer(fVar.Dta));
           end;
@@ -467,10 +474,11 @@ begin
         {$IFDEF x64_string_result_as_varparameter}
         btstring, btWideString, btUnicodeString,
         {$ENDIF}
-        btInterface, btArray, btrecord, btVariant, btStaticArray: GetPtr(res);
+        btInterface, btArray, btVariant, btStaticArray:
+          GetPtr(res);
         btSet:
           begin
-            if TPSTypeRec_Set(res.aType).aByteSize > PointerSize then GetPtr(res);
+            if res.aType.RealSize > PointerSize then GetPtr(res);
           end;
       end;
       if Stack = nil then pp := nil else pp := @Stack[Length(Stack) -8];
@@ -480,9 +488,9 @@ begin
       x64call(Address, _RAX, Registers, pp, Length(Stack) div 8, _XMM0);
 {$ENDIF}
       case res^.aType.BaseType of
-        btSet:
+        btRecord, btSet:
           begin
-            case TPSTypeRec_Set(res.aType).aByteSize  of
+            case res.aType.RealSize of
               1: byte(res.Dta^) := _RAX;
               2: word(res.Dta^) := _RAX;
               3,
@@ -505,7 +513,7 @@ begin
         {$IFDEF x64_string_result_as_varparameter}
         btWidestring,btUnicodestring, btstring ,
         {$ENDIF}
-        btStaticArray, btArray, btrecord:;
+        btStaticArray, btArray:;
         {$IFNDEF x64_string_result_as_varparameter}
         btUnicodeString, btWideString, btstring:  Int64(res.dta^) := _RAX;
         {$ENDIF}

@@ -85,6 +85,7 @@ type
     _XMM5,              // 80
     _XMM6,              // 88
     _XMM7: Double;      // 96
+    SingleBits: Integer; //104
   end;
 
 procedure x64call(
@@ -107,15 +108,17 @@ asm
     rbp-8    addr
     rbp-16   _rax
     rbp-24   _xmm0
+    rbp-32   regs
 *)
   push rbp
   mov rbp,rsp
   push rdi  // address
   push rsi  // _rax
   push r9   // xmm0
+  push rdx
 {$IFDEF PS_STACKALIGN}
   bt r8, 0
-  jc @skipjump
+  jnc @skipjump
   sub rsp, 8
 @skipjump:
 {$ENDIF}
@@ -130,14 +133,79 @@ asm
   jnz @work
 
   // copy registers
-  movd xmm0,[rbp-24]
+  // xmm0
+  mov rdx,[rbp-24]
+  bt [rax+104], 0
+  jnc @skipxmm0
+  cvtsd2ss xmm0,[rdx]
+  jmp @skipxmm0re
+  @skipxmm0:
+  movd xmm0,[rdx]
+  @skipxmm0re:
+
+  // xmm1
+  bt [rax+104], 1
+  jnc @skipxmm1
+  cvtsd2ss xmm1,[rax+48]
+  jmp @skipxmm1re
+  @skipxmm1:
   movd xmm1,[rax+48]
+  @skipxmm1re:
+
+  // xmm2
+  bt [rax+104], 2
+  jnc @skipxmm2
+  cvtsd2ss xmm2,[rax+56]
+  jmp @skipxmm2re
+  @skipxmm2:
   movd xmm2,[rax+56]
+  @skipxmm2re:
+
+  // xmm3
+  bt [rax+104], 3
+  jnc @skipxmm3
+  cvtsd2ss xmm3,[rax+64]
+  jmp @skipxmm3re
+  @skipxmm3:
   movd xmm3,[rax+64]
+  @skipxmm3re:
+
+  // xmm4
+  bt [rax+104], 4
+  jnc @skipxmm4
+  cvtsd2ss xmm4,[rax+72]
+  jmp @skipxmm4re
+  @skipxmm4:
   movd xmm4,[rax+72]
+  @skipxmm4re:
+
+  // xmm5
+  bt [rax+104], 5
+  jnc @skipxmm5
+  cvtsd2ss xmm5,[rax+80]
+  jmp @skipxmm5re
+  @skipxmm5:
   movd xmm5,[rax+80]
+  @skipxmm5re:
+
+  // xmm6
+  bt [rax+104], 6
+  jnc @skipxmm6
+  cvtsd2ss xmm6,[rax+88]
+  jmp @skipxmm6re
+  @skipxmm6:
   movd xmm6,[rax+88]
+  @skipxmm6re:
+// xmm7
+  bt [rax+104], 7
+  jnc @skipxmm7
+  cvtsd2ss xmm7,[rax+96]
+  jmp @skipxmm7re
+  @skipxmm7:
   movd xmm7,[rax+96]
+  @skipxmm7re:
+
+
   mov RDI, [rax]
   mov RSI, [rax+ 8]
   mov RDX, [rax+16]
@@ -159,8 +227,19 @@ asm
   mov rsi, [rbp-16]
   mov [rsi], RAX
   mov rsi, [rbp-24]
-  movd [rsi],xmm0
 
+  // xmm0 res
+  mov rax, [rbp-32]
+  bt [rax+104], 8
+  jnc @skipres
+  cvtss2sd xmm1,xmm0
+  movd [rsi],xmm1
+  jmp @skipresre
+  @skipres:
+  movd [rsi],xmm0
+  @skipresre:
+
+  pop rdx
   pop r9   // xmm0
   pop rsi  // _rax
   pop rdi  // address
@@ -278,6 +357,25 @@ _XMM0: Double;
       5: begin inc(RegUsageFloat); Registers._XMM5:=Data; end;
       6: begin inc(RegUsageFloat); Registers._XMM6:=Data; end;
       7: begin inc(RegUsageFloat); Registers._XMM7:=Data; end;
+    else begin
+      SetLength(Stack, Length(Stack)+8);
+      p := @Stack[LEngth(Stack)-8];
+      Double(p^) := data;
+    end;
+    end;
+  end;
+  procedure StoreReg(data: Single); overload;
+  var p: Pointer;
+  begin
+    case RegUsageFloat of
+      0: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 1; _XMM0:=Data; end;
+      1: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 2; Registers._XMM1:=Data; end;
+      2: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 4; Registers._XMM2:=Data; end;
+      3: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 8; Registers._XMM3:=Data; end;
+      4: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 16; Registers._XMM4:=Data; end;
+      5: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 32; Registers._XMM5:=Data; end;
+      6: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 64; Registers._XMM6:=Data; end;
+      7: begin inc(RegUsageFloat); Registers.SingleBits := Registers.SingleBits or 128; Registers._XMM7:=Data; end;
     else begin
       SetLength(Stack, Length(Stack)+8);
       p := @Stack[LEngth(Stack)-8];
@@ -468,6 +566,11 @@ begin
     if assigned(_Self) then begin
       StoreReg(IPointer(_Self));
     end;
+{$IFNDEF WINDOWS}
+    if assigned(res) and (res^.atype.basetype = btSingle) then begin
+      Registers.Singlebits  := Registers.Singlebits or 256;
+    end;
+{$ENDIF}
 {$IFDEF PS_RESBEFOREPARAMETERS}
    if assigned(res) then begin
     case res^.aType.BaseType of

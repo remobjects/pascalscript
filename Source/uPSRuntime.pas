@@ -1,5 +1,4 @@
 unit uPSRuntime;
-
 {$I PascalScript.inc}
 {
 
@@ -3725,6 +3724,7 @@ begin
   end;
 end;
 
+
 procedure PSSetAnsiString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtString);
 begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
@@ -3736,9 +3736,12 @@ begin
   end;
   case aType.BaseType of
     btString: tbtstring(src^) := val;
+    btChar: if AnsiString(val) <> '' then tbtchar(src^) := AnsiString(val)[1];
 {$IFNDEF PS_NOWIDESTRING}
     btUnicodeString: tbtunicodestring(src^) := tbtUnicodeString(AnsiString(val));
-    btWideString: tbtwidestring(src^) := tbtwidestring(AnsiString(val));{$ENDIF}
+    btWideString: tbtwidestring(src^) := tbtwidestring(AnsiString(val));
+    btWideChar: if AnsiString(val) <> '' then tbtwidechar(src^) := tbtwidechar(AnsiString(val)[1]);
+    {$ENDIF}
     btVariant:
       begin
         try
@@ -3761,6 +3764,8 @@ begin
     if (src = nil) or (aType = nil) then begin Ok := false; exit; end;
   end;
   case aType.BaseType of
+    btChar: if val <> '' then tbtchar(src^) := tbtChar(val[1]);
+    btWideChar: if val <> '' then tbtwidechar(src^) := val[1];
     btString: tbtstring(src^) := tbtString(val);
     btWideString: tbtwidestring(src^) := val;
     btUnicodeString: tbtunicodestring(src^) := val;
@@ -3775,6 +3780,7 @@ begin
     else ok := false;
   end;
 end;
+
 procedure PSSetUnicodeString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtunicodestring);
 begin
   if (Src = nil) or (aType = nil) then begin Ok := false; exit; end;
@@ -6548,13 +6554,13 @@ begin
               Pointer(Dest.P^) := nil;
               SetLength(tbtstring(Dest.P^), Param);
               if Param <> 0 then begin
-                if not ReadData(tbtstring(Dest.P^)[1], Param) then
-                begin
-                  CMD_Err(erOutOfRange);
-                  FTempVars.Pop;
-                  Result := False;
-                  exit;
-                end;
+              if not ReadData(tbtstring(Dest.P^)[1], Param) then
+              begin
+                CMD_Err(erOutOfRange);
+                FTempVars.Pop;
+                Result := False;
+                exit;
+              end;
                 pansichar(dest.p^)[Param] := #0;
               end;
             end;

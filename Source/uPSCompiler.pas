@@ -2269,8 +2269,7 @@ begin
     else
     begin
       if (TPSExternalProcedure(x).RegProc.NameHash = h) and
-        (TPSExternalProcedure(x).RegProc.Name = Name)     {$IFDEF PS_USESSUPPORT} and
-        (IsInLocalUnitList(TPSInternalProcedure(x).DeclareUnit)){$ENDIF} then
+        (TPSExternalProcedure(x).RegProc.Name = Name)then
       begin
         Result := l;
         exit;

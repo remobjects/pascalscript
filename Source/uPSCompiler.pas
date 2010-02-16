@@ -6697,7 +6697,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             exit;
           end;
         end
-        else if (FParser.CurrTokenId = CSTI_Period) or (ImplicitPeriod) then
+        else if ((FParser.CurrTokenId = CSTI_Period) or (ImplicitPeriod))
+         {$IFDEF PS_HAVEVARIANT}and not (u.BaseType = btVariant){$ENDIF}
+        then
         begin
           if not ImplicitPeriod then
             FParser.Next;
@@ -6763,7 +6765,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               u := rr.aType;
             end;
           end
-          else
+          {$IFDEF PS_HAVEVARIANT}else if (u.BaseType = btVariant) then break else {$ENDIF}
+
           begin
             x.Free;
             MakeError('', ecSemicolonExpected, '');

@@ -541,12 +541,12 @@ begin
             RegUsage := 1;
             EAX := Longint(_Self);
           end;
-
+{$IFNDEF PS_RESULTFIRST}
           for I := 0 to Params.Count - 1 do
           begin
             if not GetPtr(rp(Params[I])) then Exit;
           end;
-
+{$ENDIF}
           if assigned(res) then begin
             case res^.aType.BaseType of
               {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}
@@ -556,6 +556,12 @@ begin
                   if TPSTypeRec_Set(res.aType).aByteSize >4 then GetPtr(res);
                 end;
             end;
+{$IFDEF PS_RESULTFIRST}
+            for I := 0 to Params.Count - 1 do
+            begin
+              if not GetPtr(rp(Params[I])) then Exit;
+            end;
+{$ENDIF}
             case res^.aType.BaseType of
               btSet:
                 begin

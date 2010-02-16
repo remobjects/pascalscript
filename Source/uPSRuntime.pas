@@ -4570,19 +4570,19 @@ begin
       if Tmp is EDivByZero then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, '', Tmp);
+        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
         Exit;
       end;
       if Tmp is EZeroDivide then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, '', Tmp);
+        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
         Exit;
       end;
       if Tmp is EMathError then
       begin
         Result := False;
-        CMD_Err3(erMathError, '', Tmp);
+        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
         Exit;
       end;
     end;
@@ -5261,19 +5261,19 @@ begin
       if Tmp is EDivByZero then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, '', Tmp);
+        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
         Exit;
       end;
       if Tmp is EZeroDivide then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, '', Tmp);
+        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
         Exit;
       end;
       if Tmp is EMathError then
       begin
         Result := False;
-        CMD_Err3(erMathError, '', Tmp);
+        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
         Exit;
       end;
     end;
@@ -6279,19 +6279,19 @@ begin
       if Tmp is EDivByZero then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, '', Tmp);
+        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
         Exit;
       end;
       if Tmp is EZeroDivide then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, '', Tmp);
+        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
         Exit;
       end;
       if Tmp is EMathError then
       begin
         Result := False;
-        CMD_Err3(erMathError, '', Tmp);
+        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
         Exit;
       end;
     end;
@@ -7177,19 +7177,19 @@ begin
           if Tmp is EDivByZero then
           begin
             Result := False;
-            CMD_Err3(erDivideByZero, '', Tmp);
+            CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
             Exit;
           end;
           if Tmp is EZeroDivide then
           begin
             Result := False;
-            CMD_Err3(erDivideByZero, '', Tmp);
+            CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
             Exit;
           end;
           if Tmp is EMathError then
           begin
             Result := False;
-            CMD_Err3(erMathError, '', Tmp);
+            CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
             Exit;
           end;
         end;
@@ -7826,17 +7826,17 @@ begin
                     end else
                     if Tmp is EDivByZero then
                     begin
-                      CMD_Err3(erDivideByZero, '', Tmp);
+                      CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
                       Break;
                     end;
                     if Tmp is EZeroDivide then
                     begin
-                      CMD_Err3(erDivideByZero, '', Tmp);
+                      CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
                       Break;
                     end;
                     if Tmp is EMathError then
                     begin
-                      CMD_Err3(erMathError, '', Tmp);
+                      CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
                       Break;
                     end;
                   end;
@@ -8512,17 +8512,17 @@ begin
                       end else
                       if Tmp is EDivByZero then
                       begin
-                        CMD_Err3(erDivideByZero, '', Tmp);
+                        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
                         break;
                       end;
                       if Tmp is EZeroDivide then
                       begin
-                        CMD_Err3(erDivideByZero, '', Tmp);
+                        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
                         break;
                       end;
                       if Tmp is EMathError then
                       begin
-                        CMD_Err3(erMathError, '', Tmp);
+                        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
                         break;
                       end;
                     end;
@@ -11110,18 +11110,40 @@ begin
 end;
 
 function TPSExec.LastExParam: tbtString;
+var
+  pp: TPSExceptionHandler;
 begin
-  result := ExParam;
+  if FExceptionStack.Count = 0 then begin
+    result := ExParam;
+    exit;
+  end;
+  pp := fExceptionStack[fExceptionStack.Count-1];
+  result := pp.ExceptionParam;
 end;
 
 function TPSExec.LastExPos: Integer;
+var
+  pp: TPSExceptionHandler;
 begin
-  result := ExPos;
+  if FExceptionStack.Count = 0 then begin
+    result := ExPos;
+    exit;
+  end;
+  pp := fExceptionStack[fExceptionStack.Count-1];
+  result := pp.ExceptOffset;
+
 end;
 
 function TPSExec.LastExProc: Integer;
+var
+  pp: TPSExceptionHandler;
 begin
-  result := exProc;
+  if FExceptionStack.Count = 0 then begin
+    result := ExProc;
+    exit;
+  end;
+  pp := fExceptionStack[fExceptionStack.Count-1];
+  result := FProcs.IndexOf(pp.CurrProc);
 end;
 
 { TPSRuntimeClass }

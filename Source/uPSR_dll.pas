@@ -188,7 +188,7 @@ begin
   end else n := nil;
   try
     TMYExec(Caller).InnerfuseCall(nil, p.Ext1, cc, MyList, n);
-    {$IFNDEF LINUX}
+    {$IFNDEF UNIX}
     DLLSetLastError(Caller, GetLastError);
     {$ENDIF}
   finally

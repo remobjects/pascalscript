@@ -9176,6 +9176,16 @@ begin
   end;
 end;
 
+function _VarArrayGet(var S : Variant; I : Integer) : Variant;
+begin
+  result := VarArrayGet(S, [I]);
+end;
+
+procedure _VarArraySet(const c : Variant; I : Integer; var s : Variant);
+begin
+  VarArrayPut(s, c, [i]);
+end;
+
 
 procedure TPSExec.RegisterStandardProcs;
 begin
@@ -9253,6 +9263,8 @@ begin
   RegisterFunctionName('WSTRGET', DefProc, Pointer(42), nil);
   RegisterFunctionName('WSTRSET', DefProc, Pointer(43), nil);
   {$ENDIF}
+  RegisterDelphiFunction(@_VarArrayGet, 'VARARRAYGET', cdRegister);
+  RegisterDelphiFunction(@_VarArraySet, 'VARARRAYSET', cdRegister);
 
   RegisterInterfaceLibraryRuntime(Self);
 end;
@@ -12348,6 +12360,9 @@ var
   aName: PWideChar;
   WSFreeList: TPSList;
 begin
+  if Self = nil then begin
+    raise EPSException.Create('Variant is null, cannot invoke', nil, 0, 0);
+  end;
   FillChar(ExceptInfo, SizeOf(ExceptInfo), 0);
   if Name='' then begin
    DispatchId:=0;

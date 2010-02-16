@@ -6473,10 +6473,12 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       while True do
       begin
         if (u.BaseType = btClass) {$IFNDEF PS_NOINTERFACES}or (u.BaseType = btInterface){$ENDIF}
-        {$IFNDEF PS_NOIDISPATCH}or ((u.BaseType = btVariant) or (u.BaseType = btNotificationVariant)){$ENDIF} or (u.BaseType = btExtClass) then exit;
+        {$IFNDEF PS_NOIDISPATCH}or ((u.BaseType = btNotificationVariant)){$ENDIF} or (u.BaseType = btExtClass) then exit;
         if FParser.CurrTokenId = CSTI_OpenBlock then
         begin
-          if (u.BaseType = btString) {$IFNDEF PS_NOWIDESTRING} or (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) {$ENDIF} then
+          if (u.BaseType = btString) {$IFNDEF PS_NOWIDESTRING} or
+            (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) {$ENDIF}
+            {$IFDEF PS_HAVEVARIANT}or (u.BaseType = btVariant){$ENDIF} then
           begin
              FParser.Next;
             tmp := Calc(CSTI_CloseBlock);
@@ -6504,12 +6506,15 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 x := nil;
                 exit;
               end;
+              {$IFDEF PS_HAVEVARIANT}if (u.BaseType = btVariant) then
+                l := FindProc('VARARRAYSET') else
+              {$ENDIF}
               {$IFNDEF PS_NOWIDESTRING}
               if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
                 l := FindProc('WSTRSET')
               else
               {$ENDIF}
-              l := FindProc('STRSET');
+                l := FindProc('STRSET');
               if l = -1 then
               begin
                 MakeError('', ecUnknownIdentifier, 'StrSet');
@@ -6551,22 +6556,31 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 x := nil;
                 exit;
               end;
-              if (GetTypeNo(BlockInfo, Tmp).BaseType <> btChar)
-              {$IFNDEF PS_NOWIDESTRING} and (GetTypeno(BlockInfo, Tmp).BaseType <> btWideChar) {$ENDIF} then
+              {$IFDEF PS_HAVEVARIANT}if (u.BaseType <> btVariant) then {$ENDIF}
               begin
-                x.Free;
-                x := nil;
-                Tmp.Free;
-                MakeError('', ecTypeMismatch, '');
-                exit;
+                if (GetTypeNo(BlockInfo, Tmp).BaseType <> btChar)
+                {$IFNDEF PS_NOWIDESTRING} and (GetTypeno(BlockInfo, Tmp).BaseType <> btWideChar) {$ENDIF} then
+                begin
+                  x.Free;
+                  x := nil;
+                  Tmp.Free;
+                  MakeError('', ecTypeMismatch, '');
+                  exit;
 
+                end;
               end;
               param.Val := tmp;
+              {$IFDEF PS_HAVEVARIANT}
+              if u.BaseType = btVariant then
+                Param.ExpectedType := u else{$ENDIF}
               Param.ExpectedType := GetTypeNo(BlockInfo, tmp);
 {$IFDEF DEBUG}
               if not Param.ExpectedType.Used then asm int 3; end;
 {$ENDIF}
             end else begin
+              {$IFDEF PS_HAVEVARIANT}if (u.BaseType = btVariant) then
+                l := FindProc('VARARRAYGET') else
+              {$ENDIF}
               {$IFNDEF PS_NOWIDESTRING}
               if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
                 l := FindProc('WSTRGET')
@@ -6582,12 +6596,15 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 exit;
               end;
               tmp3 := TPSValueProcNo.Create;
+              {$IFDEF PS_HAVEVARIANT}if (u.BaseType = btVariant) then
+                tmp3.ResultType := FindBaseType(btVariant) else
+              {$ENDIF}
               {$IFNDEF PS_NOWIDESTRING}
               if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
                 tmp3.ResultType := FindBaseType(btWideChar)
               else
               {$ENDIF}
-              tmp3.ResultType := FindBaseType(btChar);
+                tmp3.ResultType := FindBaseType(btChar);
               tmp3.ProcNo := L;
               tmp3.SetParserPos(FParser);
               tmp3.Parameters := TPSParameters.Create;
@@ -7053,10 +7070,10 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       if FType = nil then exit;
       if (FType.BaseType <> btInterface) and (Ftype.BaseType <> BtVariant) and (FType.BaseType = btNotificationVariant) then Exit;
 
-      CheckArrayProperty:=(FParser.CurrTokenID=CSTI_OpenBlock)and
+      CheckArrayProperty:=(FParser.CurrTokenID=CSTI_OpenBlock) and
         (Ftype.BaseType = BtVariant);
       while (FParser.CurrTokenID = CSTI_Period)
-      or (ImplicitPeriod)or (CheckArrayProperty) do begin
+      or (ImplicitPeriod) do begin
 
         HasArrayProperty:=CheckArrayProperty;
         if CheckArrayProperty then begin
@@ -12960,6 +12977,8 @@ begin
   AddFunction('Function WStrGet(var S : AnyString; I : Integer) : WideChar;');
   AddFunction('procedure WStrSet(c : AnyString; I : Integer; var s : AnyString);');
   {$ENDIF}
+  AddDelphiFunction('Function VarArrayGet(var S : Variant; I : Integer) : Variant;');
+  AddDelphiFunction('procedure VarArraySet(c : Variant; I : Integer; var s : Variant);');
   AddFunction('Function AnsiUppercase(s : String) : String;');
   AddFunction('Function AnsiLowercase(s : String) : String;');
   AddFunction('Function Uppercase(s : AnyString) : AnyString;');

@@ -15,7 +15,7 @@ function UnloadProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSSt
 implementation
 uses
   {$IFDEF UNIX}
-  LCLIntf, Unix, baseunix, dynlibs, termio, sockets;
+  Unix, baseunix, dynlibs, termio, sockets;
   {$ELSE}
   Windows;
   {$ENDIF}

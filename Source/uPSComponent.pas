@@ -64,7 +64,7 @@ type
   
   TIFPS3CEPluginItem = class(TPSPluginItem);
 
-  
+
   TPSPlugins = class(TCollection)
   private
     FCompExec: TPSScript;
@@ -310,7 +310,7 @@ type
   public
 
     property FileName: tbtstring read FFileName write SetFileName;
-    
+
     property FileNameHash: Longint read FFileNameHash;
     
     property Line: Longint read FLine write FLine;

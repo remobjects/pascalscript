@@ -1538,7 +1538,9 @@ begin
 	  {$IFDEF DELPHI6UP}
 	  {$IFNDEF PS_NOWIDESTRING}
       tkWString: begin Result := ''''+tbtString(GetWideStrProp(Instance, pp))+''; end;
+	  {$IFDEF DELPHI2009UP}
       tkUString: begin Result := ''''+tbtUnicodeString(GetUnicodeStrProp(Instance, pp))+''; end;
+	  {$ENDIF}
       {$ENDIF}
 	  {$ENDIF}
       else begin Result := '[Unknown]'; exit; end;

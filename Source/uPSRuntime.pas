@@ -1979,7 +1979,7 @@ end;
 
 class function TPSExec.About: tbtString;
 begin
-  Result := 'RemObjects Pascal Script. Copyright (c) 2004-2009 by RemObjects Software';
+  Result := 'RemObjects Pascal Script. Copyright (c) 2004-2010 by RemObjects Software';
 end;
 
 procedure TPSExec.Cleanup;

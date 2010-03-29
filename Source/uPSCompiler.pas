@@ -11177,7 +11177,8 @@ var
       TPSProcedure(FProcs[I]).Free;
     FProcs.Free;
     FProcs := nil;
-    for I := 0 to FTypes.Count - 1 do
+    //reverse free types: a custom type's attribute value type may point to a base type
+    for I := FTypes.Count - 1 downto 0 do
     begin
       PT := FTypes[I];
       pt.Free;

@@ -8,8 +8,7 @@
     {$DEFINE PS_STACKALIGN}
     {$UNDEF PS_FPCSTRINGWORKAROUND}
     {$DEFINE PS_RESBEFOREPARAMETERS}
-    {$DEFINE x64_string_result_as_varparameter}
-    {$DEFINE PS_RESULTFIRST}
+    {$DEFINE x64_string_result_as_varparameter}    
   {FreePascal 2.3.1 and above has much Delphi compatibility bugs fixed}
   {$else}
     {$DEFINE FPC_OLD_FIX}

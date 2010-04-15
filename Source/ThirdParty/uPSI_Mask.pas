@@ -27,7 +27,7 @@ implementation
 
 
 uses
-   Windows ,StdCtrls ,Controls ,Messages ,Forms ,Graphics ,Menus ,Mask;
+   Windows ,StdCtrls ,Controls ,Messages ,Forms ,Graphics ,Menus ,Mask, MaskUtils;
 
 (* === compile-time registration functions === *)
 (*----------------------------------------------------------------------------*)

@@ -52,7 +52,7 @@ begin
                                        TPSImport_Forms,
                                        TPSImport_Controls,
                                        TPSImport_StdCtrls,
-                                       TPSCustumPlugin]);
+                                       TPSCustomPlugin]);
 end;
 
 

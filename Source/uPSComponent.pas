@@ -367,7 +367,7 @@ type
   
   TIFPS3DebugCompExec = class(TPSScriptDebugger);
   
-  TPSCustumPlugin = class(TPSPlugin)
+  TPSCustomPlugin = class(TPSPlugin)
   private
     FOnCompileImport2: TPSEvent;
     FOnExecOnUses: TPSEvent;
@@ -1459,7 +1459,7 @@ begin
 end;
 
 { TPSCustomPlugin }
-procedure TPSCustumPlugin.CompileImport1(CompExec: TPSScript);
+procedure TPSCustomPlugin.CompileImport1(CompExec: TPSScript);
 begin
   IF @FOnCompileImport1 <> nil then
     FOnCompileImport1(CompExec)
@@ -1467,7 +1467,7 @@ begin
     inherited;
 end;
 
-procedure TPSCustumPlugin.CompileImport2(CompExec: TPSScript);
+procedure TPSCustomPlugin.CompileImport2(CompExec: TPSScript);
 begin
   IF @FOnCompileImport2 <> nil then
     FOnCompileImport2(CompExec)
@@ -1475,7 +1475,7 @@ begin
     inherited;
 end;
 
-procedure TPSCustumPlugin.CompOnUses(CompExec: TPSScript);
+procedure TPSCustomPlugin.CompOnUses(CompExec: TPSScript);
 begin
   IF @FOnCompOnUses <> nil then
     FOnCompOnUses(CompExec)
@@ -1483,7 +1483,7 @@ begin
     inherited;
 end;
 
-procedure TPSCustumPlugin.ExecImport1(CompExec: TPSScript;
+procedure TPSCustomPlugin.ExecImport1(CompExec: TPSScript;
   const ri: TPSRuntimeClassImporter);
 begin
   IF @FOnExecImport1 <> nil then
@@ -1492,7 +1492,7 @@ begin
     inherited;
 end;
 
-procedure TPSCustumPlugin.ExecImport2(CompExec: TPSScript;
+procedure TPSCustomPlugin.ExecImport2(CompExec: TPSScript;
   const ri: TPSRuntimeClassImporter);
 begin
   IF @FOnExecImport2 <> nil then
@@ -1501,7 +1501,7 @@ begin
     inherited;
 end;
 
-procedure TPSCustumPlugin.ExecOnUses(CompExec: TPSScript);
+procedure TPSCustomPlugin.ExecOnUses(CompExec: TPSScript);
 begin
   IF @FOnExecOnUses <> nil then
     FOnExecOnUses(CompExec)

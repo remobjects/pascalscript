@@ -1539,7 +1539,7 @@ begin
 	  {$IFNDEF PS_NOWIDESTRING}
       tkWString: begin Result := ''''+tbtString(GetWideStrProp(Instance, pp))+''; end;
 	  {$IFDEF DELPHI2009UP}
-      tkUString: begin Result := ''''+tbtUnicodeString(GetUnicodeStrProp(Instance, pp))+''; end;
+      tkUString: begin Result := ''''+tbtString(GetUnicodeStrProp(Instance, pp))+''; end;
 	  {$ENDIF}
       {$ENDIF}
 	  {$ENDIF}
@@ -4578,19 +4578,19 @@ begin
       if Tmp is EDivByZero then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
       if Tmp is EZeroDivide then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
       if Tmp is EMathError then
       begin
         Result := False;
-        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erMathError, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
     end;
@@ -5269,19 +5269,19 @@ begin
       if Tmp is EDivByZero then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
       if Tmp is EZeroDivide then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
       if Tmp is EMathError then
       begin
         Result := False;
-        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erMathError, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
     end;
@@ -6287,19 +6287,19 @@ begin
       if Tmp is EDivByZero then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
       if Tmp is EZeroDivide then
       begin
         Result := False;
-        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
       if Tmp is EMathError then
       begin
         Result := False;
-        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
+        CMD_Err3(erMathError,tbtString(Exception(Tmp).Message), Tmp);
         Exit;
       end;
     end;
@@ -7185,19 +7185,19 @@ begin
           if Tmp is EDivByZero then
           begin
             Result := False;
-            CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+            CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
             Exit;
           end;
           if Tmp is EZeroDivide then
           begin
             Result := False;
-            CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+            CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
             Exit;
           end;
           if Tmp is EMathError then
           begin
             Result := False;
-            CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
+            CMD_Err3(erMathError, tbtString(Exception(Tmp).Message), Tmp);
             Exit;
           end;
         end;
@@ -7834,17 +7834,17 @@ begin
                     end else
                     if Tmp is EDivByZero then
                     begin
-                      CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+                      CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
                       Break;
                     end;
                     if Tmp is EZeroDivide then
                     begin
-                      CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+                      CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
                       Break;
                     end;
                     if Tmp is EMathError then
                     begin
-                      CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
+                      CMD_Err3(erMathError, tbtString(Exception(Tmp).Message), Tmp);
                       Break;
                     end;
                   end;
@@ -8520,17 +8520,17 @@ begin
                       end else
                       if Tmp is EDivByZero then
                       begin
-                        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+                        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
                         break;
                       end;
                       if Tmp is EZeroDivide then
                       begin
-                        CMD_Err3(erDivideByZero, Exception(Tmp).Message, Tmp);
+                        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
                         break;
                       end;
                       if Tmp is EMathError then
                       begin
-                        CMD_Err3(erMathError, Exception(Tmp).Message, Tmp);
+                        CMD_Err3(erMathError, tbtString(Exception(Tmp).Message), Tmp);
                         break;
                       end;
                     end;
@@ -8798,12 +8798,12 @@ begin
     12:
 {$IFNDEF PS_NOWIDESTRING}
       if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btUnicodeString then
-        Stack.SetUnicodeString(-1, SysUtils.Trim(Stack.GetUnicodestring(-2))) // Uppercase
+        Stack.SetUnicodeString(-1, SysUtils.Trim(Stack.GetUnicodestring(-2))) // Trim
       else if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
-        Stack.SetWideString(-1, SysUtils.Trim(Stack.GetWideString(-2))) // Uppercase
+        Stack.SetWideString(-1, SysUtils.Trim(Stack.GetWideString(-2))) // Trim
       else
 {$ENDIF}      
-        Stack.SetAnsiString(-1, SysUtils.Trim(Stack.GetAnsiString(-2)));// Trim
+        Stack.SetAnsiString(-1, AnsiString(SysUtils.Trim(String(Stack.GetAnsiString(-2)))));// Trim
     13: Stack.SetInt(-1, Length(Stack.GetAnsiString(-2))); // Length
     14: // SetLength
       begin

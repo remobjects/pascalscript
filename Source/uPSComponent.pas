@@ -204,6 +204,8 @@ type
 
     property Exec: TPSDebugExec read FExec;
 
+    property RuntimeImporter: TPSRuntimeClassImporter read RI;
+
     property CompilerMessageCount: Longint read GetCompMsgCount;
 
     property CompilerMessages[i: Longint]: TPSPascalCompilerMessage read GetCompMsg;

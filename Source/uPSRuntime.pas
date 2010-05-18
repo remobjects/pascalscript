@@ -3988,6 +3988,10 @@ begin
         begin
           for i := 0 to Len -1 do
           begin
+            if Pointer(Dest^) <> nil then
+            begin
+              PSDynArraySetLength(Pointer(Dest^), aType, 0);
+            end;
             Pointer(Dest^) := Pointer(Src^);
             if Pointer(Dest^) <> nil then
             begin

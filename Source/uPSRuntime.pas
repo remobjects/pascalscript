@@ -10127,7 +10127,7 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
-    Result := Caller.InnerfuseCall(FSelf, p.Ext1, TPSCallingConvention(Integer(cc) or 64), MyList, v);
+    Result := Caller.InnerfuseCall(FSelf, p.Ext1, {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 64){$ELSE}cc{$ENDIF}, MyList, v);
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);
@@ -10212,7 +10212,7 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
-    Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), cc, MyList, v);
+    Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 128){$ELSE}cc{$ENDIF}, MyList, v);
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);

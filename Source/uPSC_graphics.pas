@@ -16,6 +16,7 @@ procedure SIRegisterTBRUSH(Cl: TPSPascalCompiler);
 procedure SIRegisterTCanvas(cl: TPSPascalCompiler);
 procedure SIRegisterTGraphic(CL: TPSPascalCompiler);
 procedure SIRegisterTBitmap(CL: TPSPascalCompiler; Streams: Boolean);
+procedure SIRegisterTPicture(CL: TPSPascalCompiler);
 
 procedure SIRegister_Graphics(Cl: TPSPascalCompiler; Streams: Boolean);
 
@@ -258,6 +259,14 @@ begin
   end;
 end;
 
+procedure SIRegisterTPicture(CL: TPSPascalCompiler);
+begin
+  with CL.AddClassN(CL.FindClass('TPersistent'),'TPicture') do
+  begin
+    RegisterProperty('Bitmap','TBitmap',iptrw);
+  end;
+end;
+
 procedure SIRegister_Graphics(Cl: TPSPascalCompiler; Streams: Boolean);
 begin
   SIRegister_Graphics_TypesAndConsts(Cl);
@@ -268,6 +277,7 @@ begin
   SIRegisterTCanvas(cl);
   SIRegisterTGraphic(Cl);
   SIRegisterTBitmap(Cl, Streams);
+  SIRegisterTPicture(cl);
 end;
 
 // PS_MINIVCL changes by Martijn Laan (mlaan at wintax _dot_ nl)

@@ -14,6 +14,7 @@ procedure RIRegisterTBRUSH(Cl: TPSRuntimeClassImporter);
 procedure RIRegisterTCanvas(cl: TPSRuntimeClassImporter);
 procedure RIRegisterTGraphic(CL: TPSRuntimeClassImporter);
 procedure RIRegisterTBitmap(CL: TPSRuntimeClassImporter; Streams: Boolean);
+procedure RIRegisterTPicture(CL: TPSRuntimeClassImporter);
 
 procedure RIRegister_Graphics(Cl: TPSRuntimeClassImporter; Streams: Boolean);
 
@@ -54,23 +55,31 @@ procedure TCanvasHandleW(Self: TCanvas; T: Longint); begin Self.Handle:= T; end;
 
 procedure TCanvasPixelsR(Self: TCanvas; var T: Longint; X,Y: Longint); begin T := Self.Pixels[X,Y]; end;
 procedure TCanvasPixelsW(Self: TCanvas; T, X, Y: Longint); begin Self.Pixels[X,Y]:= T; end;
+{$IFDEF FPC}
+procedure TCanvasArc(Self : TCanvas; X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer); begin Self.Arc(X1, Y1, X2, Y2, X3, Y3, X4, Y4); end;
+procedure TCanvasChord(Self : TCanvas; X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer); begin self.Chord(X1, Y1, X2, Y2, X3, Y3, X4, Y4); end;
+procedure TCanvasRectangle(Self : TCanvas; X1,Y1,X2,Y2 : integer); begin self.Rectangle(x1,y1,x2,y2); end;
+procedure TCanvasRoundRect(Self : TCanvas; X1, Y1, X2, Y2, X3, Y3 : integer); begin self.RoundRect(X1, Y1, X2, Y2, X3, Y3); end;
+procedure TCanvasEllipse(Self : TCanvas;X1, Y1, X2, Y2: Integer); begin self.Ellipse(X1, Y1, X2, Y2); end;
+procedure TCanvasFillRect(Self : TCanvas; const Rect: TRect); begin self.FillRect(rect); end;
+procedure TCanvasFloodFill(Self : TCanvas; X, Y: Integer; Color: TColor; FillStyle: TFillStyle); begin self.FloodFill(x,y,color,fillstyle); end;
+{$ENDIF}
 
 procedure RIRegisterTCanvas(cl: TPSRuntimeClassImporter); // requires TPersistent
 begin
   with Cl.Add(TCanvas) do
   begin
-{$IFNDEF FPC}
-    RegisterMethod(@TCanvas.Arc, 'ARC');
-    RegisterMethod(@TCanvas.Chord, 'CHORD');
-    RegisterMethod(@TCanvas.Rectangle, 'RECTANGLE');
-    RegisterMethod(@TCanvas.RoundRect, 'ROUNDRECT');
-    RegisterMethod(@TCanvas.Ellipse, 'ELLIPSE');
-    RegisterMethod(@TCanvas.FillRect, 'FILLRECT');
-{$ENDIF}
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Arc, 'ARC');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Chord, 'CHORD');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Rectangle, 'RECTANGLE');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}RoundRect, 'ROUNDRECT');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Ellipse, 'ELLIPSE');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FillRect, 'FILLRECT');
     RegisterMethod(@TCanvas.Draw, 'DRAW');
 {$IFNDEF CLX}
-    RegisterMethod(@TCanvas.FloodFill, 'FLOODFILL');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FloodFill, 'FLOODFILL');
 {$ENDIF}
+
     RegisterMethod(@TCanvas.Lineto, 'LINETO');
     RegisterMethod(@TCanvas.Moveto, 'MOVETO');
     RegisterMethod(@TCanvas.Pie, 'PIE');
@@ -197,6 +206,14 @@ begin
   end;
 end;
 
+procedure TPictureBitmap_W(Self: TPicture; const T: TBitmap); begin Self.Bitmap := T; end;
+procedure TPictureBitmap_R(Self: TPicture; var T: TBitmap); begin T := Self.Bitmap; end;
+procedure RIRegisterTPicture(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TPicture) do
+    registerPropertyHelper(@TPictureBitmap_R,@TPictureBitmap_W,'Bitmap');
+end;
+
 procedure RIRegister_Graphics(Cl: TPSRuntimeClassImporter; Streams: Boolean);
 begin
   RIRegisterTGRAPHICSOBJECT(cl);
@@ -206,6 +223,7 @@ begin
   RIRegisterTBRUSH(cl);
   RIRegisterTGraphic(CL);
   RIRegisterTBitmap(CL, Streams);
+  RIRegisterTPicture(CL);
 end;
 
 // PS_MINIVCL changes by Martijn Laan (mlaan at wintax _dot_ nl)

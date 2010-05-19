@@ -252,7 +252,7 @@ var
   CallData: TPSList;
   pp: ^Byte;
 {$IFDEF FPC}
-  IsConstructor: Boolean;
+  IsConstructor,IsVirtualCons: Boolean;
 {$ENDIF}
 
   EAX, EDX, ECX: Longint;
@@ -503,16 +503,18 @@ var
     Result := True;
   end;
 begin
+  {$IFDEF FPC}
+  if (Integer(CallingConv) and 128) <> 0 then begin
+    IsVirtualCons := true;
+    CAllingConv := TPSCallingConvention(Integer(CallingConv) and not 128);
+  end else
+    IsVirtualCons:= false;
   if (Integer(CallingConv) and 64) <> 0 then begin
-    {$IFDEF FPC}
-      IsConstructor := true;
-    {$ENDIF}
+    IsConstructor := true;
     CAllingConv := TPSCallingConvention(Integer(CallingConv) and not 64);
-  end else begin
-    {$IFDEF FPC}
-      IsConstructor := false;
-    {$ENDIF}
-  end;
+  end else
+    IsConstructor := false;
+  {$ENDIF}
   InnerfuseCall := False;
   if Address = nil then
     exit; // need address
@@ -550,7 +552,7 @@ begin
           if assigned(res) then begin
             case res^.aType.BaseType of
               {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}
-              btInterface, btArray, btrecord, {$IFNDEF PS_FPCSTRINGWORKAROUND}btstring, {$ENDIF}btVariant, btStaticArray: GetPtr(res);
+              btInterface, {$IFNDEF FPC} btArray, {$ENDIF}btrecord, {$IFNDEF PS_FPCSTRINGWORKAROUND}btstring, {$ENDIF}btVariant, btStaticArray: GetPtr(res);
               btSet:
                 begin
                   if TPSTypeRec_Set(res.aType).aByteSize >4 then GetPtr(res);
@@ -573,13 +575,16 @@ begin
               btchar,btU8, btS8:    tbtu8(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 1, nil);
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass :
-              {$IFDEF FPC_OLD_FIX}
-              tbtu32(res.dta^) := RealCall_Register(Address, EDX, EAX, ECX,
-              @Stack[Length(Stack) - 3], Length(Stack) div 4, 4, nil);
-              {$ELSE}
-              tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX,
-              @Stack[Length(Stack) - 3], Length(Stack) div 4, 4, nil);
-              {$ENDIF}
+              begin
+              {$IFDEF FPC}
+                if IsConstructor or IsVirtualCons then
+                  tbtu32(res.dta^) := RealCall_Register(Address, EDX, EAX, ECX,
+                  @Stack[Length(Stack) - 3], Length(Stack) div 4, 4, nil)
+                else
+             {$ENDIF}
+                  tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX,
+                  @Stack[Length(Stack) - 3], Length(Stack) div 4, 4, nil);
+              end;
 
               btu32,bts32{$IFDEF FPC},btArray{$ENDIF}:   tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
               btPChar:       pansichar(res.dta^) := Pansichar(RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));

@@ -447,7 +447,7 @@ procedure callObjectOnProcessDirective (
   const DirectiveName, DirectiveParam: tbtstring;
   Var Continue: Boolean);
 begin
-  TPSScript (Sender.ID).DoOnProcessUnknowDirective(Sender, Parser, Active, DirectiveName, DirectiveParam, Continue);
+  TPSScript (Sender.ID).DoOnProcessDirective(Sender, Parser, Active, DirectiveName, DirectiveParam, Continue);
 end;
 
 procedure callObjectOnProcessUnknowDirective (
@@ -457,7 +457,7 @@ procedure callObjectOnProcessUnknowDirective (
   const DirectiveName, DirectiveParam: tbtstring;
   Var Continue: Boolean);
 begin
-  TPSScript (Sender.ID).DoOnProcessDirective(Sender, Parser, Active, DirectiveName, DirectiveParam, Continue);
+  TPSScript (Sender.ID).DoOnProcessUnknowDirective(Sender, Parser, Active, DirectiveName, DirectiveParam, Continue);
 end;
 
 

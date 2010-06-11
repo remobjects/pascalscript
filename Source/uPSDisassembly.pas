@@ -64,7 +64,7 @@ var
       btU32: Result := 'U32';
       btS32: Result := 'S32';
       {$IFNDEF PS_NOINT64}bts64: Result := 'S64'; {$ENDIF}
-      btChar: Result := {$IFDEF UNICODE}'AnsiChar'{$ELSE}'Char'{$ENDIF};
+      btChar: Result := {$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF};
       {$IFNDEF PS_NOWIDESTRING}
       btWideChar: Result := 'WideChar';
       btWideString: Result := 'WideString';

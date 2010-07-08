@@ -9195,7 +9195,7 @@ begin
     else Result:=false;
   end;
 end;
-
+{$IFNDEF DELPHI6UP}
 function _VarArrayGet(var S : Variant; I : Integer) : Variant;
 begin
   result := VarArrayGet(S, [I]);
@@ -9205,7 +9205,7 @@ procedure _VarArraySet(const c : Variant; I : Integer; var s : Variant);
 begin
   VarArrayPut(s, c, [i]);
 end;
-
+{$ENDIF}
 
 procedure TPSExec.RegisterStandardProcs;
 begin
@@ -9282,10 +9282,12 @@ begin
   {$IFNDEF PS_NOWIDESTRING}
   RegisterFunctionName('WSTRGET', DefProc, Pointer(42), nil);
   RegisterFunctionName('WSTRSET', DefProc, Pointer(43), nil);
+
   {$ENDIF}
+  {$IFNDEF DELPHI6UP}
   RegisterDelphiFunction(@_VarArrayGet, 'VARARRAYGET', cdRegister);
   RegisterDelphiFunction(@_VarArraySet, 'VARARRAYSET', cdRegister);
-
+  {$ENDIF}
   RegisterInterfaceLibraryRuntime(Self);
 end;
 

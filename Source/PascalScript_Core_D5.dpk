@@ -1,7 +1,7 @@
 package PascalScript_Core_D5;
 
 {$R *.res}
-{$ALIGN 8}
+{$ALIGN ON}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
@@ -27,9 +27,8 @@ package PascalScript_Core_D5;
 {$IMPLICITBUILD OFF}
 
 requires
-  rtl,
-  vcl,
-  dbrtl;
+  vcl50,
+  vcldb50;
 
 contains
   uPSC_extctrls in 'uPSC_extctrls.pas',

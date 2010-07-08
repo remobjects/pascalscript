@@ -147,7 +147,9 @@
     {$DEFINE WIN16}
   {$ENDIF}
 {$ENDIF}
-
+{$IFDEF WIN32}
+{$DEFINE MSWINDOWS}
+{$ENDIF}
 { defines for Delphi 1.0 thru 7.0 }
 {$IFDEF MSWINDOWS}
 

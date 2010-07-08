@@ -1720,7 +1720,7 @@ procedure DisposeVariant(p: PIfRVariant);
 
 implementation
 
-uses Classes, typInfo;
+uses {$IFDEF DELPHI5}ComObj, {$ENDIF}Classes, typInfo;
 
 {$IFDEF DELPHI3UP}
 resourceString

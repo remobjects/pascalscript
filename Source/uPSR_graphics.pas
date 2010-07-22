@@ -69,16 +69,26 @@ procedure RIRegisterTCanvas(cl: TPSRuntimeClassImporter); // requires TPersisten
 begin
   with Cl.Add(TCanvas) do
   begin
+{$IFDEF FPC}
+    RegisterMethod(@TCanvasArc, 'ARC');
+    RegisterMethod(@TCanvasChord, 'CHORD');
+    RegisterMethod(@TCanvasRectangle, 'RECTANGLE');
+    RegisterMethod(@TCanvasRoundRect, 'ROUNDRECT');
+    RegisterMethod(@TCanvasEllipse, 'ELLIPSE');
+    RegisterMethod(@TCanvasFillRect, 'FILLRECT');
+    RegisterMethod(@TCanvasFloodFill, 'FLOODFILL');
+{$ELSE}  
     RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Arc, 'ARC');
     RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Chord, 'CHORD');
     RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Rectangle, 'RECTANGLE');
     RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}RoundRect, 'ROUNDRECT');
     RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Ellipse, 'ELLIPSE');
     RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FillRect, 'FILLRECT');
-    RegisterMethod(@TCanvas.Draw, 'DRAW');
 {$IFNDEF CLX}
     RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FloodFill, 'FLOODFILL');
 {$ENDIF}
+{$ENDIF}
+    RegisterMethod(@TCanvas.Draw, 'DRAW');
 
     RegisterMethod(@TCanvas.Lineto, 'LINETO');
     RegisterMethod(@TCanvas.Moveto, 'MOVETO');

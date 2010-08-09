@@ -8738,7 +8738,7 @@ begin
     7: // StrGet
       begin
         temp :=  NewTPSVariantIFC(Stack[Stack.Count -2], True);
-        if (temp.Dta = nil) or (temp.aType.BaseType <> btString) then
+        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then 
         begin
           Result := False;
           exit;
@@ -8755,7 +8755,7 @@ begin
     8: // StrSet
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -3], True);
-        if (temp.Dta = nil) or (temp.aType.BaseType <> btString) then
+        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then 
         begin
           Result := False;
           exit;

@@ -3088,6 +3088,7 @@ begin
     ((p1.BaseType = btChar) and (p2.BaseType = btChar)) or
     ((p1.BaseType = btSet) and (p2.BaseType = btSet)) or
     {$IFNDEF PS_NOWIDESTRING}
+    ((p1.BaseType = btChar) and (p2.BaseType = btWideChar)) or 
     ((p1.BaseType = btWideChar) and (p2.BaseType = btChar)) or
     ((p1.BaseType = btWideChar) and (p2.BaseType = btWideChar)) or
     ((p1.BaseType = btWidestring) and (p2.BaseType = btChar)) or

@@ -679,6 +679,7 @@ type
     function LastExParam: tbtstring;
     function LastExProc: Integer;
     function LastExPos: Integer;
+    function LastExObject: TObject;
     procedure CMD_Err(EC: TPSError);
 
     procedure CMD_Err2(EC: TPSError; const Param: tbtstring);
@@ -11167,6 +11168,18 @@ begin
   pp := fExceptionStack[fExceptionStack.Count-1];
   result := FProcs.IndexOf(pp.CurrProc);
 end;
+
+function TPSExec.LastExObject: TObject;
+var
+ pp: TPSExceptionHandler;
+begin
+ if FExceptionStack.Count = 0 then begin
+   result := ExObject;
+   exit;
+ end;
+ pp := fExceptionStack[fExceptionStack.Count-1];
+ result := pp.ExceptionObject;
+end; 
 
 { TPSRuntimeClass }
 

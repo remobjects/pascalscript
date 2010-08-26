@@ -12313,9 +12313,14 @@ begin
   AddType('UnicodeString', btUnicodeString);
   {$ENDIF}
   AddType('AnsiString', btString);
-  {$IFDEF DELPHI2009UP}
-  AddType('String', btUnicodeString);
-  ADdType('NativeString', btUnicodeString);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    AddType('String', btUnicodeString);
+    AddType('NativeString', btUnicodeString);
+    {$ELSE}
+    AddType('String', btString);
+    AddType('NativeString', btString);
+    {$ENDIF}
   {$ELSE}
   AddType('String', btString);
   AddType('NativeString', btString);

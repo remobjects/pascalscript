@@ -3131,8 +3131,12 @@ end;
 
 function VNGetString(const Src: TPSVariantIFC): String;
 begin
-  {$IFDEF DELPHI2009UP}
-  Result := VNGetUnicodeString(Src);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    Result := VNGetUnicodeString(Src);
+    {$ELSE}
+    Result := VNGetAnsiString(Src);
+    {$ENDIF}
   {$ELSE}
   Result := VNGetAnsiString(Src);
   {$ENDIF}
@@ -3140,8 +3144,12 @@ end;
 
 procedure VNSetString(const Src: TPSVariantIFC; const Val: String);
 begin
-  {$IFDEF DELPHI2009UP}
-  VNSetUnicodeString(Src, Val);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    VNSetUnicodeString(Src, Val);
+    {$ELSE}
+    VNSetAnsiString(Src, Val);
+    {$ENDIF}
   {$ELSE}
   VNSetAnsiString(Src, Val);
   {$ENDIF}
@@ -3267,8 +3275,12 @@ end;
 
 function VGetString(const Src: PIFVariant): String;
 begin
-  {$IFDEF DELPHI2009UP}
-  Result := PSGetUnicodeString(@PPSVariantData(src).Data, src.FType);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    Result := PSGetUnicodeString(@PPSVariantData(src).Data, src.FType);
+    {$ELSE}
+    Result := PSGetAnsiString(@PPSVariantData(src).Data, src.FType);
+    {$ENDIF}
   {$ELSE}
   Result := PSGetAnsiString(@PPSVariantData(src).Data, src.FType);
   {$ENDIF}
@@ -3278,8 +3290,12 @@ procedure VSetString(const Src: PIFVariant; const Val: string);
 var
   Dummy: Boolean;
 begin
-  {$IFDEF DELPHI2009UP}
-  PSSetUnicodeString(@PPSVariantData(src).Data, src.FType, Dummy, Val);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    PSSetUnicodeString(@PPSVariantData(src).Data, src.FType, Dummy, Val);
+    {$ELSE}
+    PSSetAnsiString(@PPSVariantData(src).Data, src.FType, Dummy, Val);
+    {$ENDIF}
   {$ELSE}
   PSSetAnsiString(@PPSVariantData(src).Data, src.FType, Dummy, Val);
   {$ENDIF}
@@ -3814,8 +3830,12 @@ end;
 
 function PSGetString(Src: Pointer; aType: TPSTypeRec): string;
 begin
-  {$IFDEF DELPHI2009UP}
-  result := PSGetUnicodeString(Src, aType);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    result := PSGetUnicodeString(Src, aType);
+    {$ELSE}
+    result := PSGetAnsiString(Src, aType);
+    {$ENDIF}
   {$ELSE}
   result := PSGetAnsiString(Src, aType);
   {$ENDIF}
@@ -3823,8 +3843,12 @@ end;
 
 procedure PSSetString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: String);
 begin
-  {$IFDEF DELPHI2009UP}
-  PSSetUnicodeString(Src, aType, Ok, Val);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    PSSetUnicodeString(Src, aType, Ok, Val);
+    {$ELSE}
+    PSSetAnsiString(Src, aType, Ok, Val);
+    {$ENDIF}
   {$ELSE}
   PSSetAnsiString(Src, aType, Ok, Val);
   {$ENDIF}
@@ -12126,7 +12150,7 @@ end;
 
 function TPSStack.GetString(ItemNo: Longint): string; // calls the native method
 begin
-  result := {$IFDEF DELPHI2009UP}GetUnicodeString(ItemNo){$ELSE}GetAnsiString(ItemNo){$ENDIF};
+  result := {$IFNDEF PS_NOWIDESTRING}{$IFDEF DELPHI2009UP}GetUnicodeString(ItemNo){$ELSE}GetAnsiString(ItemNo){$ENDIF}{$ELSE}GetAnsiString(ItemNo){$ENDIF};
 end;
 
 function TPSStack.GetUInt(ItemNo: Longint): Cardinal;
@@ -12346,8 +12370,12 @@ end;
 
 procedure TPSStack.SetString(ItemNo: Longint; const Data: string);
 begin
-  {$IFDEF DELPHI2009UP}
-  SetUnicodeString(ItemNo, Data);
+  {$IFNDEF PS_NOWIDESTRING}
+    {$IFDEF DELPHI2009UP}
+    SetUnicodeString(ItemNo, Data);
+    {$ELSE}
+    SetAnsiString(ItemNo, Data);
+    {$ENDIF}
   {$ELSE}
   SetAnsiString(ItemNo, Data);
   {$ENDIF}

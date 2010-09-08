@@ -76,6 +76,10 @@ procedure RIRegisterTStrings(cl: TPSRuntimeClassImporter; Streams: Boolean); // 
 begin
   with Cl.Add(TStrings) do
   begin
+{$IFDEF DELPHI2005UP}
+    RegisterConstructor(@TStrings.CREATE, 'CREATE');
+{$ENDIF}
+
     RegisterVirtualMethod(@TStrings.Add, 'ADD');
     RegisterMethod(@TStrings.Append, 'APPEND');
     RegisterVirtualMethod(@TStrings.AddStrings, 'ADDSTRINGS');
@@ -132,6 +136,9 @@ procedure RIRegisterTSTRINGLIST(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGLIST) do
   begin
+{$IFDEF DELPHI2005UP}
+    RegisterConstructor(@TStringList.CREATE, 'CREATE');
+{$ENDIF}
     RegisterVirtualMethod(@TSTRINGLIST.FIND, 'FIND');
     RegisterVirtualMethod(@TSTRINGLIST.SORT, 'SORT');
     RegisterPropertyHelper(@TSTRINGLISTDUPLICATES_R, @TSTRINGLISTDUPLICATES_W, 'DUPLICATES');

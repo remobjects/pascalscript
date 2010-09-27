@@ -3884,7 +3884,8 @@ begin
   for i := 0 to VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) do begin
     v := src[i + VarArrayLowBound(src, 1)];
     if not Exec.SetVariantValue(r, @v, desttype, lVarType) then begin result := false; exit; end;
-    r := Pointer(IPointer(r) + Longint(DestType.RealSize));
+    //r := Pointer(IPointer(r) + Longint(DestType.RealSize));
+    r := Pointer(IPointer(r) + DestType.RealSize);
   end;
   Result := true;
 end;
@@ -4171,11 +4172,13 @@ begin
     arr := Pointer(IPointer(Arr)-PointerSize2);
     if NewLength <= 0 then
     begin
-      FreeMem(arr, NewLength * elsize + PointerSize2);
+      //FreeMem(arr, NewLength * elsize + PointerSize2);
+      FreeMem(arr, Longint(NewLength * elsize) + Longint(PointerSize2));
       arr := nil;
       exit;
     end;
-    ReallocMem(arr, NewLength * elSize + PointerSize2);
+    //ReallocMem(arr, NewLength * elSize + PointerSize2);
+    ReallocMem(arr, Longint(NewLength * elSize) + Longint(PointerSize2));
     arr := Pointer(IPointer(Arr)+PointerSize);
     Longint(Arr^) := NewLength {$IFDEF FPC} -1 {$ENDIF};
     arr := Pointer(IPointer(Arr)+PointerSize);
@@ -4188,13 +4191,15 @@ begin
     if NewLength = 0 then
     begin
       if Longint(Pointer(IPointer(Arr)-PointerSize2)^) = 1 then
-        FreeMem(Pointer(IPointer(Arr)-PointerSize2), OldLen * elSize + PointerSize2)
+        //FreeMem(Pointer(IPointer(Arr)-PointerSize2), OldLen * elSize + PointerSize2)
+        FreeMem(Pointer(IPointer(Arr)-PointerSize2), Longint(OldLen * elSize) + Longint(PointerSize2))
       else if Longint(Pointer(IPointer(Arr)-PointerSize2)^) > 0 then
         Dec(Longint(Pointer(IPointer(Arr)-PointerSize2)^));
       arr := nil;
       exit;
     end;
-    GetMem(p, NewLength * elSize + PointerSize2);
+    //GetMem(p, NewLength * elSize + PointerSize2);
+    GetMem(p, Longint(NewLength * elSize) + Longint(PointerSize2));
     Longint(p^) := 1;
     p:= Pointer(IPointer(p)+PointerSize);
     Longint(p^) := NewLength {$IFDEF FPC} -1 {$ENDIF};
@@ -9847,7 +9852,8 @@ begin
         begin // from GExperts code
           if (IPointer(p^[I]) > IPointer(p)) and ((IPointer(p^[I]) - IPointer(p))
             div
-            PointerSize < Ret.FEndOfVMT) then
+            //PointerSize < Ret.FEndOfVMT) then
+            PointerSize < Cardinal(Ret.FEndOfVMT)) then
           begin
             Ret.FEndOfVMT := (IPointer(p^[I]) - IPointer(p)) div SizeOf(Pointer);
           end;
@@ -11739,7 +11745,8 @@ begin
 {$IFNDEF PS_NOINT64}
         if res^.FType.BaseType <> btS64 then
 {$ENDIF}
-          CopyArrayContents(Pointer(Longint(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
+          //CopyArrayContents(Pointer(Longint(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
+          CopyArrayContents(Pointer(Longint(Stack)-Longint(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
       end;
     end;
     DestroyHeapVariant(res);
@@ -12209,8 +12216,10 @@ var
 begin
   o := FLength;
   FLength := (FLength + TotalSize);
-  if FLength mod PointerSize <> 0 then
-    FLength := FLength + (PointerSize - (FLength mod PointerSize));
+  //if FLength mod PointerSize <> 0 then
+  if FLength mod Longint(PointerSize) <> 0 then
+    //FLength := FLength + (PointerSize - (FLength mod PointerSize));
+    FLength := FLength + (Longint(PointerSize) - Longint((FLength mod Longint(PointerSize))));
   if FLength > FCapacity then AdjustLength;
   p := Pointer(IPointer(FDataPtr) + IPointer(o));
   Add(p);

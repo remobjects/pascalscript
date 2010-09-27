@@ -1075,11 +1075,11 @@ begin
       end;
       FComp.AllowUnit := lPrevAllowUnit;
     end else begin
-      FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
+      FComp.MakeError(FComp.Unit_Name, ecUnknownIdentifier, lName);
       Result := false;
     end;
   end else begin
-    FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
+    FComp.MakeError(FComp.Unit_Name, ecUnknownIdentifier, lName);
     result := false;
   end;
 end;

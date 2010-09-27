@@ -1182,7 +1182,11 @@ type
 
     property UTF8Decode: Boolean read FUtf8Decode write FUtf8Decode;
 
-    property UnitName: tbtString read FUnitName;
+    property Unit_Name: tbtString read FUnitName;
+ 
+    {$IFNDEF DELPHI2009UP}
+    property UnitName: tbtString read FUnitName; deprecated 'UnitName property is deprecated. Use Unit_Name property.';
+    {$ENDIF}
   end;
   TIFPSPascalCompiler = TPSPascalCompiler;
 

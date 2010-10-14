@@ -422,7 +422,9 @@ type
 
     function HasUses(pUnitName: TbtString): Boolean;
 
+    {$WARNINGS OFF}
     property UnitName: TbtString read fUnitName write SetUnitName;
+    {$WARNINGS ON}
   end;
 
   TPSUnitList = class

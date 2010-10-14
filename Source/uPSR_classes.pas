@@ -181,7 +181,13 @@ begin
     RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.SEEK, 'SEEK');
     RegisterMethod(@TSTREAM.READBUFFER, 'READBUFFER');
     RegisterMethod(@TSTREAM.WRITEBUFFER, 'WRITEBUFFER');
+    {$IFDEF DELPHI4UP}
+    {$IFNDEF PS_NOINT64}
     RegisterMethod(@TSTREAM.COPYFROM, 'COPYFROM');
+    {$ENDIF}
+    {$ELSE}
+    RegisterMethod(@TSTREAM.COPYFROM, 'COPYFROM');
+    {$ENDIF}
     RegisterPropertyHelper(@TSTREAMPOSITION_R, @TSTREAMPOSITION_W, 'POSITION');
     RegisterPropertyHelper(@TSTREAMSIZE_R, {$IFDEF DELPHI3UP}@TSTREAMSIZE_W, {$ELSE}nil, {$ENDIF}'SIZE');
   end;

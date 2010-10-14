@@ -130,7 +130,9 @@ begin
     RegisterMethod('procedure ReadBuffer(Buffer:String;Count:LongInt)');
     RegisterMethod('procedure WriteBuffer(Buffer:String;Count:LongInt)');
     {$IFDEF DELPHI4UP}
+    {$IFNDEF PS_NOINT64}
     RegisterMethod('function CopyFrom(Source:TStream;Count:Int64):LongInt');
+    {$ENDIF}
     {$ELSE}
     RegisterMethod('function CopyFrom(Source:TStream;Count:Integer):LongInt');
     {$ENDIF}

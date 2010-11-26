@@ -65,7 +65,7 @@ begin
   begin
     RegisterMethod('procedure Arc(X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);');
     RegisterMethod('procedure Chord(X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);');
-//    RegisterMethod('procedure Draw(X, Y: Integer; Graphic: TGraphic);');
+    RegisterMethod('procedure Draw(X, Y: Integer; Graphic: TGraphic);');
     RegisterMethod('procedure Ellipse(X1, Y1, X2, Y2: Integer);');
     RegisterMethod('procedure FillRect(const Rect: TRect);');
 {$IFNDEF CLX}
@@ -271,11 +271,11 @@ procedure SIRegister_Graphics(Cl: TPSPascalCompiler; Streams: Boolean);
 begin
   SIRegister_Graphics_TypesAndConsts(Cl);
   SIRegisterTGRAPHICSOBJECT(Cl);
+  SIRegisterTGraphic(Cl);
   SIRegisterTFont(Cl);
   SIRegisterTPEN(cl);
   SIRegisterTBRUSH(cl);
   SIRegisterTCanvas(cl);
-  SIRegisterTGraphic(Cl);
   SIRegisterTBitmap(Cl, Streams);
   SIRegisterTPicture(cl);
 end;

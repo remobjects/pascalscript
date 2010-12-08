@@ -78,6 +78,8 @@ type
     FFile       : string;
     fOutputDir  : String;
     fPrifix     : String;
+    FAfterInterfaceDeclaration: string;
+    FAutoRenameOverloadedMethods: Boolean;        
     fLastUsed   : TStringList;
     FUseUnitAtDT: Boolean;
     FSingleUnit : Boolean;
@@ -90,6 +92,7 @@ type
     procedure SaveLastUsedList;
     procedure BuildLastUsedMenu(aMenuItem:TMenuItem);
     procedure mnuLastUsedClick(Sender: TObject);
+    procedure WriteSetttingsToIni(const AIni: TIniFile);
   public
     constructor Create(aOwner:TComponent);override;
     destructor Destroy;override;
@@ -218,6 +221,9 @@ begin
     Parser.ReadLn      := ReadLn;
     Parser.UseUnitAtDT := FUseUnitAtDT;
     Parser.SingleUnit  := FSingleUnit;
+    Parser.UnitPrefix := fPrifix;
+    Parser.AfterInterfaceDeclaration := FAfterInterfaceDeclaration;
+    Parser.AutoRenameOverloadedMethods := FAutoRenameOverloadedMethods;
 
     try
       Parser.ParseUnit((Tabcontrol1.tabs.Objects[0] as tStringList).Text);
@@ -290,7 +296,9 @@ begin
                                         ExtractFilePath(Application.ExeName) + 'Import\');
     FSingleUnit  := fIniFile.ReadBool('Main','SingleUnit',True);
     FUseUnitAtDT := fIniFile.ReadBool('Main','UseUnitAtDT',False);
-    fPrifix      := fIniFile.ReadString('Main','FilePrefix', 'IFSI');
+    fPrifix      := fIniFile.ReadString('Main','FilePrefix', 'uPS');
+    FAfterInterfaceDeclaration := fIniFile.ReadString('Main','AfterInterfaceDeclaration', '');
+    FAutoRenameOverloadedMethods := fIniFile.ReadBool('Main','AutoRenameOverloadedMethods', False);
   finally
     fIniFile.Free;
   end;
@@ -372,10 +380,7 @@ begin
         If default.Checked then begin
           fIniFile   := TIniFile.create(ExtractFilePath(Application.ExeName)+'Default.ini');
           Try
-            fIniFile.WriteString('Main','OutputDir', fOutputDir);
-            fIniFile.WriteBool('Main','SingleUnit' , FSingleUnit);
-            fIniFile.WriteBool('Main','UseUnitAtDT', FUseUnitAtDT);
-            fIniFile.WriteString('Main','FilePrefix', fPrifix);
+            WriteSetttingsToIni(fIniFile);
           finally
             fIniFile.Free;
           end;
@@ -383,10 +388,7 @@ begin
         if ffile <> '' then begin
           fIniFile  := TIniFile.create(ChangeFileExt(FFile,'.iip'));
           Try
-            fIniFile.WriteString('Main','OutputDir', fOutputDir);
-            fIniFile.WriteBool('Main','SingleUnit',FSingleUnit);
-            fIniFile.WriteBool('Main','UseUnitAtDT',FUseUnitAtDT);
-            fIniFile.WriteString('Main','FilePrefix', fPrifix);
+            WriteSetttingsToIni(fIniFile);
           finally
             fIniFile.Free;
           end;
@@ -410,16 +412,6 @@ var
   end;
 begin
   FFile := aFileName;
-  fIniFile   := TIniFile.create(ChangeFileExt(FFile,'.iip'));
-  Try
-    fOutPutDir   := fIniFile.ReadString('Main','OutputDir',fOutPutDir);
-    FFile        := fIniFile.ReadString('Files','File0', fFile);
-    FSingleUnit  := fIniFile.ReadBool('Main','SingleUnit',FSingleUnit);
-    FUseUnitAtDT := fIniFile.ReadBool('Main','UseUnitAtDT',FUseUnitAtDT);
-    fPrifix      := fIniFile.ReadString('Main','FilePrefix', fPrifix);
-  finally
-    fIniFile.Free;
-  end;
   ClearTabs;
   TabControl1Changing(Self, AllowChange);
   TabControl1.Tabs.AddObject(ExtractFileName(FFile), GetText(FFile));
@@ -452,11 +444,7 @@ begin
   Try
     fIniFile  := TIniFile.create(ChangeFileExt(FFile,'.iip'));
     Try
-      fIniFile.WriteString('Main','OutputDir', fOutputDir);
-      fIniFile.WriteString('Files','File0', fFile);
-      fIniFile.WriteBool('Main','SingleUnit',FSingleUnit);
-      fIniFile.WriteBool('Main','UseUnitAtDT',FUseUnitAtDT);
-      fIniFile.WriteString('Main','FilePrefix', fPrifix);
+      WriteSetttingsToIni(fIniFile);
     finally
       fIniFile.Free;
     end;
@@ -696,6 +684,16 @@ procedure TfrmMain.EditorKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   stbMain.Panels[0].Text := Format(StatusLabel,[Editor.CaretY, Editor.CaretX]);
+end;
+
+procedure TfrmMain.WriteSetttingsToIni(const AIni: TIniFile);
+begin
+  AIni.WriteString('Main','OutputDir', fOutputDir);
+  AIni.WriteBool('Main','SingleUnit' , FSingleUnit);
+  AIni.WriteBool('Main','UseUnitAtDT', FUseUnitAtDT);
+  AIni.WriteString('Main','FilePrefix', fPrifix);
+  AIni.WriteString('Main','AfterInterfaceDeclaration', FAfterInterfaceDeclaration);
+  AIni.WriteBool('Main','AutoRenameOverloadedMethods', FAutoRenameOverloadedMethods);
 end;
 
 end.

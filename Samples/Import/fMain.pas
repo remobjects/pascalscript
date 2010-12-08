@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, uPSCompiler, uPSRuntime, uPSPreprocessor, uPSUtils,
+  ExtCtrls, StdCtrls, uPSCompiler, uPSRuntime, uPSDisassembly, uPSPreprocessor, uPSUtils,
   Menus, uPSC_comobj, uPSR_comobj;
 
 type
@@ -55,7 +55,7 @@ var
 implementation
 
 uses
-  uPSDisassembly, uPSC_dll, uPSR_dll, uPSDebugger,
+  uPSC_dll, uPSR_dll, uPSDebugger,
   uPSR_std, uPSC_std, uPSR_stdctrls, uPSC_stdctrls,
   uPSR_forms, uPSC_forms,
 
@@ -220,6 +220,7 @@ begin
     x1.OnExportCheck := MyExportCheck;
     x1.OnUses := MyOnUses;
     x1.OnExternalProc := DllExternalProc;
+    x1.AllowNoEnd := true;
     if x1.Compile(s) then
     begin
       Outputtxt('Succesfully compiled');

@@ -12,7 +12,7 @@ unit ParserU;
 {version: 20041219}
 
 interface
-  uses uPSUtils, SysUtils, ParserUtils, BigIni, Classes;
+  uses uPSUtils, SysUtils, StrUtils, ParserUtils, BigIni, Classes;
 
 type
   TProcAttr = set of (PublicProc, IsDone, IsHelper);
@@ -51,6 +51,8 @@ type
     fCompPrefix : String;
     FSingleUnit: Boolean;
     FCompileTimeFunctions : Boolean;
+    FAfterInterfaceDeclaration: string;
+    FAutoRenameOverloadedMethods: Boolean;
     procedure SetWriteln(aWriteln: TWriteln);
     procedure SetReadln(aReadln: TReadln);
   private
@@ -58,6 +60,7 @@ type
     fToken, fPrevToken: TPasToken;
 //    fprevOrgToken: string;
     Ini: TBigIniFile;
+    FRenamingHelper: Integer;
   private
     LastTokens: array of TPasToken;
     FTail, FHead, TokenHistoryCount, TokenHistoryLength: integer;
@@ -154,6 +157,9 @@ type
     property UnitPrefix : string read FUnitPrefix write FUnitPrefix;   // teo
     property CompPage   : String read FCompPage write FCompPage; // Niels
     property CompPrefix : String read FCompPrefix write FCompPrefix; // Niels
+    property AfterInterfaceDeclaration: string read FAfterInterfaceDeclaration write FAfterInterfaceDeclaration;
+    property AutoRenameOverloadedMethods: Boolean read FAutoRenameOverloadedMethods write FAutoRenameOverloadedMethods;
+
 
     property OutUnitList : TStringList read FOutUnitList;              // teo
   end; {TUnitParser}
@@ -174,6 +180,22 @@ end; {DefReadln}
 procedure DefWriteln(const S: string);
 begin
 end; {DefWriteln}
+
+// Some method declaratinos may be very long.
+// Delphi can't compile these, so we need to spit them manually.
+function SplitIntoLines(AString: string): string;
+const
+  cSplitPosition: Byte = 200;
+begin
+  Result := '';
+  while (Length(AString) > cSplitPosition) do
+  begin
+    Result := Result + LeftStr(AString, cSplitPosition) +
+      ''' +' + #13 + #10  + '      ''';
+    Delete(AString, 1, cSplitPosition);
+  end;
+  Result := Result + AString;
+end;
 
 constructor TUnitParser.Create(const IniFilename: string; aTokenHistoryLength: Integer = 5);
 begin
@@ -505,6 +527,7 @@ begin
         OutPut.Add(GetLicence);
 //        OutPut.Add('{$I PascalScript.inc}');
         OutPut.Add('interface');
+        OutPut.Add(FAfterInterfaceDeclaration);
         OutPut.Add(GetUsedUnitList(fCompileTimeUnitList) + Newline);
 
         for Index := FCompileTimeProcList.count - 1 downto 0 do
@@ -588,6 +611,7 @@ begin
         OutPut.Add(GetLicence);
 //        OutPut.Add('{$I PascalScript.inc}');
         OutPut.Add('interface');
+        OutPut.Add(FAfterInterfaceDeclaration);        
         OutPut.Add(GetUsedUnitList(fRunTimeUnitList) + Newline);
         for Index := FRunTimeProcList.count - 1 downto 0 do
         begin
@@ -754,6 +778,8 @@ begin
 //    OutPutList.Add('{$I PascalScript.inc}');
     OutPutList.Add('interface');
     OutPutList.Add(' ');
+    OutPutList.Add(FAfterInterfaceDeclaration);
+    OutPutList.Add(' ');    
 
     { interface uses clause list }
     AddToUsesList(InterfaceUsesList, nil, 'SysUtils');
@@ -779,7 +805,7 @@ begin
     OutPutList.Add('type ');
     OutPutList.Add('(*----------------------------------------------------------------------------*)');
     OutPutList.Add(Format('  %s = class(TPSPlugin)', [sClassName]));
-    OutPutList.Add('  protected');
+    OutPutList.Add('  public');
 //  OutPutList.Add('    procedure CompOnUses(CompExec: TPSScript); override;');
 //  OutPutList.Add('    procedure ExecOnUses(CompExec: TPSScript); override;');
     OutPutList.Add('    procedure CompileImport1(CompExec: TPSScript); override;');
@@ -942,10 +968,15 @@ begin
     OutPutList.Add('(*----------------------------------------------------------------------------*)');
     OutPutList.Add(Format('procedure %s.ExecImport1(CompExec: TPSScript; const ri: TPSRuntimeClassImporter);', [sClassName]));
     OutPutList.Add('begin');
-    if not (InterfaceImporter in RunTimeProcType) then //Birb
-      OutPutList.Add(Format('  RIRegister_%s(ri);', [UnitName])); //Birb: (!!!) should fix it so that this line is never added if there's no RIRegister... routine (e.g. if unit has just constants) 
+
+    // Birb: (!!!) should fix it so that this line is never added if there's
+    // no RIRegister...routine (e.g. if unit has just constants)
+    if (ClassImporter in RunTimeProcType) then
+      OutPutList.Add(Format('  RIRegister_%s(ri);', [UnitName]));
+
     if RoutineImporter in RunTimeProcType then
       OutPutList.Add(Format('  RIRegister_%s_Routines(CompExec.Exec); // comment it if no routines', [UnitName]));
+
     OutPutList.Add('end;');
     OutPutList.Add('(*----------------------------------------------------------------------------*)');
 
@@ -1517,13 +1548,19 @@ begin
                   OldProcName := ProcName;
                   Olddecl := decl;
                   s := '';
+                  ProcName := OldProcName + InttoStr(FRenamingHelper);
+                  Inc(FRenamingHelper);
                   repeat
-                    Readln(ProcName, s+'Current declaration :' + '''' + OwnerClass +decl + '''', 'Enter new name.');
+                    if FAutoRenameOverloadedMethods then
+                      Writeln('Auto-remapped')
+                    else
+                      Readln(ProcName, s+'Current declaration :' + '''' + OwnerClass +decl + '''', 'Enter new name.');
+                      
                     if ProcName = '' then
                       ProcName := OldProcName;
-          // create a tmp procedure to handle the overload    (self:
 
-                    decl2 := decl; // jgv someone forget it !!!
+                    // create a tmp procedure to handle the overload.
+                    decl2 := decl;
 
                     If (IsMethod in Options) then
                       if (Pos('(',decl)=0)then
@@ -1545,7 +1582,7 @@ begin
                     if {not} (IsDone in Proc.ProcAttr) then
                     begin
                       If S = '' then
-                        S := 'Procedure name has been used, entre a new one'^m;
+                        S := 'Procedure name has been used, enter a new one'^m;
                       ProcName := OldProcName;
                       decl := Olddecl;
                     end
@@ -1623,9 +1660,9 @@ var
       Exit;
 
     if isInterface then //Birb
-     fCurrentDTProc.Add('    RegisterMethod(''' + decl + ''', '+callingConvention+');')
+     fCurrentDTProc.Add('    RegisterMethod(''' + SplitIntoLines(decl) + ''', '+callingConvention+');')
     else
-     fCurrentDTProc.Add('    RegisterMethod(''' + decl + ''');');
+     fCurrentDTProc.Add('    RegisterMethod(''' + SplitIntoLines(decl) + ''');');
 
     if IsCallHelper in ProcDeclInfo then
       PProcName := aClassname + ProcName+'_P'

@@ -1,6 +1,8 @@
 program Import;
 
 uses
+  FastMM4Messages in '..\..\..\lib\elitedev\lib\FastMM4Messages.pas',
+  FastMM4 in '..\..\..\lib\elitedev\lib\FastMM4.pas',
   Forms,
   fMain in 'fMain.pas' {MainForm},
   fDwin in 'fDwin.pas' {dwin};

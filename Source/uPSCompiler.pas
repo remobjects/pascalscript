@@ -13636,7 +13636,7 @@ end;
 function TPSPascalCompiler.IsInLocalUnitList(s: tbtstring): Boolean;
 begin
   s:=FastUpperCase(s);
-  if (s=FastUpperCase(fModule)) or (s='SYSTEM') then
+  if (s = '') or (s=FastUpperCase(fModule)) or (s='SYSTEM') then
   begin
     result:=true;
     exit;

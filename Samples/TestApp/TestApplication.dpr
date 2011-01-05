@@ -2,8 +2,7 @@ program TestApplication;
 
 uses
   Forms,
-  fMain in 'fMain.pas' {Form1},
-  uPSComponent_COM in '..\..\Source\uPSComponent_COM.pas';
+  fMain in 'fMain.pas' {Form1};
 
 {$R *.RES}
 

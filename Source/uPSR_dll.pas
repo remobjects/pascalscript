@@ -6,10 +6,11 @@ uses
   uPSRuntime, uPSUtils;
 
 procedure RegisterDLLRuntime(Caller: TPSExec);
-procedure RegisterDLLRuntimeEx(Caller: TPSExec; AddDllProcImport: Boolean);
+procedure RegisterDLLRuntimeEx(Caller: TPSExec; AddDllProcImport, RegisterUnloadDLL: Boolean);
 
 function ProcessDllImport(Caller: TPSExec; P: TPSExternalProcRec): Boolean;
 function ProcessDllImportEx(Caller: TPSExec; P: TPSExternalProcRec; ForceDelayLoad: Boolean): Boolean;
+procedure UnloadDLL(Caller: TPSExec; const sname: tbtstring);
 function UnloadProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
 
 implementation
@@ -79,6 +80,9 @@ var
   ph: PLoadedDll;
   dllhandle: THandle;
   loadwithalteredsearchpath: Boolean;
+  {$IFNDEF UNIX}
+  Filename: String;
+  {$ENDIF}
 begin
   s := p.Decl;
   Delete(s, 1, 4);
@@ -104,10 +108,18 @@ begin
       {$IFDEF UNIX}
 	  dllhandle := LoadLibrary(PChar(s2));
       {$ELSE}
-      if loadwithalteredsearchpath then
-        dllhandle := LoadLibraryExA(PAnsiChar(AnsiString(s2)), 0, LOAD_WITH_ALTERED_SEARCH_PATH)
+      {$IFDEF UNICODE}
+      if Copy(s2, 1, 6) = '<utf8>' then
+        Filename := UTF8ToUnicodeString(Copy(s2, 7, Maxint))
       else
-        dllhandle := LoadLibraryA(PAnsiChar(AnsiString(s2)));
+        Filename := String(s2);
+      {$ELSE}
+      Filename := s2;
+      {$ENDIF}
+      if loadwithalteredsearchpath then
+        dllhandle := LoadLibraryEx(PChar(Filename), 0, LOAD_WITH_ALTERED_SEARCH_PATH)
+      else
+        dllhandle := LoadLibrary(PChar(Filename));
       {$ENDIF}
       if dllhandle = 0 then
       begin
@@ -232,14 +244,13 @@ begin
   Result := true;
 end;
 
-function UnloadProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+procedure UnloadDLL(Caller: TPSExec; const sname: tbtstring);
 var
   h, i: Longint;
   pv: TPSProcRec;
   ph: PLoadedDll;
-  sname, s: tbtstring;
+  s: tbtstring;
 begin
-  sname := Stack.GetAnsiString(-1);
   for i := Caller.GetProcCount -1 downto 0 do
   begin
     pv := Caller.GetProcNo(i);
@@ -264,19 +275,25 @@ begin
       dispose(ph);
     end;
   until false;
+end;
+
+function UnloadProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+begin
+  UnloadDLL(Caller, Stack.GetAnsiString(-1));
   result := true;
 end;
 
 procedure RegisterDLLRuntime(Caller: TPSExec);
 begin
-  RegisterDLLRuntimeEx(Caller, True);
+  RegisterDLLRuntimeEx(Caller, True, True);
 end;
 
-procedure RegisterDLLRuntimeEx(Caller: TPSExec; AddDllProcImport: Boolean);
+procedure RegisterDLLRuntimeEx(Caller: TPSExec; AddDllProcImport, RegisterUnloadDLL: Boolean);
 begin
   if AddDllProcImport then
     Caller.AddSpecialProcImport('dll', @ProcessDllImport, nil);
-  Caller.RegisterFunctionName('UNLOADDLL', UnloadProc, nil, nil);
+  if RegisterUnloadDLL then
+    Caller.RegisterFunctionName('UNLOADDLL', UnloadProc, nil, nil);
   Caller.RegisterFunctionName('DLLGETLASTERROR', GetLastErrorProc, nil, nil);
 end;
 

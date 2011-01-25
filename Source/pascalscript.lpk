@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <CONFIG>
-  <Package Version="2">
+  <Package Version="3">
     <Name Value="pascalscript"/>
     <Author Value="Carlo Kok"/>
     <CompilerOptions>
-      <Version Value="5"/>
+      <Version Value="10"/>
       <SearchPaths>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
@@ -27,7 +27,7 @@
     <Description Value="RemObjects Pascal Script 
 Created by Carlo Kok
 RemObjects Software
-Fixed for Lazarus by Bogus³aw Brandys
+Fixed for Lazarus by BogusÑ–aw Brandys
 "/>
     <License Value="*********************************************************************
 RemObjects Pascal Script
@@ -226,6 +226,7 @@ RemObjects Software
       </Item1>
     </RequiredPkgs>
     <UsageOptions>
+      <IncludePath Value="."/>
       <UnitPath Value="$(PkgOutDir)"/>
     </UsageOptions>
     <PublishOptions>

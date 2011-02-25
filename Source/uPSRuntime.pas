@@ -10818,27 +10818,29 @@ begin
       Caller.CMD_Err(erNullPointerException);
       exit;
     end;
-    n2 := CreateHeapVariant(Caller.FindType2(btPchar));
+    (*n2 := CreateHeapVariant(Caller.FindType2(btPchar));
     if n2 = nil then
     begin
       Result := False;
       exit;
-    end;
+    end; *)
 
-    if (n.aType.BaseType = btProcPtr) and (cardinal(n.dta^) = 0) then
-      data := TMethod(Pointer(IPointer(n.dta^)+4)^)
-    else
-      data := MkMethod(Caller, cardinal(n.dta^));
+    //if (n.aType.BaseType = btProcPtr) and (cardinal(n.dta^) = 0) then
+    //  data := TMethod(Pointer(IPointer(n.dta^)+4)^)
+    //else
+    //  data := MkMethod(Caller, cardinal(n.dta^));
+
     Params := TPSList.Create;
-    Params.Add(NewPPSVariantIFC(n2, False));
+    Params.Add(@n);
 
-    for i := Stack.Count -2 downto Longint(Stack.Count) - ParamCount -1 do
-    begin
-      Params.Add(NewPPSVariantIFC(Stack[I], False));
-    end;
+ //   for i := Stack.Count -2 downto Longint(Stack.Count) - ParamCount -1 do
+ //   begin
+//      Params.Add(NewPPSVariantIFC(Stack[I], False));
+//    end;
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
     finally
+      Params.Clear;
       DestroyHeapVariant(n2);
       DisposePPSVariantIFCList(Params);
     end;

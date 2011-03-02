@@ -1976,7 +1976,6 @@ begin
   if Result = nil then
   begin
     tt := Owner.AddTypeS(Name, Decl);
-    tt.ExportName := True;
     Result := tt;
   end;
 end;
@@ -13335,6 +13334,7 @@ begin
   Result := ReadType(Name, Parser);
   if Result<>nil then
   begin
+    Result.ExportName := True;
     Result.DeclarePos:=InvalidVal;
     {$IFDEF PS_USESSUPPORT}
     Result.DeclareUnit:=fModule;

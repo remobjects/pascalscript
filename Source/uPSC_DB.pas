@@ -216,7 +216,8 @@ With RegClassS(cl,'TCOMPONENT','TDATASET') do
   RegisterProperty('ONFILTERRECORD', 'TFILTERRECORDEVENT', iptrw);
   RegisterProperty('ONNEWRECORD', 'TDATASETNOTIFYEVENT', iptrw);
   RegisterProperty('ONPOSTERROR', 'TDATASETERROREVENT', iptrw);
-  end;
+  SetDefaultPropery('FieldValues');
+ end;
 end;
 
 procedure SIRegisterTPARAMS(CL: TPSPascalCompiler);

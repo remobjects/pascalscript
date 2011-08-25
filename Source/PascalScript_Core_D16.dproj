@@ -42,6 +42,13 @@
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<DCC_UsePackage>rtl;dbrtl;$(DCC_UsePackage)</DCC_UsePackage>
+			<VerInfo_Build>673</VerInfo_Build>
+			<VerInfo_Keys>CompanyName=RemObjects Software;FileDescription=;FileVersion=3.0.29.673;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Pascal Script;ProductVersion=3.0.0.0;Comments=;CompileDate=Friday, March 21, 2008 1:24 PM</VerInfo_Keys>
+			<VerInfo_Locale>1033</VerInfo_Locale>
+			<VerInfo_MajorVer>3</VerInfo_MajorVer>
+			<DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;Winapi;$(DCC_Namespace)</DCC_Namespace>
+			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+			<VerInfo_Release>29</VerInfo_Release>
 			<DesignOnlyPackage>true</DesignOnlyPackage>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<GenPackage>true</GenPackage>

@@ -53,14 +53,14 @@
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<GenPackage>true</GenPackage>
 			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
-			<DCC_BplOutput>..\Dcu\D16</DCC_BplOutput>
-			<DCC_UnitSearchPath>..\Dcu\D16;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_BplOutput>..\Dcu\D16\win32</DCC_BplOutput>
+			<DCC_UnitSearchPath>..\Dcu\D16\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_Description>RemObjects Pascal Script - Core Package</DCC_Description>
-			<DCC_DcuOutput>..\Dcu\D16</DCC_DcuOutput>
+			<DCC_DcuOutput>..\Dcu\D16\win32</DCC_DcuOutput>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<DCC_S>false</DCC_S>
 			<GenDll>true</GenDll>
-			<DCC_DcpOutput>..\Dcu\D16</DCC_DcpOutput>
+			<DCC_DcpOutput>..\Dcu\D16\win32</DCC_DcpOutput>
 			<DCC_F>false</DCC_F>
 			<DCC_E>false</DCC_E>
 			<DCC_N>false</DCC_N>

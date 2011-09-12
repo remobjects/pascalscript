@@ -1,6 +1,7 @@
 package PascalScript_RO_D16;
 
 {$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -22,9 +23,10 @@ package PascalScript_RO_D16;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'RemObjects Pascal Script - RemObjects SDK 5.0 Integration'}
-{$IMPLICITBUILD OFF}
 {$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'RemObjects Pascal Script - RemObjects SDK Integration'}
+{$IMPLICITBUILD OFF}
 
 requires
   rtl,

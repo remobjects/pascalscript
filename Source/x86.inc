@@ -246,7 +246,7 @@ const
 
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
-  Stack: ansistring;
+  a, Stack: ansistring;
   I: Longint;
   RegUsage: Byte;
   CallData: TPSList;
@@ -549,6 +549,11 @@ begin
             if not GetPtr(rp(Params[I])) then Exit;
           end;
 
+          {$IFDEF DARWIN}
+          if (length(Stack) mod 16) <> 0 then begin
+            Stack := Stack + StringOfChar(ansichar(#32), 16 - (Length(Stack) mod 16)) ;
+          end;
+          {$ENDIF}
           if assigned(res) then begin
             case res^.aType.BaseType of
               {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}
@@ -626,6 +631,11 @@ begin
             Stack := StringOfChar(AnsiChar(#0),4) +Stack;
             Pointer((@Stack[1])^) := _Self;
           end;
+          {$IFDEF DARWIN}
+          if (length(Stack) mod 16) <> 0 then begin
+            Stack := Stack + StringOfChar(ansichar(#32), 16 - (Length(Stack) mod 16)) ;
+          end;
+          {$ENDIF}
           if assigned(res) then begin
             case res^.aType.BaseType of
               btSingle:      tbtsingle(res^.Dta^) := RealFloatCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4);
@@ -662,6 +672,11 @@ begin
             Stack := StringOfChar(AnsiChar(#0),4) +Stack;
             Pointer((@Stack[1])^) := _Self;
           end;
+          {$IFDEF DARWIN}
+          if (length(Stack) mod 16) <> 0 then begin
+            Stack := Stack + StringOfChar(ansichar(#32), 16 - (Length(Stack) mod 16)) ;
+          end;
+          {$ENDIF}
           OleCheck(RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
           Result := True;
         end;
@@ -675,6 +690,11 @@ begin
           for I := Params.Count - 1 downto 0 do begin
             if not GetPtr(Params[I]) then Exit;
           end;
+          {$IFDEF DARWIN}
+          if (length(Stack) mod 16) <> 0 then begin
+            Stack := Stack + StringOfChar(ansichar(#32), 16 - (Length(Stack) mod 16)) ;
+          end;
+          {$ENDIF}
           if assigned(res) then begin
             case res^.aType.BaseType of
               btSingle:      tbtsingle(res^.dta^) := RealFloatCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4);
@@ -748,4 +768,4 @@ begin
   end;
 end;
 
-
+

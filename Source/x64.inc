@@ -2,7 +2,10 @@
 //procedure DebugBreak; external 'Kernel32.dll';
 const
   EmptyPchar: array[0..0] of char = #0;
+{$IFDEF FPC}
 {$ASMMODE INTEL}
+{$ENDIF}
+{$IFDEF MSWINDOWS}{$DEFINE WINDOWS}{$ENDIF}
 
 {$IFDEF WINDOWS}
 procedure x64call(
@@ -11,7 +14,7 @@ procedure x64call(
   _RCX, _RDX, _R8, _R9: IPointer;
   var _XMM0: Double;
   _XMM1, _XMM2, _XMM3: Double;
-  aStack: Pointer; aItems: Integer); assembler; nostackframe;
+  aStack: Pointer; aItems: IntPtr); assembler; {$IFDEF FPC}nostackframe;{$ENDIF}
 asm
 (* Registers:
     RCX: Address
@@ -21,8 +24,10 @@ asm
 
     fpc inserts an 20h emty space
 *)
+{$IFDEF FPC}
   push rbp
   mov rbp,rsp
+{$ENDIF}
 //  call debugbreak
   push rcx  // address
   push rdx  // _rax
@@ -40,10 +45,17 @@ asm
   jnz @work
 
   // copy registers
+{$IFDEF FPC}
   movd xmm0,[_XMM0]
   movd xmm1,_XMM1
   movd xmm2,_XMM2
   movd xmm3,_XMM3
+  {$ELSE}
+  movsd xmm0,[_XMM0]
+  movsd xmm1,_XMM1
+  movsd xmm2,_XMM2
+  movsd xmm3,_XMM3
+  {$ENDIF}
   mov RAX, [rbp-8]
   mov RCX, [rbp-24]
   mov RDX, [rbp-32]
@@ -60,7 +72,11 @@ asm
   // copy result back
   mov RDX, [rbp-16]
   mov [RDX], RAX
+{$IFDEF FPC}
   movd [_XMM0],xmm0
+{$ELSE}
+  movsd [_XMM0],xmm0
+{$ENDIF}
 
   pop r9
   pop r8

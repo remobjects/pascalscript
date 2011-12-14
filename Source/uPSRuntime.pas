@@ -6,6 +6,7 @@ RemObjects Pascal Script III
 Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 }
+
 interface
 uses
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}{$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
@@ -9708,7 +9709,15 @@ end;
 
 
 {$ifndef FPC}
+{$IFDEF Delphi6UP}
+  {$IFDEF CPUX64}
+    {$include x64.inc}
+  {$ELSE}
   {$include x86.inc}
+  {$ENDIF}
+{$ELSE}
+  {$include x86.inc}
+{$ENDIF}
 {$else}
 {$IFDEF Delphi6UP}
   {$if defined(cpu86)}
@@ -11446,6 +11455,11 @@ begin
   Result := s;
   s := '';
 end;
+
+{$ifdef CPUX64}
+
+{$DEFINE empty_methods_handler}
+{$ENDIF}
 
 {$ifdef fpc}
   {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}

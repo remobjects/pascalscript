@@ -11,11 +11,11 @@ type
     Memo1: TMemo;
     Memo2: TMemo;
     Splitter1: TSplitter;
-    PSScript: TPSScript;
-    PS3DllPlugin: TPSDllPlugin;
     MainMenu1: TMainMenu;
     Program1: TMenuItem;
     Compile1: TMenuItem;
+    PSScript: TPSScript;
+    PSDllPlugin1: TPSDllPlugin;
     procedure IFPS3ClassesPlugin1CompImport(Sender: TObject;
       x: TPSPascalCompiler);
     procedure IFPS3ClassesPlugin1ExecImport(Sender: TObject; Exec: TPSExec;
@@ -121,7 +121,6 @@ procedure TForm1.Compile1Click(Sender: TObject);
       end;
     end;
   end;
-  var v: VAriant;
 begin
   Memo2.Lines.Clear;
   PSScript.Script.Assign(Memo1.Lines);

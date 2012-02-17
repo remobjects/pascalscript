@@ -8264,6 +8264,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                     if (TPSValueData(p1).FData^.tu8 <> 0) then
                     begin
                       with MakeWarning('', ewIsNotNeeded, '"True and"') do
+                      if p1.Pos>0 then
                       begin
                         FRow := p1.Row;
                         FCol := p1.Col;
@@ -8282,6 +8283,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                     if (TPSValueData(p2).Data.tu8 <> 0) then
                     begin
                       with MakeWarning('', ewIsNotNeeded, '"and True"') do
+                      if p1.Pos>0 then
                       begin
                         FRow := p1.Row;
                         FCol := p1.Col;

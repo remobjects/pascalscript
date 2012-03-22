@@ -406,7 +406,7 @@ type
 
     destructor Destroy; override;
   end;
-  TIFStringList = TPsStringList;
+  TIFStringList = TPSStringList;
 
   TPSUnitList = class;
 

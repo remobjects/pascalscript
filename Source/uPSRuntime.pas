@@ -1031,7 +1031,7 @@ type
 
     constructor Create;
 
-    constructor CreateAndRegister(Exec: TPSexec; AutoFree: Boolean);
+    constructor CreateAndRegister(Exec: TPSExec; AutoFree: Boolean);
 
     destructor Destroy; override;
 
@@ -11398,7 +11398,7 @@ begin
 
 end;
 
-constructor TPSRuntimeClassImporter.CreateAndRegister(Exec: TPSexec;
+constructor TPSRuntimeClassImporter.CreateAndRegister(Exec: TPSExec;
   AutoFree: Boolean);
 begin
   inherited Create;

@@ -1,0 +1,276 @@
+<html>
+
+<head>
+<title>Using RemObjects Pascal Script</title>
+</head>
+
+<body>
+<h1>Using RemObjects Pascal Script</h1>
+
+<p>This article provides an overview of the new RemObjects Pascal Script and explains how to create some simple scripts.</p>
+<p>Pascal Script comprises two different parts:</p>
+<ul>
+<li>Compiler (uPSCompiler.pas)</li>
+<li>Runtime (uPSRuntime.pas)</li>
+</ul>
+<p>The two parts have no interdependencies. You can use them directly, or you can use them in the<b>TPSScript</b>component, which can be found in the uPSComponent.pas unit, and wraps them both in one easy to use class.</p>
+<p>To use the component version of Pascal Script, you must first place it on your form or data module, set or assign the script property and call the Compile method and the Execute method. Compile errors, warnings or hints can be found in the CompilerMessages array property, while runtime errors can be found by reading the ExecErrorToString    property.</p>
+<p>The following example will compile and execute an empty script (&quot;begin end.&quot;):</p>
+<p style="text-align:center;"><pre lang="pas">
+var
+  Messages: string;
+  compiled: boolean;
+begin
+  ce.Script.Text := 'begin end.';
+  Compiled := Ce.Compile;
+  for i := 0 to ce.CompilerMessageCount -1 do
+    Messages := Messages +
+                ce.CompilerMessages[i].MessageToString +
+                #13#10;
+  if Compiled then
+    Messages := Messages + 'Succesfully compiled'#13#10;
+  ShowMessage('Compiled Script: '#13#10+Messages);
+  if Compiled then begin
+    if Ce.Execute then
+      ShowMessage('Succesfully Executed')
+    else
+      ShowMessage('Error while executing script: '+
+                  Ce.ExecErrorToString);
+  end;
+end;
+</pre></p>
+<p>By default, the component only adds a few standard functions to the scripting engine (the exact list can be found at the top of uPSComponents.pas).</p>
+<p>Besides the standard functions, there are a few libraries included with Pascal Script:</p>
+<p><table cellpadding="5" cellspacing="1">
+
+<tr>
+<td style="text-align:center;" width="11%"><img src="Images_-7331DD6C-58D8-40D3-8BCC-D65E975EC424-.png"></td>
+<td width="22%"><b>TPSDllPlugin</b></td>
+<td width="67%">Allow scripts to use dll functions, the syntax is like:<br /> <b>function</b> FindWindow(C1, C2: PChar): Longint; <b>external</b> 'FindWindowA@user32.dll stdcall';</td></tr>
+
+<tr>
+<td style="text-align:center;"><img src="Images_-C914388E-AAF5-4E0C-90B0-6568433352F2-.png"></td>
+<td><b>TPSImport_Classes</b></td>
+<td>Import library for TObject and the Classes unit.</td></tr>
+
+<tr>
+<td style="text-align:center;"><img src="Images_-437262DA-CA48-473A-8890-2161A932852F-.png"></td>
+<td><b>TPSImport_DateUtils</b></td>
+<td>Import library for date/time related functions.</td></tr>
+
+<tr>
+<td style="text-align:center;"><img src="Images_-7AEF4D36-18ED-4465-B887-4C9665DDBE0C-.png"></td>
+<td><b>TPSImport_ComObj</b></td>
+<td>Access COM Objects from your scripts.</td></tr>
+
+<tr>
+<td style="text-align:center;"><img src="Images_-CCEE9133-9036-4715-87A1-FC47B9AADC00-.png"></td>
+<td><b>TPSImport_DB</b></td>
+<td>Import library for db.pas.</td></tr>
+
+<tr>
+<td style="text-align:center;"><img src="Images_-C3B60367-A372-4053-942E-A9220AE2F7DA-.png"></td>
+<td><b>TPSImport_Forms</b></td>
+<td>Import library for the Forms &amp; Menus units.</td></tr>
+
+<tr>
+<td style="text-align:center;"><img src="Images_-2BDBA214-FEF1-4A54-AA23-93F70EE217C9-.png"></td>
+<td><b>TPSImport_Controls</b></td>
+<td>Import library to Controls.pas and Graphics.pas.</td></tr>
+
+<tr>
+<td style="text-align:center;"><img src="Images_-A8439C86-1330-42FE-944F-31BD046504D1-.png"></td>
+<td><b>TPSImport_StdCtrls</b></td>
+<td>Import library for ExtCtrls and Buttons.</td>
+</tr>
+</table>
+</p>
+<p>To use these libraries, add them to your form or data module, select the [...] button next to the plugins property of the TPSCompiler component, add a new item and set the Plugin property to the plugin component. Besides the standard libraries, you can easily add new functions to the scripting engine. In order to do that, create a new method you would like to expose to the scripting engine, for example:</p>
+<p style="text-align:center;"><pre lang="pas">
+procedure TForm1.ShowNewMessage(const Message: string);
+begin
+  ShowMessage('ShowNewMessage invoked:'#13#10+Message);
+end;
+</pre></p>
+<p>Then assign an event handler to the OnCompile event and use the AddMethod method of TPSCompiler to add the actual method:</p>
+<p style="text-align:center;"><pre lang="pas">
+procedure TForm1.CECompile(Sender: TPSScript);
+begin
+  Sender.AddMethod(Self, @TForm1.ShowNewMessage,
+                   'procedure ShowNewMessage
+                   (const Message: string);');
+end;
+</pre></p>
+<p>A sample script that uses this function could look like this:</p><p style="text-align:center;"><pre lang="pas">begin
+  ShowNewMessage('Show This !');
+end.</pre></p><p class="h2">Advanced Features</p>
+<p>Pascal Script includes a preprocessor that allows you to use defines ({$IFDEF},    {$ELSE}, {$ENDIF}) and include other files in your script ({$I filename.inc}). To    enable these features, you must set the UsePreprocessor property to true and the    MainFileName property to match the name of the script in the Script property. The    Defines property specifies which defines are set by default, and the OnNeedFile    event is called when an include file is needed.</p><p style="text-align:center;"><pre lang="pas">function TForm1.ceNeedFile(Sender: TObject;
+  const OrginFileName: String;
+  var FileName, Output: String): Boolean;
+var
+  path: string;
+  f: TFileStream;
+begin
+  Path := ExtractFilePath(ParamStr(0)) + FileName;
+  try
+    F := TFileStream.Create(Path, fmOpenRead or fmShareDenyWrite);
+  except
+    Result := false;
+    exit;
+  end;
+  try
+    SetLength(Output, f.Size);
+    f.Read(Output[1], Length(Output));
+  finally
+  f.Free;
+  end;
+  Result := True;
+end;</pre></p>
+<p>When these properties are set, the CompilerMessages array property will include the file name these messages occur in.</p>
+<p>Additionally, you can call scripted functions from Delphi. The following sample    will be used as a script:</p><p style="text-align:center;"><pre lang="pas">function TestFunction(Param1: Double; Data: String): Longint;
+begin
+  ShowNewMessage('Param1: '+FloatToString(param1)
+                 +#13#10+'Data: '+Data);
+  Result := 1234567;
+end;
+
+begin
+end.</pre></p>
+<p>Before this scripted function can be used, it has to be checked to match its parameter    and result types, which can be done in the OnVerifyProc event.</p><p style="text-align:center;"><pre lang="pas">procedure TForm1.CEVerifyProc(Sender: TPSScript;
+                              Proc: TPSInternalProcedure;
+                              const Decl: String;
+                              var Error: Boolean);
+begin
+  if Proc.Name = 'TESTFUNCTION' then begin
+    if not ExportCheck(Sender.Comp, Proc,
+               [btS32, btDouble, btString], [pmIn, pmIn]) then begin
+      Sender.Comp.MakeError('', ecCustomError, 'Function header for
+      TestFunction does not match.');
+      Error := True;
+    end
+    else begin
+      Error := False;
+    end;
+  end
+  else
+    Error := False;
+end;</pre></p>
+<p>The ExportCheck function checks if the parameters match. In this case, btu8 is a    boolean (the result type), btdouble is the first parameter, and btString the second    parameter. [pmIn, pmIn] specifies that both parameters are IN parameters. To call    this scripted function, you have to create an event declaration for this function    and call that.</p><p style="text-align:center;"><pre lang="pas">type
+  TTestFunction = function (Param1: Double;
+                            Data: String): Longint of object;
+//...
+var
+  Meth: TTestFunction;
+  Meth := TTestFunction(ce.GetProcMethod('TESTFUNCTION'));
+  if @Meth = nil then
+    raise Exception.Create('Unable to call TestFunction');
+  ShowMessage('Result: '+IntToStr(Meth(pi, DateTimeToStr(Now))));</pre></p>
+<p>It's also possible to add variables to the script engine, which can be used from    within the script. To do this, you have to use the AddRegisteredVariable function.    You can set this in the OnExecute event :</p><p style="text-align:center;"><pre lang="pas">procedure TForm1.ceExecute(Sender: TPSScript);
+begin
+  CE.SetVarToInstance('SELF', Self);
+  // ^^^ For class variables
+  VSetInt(CE.GetVariable('MYVAR'), 1234567);
+end;</pre></p>
+<p>To read this variable back, after the script has finished executing, you can use    the OnAfterExecute event: VGetInt(CE.GetVariable('MYVAR')).</p>
+<p>Registering external variables to the script engine is also possible. It's a two    step process, first, in the OnCompile event, add the types to the script using the    AddRegisteredPTRVariable function.</p><p style="text-align:center;"><pre lang="pas">procedure TMyForm.PSScriptCompile(Sender: TPSScript);
+begin
+  Sender.AddRegisteredPTRVariable('MyClass', 'TButton');
+  Sender.AddRegisteredPTRVariable('MyVar', 'Longint');
+end;</pre></p>
+<p>This will register the external MyClass and MyVar variables. Second, attach a pointer    to these variables in the OnExecute event:</p><p style="text-align:center;"><pre lang="pas">procedure TMyForm.PSScriptExecute(Sender: TPSScript);
+begin
+  PSScript.SetPointerToData('MyVar', @MyVar, PSScript.FindBaseType(bts32));
+  PSScript.SetPointerToData('Memo1', @Memo1, PSScript.FindNamedType('TMemo'));
+end;</pre></p>
+<p>There are two types of variables in Pascal Script, base types, which are simple    types (see the table below), and class types. Base types are registered in the uPSUtils.pas    unit and can be located using the FindBaseType function. Class types have to be    located by name, using the FindNamedType. Changes to these variables have a direct    effect on the actual variable.</p>
+<p><b>Base types:</b></p>
+<p><table width="240" cellpadding="5" cellspacing="1">
+<tr>
+<td width="52%"><b>btU8</b></td>
+<td width="48%">Byte</td>
+</tr>
+<tr>
+<td><b>btS8</b></td>
+        
+<td>Shortint</td>
+</tr>
+<tr>
+<td><b>btU16</b></td>
+        
+<td>Word</td>
+</tr>
+<tr>
+<td><b>btS16</b></td>
+        
+<td>Smallint</td>
+</tr>
+<tr>
+<td><b>btU32</b></td>
+        
+<td>Longword</td>
+</tr>
+<tr>
+<td><b>btS32</b></td>
+        
+<td>Longint</td>
+</tr>
+<tr>
+<td><b>btS64</b></td>
+        
+<td>Int64</td>
+</tr>
+<tr>
+<td><b>btSingle</b></td>
+        
+<td>Single</td>
+</tr>
+<tr>
+<td><b>btDouble</b></td>
+        
+<td>Double</td>
+</tr>
+<tr>
+<td><b>btExtended</b></td>
+        
+<td>Extended</td>
+</tr>
+<tr>
+<td><b>btVariant</b></td>
+        
+<td>Variant</td>
+</tr>
+<tr>
+<td><b>btString</b></td>
+        
+<td>String</td>
+</tr>
+<tr>
+<td><b>btWideString</b></td>
+        
+<td>WideString</td>
+</tr>
+<tr>
+<td><b>btChar</b></td>
+        
+<td>Char</td>
+</tr>
+<tr>
+<td><b>btWideChar</b></td>
+        
+<td>WideChar</td>
+</tr></table></p>
+<p>The component version of Pascal Script also supports execution of scripted functions.    This works by using the ExecuteFunction method.</p><p style="text-align:center;"><pre lang="pas">ShowMessage(CompExec.ExecuteFunction([1234.5678, 4321,
+                                      'test'],
+                                     'TestFunction'));</pre></p>
+<p>This will execute the function called 'TestFunction' with 3 parameters, a float,    an integer and a string. The result will be passed back to ShowMessage.</p><p class="h3">Notes:</p>
+<ul>
+<li>For some functions and constants, it might be necessary to add: uPSCompiler.pas,      uPSRuntime.pas and/or uPSUtils.pas to your uses list.</li>
+<li>The script engine never calls Application.ProcessMessages by itself, so your application      might hang, while the script is running. To avoid this, you can add Application.ProcessMessages      to the TPSScript.OnLine event.</li>
+<li>It's possible to import your own classes in the script engine. Pascal Script includes      a tool to create import libraries in the /Unit-Importing/ directory.</li>
+<li>It's possible to import your own classes in the script engine. Pascal Script includes      a tool to create import libraries in the Bin directory.</li>
+<li>For examples on how to use the compiler and runtime separately, see the Import      and Kylix samples.</li>
+<li>The Debug requires <a href="http://synedit.sourceforge.net">SynEdit</a>.</li>
+</ul>
+</body>
+
+</html>

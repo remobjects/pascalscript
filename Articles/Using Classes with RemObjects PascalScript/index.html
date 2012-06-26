@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html dir="ltr" lang="en">
+<head>
+<title>Using Classes with RemObjects PascalScript</title>
+</head>
+<body>
+<h1>Using Classes with RemObjects PascalScript</h1>
+
+<p>This article explains how to use existing classes in RemObjects Pascal Script by    using a copy of the \Samples\Debug project. The following class has been added to    that project:
+
+<p style="text-align:center;"><img src="Images_-8821D7ED-4999-4343-A0BB-7822BCD292D5-.png"></p>
+<p style="text-align:center;">&nbsp;</p>
+<p>The MyClass file is then opened in the Unit Import tool, which generates units for    us:</p>
+<p style="text-align:center;"><img src="Images_-787B7711-2BF3-41AA-8E56-91D63344D5E0-.png"></p>
+<p>Press the"Go" button and add the generated uPSI_MyClass.pas to your 
+project.    Now select the main form and create a handler for its 
+OnCreate:</p>
+<p style="text-align:center;"><img src="Images_-B70E9BCC-4513-4133-A790-DE8246179CAD-.png"></p>
+<p>In the Create event, we instantiate a TPSImport_MyClass (i.e. the 
+class generated    by the import tool) and add it to the script engine's
+ plugin list:</p>
+<p style="text-align:center;"><img src="Images_-46D0599E-8750-448E-ACE1-D71968B4EAF9-.png"></p>
+<p class="hint">
+    When you are going to use this plugin class from multiple projects, 
+you can also    install it in a package so that it gets installed in the
+ Component Palette.</p>
+<p>Now it's possible to use the class from the script engine:</p>
+<p style="text-align:center;"><img src="Images_-F65AD44E-8A42-4A47-A9A4-B329D0DF4CD3-.png"></p>
+<p class="h3">Using an existing TMyClass in the script engine</p>
+<p>It's also possible to use existing TMyClass variables from the 
+script engine. To    do this, you add a FMyClass: TMyClass to your form 
+class and create it:</p>
+<p style="text-align:center;"><img src="Images_-1C72A37E-60C1-4D71-91D1-844140034A07-.png"></p>
+<p>In the script engine's OnCompile Event you need to let the engine 
+know that there    is a new variable. There are two ways to do this: 
+AddRegisteredVariable and AddRegisteredPtrVariable.    The difference is
+ that AddRegisteredPtrVariable will make changes directly to the    
+variable, so if you free the FMyClass and re-create it, the script 
+engine will use    the new variable. AddRegisteredPTRVariable has two 
+parameters. A name and a type.    Add this code to the script engine's 
+OnCompile event:</p>
+<p style="text-align:center;"><img src="Images_-FEAD5D0B-5E5F-48C4-9D4F-AA44EB5FD131-.png"></p>
+<p>Now the compiler knows about the variable, but the runtime part of 
+the script engine    doesn't know where the variable is yet. To let the 
+runtime know, you can use the    OnExecute event. The SetPointerToData 
+method can set the value of a script engine    variable added with 
+AddRegisteredPTRVariable. The first parameter is the variable    name, 
+the second is the address of the variable that contains the instance and
+ the    last parameter contains the required type info for the variable 
+(generally you use    ce.FindNamedType('nameoftype') here).</p>
+<p style="text-align:center;"><img src="Images_-EA8FCBEF-97D4-47B2-8140-74761B71A83F-.png"></p>
+<p>The final result is:</p>
+<p style="text-align:center;"><img src="Images_-E3CBD245-D791-406D-820D-CC1F9C9CA125-.png"></p>
+</body></html>

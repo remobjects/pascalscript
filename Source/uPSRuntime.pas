@@ -6383,7 +6383,7 @@ begin
             Longint(FCurrStackBase) + Longint(Param));
           if Param >= Cardinal(FStack.Count) then
           begin
-            CMD_Err(erOutOfGlobalVarsRange);
+            CMD_Err(erOutOfStackRange);
             Result := False;
             exit;
           end;

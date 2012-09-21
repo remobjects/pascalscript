@@ -717,7 +717,11 @@ var
   Stream: TMemoryStream;
 begin
   FAddedPosition := 0;
+  {$IFDEF FPC}
   FCurrentDefines.AddStrings(FDefines);
+  {$ELSE}
+  FCurrentDefines.Assign(FDefines);
+  {$ENDIF}
   Stream := TMemoryStream.Create;
   try
     IntPreProcess(0, '', FileName, Stream);

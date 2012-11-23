@@ -38,7 +38,7 @@ asm
   jmp @compareitems
 @work:
 {$IFDEF FPC}
-  push qword ptr [rdx] ***************
+  push qword ptr [rdx]
 {$ELSE}
   push [rdx]
 {$IFEND}

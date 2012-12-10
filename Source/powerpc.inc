@@ -86,7 +86,7 @@ rfloat_loop:
 	{ build up the stack here }
 	mr	r3, r31		{ counter }
 	subic.	r3, r3, 24	{ don't write first 24 }
-	blt	cr0, load_regs	{ don't fill in stack if there is none }
+	ble	cr0, load_regs	{ don't fill in stack if there is none }
 
 	lwz	r2, 60(r12)	{ pointer to stack }
 	addi	r2, r2, 24	{ start of params }
@@ -240,6 +240,10 @@ begin
   setlength(st, stindex);
   Result := False;
 
+  if assigned(_Self) then begin
+    addgen(dword(_Self));
+  end;
+  
   { the pointer of the result needs to be passed first in the case of some result types }
   if assigned(res)
     then begin

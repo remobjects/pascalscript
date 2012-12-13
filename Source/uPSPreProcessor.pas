@@ -567,6 +567,7 @@ var
   current, i: Longint;
   ds: TPSDefineState;
   AppContinue: Boolean;
+  ADoWrite: Boolean;
 begin
   if Level > MaxLevel then raise EPSPreProcessor.CreateFmt(RPS_TooManyNestedInclude, [FileName, OrgFileName]);
   Parser := TPSPascalPreProcessorParser.Create;
@@ -646,14 +647,14 @@ begin
           begin
             if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
             //JeromeWelsh - nesting fix
-            FDefineState.Add.DoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) <> -1)
-              and FDefineState.DoWrite;
+            ADoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) >= 0) and FDefineState.DoWrite;
+            FDefineState.Add.DoWrite := ADoWrite;
           end else if (Name = 'IFNDEF') then
           begin
             if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
             //JeromeWelsh - nesting fix
-            FDefineState.Add.DoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) = -1)
-              and FDefineState.DoWrite;
+            ADoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) < 0) and FDefineState.DoWrite;
+            FDefineState.Add.DoWrite := ADoWrite;
           end else if (Name = 'ENDIF') then
           begin
             //- jgv remove - borland use it (sysutils.pas)
@@ -716,7 +717,11 @@ var
   Stream: TMemoryStream;
 begin
   FAddedPosition := 0;
+  {$IFDEF FPC}
+  FCurrentDefines.AddStrings(FDefines);
+  {$ELSE}
   FCurrentDefines.Assign(FDefines);
+  {$ENDIF}
   Stream := TMemoryStream.Create;
   try
     IntPreProcess(0, '', FileName, Stream);
@@ -794,4 +799,4 @@ begin
   else Result := TPSDefineState(FItems[FItems.Count -2]).DoWrite;
 end;
 
-end.
+end.

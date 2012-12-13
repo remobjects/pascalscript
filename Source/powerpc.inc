@@ -8,7 +8,9 @@
 {$ifndef cpu32}
   {$fatal This code is 32bit specific at the moment!}
 {$endif}
-
+// FPC does not always push a copy of r3 - r10 to the stack (24(r1) - 52(r1)
+// The API states that the space must be reserved, if the regiser contents are not placed there.
+{$define NeedRegCopyOnStack}
 const
   rtINT = 0;
   rtINT64 = 1;
@@ -171,6 +173,54 @@ asmcall_end:			{ epilogue }
 	blr
 end;
 
+Procedure FlipHiLo1(v: byte): byte;
+var
+  i: integer
+  j, k: byte;
+begin
+  Result := 0;
+  j := 1;
+  k := $80;
+  for i := 0 to 7 do begin
+    if (v and k) <> 0 then
+      Result := Result or j;
+    k := k div 2;
+    j := j * 2;
+  end;
+end;
+
+Procedure FlipHiLo2(v: word): byte;
+var
+  i: integer
+  j, k: word;
+begin
+  Result := 0;
+  j := 1;
+  k := $8000;
+  for i := 0 to 15 do begin
+    if (v and k) <> 0 then
+      Result := Result or j;
+    k := k div 2;
+    j := j * 2;
+  end;
+end;
+
+Procedure FlipHiLo4(v: cardinal): byte;
+var
+  i: integer
+  j, k: cardinal;
+begin
+  Result := 0;
+  j := 1;
+  k := $80000000;
+  for i := 0 to 31 do begin
+    if (v and k) <> 0 then
+      Result := Result or j;
+    k := k div 2;
+    j := j * 2;
+  end;
+end;
+
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   rint: Trint;			{ registers r3 to r10 }
@@ -182,6 +232,11 @@ var
   { add a dword to stack }
   procedure addstackdword(value: dword);
   begin
+    {$ifndef NeedRegCopyOnStack}
+    if stindex = 0 then begin
+      stindex := 56; // leave empty space for registers on stack
+    end;
+    {$endif}
     setlength(st, stindex+4);
     pdword(@st[stindex])^ := value;
     inc(stindex, 4);
@@ -190,6 +245,11 @@ var
   { add a float to stack }
   procedure addstackfloat(value: pointer; size: integer);
   begin
+    {$ifndef NeedRegCopyOnStack}
+    if stindex = 0 then begin
+      stindex := 56; // leave empty space for registers on stack
+    end;
+    {$endif}
     setlength(st, stindex + (size * 4));
     if size = 1
       then psingle(@st[stindex])^ := single(value^)
@@ -204,7 +264,9 @@ var
       then begin
         rint[rindex] := value;
         inc(rindex);
+        {$ifdef NeedRegCopyOnStack}
         addstackdword(value);
+        {$endif}      
       end
       else begin
         addstackdword(value);
@@ -221,7 +283,9 @@ var
           else rfloat[findex] := double(value^);
         inc(findex);
         inc(rindex, size);
-        addstackfloat(value, size);
+        {$ifdef NeedRegCopyOnStack}
+       addstackfloat(value, size);
+        {$endif}
       end
       else begin
         addstackfloat(value, size);
@@ -236,7 +300,11 @@ begin
 
   rindex := 1;
   findex := 1;
-  stindex := 24;
+  {$ifdef NeedRegCopyOnStack}
+   stindex := 24;
+  {$else}
+  stindex := 0; // do not create a stack, if only registers are used
+  {$endif}
   setlength(st, stindex);
   Result := False;
 
@@ -297,7 +365,13 @@ begin
           btRecord:                            for j := 0 to (fvar.atype.realsize div 4)-1 do
                                                  addgen(pdword(fvar.dta + j*4)^);
           btArray:                             addgen(dword(fvar.dta^));
-
+          btSet: begin
+              case TPSTypeRec_Set(fvar.aType).aByteSize of
+                1: addgen(dword(FlipHiLo1(byte(fvar.dta^))));
+                2: addgen(dword(FlipHiLo2(word(fvar.dta^))));
+                3, 4: addgen(dword(FlipHiLo4(cardinal(fvar.dta^))));
+              end;
+            end;
           { TODO add and test }
 {          btVariant, btSet, btInterface, btClass  }
 
@@ -308,7 +382,10 @@ begin
         end;  { case }
       end;  { else }
   end;  { for }
-
+  if (stindex mod 16) <> 0 then begin
+    stindex := stindex + 16 - (stindex mod 16);
+    setlength(st, stindex);
+  end;
   if not assigned(res)
     then begin
       ppcasmcall(rint, rfloat, address, st, stindex, rtINT);  { ignore return }

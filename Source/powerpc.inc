@@ -173,47 +173,15 @@ asmcall_end:			{ epilogue }
 	blr
 end;
 
-Procedure FlipHiLo1(v: byte): byte;
+function FlipHiLo(v: byte): byte;
 var
-  i: integer
+  i: integer;
   j, k: byte;
 begin
   Result := 0;
-  j := 1;
   k := $80;
+  j := $01;
   for i := 0 to 7 do begin
-    if (v and k) <> 0 then
-      Result := Result or j;
-    k := k div 2;
-    j := j * 2;
-  end;
-end;
-
-Procedure FlipHiLo2(v: word): byte;
-var
-  i: integer
-  j, k: word;
-begin
-  Result := 0;
-  j := 1;
-  k := $8000;
-  for i := 0 to 15 do begin
-    if (v and k) <> 0 then
-      Result := Result or j;
-    k := k div 2;
-    j := j * 2;
-  end;
-end;
-
-Procedure FlipHiLo4(v: cardinal): byte;
-var
-  i: integer
-  j, k: cardinal;
-begin
-  Result := 0;
-  j := 1;
-  k := $80000000;
-  for i := 0 to 31 do begin
     if (v and k) <> 0 then
       Result := Result or j;
     k := k div 2;
@@ -226,9 +194,12 @@ var
   rint: Trint;			{ registers r3 to r10 }
   rfloat: Trfloat;		{ registers f1 to f13 }
   st: packed array of byte;	{ stack }
-  i, j, rindex, findex, stindex: integer;
+  i, j, n, m, rindex, findex, stindex: integer;
   fvar: PPSVariantIFC;
   IsConstructor: Boolean;
+  fSetHelper: dword;
+  fSetP1, fsetP2: PByte;
+
   { add a dword to stack }
   procedure addstackdword(value: dword);
   begin
@@ -266,7 +237,7 @@ var
         inc(rindex);
         {$ifdef NeedRegCopyOnStack}
         addstackdword(value);
-        {$endif}      
+        {$endif}
       end
       else begin
         addstackdword(value);
@@ -284,7 +255,7 @@ var
         inc(findex);
         inc(rindex, size);
         {$ifdef NeedRegCopyOnStack}
-       addstackfloat(value, size);
+        addstackfloat(value, size);
         {$endif}
       end
       else begin
@@ -301,7 +272,7 @@ begin
   rindex := 1;
   findex := 1;
   {$ifdef NeedRegCopyOnStack}
-   stindex := 24;
+  stindex := 24;
   {$else}
   stindex := 0; // do not create a stack, if only registers are used
   {$endif}
@@ -311,12 +282,12 @@ begin
   if assigned(_Self) then begin
     addgen(dword(_Self));
   end;
-  
+
   { the pointer of the result needs to be passed first in the case of some result types }
   if assigned(res)
     then begin
       case res.atype.basetype of
-        btStaticArray, btRecord: addgen(dword(res.dta));
+        btStaticArray, btRecord, btString: addgen(dword(res.dta));
       end;
     end;
 
@@ -366,12 +337,27 @@ begin
                                                  addgen(pdword(fvar.dta + j*4)^);
           btArray:                             addgen(dword(fvar.dta^));
           btSet: begin
-              case TPSTypeRec_Set(fvar.aType).aByteSize of
-                1: addgen(dword(FlipHiLo1(byte(fvar.dta^))));
-                2: addgen(dword(FlipHiLo2(word(fvar.dta^))));
-                3, 4: addgen(dword(FlipHiLo4(cardinal(fvar.dta^))));
+
+              fSetP1 := fvar.dta;
+              fSetP2 := @fSetHelper;
+              fSetHelper := 0;
+              for n := 1 to TPSTypeRec_Set(fvar.aType).aByteSize do
+              begin
+                fSetP2^ := fliphilo(fSetP1^);
+                inc(fSetP1);
+                inc(fSetP2);
+                if n and 3 = 0
+                then begin
+                  addgen(fSetHelper);
+                  fSetP2 := @fSetHelper;
+                  fSetHelper := 0;
+                end;
               end;
+              if TPSTypeRec_Set(fvar.aType).aByteSize and 3 <> 0
+              then addgen(fSetHelper);
+
             end;
+
           { TODO add and test }
 {          btVariant, btSet, btInterface, btClass  }
 
@@ -382,10 +368,12 @@ begin
         end;  { case }
       end;  { else }
   end;  { for }
+
   if (stindex mod 16) <> 0 then begin
     stindex := stindex + 16 - (stindex mod 16);
     setlength(st, stindex);
   end;
+
   if not assigned(res)
     then begin
       ppcasmcall(rint, rfloat, address, st, stindex, rtINT);  { ignore return }
@@ -393,7 +381,7 @@ begin
     else begin
       case res.atype.basetype of
         { add result types here }
-        btString:                pstring(res.dta)^ := pstring(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^;
+        btString:                ppcasmcall(rint, rfloat, address, st, stindex, rtINT);
         btU8, btS8:              pbyte(res.dta)^ := byte(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btU16, btS16:            pword(res.dta)^ := word(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btU32, btS32:            pdword(res.dta)^ := pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^;

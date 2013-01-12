@@ -7072,7 +7072,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
 {$IFNDEF PS_NOIDISPATCH}
     procedure CheckIntf(var P: TPSValue; const VarType: TPSVariableType; VarNo: Cardinal; ImplicitPeriod: Boolean);
     var
-      Procno, Idx: Cardinal;
+      Procno: Cardinal;
+      Idx: TPSInterfaceMethod;
       FType: TPSType;
       s: tbtString;
 

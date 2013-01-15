@@ -8709,6 +8709,11 @@ var
   pex: TPSExceptionHandler;
   Tmp: TObject;
 begin
+  { The following needs to be in synch in these 3 functions:
+    -UPSCompiler.TPSPascalCompiler.DefineStandardProcedures
+    -UPSRuntime.DefProc
+    -UPSRuntime.TPSExec.RegisterStandardProcs
+  }
   case Longint(p.Ext1) of
     0: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2)))); // inttostr
     1: Stack.SetInt(-1, StrToInt(Stack.GetAnsiString(-2))); // strtoint
@@ -8934,8 +8939,9 @@ begin
 {$IFNDEF PS_NOINT64}
     39: Stack.SetInt64(-1, StrToInt64(string(Stack.GetAnsiString(-2))));  // StrToInt64
     40: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.GetInt64(-2))));// Int64ToStr
+    41: Stack.SetInt64(-1, StrToInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetInt64(-3))); // StrToInt64Def
 {$ENDIF}
-    41:  // sizeof
+    42:  // sizeof
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], False);
         if Temp.aType = nil then
@@ -8944,7 +8950,7 @@ begin
           Stack.SetInt(-1, Temp.aType.RealSize)
       end;
 {$IFNDEF PS_NOWIDESTRING}
-    42: // WStrGet
+    43: // WStrGet
       begin
         temp :=  NewTPSVariantIFC(Stack[Stack.Count -2], True);
         if temp.dta = nil then begin
@@ -8982,7 +8988,7 @@ begin
           end;
         end;
       end;
-    43: // WStrSet
+    44: // WStrSet
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -3], True);
         if (temp.Dta = nil)  then
@@ -9241,6 +9247,11 @@ end;
 
 procedure TPSExec.RegisterStandardProcs;
 begin
+  { The following needs to be in synch in these 3 functions:
+    -UPSCompiler.TPSPascalCompiler.DefineStandardProcedures
+    -UPSRuntime.DefProc
+    -UPSRuntime.TPSExec.RegisterStandardProcs
+  }
   RegisterFunctionName('!NOTIFICATIONVARIANTSET', NVarProc, Pointer(0), nil);
   RegisterFunctionName('!NOTIFICATIONVARIANTGET', NVarProc, Pointer(1), nil);
 
@@ -9308,12 +9319,13 @@ begin
   {$IFNDEF PS_NOINT64}
   RegisterFunctionName('STRTOINT64', DefProc, Pointer(39), nil);
   RegisterFunctionName('INT64TOSTR', DefProc, Pointer(40), nil);
+  RegisterFunctionName('STRTOINT64DEF', DefProc, Pointer(41), nil);
   {$ENDIF}
-  RegisterFunctionName('SIZEOF', DefProc, Pointer(41), nil);
+  RegisterFunctionName('SIZEOF', DefProc, Pointer(42), nil);
 
   {$IFNDEF PS_NOWIDESTRING}
-  RegisterFunctionName('WSTRGET', DefProc, Pointer(42), nil);
-  RegisterFunctionName('WSTRSET', DefProc, Pointer(43), nil);
+  RegisterFunctionName('WSTRGET', DefProc, Pointer(43), nil);
+  RegisterFunctionName('WSTRSET', DefProc, Pointer(44), nil);
 
   {$ENDIF}
   {$IFNDEF DELPHI6UP}

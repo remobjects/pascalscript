@@ -8710,7 +8710,7 @@ var
   Tmp: TObject;
 begin
   case Longint(p.Ext1) of
-    0: Stack.SetAnsiString(-1, IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2))); // inttostr
+    0: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2)))); // inttostr
     1: Stack.SetInt(-1, StrToInt(Stack.GetAnsiString(-2))); // strtoint
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetAnsiString(-2), Stack.GetInt(-3))); // strtointdef
     3:
@@ -8770,7 +8770,7 @@ begin
     7: // StrGet
       begin
         temp :=  NewTPSVariantIFC(Stack[Stack.Count -2], True);
-        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then 
+        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then
         begin
           Result := False;
           exit;

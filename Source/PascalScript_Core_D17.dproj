@@ -62,21 +62,21 @@
 			<DCC_K>false</DCC_K>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base_Win64)'!=''">
-			<DCC_BplOutput>..\Dcu\D16\win64</DCC_BplOutput>
-			<DCC_UnitSearchPath>..\Dcu\D16\win64;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_DcpOutput>..\Dcu\D16\win64</DCC_DcpOutput>
-			<DCC_DcuOutput>..\Dcu\D16\win64</DCC_DcuOutput>
+			<DCC_BplOutput>..\Dcu\D17\win64</DCC_BplOutput>
+			<DCC_UnitSearchPath>..\Dcu\D17\win64;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_DcpOutput>..\Dcu\D17\win64</DCC_DcpOutput>
+			<DCC_DcuOutput>..\Dcu\D17\win64</DCC_DcuOutput>
 			<DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
 			<DCC_UsePackage>vcl;$(DCC_UsePackage)</DCC_UsePackage>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base_Win32)'!=''">
 			<DCC_Namespace>System.Win;$(DCC_Namespace)</DCC_Namespace>
-			<DCC_BplOutput>..\Dcu\D16\win32</DCC_BplOutput>
-			<DCC_UnitSearchPath>..\Dcu\D16\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_DcpOutput>..\Dcu\D16\win32</DCC_DcpOutput>
-			<DCC_DcuOutput>..\Dcu\D16\win32</DCC_DcuOutput>
-			<DCC_UsePackage>vcl;PascalScript_Core_D16;$(DCC_UsePackage)</DCC_UsePackage>
+			<DCC_BplOutput>..\Dcu\D17\win32</DCC_BplOutput>
+			<DCC_UnitSearchPath>..\Dcu\D17\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_DcpOutput>..\Dcu\D17\win32</DCC_DcpOutput>
+			<DCC_DcuOutput>..\Dcu\D17\win32</DCC_DcuOutput>
+			<DCC_UsePackage>vcl;PascalScript_Core_D17;$(DCC_UsePackage)</DCC_UsePackage>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>

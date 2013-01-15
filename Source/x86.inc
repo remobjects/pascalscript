@@ -549,11 +549,6 @@ begin
             if not GetPtr(rp(Params[I])) then Exit;
           end;
 
-          {$IFDEF DARWIN}
-          if (length(Stack) mod 16) <> 0 then begin
-            Stack := Stack + StringOfChar(ansichar(#32), 16 - (Length(Stack) mod 16)) ;
-          end;
-          {$ENDIF}
           if assigned(res) then begin
             case res^.aType.BaseType of
               {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}
@@ -563,6 +558,11 @@ begin
                   if TPSTypeRec_Set(res.aType).aByteSize >4 then GetPtr(res);
                 end;
             end;
+            {$IFDEF DARWIN}
+            if (length(Stack) mod 16) <> 0 then begin
+              Stack := Stack + StringOfChar(ansichar(#32), 16 - (Length(Stack) mod 16)) ;
+            end;
+            {$ENDIF} 			
             case res^.aType.BaseType of
               btSet:
                 begin
@@ -613,8 +613,14 @@ begin
             else
               exit;
             end;
-          end else
+          end else begin
+            {$IFDEF DARWIN}
+            if (length(Stack) mod 16) <> 0 then begin
+              Stack := Stack + StringOfChar(ansichar(#32), 16 - (Length(Stack) mod 16)) ;
+            end;
+            {$ENDIF} 		  
             RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
+		  end;
           Result := True;
         end;
       cdPascal: begin

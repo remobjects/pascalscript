@@ -8,7 +8,9 @@
 {$ifndef cpu32}
   {$fatal This code is 32bit specific at the moment!}
 {$endif}
-
+// FPC does not always push a copy of r3 - r10 to the stack (24(r1) - 52(r1)
+// The API states that the space must be reserved, if the regiser contents are not placed there.
+{$define NeedRegCopyOnStack}
 const
   rtINT = 0;
   rtINT64 = 1;
@@ -86,7 +88,7 @@ rfloat_loop:
 	{ build up the stack here }
 	mr	r3, r31		{ counter }
 	subic.	r3, r3, 24	{ don't write first 24 }
-	blt	cr0, load_regs	{ don't fill in stack if there is none }
+	ble	cr0, load_regs	{ don't fill in stack if there is none }
 
 	lwz	r2, 60(r12)	{ pointer to stack }
 	addi	r2, r2, 24	{ start of params }
@@ -171,17 +173,41 @@ asmcall_end:			{ epilogue }
 	blr
 end;
 
+function FlipHiLo(v: byte): byte;
+var
+  i: integer;
+  j, k: byte;
+begin
+  Result := 0;
+  k := $80;
+  j := $01;
+  for i := 0 to 7 do begin
+    if (v and k) <> 0 then
+      Result := Result or j;
+    k := k div 2;
+    j := j * 2;
+  end;
+end;
+
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   rint: Trint;			{ registers r3 to r10 }
   rfloat: Trfloat;		{ registers f1 to f13 }
   st: packed array of byte;	{ stack }
-  i, j, rindex, findex, stindex: integer;
+  i, j, n, m, rindex, findex, stindex: integer;
   fvar: PPSVariantIFC;
   IsConstructor: Boolean;
+  fSetHelper: dword;
+  fSetP1, fsetP2: PByte;
+
   { add a dword to stack }
   procedure addstackdword(value: dword);
   begin
+    {$ifndef NeedRegCopyOnStack}
+    if stindex = 0 then begin
+      stindex := 56; // leave empty space for registers on stack
+    end;
+    {$endif}
     setlength(st, stindex+4);
     pdword(@st[stindex])^ := value;
     inc(stindex, 4);
@@ -190,6 +216,11 @@ var
   { add a float to stack }
   procedure addstackfloat(value: pointer; size: integer);
   begin
+    {$ifndef NeedRegCopyOnStack}
+    if stindex = 0 then begin
+      stindex := 56; // leave empty space for registers on stack
+    end;
+    {$endif}
     setlength(st, stindex + (size * 4));
     if size = 1
       then psingle(@st[stindex])^ := single(value^)
@@ -204,7 +235,9 @@ var
       then begin
         rint[rindex] := value;
         inc(rindex);
+        {$ifdef NeedRegCopyOnStack}
         addstackdword(value);
+        {$endif}
       end
       else begin
         addstackdword(value);
@@ -221,7 +254,9 @@ var
           else rfloat[findex] := double(value^);
         inc(findex);
         inc(rindex, size);
+        {$ifdef NeedRegCopyOnStack}
         addstackfloat(value, size);
+        {$endif}
       end
       else begin
         addstackfloat(value, size);
@@ -236,15 +271,23 @@ begin
 
   rindex := 1;
   findex := 1;
+  {$ifdef NeedRegCopyOnStack}
   stindex := 24;
+  {$else}
+  stindex := 0; // do not create a stack, if only registers are used
+  {$endif}
   setlength(st, stindex);
   Result := False;
+
+  if assigned(_Self) then begin
+    addgen(dword(_Self));
+  end;
 
   { the pointer of the result needs to be passed first in the case of some result types }
   if assigned(res)
     then begin
       case res.atype.basetype of
-        btStaticArray, btRecord: addgen(dword(res.dta));
+        btStaticArray, btRecord, btString: addgen(dword(res.dta));
       end;
     end;
 
@@ -293,6 +336,27 @@ begin
           btRecord:                            for j := 0 to (fvar.atype.realsize div 4)-1 do
                                                  addgen(pdword(fvar.dta + j*4)^);
           btArray:                             addgen(dword(fvar.dta^));
+          btSet: begin
+
+              fSetP1 := fvar.dta;
+              fSetP2 := @fSetHelper;
+              fSetHelper := 0;
+              for n := 1 to TPSTypeRec_Set(fvar.aType).aByteSize do
+              begin
+                fSetP2^ := fliphilo(fSetP1^);
+                inc(fSetP1);
+                inc(fSetP2);
+                if n and 3 = 0
+                then begin
+                  addgen(fSetHelper);
+                  fSetP2 := @fSetHelper;
+                  fSetHelper := 0;
+                end;
+              end;
+              if TPSTypeRec_Set(fvar.aType).aByteSize and 3 <> 0
+              then addgen(fSetHelper);
+
+            end;
 
           { TODO add and test }
 {          btVariant, btSet, btInterface, btClass  }
@@ -305,6 +369,11 @@ begin
       end;  { else }
   end;  { for }
 
+  if (stindex mod 16) <> 0 then begin
+    stindex := stindex + 16 - (stindex mod 16);
+    setlength(st, stindex);
+  end;
+
   if not assigned(res)
     then begin
       ppcasmcall(rint, rfloat, address, st, stindex, rtINT);  { ignore return }
@@ -312,7 +381,7 @@ begin
     else begin
       case res.atype.basetype of
         { add result types here }
-        btString:                pstring(res.dta)^ := pstring(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^;
+        btString:                ppcasmcall(rint, rfloat, address, st, stindex, rtINT);
         btU8, btS8:              pbyte(res.dta)^ := byte(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btU16, btS16:            pword(res.dta)^ := word(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btU32, btS32:            pdword(res.dta)^ := pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^;

@@ -1769,7 +1769,8 @@ begin
   case aType.BaseType of
     btChar, bts8, btU8: tbtu8(p^) := 0;
     {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}bts16, btU16: tbtu16(p^) := 0;
-    btSingle, bts32, btU32,
+    btSingle: TbtSingle(P^) := 0;
+    bts32, btU32: TbtU32(P^) := 0;
     btPChar, btString, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}btClass,
     btInterface, btArray: Pointer(P^) := nil;
     btPointer:

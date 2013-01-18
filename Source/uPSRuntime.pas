@@ -9176,6 +9176,9 @@ begin
     btS16        : Stack.SetInt(-1,Low(SmallInt));    //SmallInt: -32768
     btU32        : Stack.SetInt(-1,Low(Cardinal));    //Cardinal/LongWord: 0
     btS32        : Stack.SetInt(-1,Low(Integer));     //Integer/LongInt: -2147483648
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,Low(Int64));     //Int64: -9223372036854775808
+{$ENDIF}
     else Result:=false;
   end;
 end;
@@ -9194,8 +9197,11 @@ begin
     btS8         : Stack.SetInt(-1,High(ShortInt));   //ShortInt: 127
     btU16        : Stack.SetInt(-1,High(Word));       //Word: 65535
     btS16        : Stack.SetInt(-1,High(SmallInt));   //SmallInt: 32767
-    btU32        : Stack.SetUInt(-1,High(Cardinal));   //Cardinal/LongWord: 4294967295
+    btU32        : Stack.SetUInt(-1,High(Cardinal));  //Cardinal/LongWord: 4294967295
     btS32        : Stack.SetInt(-1,High(Integer));    //Integer/LongInt: 2147483647
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,High(Int64));    //Int64: 9223372036854775807
+{$ENDIF}
     else Result:=false;
   end;
 end;
@@ -9213,6 +9219,9 @@ begin
     btS16        : Stack.SetInt(-1,Tbts16(arr.dta^)-1);    //SmallInt
     btU32        : Stack.SetInt(-1,Tbtu32(arr.dta^)-1);    //Cardinal/LongWord
     btS32        : Stack.SetInt(-1,Tbts32(arr.dta^)-1);    //Integer/LongInt
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,Tbts64(arr.dta^)-1);
+{$ENDIF}
     else Result:=false;
   end;
 end;
@@ -9230,6 +9239,9 @@ begin
     btS16        : Stack.SetInt(-1,Tbts16(arr.dta^)+1);    //SmallInt
     btU32        : Stack.SetInt(-1,Tbtu32(arr.dta^)+1);    //Cardinal/LongWord
     btS32        : Stack.SetInt(-1,Tbts32(arr.dta^)+1);    //Integer/LongInt
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,Tbts64(arr.dta^)+1);
+{$ENDIF}
     else Result:=false;
   end;
 end;

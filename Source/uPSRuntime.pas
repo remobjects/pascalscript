@@ -8709,8 +8709,13 @@ var
   pex: TPSExceptionHandler;
   Tmp: TObject;
 begin
+  { The following needs to be in synch in these 3 functions:
+    -UPSCompiler.TPSPascalCompiler.DefineStandardProcedures
+    -UPSRuntime.DefProc
+    -UPSRuntime.TPSExec.RegisterStandardProcs
+  }
   case Longint(p.Ext1) of
-    0: Stack.SetAnsiString(-1, IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2))); // inttostr
+    0: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2)))); // inttostr
     1: Stack.SetInt(-1, StrToInt(Stack.GetAnsiString(-2))); // strtoint
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetAnsiString(-2), Stack.GetInt(-3))); // strtointdef
     3:
@@ -8770,7 +8775,7 @@ begin
     7: // StrGet
       begin
         temp :=  NewTPSVariantIFC(Stack[Stack.Count -2], True);
-        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then 
+        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then
         begin
           Result := False;
           exit;
@@ -8934,8 +8939,9 @@ begin
 {$IFNDEF PS_NOINT64}
     39: Stack.SetInt64(-1, StrToInt64(string(Stack.GetAnsiString(-2))));  // StrToInt64
     40: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.GetInt64(-2))));// Int64ToStr
+    41: Stack.SetInt64(-1, StrToInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetInt64(-3))); // StrToInt64Def
 {$ENDIF}
-    41:  // sizeof
+    42:  // sizeof
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], False);
         if Temp.aType = nil then
@@ -8944,7 +8950,7 @@ begin
           Stack.SetInt(-1, Temp.aType.RealSize)
       end;
 {$IFNDEF PS_NOWIDESTRING}
-    42: // WStrGet
+    43: // WStrGet
       begin
         temp :=  NewTPSVariantIFC(Stack[Stack.Count -2], True);
         if temp.dta = nil then begin
@@ -8982,7 +8988,7 @@ begin
           end;
         end;
       end;
-    43: // WStrSet
+    44: // WStrSet
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -3], True);
         if (temp.Dta = nil)  then
@@ -9170,6 +9176,9 @@ begin
     btS16        : Stack.SetInt(-1,Low(SmallInt));    //SmallInt: -32768
     btU32        : Stack.SetInt(-1,Low(Cardinal));    //Cardinal/LongWord: 0
     btS32        : Stack.SetInt(-1,Low(Integer));     //Integer/LongInt: -2147483648
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,Low(Int64));     //Int64: -9223372036854775808
+{$ENDIF}
     else Result:=false;
   end;
 end;
@@ -9188,8 +9197,11 @@ begin
     btS8         : Stack.SetInt(-1,High(ShortInt));   //ShortInt: 127
     btU16        : Stack.SetInt(-1,High(Word));       //Word: 65535
     btS16        : Stack.SetInt(-1,High(SmallInt));   //SmallInt: 32767
-    btU32        : Stack.SetUInt(-1,High(Cardinal));   //Cardinal/LongWord: 4294967295
+    btU32        : Stack.SetUInt(-1,High(Cardinal));  //Cardinal/LongWord: 4294967295
     btS32        : Stack.SetInt(-1,High(Integer));    //Integer/LongInt: 2147483647
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,High(Int64));    //Int64: 9223372036854775807
+{$ENDIF}
     else Result:=false;
   end;
 end;
@@ -9207,6 +9219,9 @@ begin
     btS16        : Stack.SetInt(-1,Tbts16(arr.dta^)-1);    //SmallInt
     btU32        : Stack.SetInt(-1,Tbtu32(arr.dta^)-1);    //Cardinal/LongWord
     btS32        : Stack.SetInt(-1,Tbts32(arr.dta^)-1);    //Integer/LongInt
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,Tbts64(arr.dta^)-1);
+{$ENDIF}
     else Result:=false;
   end;
 end;
@@ -9224,6 +9239,9 @@ begin
     btS16        : Stack.SetInt(-1,Tbts16(arr.dta^)+1);    //SmallInt
     btU32        : Stack.SetInt(-1,Tbtu32(arr.dta^)+1);    //Cardinal/LongWord
     btS32        : Stack.SetInt(-1,Tbts32(arr.dta^)+1);    //Integer/LongInt
+{$IFNDEF PS_NOINT64}
+    btS64        : Stack.SetInt64(-1,Tbts64(arr.dta^)+1);
+{$ENDIF}
     else Result:=false;
   end;
 end;
@@ -9241,6 +9259,11 @@ end;
 
 procedure TPSExec.RegisterStandardProcs;
 begin
+  { The following needs to be in synch in these 3 functions:
+    -UPSCompiler.TPSPascalCompiler.DefineStandardProcedures
+    -UPSRuntime.DefProc
+    -UPSRuntime.TPSExec.RegisterStandardProcs
+  }
   RegisterFunctionName('!NOTIFICATIONVARIANTSET', NVarProc, Pointer(0), nil);
   RegisterFunctionName('!NOTIFICATIONVARIANTGET', NVarProc, Pointer(1), nil);
 
@@ -9308,12 +9331,13 @@ begin
   {$IFNDEF PS_NOINT64}
   RegisterFunctionName('STRTOINT64', DefProc, Pointer(39), nil);
   RegisterFunctionName('INT64TOSTR', DefProc, Pointer(40), nil);
+  RegisterFunctionName('STRTOINT64DEF', DefProc, Pointer(41), nil);
   {$ENDIF}
-  RegisterFunctionName('SIZEOF', DefProc, Pointer(41), nil);
+  RegisterFunctionName('SIZEOF', DefProc, Pointer(42), nil);
 
   {$IFNDEF PS_NOWIDESTRING}
-  RegisterFunctionName('WSTRGET', DefProc, Pointer(42), nil);
-  RegisterFunctionName('WSTRSET', DefProc, Pointer(43), nil);
+  RegisterFunctionName('WSTRGET', DefProc, Pointer(43), nil);
+  RegisterFunctionName('WSTRSET', DefProc, Pointer(44), nil);
 
   {$ENDIF}
   {$IFNDEF DELPHI6UP}

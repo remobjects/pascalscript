@@ -474,7 +474,7 @@ var
             TMethod((@TempStr[1])^) := MKMethod(Self, Longint(FVar.Dta^));
             UseReg := false;
 {$ENDIF}
-         end;
+          end;
 
         {$IFNDEF PS_NOINT64}bts64:
           begin

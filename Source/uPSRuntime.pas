@@ -10875,7 +10875,7 @@ begin
       Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
     finally
       Params.Clear;
-      DestroyHeapVariant(n2);
+      //DestroyHeapVariant(n2);
       DisposePPSVariantIFCList(Params);
     end;
   end;

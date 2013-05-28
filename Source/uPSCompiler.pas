@@ -6774,7 +6774,11 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               u := rr.aType;
             end;
           end
-          {$IFDEF PS_HAVEVARIANT}else if (u.BaseType = btVariant) then break else {$ENDIF}
+          {$IFDEF PS_HAVEVARIANT}
+          else if (u.BaseType = btVariant) then break else
+          {$ELSE}
+          ;
+          {$ENDIF}
 
           begin
             x.Free;

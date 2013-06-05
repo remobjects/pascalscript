@@ -9245,6 +9245,40 @@ begin
     else Result:=false;
   end;
 end;
+
+function Include_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  TheSet, NewMember: TPSVariantIFC;
+  SetData: PByteArray;
+  Val: Tbtu8;
+begin
+  Result:=true;
+  TheSet:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
+  NewMember:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
+  Result := (TheSet.aType.BaseType = btSet) and (NewMember.aType.BaseType = btU8);
+  if not Result then Exit;
+  SetData := TheSet.Dta;
+  Val := Tbtu8(NewMember.dta^);
+  SetData^[Val shr 3] := SetData^[Val shr 3] or (1 shl (Val and 7));
+end;
+
+function Exclude_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  TheSet, NewMember: TPSVariantIFC;
+  SetData: PByteArray;
+  Val: Tbtu8;
+begin
+  Result:=true;
+  TheSet:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
+  NewMember:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
+  Result := (TheSet.aType.BaseType = btSet) and (NewMember.aType.BaseType = btU8);
+  if not Result then Exit;
+  SetData := TheSet.Dta;
+  Val := Tbtu8(NewMember.dta^);
+  SetData^[Val shr 3] := SetData^[Val shr 3] and not (1 shl (Val and 7));
+end;
+
+
 {$IFNDEF DELPHI6UP}
 function _VarArrayGet(var S : Variant; I : Integer) : Variant;
 begin
@@ -9287,6 +9321,8 @@ begin
   RegisterFunctionName('HIGH',High_,nil,nil);
   RegisterFunctionName('DEC',Dec_,nil,nil);
   RegisterFunctionName('INC',Inc_,nil,nil);
+  RegisterFunctionName('INCLUDE',Include_,nil,nil);
+  RegisterFunctionName('EXCLUDE',Exclude_,nil,nil);
 
   RegisterFunctionName('SIN', DefProc, Pointer(15), nil);
   RegisterFunctionName('COS', DefProc, Pointer(16), nil);

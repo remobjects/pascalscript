@@ -9609,7 +9609,7 @@ begin
       exit;
     end;
     case lType.BaseType of
-      btU8, btS8, btU16, btS16, btU32, btS32, {$IFNDEF PS_NOINT64} btS64, {$ENDIF} btVariant: ;
+      btU8, btS8, btU16, btS16, btU32, btS32, {$IFNDEF PS_NOINT64} btS64, {$ENDIF} btVariant, btEnum: ;
     else
       begin
         MakeError('', ecTypeMismatch, '');
@@ -9657,7 +9657,7 @@ begin
       exit;
     end;
     case lType.BaseType of
-      btVariant, btU8, btS8, btU16, btS16, btU32, {$IFNDEF PS_NOINT64} btS64, {$ENDIF} btS32: ;
+      btVariant, btEnum, btU8, btS8, btU16, btS16, btU32, {$IFNDEF PS_NOINT64} btS64, {$ENDIF} btS32: ;
     else
       begin
         MakeError('', ecTypeMismatch, '');
@@ -13043,6 +13043,30 @@ begin
     begin
       OrgName:='x';
       Mode:=pmInOut;
+    end;
+  end;
+  with AddFunction('procedure Include;').Decl do begin
+    with AddParam do
+    begin
+      OrgName:='s';
+      Mode:=pmInOut;
+    end;
+    with AddParam do
+    begin
+      OrgName:='m';
+      Mode:=pmIn;
+    end;
+  end;
+  with AddFunction('procedure Exclude;').Decl do begin
+    with AddParam do
+    begin
+      OrgName:='s';
+      Mode:=pmInOut;
+    end;
+    with AddParam do
+    begin
+      OrgName:='m';
+      Mode:=pmIn;
     end;
   end;
   AddFunction('Function Sin(e : Extended) : Extended;');

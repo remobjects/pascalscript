@@ -12979,12 +12979,7 @@ begin
   AddFunction('function Pos(SubStr, S: AnyString): Longint;');
   AddFunction('procedure Delete(var s: AnyString; ifrom, icount: Longint);');
   AddFunction('procedure Insert(s: AnyString; var s2: AnyString; iPos: Longint);');
-  p := AddFunction('function GetArrayLength: integer;');
-  with P.Decl.AddParam do
-  begin
-    OrgName := 'arr';
-    Mode := pmInOut;
-  end;
+  AddFunction('function GetArrayLength: integer;').Decl.AddParam.OrgName := 'arr';
   p := AddFunction('procedure SetArrayLength;');
   with P.Decl.AddParam do
   begin

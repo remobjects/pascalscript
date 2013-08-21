@@ -8087,7 +8087,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 result := nil;
                 exit;
               end;
-              if (GetTypeNo(BlockInfo, NewVar) = nil) or ((GetTypeNo(BlockInfo, NewVar).BaseType <> btClass) and
+              if (GetTypeNo(BlockInfo, NewVar) = nil) or 
+                ((GetTypeNo(BlockInfo, NewVar).BaseType <> btClass) and
+                (GetTypeNo(BlockInfo, NewVar).BaseType <> btInterface) and
                 (GetTypeNo(BlockInfo, NewVar).BaseType <> btPChar) and
                 (GetTypeNo(BlockInfo, NewVar).BaseType <> btString)) then
               begin

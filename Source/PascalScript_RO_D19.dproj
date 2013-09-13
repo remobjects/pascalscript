@@ -1,7 +1,7 @@
 ﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
 			<ProjectGuid>{5DF52809-FD88-4459-9EE6-7D9C833B66C6}</ProjectGuid>
-			<MainSource>PascalScript_RO_D18.dpk</MainSource>
+			<MainSource>PascalScript_RO_D19.dpk</MainSource>
 			<Base>True</Base>
 			<Config Condition="'$(Config)'==''">Debug</Config>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
@@ -71,10 +71,10 @@
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base_Win32)'!=''">
-			<DCC_UnitSearchPath>..\Dcu\D18\win32;..\..\RemObjects SDK for Delphi\Dcu\D18\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_BplOutput>..\Dcu\D18\win32</DCC_BplOutput>
-			<DCC_DcpOutput>..\Dcu\D18\win32</DCC_DcpOutput>
-			<DCC_DcuOutput>..\Dcu\D18\win32</DCC_DcuOutput>
+			<DCC_UnitSearchPath>..\Dcu\D19\win32;..\..\RemObjects SDK for Delphi\Dcu\D19\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_BplOutput>..\Dcu\D19\win32</DCC_BplOutput>
+			<DCC_DcpOutput>..\Dcu\D19\win32</DCC_DcpOutput>
+			<DCC_DcuOutput>..\Dcu\D19\win32</DCC_DcuOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -101,9 +101,9 @@
 			<DCCReference Include="IndyCore.dcp"/>
 			<DCCReference Include="IndySystem.dcp"/>
 			<DCCReference Include="IndyProtocols.dcp"/>
-			<DCCReference Include="PascalScript_Core_D18.dcp"/>
-			<DCCReference Include="RemObjects_Core_D18.dcp"/>
-			<DCCReference Include="RemObjects_Indy_D18.dcp"/>
+			<DCCReference Include="PascalScript_Core_D19.dcp"/>
+			<DCCReference Include="RemObjects_Core_D19.dcp"/>
+			<DCCReference Include="RemObjects_Indy_D19.dcp"/>
 			<DCCReference Include="dbrtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>
 			<DCCReference Include="vclx.dcp"/>
@@ -129,7 +129,7 @@
 			<BorlandProject>
 				<Delphi.Personality>
 					<Source>
-						<Source Name="MainSource">PascalScript_RO_D18.dpk</Source>
+						<Source Name="MainSource">PascalScript_RO_D19.dpk</Source>
 					</Source>
 					<Parameters/>
 					<VersionInfo>

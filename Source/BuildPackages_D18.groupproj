@@ -3,10 +3,10 @@
 			<ProjectGuid>{EB482A50-3627-4F5E-8890-2151D4C8BFBD}</ProjectGuid>
 		</PropertyGroup>
 		<ItemGroup>
-			<Projects Include="PascalScript_Core_D17.dproj">
+			<Projects Include="PascalScript_Core_D18.dproj">
 				<Dependencies/>
 			</Projects>
-			<Projects Include="PascalScript_RO_D17.dproj">
+			<Projects Include="PascalScript_RO_D18.dproj">
 				<Dependencies/>
 			</Projects>
 		</ItemGroup>
@@ -17,32 +17,32 @@
 				<Default.Personality/>
 			</BorlandProject>
 		</ProjectExtensions>
-		<Target Name="PascalScript_Core_D17">
-			<MSBuild Projects="PascalScript_Core_D17.dproj"/>
+		<Target Name="PascalScript_Core_D18">
+			<MSBuild Projects="PascalScript_Core_D18.dproj"/>
 		</Target>
-		<Target Name="PascalScript_Core_D17:Clean">
-			<MSBuild Projects="PascalScript_Core_D17.dproj" Targets="Clean"/>
+		<Target Name="PascalScript_Core_D18:Clean">
+			<MSBuild Projects="PascalScript_Core_D18.dproj" Targets="Clean"/>
 		</Target>
-		<Target Name="PascalScript_Core_D17:Make">
-			<MSBuild Projects="PascalScript_Core_D17.dproj" Targets="Make"/>
+		<Target Name="PascalScript_Core_D18:Make">
+			<MSBuild Projects="PascalScript_Core_D18.dproj" Targets="Make"/>
 		</Target>
-		<Target Name="PascalScript_RO_D17">
-			<MSBuild Projects="PascalScript_RO_D17.dproj"/>
+		<Target Name="PascalScript_RO_D18">
+			<MSBuild Projects="PascalScript_RO_D18.dproj"/>
 		</Target>
-		<Target Name="PascalScript_RO_D17:Clean">
-			<MSBuild Projects="PascalScript_RO_D17.dproj" Targets="Clean"/>
+		<Target Name="PascalScript_RO_D18:Clean">
+			<MSBuild Projects="PascalScript_RO_D18.dproj" Targets="Clean"/>
 		</Target>
-		<Target Name="PascalScript_RO_D17:Make">
-			<MSBuild Projects="PascalScript_RO_D17.dproj" Targets="Make"/>
+		<Target Name="PascalScript_RO_D18:Make">
+			<MSBuild Projects="PascalScript_RO_D18.dproj" Targets="Make"/>
 		</Target>
 		<Target Name="Build">
-			<CallTarget Targets="PascalScript_Core_D17;PascalScript_RO_D17"/>
+			<CallTarget Targets="PascalScript_Core_D18;PascalScript_RO_D18"/>
 		</Target>
 		<Target Name="Clean">
-			<CallTarget Targets="PascalScript_Core_D17:Clean;PascalScript_RO_D17:Clean"/>
+			<CallTarget Targets="PascalScript_Core_D18:Clean;PascalScript_RO_D18:Clean"/>
 		</Target>
 		<Target Name="Make">
-			<CallTarget Targets="PascalScript_Core_D17:Make;PascalScript_RO_D17:Make"/>
+			<CallTarget Targets="PascalScript_Core_D18:Make;PascalScript_RO_D18:Make"/>
 		</Target>
 		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
 	</Project>

@@ -9252,7 +9252,6 @@ var
   SetData: PByteArray;
   Val: Tbtu8;
 begin
-  Result:=true;
   TheSet:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
   NewMember:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
   Result := (TheSet.aType.BaseType = btSet) and (NewMember.aType.BaseType = btU8);
@@ -9268,7 +9267,6 @@ var
   SetData: PByteArray;
   Val: Tbtu8;
 begin
-  Result:=true;
   TheSet:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
   NewMember:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
   Result := (TheSet.aType.BaseType = btSet) and (NewMember.aType.BaseType = btU8);

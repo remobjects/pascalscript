@@ -18,7 +18,7 @@ uses
   {$IFDEF UNIX}
   Unix, baseunix, dynlibs, termio, sockets;
   {$ELSE}
-  Windows;
+  {$IFDEF KYLIX}SysUtils;{$ELSE}Windows;{$ENDIF}
   {$ENDIF}
 
 {
@@ -105,8 +105,16 @@ begin
         Result := False;
         exit;
       end;
+
       {$IFDEF UNIX}
-	  dllhandle := LoadLibrary(PChar(s2));
+      {$DEFINE UNIX_OR_KYLIX}
+      {$ENDIF}
+      {$IFDEF KYLIX}
+      {$DEFINE UNIX_OR_KYLIX}
+      {$ENDIF}
+
+      {$IFDEF UNIX_OR_KYLIX}
+      dllhandle := LoadLibrary(PChar(s2));
       {$ELSE}
       {$IFDEF UNICODE}
       if Copy(s2, 1, 6) = '<utf8>' then

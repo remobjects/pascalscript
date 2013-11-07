@@ -4223,8 +4223,14 @@ begin
 end;
 
 
+{$IFDEF FPC}
+{$DEFINE FPC_OR_KYLIX}
+{$ENDIF}
+{$IFDEF KYLIX}
+{$DEFINE FPC_OR_KYLIX}
+{$ENDIF}
 
-{$if defined(FPC) or defined(KYLIX)}
+{$IFDEF FPC_OR_KYLIX}
 function OleErrorMessage(ErrorCode: HResult): tbtString;
 begin
   Result := SysErrorMessage(ErrorCode);
@@ -4241,7 +4247,7 @@ procedure OleCheck(Result: HResult);
 begin
   if Result < 0 then OleError(Result);
 end;
-{$ifend}
+{$ENDIF}
 
 
 {$IFNDEF DELPHI3UP}

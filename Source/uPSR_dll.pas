@@ -105,7 +105,15 @@ begin
         Result := False;
         exit;
       end;
-      {$if defined(UNIX) or defined(KYLIX)}
+
+      {$IFDEF UNIX}
+      {$DEFINE UNIX_OR_KYLIX}
+      {$ENDIF}
+      {$IFDEF KYLIX}
+      {$DEFINE UNIX_OR_KYLIX}
+      {$ENDIF}
+
+      {$IFDEF UNIX_OR_KYLIX}
       dllhandle := LoadLibrary(PChar(s2));
       {$ELSE}
       {$IFDEF UNICODE}
@@ -120,7 +128,7 @@ begin
         dllhandle := LoadLibraryEx(PChar(Filename), 0, LOAD_WITH_ALTERED_SEARCH_PATH)
       else
         dllhandle := LoadLibrary(PChar(Filename));
-      {$ifend}
+      {$ENDIF}
       if dllhandle = 0 then
       begin
         p.Ext2 := Pointer(1);

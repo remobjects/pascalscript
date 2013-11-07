@@ -69,7 +69,7 @@ var
       btWideChar: Result := 'WideChar';
       btWideString: Result := 'WideString';
       {$ENDIF}
-      btSet: Result := 'Set'; 
+      btSet: Result := 'Set';
       btSingle: Result := 'Single';
       btDouble: Result := 'Double';
       btExtended: Result := 'Extended';
@@ -91,6 +91,13 @@ var
       btClass: Result := 'Class';
       btProcPtr: Result := 'ProcPtr';
       btStaticArray: Result := 'StaticArray['+inttostR(TPSTypeRec_StaticArray(p).Size)+'] of '+BT2S(TPSTypeRec_Array(p).ArrayType);
+      btPChar: Result := 'PChar';
+      btCurrency: Result := 'Currency';
+      btUnicodeString: Result := 'UnicodeString';
+      btInterface: Result := 'Interface';
+      btType: Result := 'Type';
+      btEnum: Result := 'Enum';
+      btExtClass: Result := 'ExtClass';
     else
       Result := 'Unknown '+inttostr(p.BaseType);
     end;

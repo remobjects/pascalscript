@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="DataAbstract_Scripting"/>
+    <AddToProjectUsesSection Value="True"/>
+    <Author Value="RemObjects Software"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="."/>
+        <UnitOutputDirectory Value="../Dcu/Lazarus/$(TargetCPU)-$(TargetOS)/$(LCLWidgetType)"/>
+      </SearchPaths>
+      <Other>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="RemObjects Data Abstract - Scripting Integration Library"/>
+    <Files Count="3">
+      <Item1>
+        <Filename Value="DataAbstract_Scripting_Reg.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="DataAbstract_Scripting_Reg"/>
+      </Item1>
+      <Item2>
+        <Filename Value="uDAPascalScript.pas"/>
+        <UnitName Value="uDAPascalScript"/>
+      </Item2>
+      <Item3>
+        <Filename Value="uDAPSScriptingProvider.pas"/>
+        <UnitName Value="uDAPSScriptingProvider"/>
+      </Item3>
+    </Files>
+    <Type Value="DesignTime"/>
+    <RequiredPkgs Count="3">
+      <Item1>
+        <PackageName Value="PascalScriptFCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="DataAbstract_Core"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item3>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

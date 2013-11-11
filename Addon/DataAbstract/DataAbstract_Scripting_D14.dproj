@@ -5,7 +5,7 @@
 			<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 			<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-			<DCC_DependencyCheckOutputName>..\Dcu\D14\DataAbstract_Scripting_D14.bpl</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>..\..\Dcu\D14\DataAbstract_Scripting_D14.bpl</DCC_DependencyCheckOutputName>
 			<ProjectVersion>11.1</ProjectVersion>
 			<Config Condition="'$(Config)'==''">Base</Config>
 		</PropertyGroup>
@@ -13,17 +13,17 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
-			<DCC_DcuOutput>..\Dcu\D14</DCC_DcuOutput>
-			<DCC_BplOutput>..\Dcu\D14</DCC_BplOutput>
-			<DCC_UnitSearchPath>..\Dcu\D14;..\..\Pascal Script for Delphi\Dcu\D14;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_DcpOutput>..\Dcu\D14</DCC_DcpOutput>
+			<DCC_DcuOutput>..\..\Dcu\D14</DCC_DcuOutput>
+			<DCC_BplOutput>..\..\Dcu\D14</DCC_BplOutput>
+			<DCC_UnitSearchPath>..\..\Dcu\D14;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_DcpOutput>..\..\Dcu\D14</DCC_DcpOutput>
 			<GenDll>true</GenDll>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<GenPackage>true</GenPackage>
 			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
 			<DesignOnlyPackage>false</DesignOnlyPackage>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
-			<DCC_DependencyCheckOutputName>..\Dcu\D14\DataAbstract_Scripting_D14.bpl</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>..\..\Dcu\D14\DataAbstract_Scripting_D14.bpl</DCC_DependencyCheckOutputName>
 			<DCC_Description>RemObjects Data Abstract - Scripting Integration Library</DCC_Description>
 		</PropertyGroup>
 		<ItemGroup>

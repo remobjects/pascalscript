@@ -116,10 +116,10 @@
 		</Linker>
 		<Directories>
 			<Directories Name="OutputDir" Type="String"></Directories>
-			<Directories Name="UnitOutputDir" Type="String">..\Dcu\D9</Directories>
-			<Directories Name="PackageDLLOutputDir" Type="String">..\Dcu\D9</Directories>
-			<Directories Name="PackageDCPOutputDir" Type="String">..\Dcu\D9</Directories>
-			<Directories Name="SearchPath" Type="String">..\Dcu\D9;..\..\Pascal Script\Dcu\D9</Directories>
+			<Directories Name="UnitOutputDir" Type="String">..\..\Dcu\D9</Directories>
+			<Directories Name="PackageDLLOutputDir" Type="String">..\..\Dcu\D9</Directories>
+			<Directories Name="PackageDCPOutputDir" Type="String">..\..\Dcu\D9</Directories>
+			<Directories Name="SearchPath" Type="String">..\..\Dcu\D9</Directories>
 			<Directories Name="Packages" Type="String"></Directories>
 			<Directories Name="Conditionals" Type="String"></Directories>
 			<Directories Name="DebugSourceDirs" Type="String"></Directories>

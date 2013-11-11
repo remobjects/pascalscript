@@ -91,9 +91,9 @@ ImageBase=4194304
 ExeDescription=RemObjects Data Abstract - Scripting Integration Library
 [Directories]
 OutputDir=
-UnitOutputDir=..\Dcu\D7
-PackageDLLOutputDir=..\Dcu\D7
-PackageDCPOutputDir=..\Dcu\D7
+UnitOutputDir=..\..\Dcu\D7
+PackageDLLOutputDir=..\..\Dcu\D7
+PackageDCPOutputDir=..\..\Dcu\D7
 SearchPath=
 Packages=
 Conditionals=

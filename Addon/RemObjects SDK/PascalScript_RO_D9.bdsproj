@@ -116,10 +116,10 @@
 		</Linker>
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
-			<Directories Name="UnitOutputDir">..\Dcu\D9</Directories>
-			<Directories Name="PackageDLLOutputDir">..\Dcu\D9</Directories>
+			<Directories Name="UnitOutputDir">..\..\Dcu\D9</Directories>
+			<Directories Name="PackageDLLOutputDir">..\..\Dcu\D9</Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</Directories>
+			<Directories Name="SearchPath">..\..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>

@@ -54,10 +54,10 @@ ExeDescription=RemObjects Data Abstract - Scripting Integration Library
 
 [Directories]
 OutputDir=
-UnitOutputDir=..\Dcu\D6
-PackageDLLOutputDir=..\Dcu\D6
-PackageDCPOutputDir=..\Dcu\D6
-SearchPath=..\Dcu\D6;..\..\RemObjects SDK for Delphi\Dcu\D6
+UnitOutputDir=..\..\Dcu\D6
+PackageDLLOutputDir=..\..\Dcu\D6
+PackageDCPOutputDir=..\..\Dcu\D6
+SearchPath=..\..\Dcu\D6;..\..\RemObjects SDK for Delphi\Dcu\D6
 Packages=
 Conditionals=
 DebugSourceDirs=

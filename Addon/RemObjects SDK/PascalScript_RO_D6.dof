@@ -93,10 +93,10 @@ ImageBase=4194304
 ExeDescription=RemObjects Pascal Script - RemObjects SDK 3.0 Integration
 
 [Directories]
-UnitOutputDir=..\Dcu\D6
-PackageDLLOutputDir=..\Dcu\D6
+UnitOutputDir=..\..\Dcu\D6
+PackageDLLOutputDir=..\..\Dcu\D6
 PackageDCPOutputDir=
-SearchPath=..\Dcu\D6
+SearchPath=..\..\Dcu\D6
 Conditionals=
 DebugSourceDirs=
 UsePackages=0

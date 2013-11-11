@@ -5,7 +5,7 @@
 			<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 			<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-			<DCC_DependencyCheckOutputName>..\Dcu\D12\PascalScript_RO_D12.bpl</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>..\..\Dcu\D12\PascalScript_RO_D12.bpl</DCC_DependencyCheckOutputName>
 			<ProjectVersion>11.1</ProjectVersion>
 			<Config Condition="'$(Config)'==''">Base</Config>
 		</PropertyGroup>
@@ -15,13 +15,13 @@
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<DCC_SymbolReferenceInfo>1</DCC_SymbolReferenceInfo>
 			<DCC_Description>RemObjects Pascal Script - RemObjects SDK 5.0 Integration</DCC_Description>
-			<DCC_DependencyCheckOutputName>..\Dcu\D14\PascalScript_RO_D14.bpl</DCC_DependencyCheckOutputName>
-			<DCC_UnitSearchPath>..\Dcu\D14;..\..\RemObjects SDK for Dephi\Dcu\D14;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_BplOutput>..\Dcu\D14</DCC_BplOutput>
-			<DCC_DcuOutput>..\Dcu\D14</DCC_DcuOutput>
+			<DCC_DependencyCheckOutputName>..\..\Dcu\D14\PascalScript_RO_D14.bpl</DCC_DependencyCheckOutputName>
+			<DCC_UnitSearchPath>..\..\Dcu\D14;..\..\RemObjects SDK for Dephi\Dcu\D14;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_BplOutput>..\..\Dcu\D14</DCC_BplOutput>
+			<DCC_DcuOutput>..\..\Dcu\D14</DCC_DcuOutput>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<GenDll>true</GenDll>
-			<DCC_DcpOutput>..\Dcu\D14</DCC_DcpOutput>
+			<DCC_DcpOutput>..\..\Dcu\D14</DCC_DcpOutput>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<DesignOnlyPackage>false</DesignOnlyPackage>
 			<GenPackage>true</GenPackage>

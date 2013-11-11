@@ -24,16 +24,16 @@
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
-			<DCC_DcuOutput>..\Dcu\D15</DCC_DcuOutput>
+			<DCC_DcuOutput>..\..\Dcu\D15</DCC_DcuOutput>
 			<GenPackage>true</GenPackage>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;$(DCC_UnitAlias)</DCC_UnitAlias>
-			<DCC_BplOutput>..\Dcu\D15</DCC_BplOutput>
-			<DCC_UnitSearchPath>..\Dcu\D15;..\..\RemObjects SDK for Delphi\Dcu\D15;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_BplOutput>..\..\Dcu\D15</DCC_BplOutput>
+			<DCC_UnitSearchPath>..\..\Dcu\D15;..\..\RemObjects SDK for Delphi\Dcu\D15;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_Description>RemObjects Pascal Script - RemObjects SDK 5.0 Integration</DCC_Description>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<DCC_S>false</DCC_S>
 			<GenDll>true</GenDll>
-			<DCC_DcpOutput>..\Dcu\D15</DCC_DcpOutput>
+			<DCC_DcpOutput>..\..\Dcu\D15</DCC_DcpOutput>
 			<DCC_F>false</DCC_F>
 			<DCC_E>false</DCC_E>
 			<DCC_N>false</DCC_N>

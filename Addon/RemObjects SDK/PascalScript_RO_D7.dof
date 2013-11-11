@@ -94,10 +94,10 @@ ExeDescription=RemObjects Pascal Script - RemObjects SDK 3.0 Integration
 
 [Directories]
 OutputDir=
-UnitOutputDir=..\Dcu\D7
-PackageDLLOutputDir=..\Dcu\D7
+UnitOutputDir=..\..\Dcu\D7
+PackageDLLOutputDir=..\..\Dcu\D7
 PackageDCPOutputDir=
-SearchPath=..\Dcu\D7
+SearchPath=..\..\Dcu\D7
 Packages=
 Conditionals=
 DebugSourceDirs=

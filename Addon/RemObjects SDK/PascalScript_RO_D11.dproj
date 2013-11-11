@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>..\Dcu\D11\PascalScript_RO_D11.bpl</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>..\..\Dcu\D11\PascalScript_RO_D11.bpl</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -14,14 +14,14 @@
     <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
     <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
     <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    <DCC_DcuOutput>..\Dcu\D9</DCC_DcuOutput>
-    <DCC_ObjOutput>..\Dcu\D9</DCC_ObjOutput>
-    <DCC_HppOutput>..\Dcu\D9</DCC_HppOutput>
-    <DCC_BplOutput>..\Dcu\D9</DCC_BplOutput>
-    <DCC_UnitSearchPath>..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_ResourcePath>
-    <DCC_ObjPath>..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_ObjPath>
-    <DCC_IncludePath>..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_IncludePath>
+    <DCC_DcuOutput>..\..\Dcu\D9</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\Dcu\D9</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\Dcu\D9</DCC_HppOutput>
+    <DCC_BplOutput>..\..\Dcu\D9</DCC_BplOutput>
+    <DCC_UnitSearchPath>..\..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Dcu\D9;$(BDS)\lib\Indy9;..\..\RemObjects SDK for Dephi\Dcu\D9</DCC_IncludePath>
     <DCC_Define>RELEASE</DCC_Define>
     <DCC_SYMBOL_DEPRECATED>False</DCC_SYMBOL_DEPRECATED>
     <DCC_SYMBOL_LIBRARY>False</DCC_SYMBOL_LIBRARY>
@@ -35,14 +35,14 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
-    <DCC_DcuOutput>..\Dcu\D11</DCC_DcuOutput>
-    <DCC_ObjOutput>..\Dcu\D11</DCC_ObjOutput>
-    <DCC_HppOutput>..\Dcu\D11</DCC_HppOutput>
-    <DCC_BplOutput>..\Dcu\D11</DCC_BplOutput>
-    <DCC_UnitSearchPath>..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_ResourcePath>
-    <DCC_ObjPath>..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_ObjPath>
-    <DCC_IncludePath>..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_IncludePath>
+    <DCC_DcuOutput>..\..\Dcu\D11</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\Dcu\D11</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\Dcu\D11</DCC_HppOutput>
+    <DCC_BplOutput>..\..\Dcu\D11</DCC_BplOutput>
+    <DCC_UnitSearchPath>..\..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Dcu\D11;..\..\RemObjects SDK for Dephi\Dcu\D11</DCC_IncludePath>
     <DCC_SYMBOL_DEPRECATED>False</DCC_SYMBOL_DEPRECATED>
     <DCC_SYMBOL_LIBRARY>False</DCC_SYMBOL_LIBRARY>
     <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
@@ -51,7 +51,7 @@
     <DCC_UNIT_PLATFORM>False</DCC_UNIT_PLATFORM>
     <DCC_UNIT_DEPRECATED>False</DCC_UNIT_DEPRECATED>
     <DCC_UNIT_EXPERIMENTAL>False</DCC_UNIT_EXPERIMENTAL>
-    <DCC_DcpOutput>..\Dcu\D11</DCC_DcpOutput>
+    <DCC_DcpOutput>..\..\Dcu\D11</DCC_DcpOutput>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

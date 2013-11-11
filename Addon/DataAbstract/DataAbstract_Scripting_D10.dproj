@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>..\Dcu\D10\DataAbstract_Scripting_D10.bpl</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>..\..\Dcu\D10\DataAbstract_Scripting_D10.bpl</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -13,15 +13,15 @@
     <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
     <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
     <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    <DCC_DcuOutput>..\Dcu\D10</DCC_DcuOutput>
-    <DCC_ObjOutput>..\Dcu\D10</DCC_ObjOutput>
-    <DCC_HppOutput>..\Dcu\D10</DCC_HppOutput>
-    <DCC_BplOutput>..\Dcu\D10</DCC_BplOutput>
-    <DCC_DcpOutput>..\Dcu\D10</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_ResourcePath>
-    <DCC_ObjPath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_ObjPath>
-    <DCC_IncludePath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_IncludePath>
+    <DCC_DcuOutput>..\..\Dcu\D10</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\Dcu\D10</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\Dcu\D10</DCC_HppOutput>
+    <DCC_BplOutput>..\..\Dcu\D10</DCC_BplOutput>
+    <DCC_DcpOutput>..\..\Dcu\D10</DCC_DcpOutput>
+    <DCC_UnitSearchPath>..\..\Dcu\D10</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Dcu\D10</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Dcu\D10</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Dcu\D10</DCC_IncludePath>
     <DCC_Define>RELEASE</DCC_Define>
     <DCC_SYMBOL_DEPRECATED>False</DCC_SYMBOL_DEPRECATED>
     <DCC_SYMBOL_LIBRARY>False</DCC_SYMBOL_LIBRARY>
@@ -35,15 +35,15 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
     <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
-    <DCC_DcuOutput>..\Dcu\D10</DCC_DcuOutput>
-    <DCC_ObjOutput>..\Dcu\D10</DCC_ObjOutput>
-    <DCC_HppOutput>..\Dcu\D10</DCC_HppOutput>
-    <DCC_BplOutput>..\Dcu\D10</DCC_BplOutput>
-    <DCC_DcpOutput>..\Dcu\D10</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_ResourcePath>
-    <DCC_ObjPath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_ObjPath>
-    <DCC_IncludePath>..\Dcu\D10;..\..\Pascal Script\Dcu\D10</DCC_IncludePath>
+    <DCC_DcuOutput>..\..\Dcu\D10</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\Dcu\D10</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\Dcu\D10</DCC_HppOutput>
+    <DCC_BplOutput>..\..\Dcu\D10</DCC_BplOutput>
+    <DCC_DcpOutput>..\..\Dcu\D10</DCC_DcpOutput>
+    <DCC_UnitSearchPath>..\..\Dcu\D10</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Dcu\D10</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Dcu\D10</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Dcu\D10</DCC_IncludePath>
     <DCC_Define>DEBUG</DCC_Define>
     <DCC_SYMBOL_DEPRECATED>False</DCC_SYMBOL_DEPRECATED>
     <DCC_SYMBOL_LIBRARY>False</DCC_SYMBOL_LIBRARY>

@@ -10,7 +10,7 @@
       <PathDelim Value="\"/>
       <SearchPaths>
         <IncludeFiles Value="."/>
-        <UnitOutputDirectory Value="../Dcu/Lazarus/$(TargetCPU)-$(TargetOS)/$(LCLWidgetType)"/>
+        <UnitOutputDirectory Value="../../Source/lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
         <CompilerPath Value="$(CompPath)"/>

@@ -22,12 +22,12 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
-			<DCC_UnitSearchPath>..\Dcu\D15;..\..\Pascal Script for Delphi\Dcu\D15;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_DcpOutput>..\Dcu\D15</DCC_DcpOutput>
-			<DCC_BplOutput>..\Dcu\D15</DCC_BplOutput>
+			<DCC_UnitSearchPath>..\..\Dcu\D15;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_DcpOutput>..\..\Dcu\D15</DCC_DcpOutput>
+			<DCC_BplOutput>..\..\Dcu\D15</DCC_BplOutput>
 			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
 			<GenPackage>true</GenPackage>
-			<DCC_DcuOutput>..\Dcu\D15</DCC_DcuOutput>
+			<DCC_DcuOutput>..\..\Dcu\D15</DCC_DcuOutput>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<DCC_Description>RemObjects Data Abstract - Scripting Integration Library</DCC_Description>
 			<DCC_ImageBase>00400000</DCC_ImageBase>

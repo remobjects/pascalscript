@@ -1820,12 +1820,34 @@ procedure DestroyHeapVariant2(v: Pointer; aType: TPSTypeRec); forward;
 const
   NeedFinalization = [btStaticArray, btRecord, btArray, btPointer, btVariant {$IFNDEF PS_NOINTERFACES}, btInterface{$ENDIF}, btString {$IFNDEF PS_NOWIDESTRING}, btUnicodestring,btWideString{$ENDIF}];
 
+type
+  TDynArrayRecHeader = packed record
+    {$ifdef CPUX64}
+    _Padding: LongInt; // Delphi XE2+ expects 16 byte align
+    {$endif}
+    /// dynamic array reference count (basic garbage memory mechanism)
+    refCnt: Longint;
+    {$ifdef FPC}
+    high: sizeint;
+    function length: sizeint; inline;
+    {$else}
+    /// length in element count
+    // - size in bytes = length*ElemSize
+    length: NativeInt;
+    {$endif}
+  end;
+  TDynArrayRec = packed record
+    header : TDynArrayRecHeader;
+    datas : pointer;
+  end;
+  PDynArrayRec = ^TDynArrayRec;
+
 procedure FinalizeVariant(p: Pointer; aType: TPSTypeRec);
 var
   t: TPSTypeRec;
   elsize: Cardinal;
   i, l: Longint;
-  darr: Pointer;
+  darr: PDynArrayRec;
 begin
   case aType.BaseType of
     btString: tbtString(p^) := '';
@@ -1857,15 +1879,18 @@ begin
     btArray:
       begin
         if IPointer(P^) = 0 then exit;
-        darr := Pointer(IPointer(p^) - PointerSize2);
-        if Longint(darr^) < 0 then exit;// refcount < 0 means don't free
-        Dec(Longint(darr^));
-        if Longint(darr^) <> 0 then exit;
+        darr := PDynArrayRec(IPointer(p^) - sizeof(TDynArrayRecHeader));
+        if darr^.header.refCnt < 0 then exit;// refcount < 0 means don't free
+        Dec(darr^.header.refCnt);
+        if darr^.header.refCnt <> 0 then exit;
         t := TPSTypeRec_Array(aType).ArrayType;
         elsize := t.RealSize;
-        darr := Pointer(IPointer(darr) + PointerSize);
-        l := Longint(darr^) {$IFDEF FPC}+1{$ENDIF};
-        darr := Pointer(IPointer(darr) + PointerSize);
+        {$IFDEF FPC}
+        l := darr^.header.high + 1;
+        {$ELSE}
+        l := darr^.header.length;
+        {$ENDIF FPC}
+        darr := @darr^.datas;
         case t.BaseType of
           btString, {$IFNDEF PS_NOWIDESTRING}
           btUnicodeString, btWideString, {$ENDIF}{$IFNDEF PS_NOINTERFACES}btInterface, {$ENDIF}btArray, btStaticArray,
@@ -1878,7 +1903,7 @@ begin
               end;
             end;
         end;
-        FreeMem(Pointer(IPointer(p^) - IPointer(PointerSize2)), IPointer(Cardinal(l) * elsize) + IPointer(PointerSize2));
+        FreeMem(Pointer(IPointer(p^) - SizeOf(TDynArrayRecHeader)), IPointer(Cardinal(l) * elsize) + SizeOf(TDynArrayRecHeader));
         Pointer(P^) := nil;
       end;
     btRecord:
@@ -4023,7 +4048,7 @@ begin
             Pointer(Dest^) := Pointer(Src^);
             if Pointer(Dest^) <> nil then
             begin
-              Inc(Longint(Pointer(IPointer(Dest^)-(2*PointerSize))^)); // RefCount
+              Inc(PDynArrayRec(PByte(Dest^) - SizeOf(TDynArrayRecHeader))^.header.refCnt);
             end;
             Dest := Pointer(IPointer(Dest) + PointerSize);
             Src := Pointer(IPointer(Src) + PointerSize);
@@ -4152,38 +4177,42 @@ end;
 function PSDynArrayGetLength(arr: Pointer; aType: TPSTypeRec): Longint;
 begin
   if aType.BaseType <> btArray then raise Exception.Create(RPS_InvalidArray);
-  if arr = nil then Result := 0 else Result := Longint(Pointer(IPointer(arr)-PointerSize)^) {$IFDEF FPC} +1 {$ENDIF};
+  if arr = nil then Result := 0 else result:=PDynArrayRec(PByte(arr) - SizeOf(TDynArrayRecHeader))^.header.{$IFDEF FPC}high + 1{$ELSE}length{$ENDIF FPC};
 end;
 
 procedure PSDynArraySetLength(var arr: Pointer; aType: TPSTypeRec; NewLength: Longint);
 var
   elSize, i, OldLen: Longint;
-  p: Pointer;
+  darr : PDynArrayRec;
 begin
   if aType.BaseType <> btArray then raise Exception.Create(RPS_InvalidArray);
   OldLen := PSDynArrayGetLength(arr, aType);
   elSize := TPSTypeRec_Array(aType).ArrayType.RealSize;
+  if NewLength<0 then
+     NewLength:=0;
   if (OldLen = 0) and (NewLength = 0) then exit; // already are both 0
-  if (OldLen <> 0) and (Longint(Pointer(IPointer(Arr)-PointerSize2)^) = 1) then // unique copy of this dynamic array
+  if (OldLen = NewLength) then exit; // already same size, noop
+  darr := PDynArrayRec(PByte(Arr) - SizeOf(TDynArrayRecHeader));
+  if (OldLen <> 0) and (darr^.header.refCnt = 1) then // unique copy of this dynamic array
   begin
     for i := NewLength to OldLen -1 do
     begin
       if TPSTypeRec_Array(aType).ArrayType.BaseType in NeedFinalization then
         FinalizeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
     end;
-    arr := Pointer(IPointer(Arr)-PointerSize2);
     if NewLength <= 0 then
     begin
-      //FreeMem(arr, NewLength * elsize + PointerSize2);
-      FreeMem(arr, Longint(NewLength * elsize) + Longint(PointerSize2));
+      FreeMem(darr);
       arr := nil;
       exit;
     end;
-    //ReallocMem(arr, NewLength * elSize + PointerSize2);
-    ReallocMem(arr, Longint(NewLength * elSize) + Longint(PointerSize2));
-    arr := Pointer(IPointer(Arr)+PointerSize);
-    Longint(Arr^) := NewLength {$IFDEF FPC} -1 {$ENDIF};
-    arr := Pointer(IPointer(Arr)+PointerSize);
+    ReallocMem(darr, Longint(NewLength * elSize) + SizeOf(TDynArrayRecHeader));
+    {$IFDEF FPC}
+    darr^.header.high := NewLength  -1;
+    {$ELSE}
+    darr^.header.length := NewLength;
+    {$ENDIF}
+    arr := @darr^.datas;
     for i := OldLen to NewLength -1 do
     begin
       InitializeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
@@ -4192,33 +4221,34 @@ begin
   begin
     if NewLength = 0 then
     begin
-      if Longint(Pointer(IPointer(Arr)-PointerSize2)^) = 1 then
-        //FreeMem(Pointer(IPointer(Arr)-PointerSize2), OldLen * elSize + PointerSize2)
-        FreeMem(Pointer(IPointer(Arr)-PointerSize2), Longint(OldLen * elSize) + Longint(PointerSize2))
-      else if Longint(Pointer(IPointer(Arr)-PointerSize2)^) > 0 then
-        Dec(Longint(Pointer(IPointer(Arr)-PointerSize2)^));
+      FinalizeVariant(@arr, aType);
       arr := nil;
       exit;
     end;
-    //GetMem(p, NewLength * elSize + PointerSize2);
-    GetMem(p, Longint(NewLength * elSize) + Longint(PointerSize2));
-    Longint(p^) := 1;
-    p:= Pointer(IPointer(p)+PointerSize);
-    Longint(p^) := NewLength {$IFDEF FPC} -1 {$ENDIF};
-    p := Pointer(IPointer(p)+PointerSize);
+    GetMem(darr, Longint(NewLength * elSize) + SizeOf(TDynArrayRecHeader));
+    {$IFDEF CPUX64}
+    darr^.header._Padding:=0;
+    {$ENDIF CPUX64}
+    darr^.header.refCnt:=1;
+    {$IFDEF FPC}
+    darr^.header.length := nil;
+    darr^.header.high := NewLength - 1;
+    {$ELSE}
+    darr^.header.length := NewLength;
+    {$ENDIF FPC}
+    for i := 0 to NewLength -1 do
+    begin
+      InitializeVariant(Pointer(IPointer(@darr^.datas) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
+    end;
     if OldLen <> 0 then
     begin
       if OldLen > NewLength then
-        CopyArrayContents(p, arr, NewLength, TPSTypeRec_Array(aType).ArrayType)
+        CopyArrayContents(@darr^.datas, arr, NewLength, TPSTypeRec_Array(aType).ArrayType)
       else
-        CopyArrayContents(p, arr, OldLen, TPSTypeRec_Array(aType).ArrayType);
+        CopyArrayContents(@darr^.datas, arr, OldLen, TPSTypeRec_Array(aType).ArrayType);
       FinalizeVariant(@arr, aType);
     end;
-    arr := p;
-    for i := OldLen to NewLength -1 do
-    begin
-      InitializeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
-    end;
+    arr := @darr^.datas;
   end;
 end;
 

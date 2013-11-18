@@ -66,7 +66,7 @@ type
 
 implementation
 uses
-  uRODLToXML, uROPSImports;
+  uRODLToXML, uXMLToRODL, uROPSImports;
 
 procedure SIRegisterTROTRANSPORTCHANNEL(CL: TPSPascalCompiler);
 Begin

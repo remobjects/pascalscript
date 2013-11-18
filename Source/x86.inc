@@ -246,7 +246,7 @@ const
 
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
-  a, Stack: ansistring;
+  Stack: ansistring;
   I: Longint;
   RegUsage: Byte;
   CallData: TPSList;

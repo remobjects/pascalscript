@@ -14107,7 +14107,7 @@ begin
     {$IFDEF PS_USESSUPPORT}
     ecNotAllowed : Result:=tbtstring(Format(RPS_NotAllowed,[Param]));
     ecUnitNotFoundOrContainsErrors: Result:=tbtstring(Format(RPS_UnitNotFound,[Param]));
-    ecCrossReference: Result:=Format(RPS_CrossReference,[Param]);
+    ecCrossReference: Result:=tbtstring(Format(RPS_CrossReference,[Param]));
     {$ENDIF}
   else
     Result := tbtstring(RPS_UnknownError);

@@ -14568,7 +14568,7 @@ begin
       C := CurrClass.FClassItems[I];
       if (c is TPSDelphiClassItemConstructor) and (C.NameHash = H) and (C.Name = Name) then
       begin
-        Index := Cardinal(C);
+        Index := IPointer(C);
         Result := True;
         exit;
       end;

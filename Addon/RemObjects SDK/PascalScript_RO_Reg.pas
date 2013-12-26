@@ -12,8 +12,6 @@ unit PascalScript_RO_Reg;
 { which can be obtained at http://www.remobjects.com.
 {----------------------------------------------------------------------------}
 
-{$I PascalScript.inc}
-
 interface
 
 {$R PascalScript_RO_Glyphs.res}

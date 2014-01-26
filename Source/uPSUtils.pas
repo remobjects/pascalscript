@@ -873,8 +873,11 @@ begin
   if FCount = 0 then Exit;
   if Nr < FCount then
   begin
-    Move(FData[Nr + 1], FData[Nr], (FCount - Nr) * PointerSize);
+    {dec count first, so we move one element less in the move below}
     Dec(FCount);
+    {only move if we aren't deleting the last element}
+    if Nr < FCount then
+      Move(FData[Nr + 1], FData[Nr], (FCount - Nr) * PointerSize);
 {$IFNDEF PS_NOSMARTLIST}
     Inc(FCheckCount);
     if FCheckCount > FMaxCheckCount then Recreate;

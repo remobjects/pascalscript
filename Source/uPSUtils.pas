@@ -998,8 +998,9 @@ end;
 
 procedure TPSStringList.Clear;
 begin
-  while List.Count > 0 do Delete(0);
+  while List.Count > 0 do Delete(Pred(List.Count));
 end;
+
 
 constructor TPSStringList.Create;
 begin

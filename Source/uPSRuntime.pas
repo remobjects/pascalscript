@@ -4048,7 +4048,7 @@ begin
             Pointer(Dest^) := Pointer(Src^);
             if Pointer(Dest^) <> nil then
             begin
-              Inc(PDynArrayRec(PByte(Dest^) - SizeOf(TDynArrayRecHeader))^.header.refCnt);
+              Inc(PDynArrayRec(PAnsiChar(Dest^) - SizeOf(TDynArrayRecHeader))^.header.refCnt);
             end;
             Dest := Pointer(IPointer(Dest) + PointerSize);
             Src := Pointer(IPointer(Src) + PointerSize);
@@ -4177,7 +4177,7 @@ end;
 function PSDynArrayGetLength(arr: Pointer; aType: TPSTypeRec): Longint;
 begin
   if aType.BaseType <> btArray then raise Exception.Create(RPS_InvalidArray);
-  if arr = nil then Result := 0 else result:=PDynArrayRec(PByte(arr) - SizeOf(TDynArrayRecHeader))^.header.{$IFDEF FPC}high + 1{$ELSE}length{$ENDIF FPC};
+  if arr = nil then Result := 0 else result:=PDynArrayRec(PAnsiChar(arr) - SizeOf(TDynArrayRecHeader))^.header.{$IFDEF FPC}high + 1{$ELSE}length{$ENDIF FPC};
 end;
 
 procedure PSDynArraySetLength(var arr: Pointer; aType: TPSTypeRec; NewLength: Longint);
@@ -4192,7 +4192,7 @@ begin
      NewLength:=0;
   if (OldLen = 0) and (NewLength = 0) then exit; // already are both 0
   if (OldLen = NewLength) then exit; // already same size, noop
-  darr := PDynArrayRec(PByte(Arr) - SizeOf(TDynArrayRecHeader));
+  darr := PDynArrayRec(PAnsiChar(Arr) - SizeOf(TDynArrayRecHeader));
   if (OldLen <> 0) and (darr^.header.refCnt = 1) then // unique copy of this dynamic array
   begin
     for i := NewLength to OldLen -1 do

@@ -9611,7 +9611,7 @@ begin
         {$IFDEF DELPHI2009UP}
         btUnicodeString: begin
           tvarrec(p^).VType := vtUnicodeString;
-          tbtunicodestring(TVarRec(p^).VWideString) := tbtunicodestring(cp^);
+          tbtunicodestring(TVarRec(p^).VUnicodeString) := tbtunicodestring(cp^);
         end;
         {$ELSE}
         btUnicodeString,

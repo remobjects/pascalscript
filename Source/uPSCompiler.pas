@@ -2908,8 +2908,8 @@ end;
 function TPSPascalCompiler.GetUnicodeString(Src: PIfRVariant; var s: Boolean): tbtunicodestring;
 begin
   case Src.FType.BaseType of
-    btChar: Result := tbtWidestring(Src^.tchar);
-    btString: Result := tbtWidestring(tbtstring(src^.tstring));
+    btChar: Result := Src^.tchar;
+    btString: Result := tbtstring(src^.tstring);
     btWideChar: Result := src^.twidechar;
     btWideString: Result := tbtWideString(src^.twidestring);
     btUnicodeString: result := tbtUnicodeString(src^.tunistring);
@@ -8204,7 +8204,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             {$IFNDEF PS_NOWIDESTRING}
             else if ((t1.BaseType = btString) or (t1.BaseType = btChar) or (t1.BaseType = btPchar)or (t1.BaseType = btWideString) or (t1.BaseType = btWideChar) or (t1.BaseType = btUnicodeString)) and
             ((t2.BaseType = btString) or (t2.BaseType = btChar) or (t2.BaseType = btPchar) or (t2.BaseType = btWideString) or (t2.BaseType = btWideChar) or (t2.BaseType = btUnicodeString)) then
-              Result := at2ut(FindBaseType(btWideString))
+              Result := at2ut(FindBaseType(btUnicodeString))
             {$ENDIF}
             else
               Result := nil;

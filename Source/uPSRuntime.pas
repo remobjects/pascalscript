@@ -3585,10 +3585,10 @@ begin
   case aType.BaseType of
     btU8: Result := chr(tbtu8(src^));
     btU16: Result := widechar(src^);
-    btChar: Result := tbtwidestring(tbtchar(Src^));
-    btPchar: Result := tbtwidestring(pansichar(src^));
+    btChar: Result := tbtchar(Src^);
+    btPchar: Result := pansichar(src^);
     btWideChar: Result := tbtwidechar(Src^);
-    btString: Result := tbtwidestring(tbtstring(src^));
+    btString: Result := tbtstring(src^);
     btWideString: Result := tbtwidestring(src^);
     btVariant:   Result := Variant(src^);
     btUnicodeString: result := tbtUnicodeString(src^);

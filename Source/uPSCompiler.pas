@@ -2908,8 +2908,8 @@ end;
 function TPSPascalCompiler.GetUnicodeString(Src: PIfRVariant; var s: Boolean): tbtunicodestring;
 begin
   case Src.FType.BaseType of
-    btChar: Result := Src^.tchar;
-    btString: Result := tbtstring(src^.tstring);
+    btChar: Result := tbtunicodestring(Src^.tchar);
+    btString: Result := tbtunicodestring(tbtstring(src^.tstring));
     btWideChar: Result := src^.twidechar;
     btWideString: Result := tbtWideString(src^.twidestring);
     btUnicodeString: result := tbtUnicodeString(src^.tunistring);

@@ -6035,7 +6035,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       for i := 0 to arr.count -1 do
       begin
         mType := GetTypeNo(BlockInfo, arr.Item[i]);
-        if mType <> SetType.SetType then
+        if (mType <> SetType.SetType) and not (IsIntType(mType.FBaseType) and IsIntType(SetType.SetType.BaseType)) then
         begin
           with MakeError('', ecTypeMismatch, '') do
           begin
@@ -6053,6 +6053,18 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           if not Result then
           begin
             dataval.Free;
+            exit;
+          end;
+          if (c < Low(Byte)) or (c > High(Byte)) then
+          begin
+            with MakeError('', ecTypeMismatch, '') do
+            begin
+              FCol := arr.item[i].Col;
+              FRow := arr.item[i].Row;
+              FPosition := arr.item[i].Pos;
+            end;
+            DataVal.Free;
+            Result := False;
             exit;
           end;
           Set_MakeMember(c, dataval.Data.tstring);

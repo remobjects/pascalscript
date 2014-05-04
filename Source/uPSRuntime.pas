@@ -1822,15 +1822,15 @@ const
 
 type
   TDynArrayRecHeader = packed record
+    {$ifdef FPC}
+    refCnt : ptrint;
+    high : tdynarrayindex;
+    {$else}
     {$ifdef CPUX64}
     _Padding: LongInt; // Delphi XE2+ expects 16 byte align
     {$endif}
     /// dynamic array reference count (basic garbage memory mechanism)
     refCnt: Longint;
-    {$ifdef FPC}
-    high: sizeint;
-    function length: sizeint; inline;
-    {$else}
     /// length in element count
     // - size in bytes = length*ElemSize
     length: NativeInt;
@@ -4231,7 +4231,6 @@ begin
     {$ENDIF CPUX64}
     darr^.header.refCnt:=1;
     {$IFDEF FPC}
-    darr^.header.length := nil;
     darr^.header.high := NewLength - 1;
     {$ELSE}
     darr^.header.length := NewLength;

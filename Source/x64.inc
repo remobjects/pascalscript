@@ -610,6 +610,7 @@ begin
       {$ENDIF}
       btInterface, btArray, btVariant, btStaticArray:
         GetPtr(res);
+      btRecord,
       btSet:
         begin
           if res.aType.RealSize > PointerSize then GetPtr(res);
@@ -629,6 +630,7 @@ begin
         {$ENDIF}
         btInterface, btArray, btVariant, btStaticArray:
           GetPtr(res);
+        btRecord,
         btSet:
           begin
             if res.aType.RealSize > PointerSize then GetPtr(res);

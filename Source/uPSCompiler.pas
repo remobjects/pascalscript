@@ -13584,7 +13584,7 @@ var
 begin
   if FProcs = nil then raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   Result := FindClass(aClass);
-  if (Result<>nil) and not(FAllowDuplicateRegister) then
+  if (Result<>nil) and (Result.FInheritsFrom<>nil) and not(FAllowDuplicateRegister) then
     Raise EPSCompilerException.CreateFmt(RPS_ClassAlreadyRegistered, [aClass]);
   if Result <> nil then
   begin

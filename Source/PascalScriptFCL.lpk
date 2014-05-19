@@ -51,7 +51,7 @@ Carlo Kok
 RemObjects Software
 "/>
     <Version Build="1"/>
-    <Files Count="25">
+    <Files Count="28">
       <Item1>
         <Filename Value="uPSRuntime.pas"/>
         <UnitName Value="uPSRuntime"/>
@@ -152,6 +152,18 @@ RemObjects Software
         <Filename Value="x86.inc"/>
         <Type Value="Include"/>
       </Item25>
+      <Item26>
+        <Filename Value="uPSComponent_COM.pas"/>
+        <UnitName Value="uPSComponent_COM"/>
+      </Item26>
+      <Item27>
+        <Filename Value="uPSC_comobj.pas"/>
+        <UnitName Value="uPSC_comobj"/>
+      </Item27>
+      <Item28>
+        <Filename Value="uPSR_comobj.pas"/>
+        <UnitName Value="uPSR_comobj"/>
+      </Item28>
     </Files>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

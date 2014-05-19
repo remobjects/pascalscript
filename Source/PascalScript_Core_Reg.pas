@@ -30,9 +30,7 @@ uses
   uPSComponent,
   uPSDebugger,
   uPSComponent_Default,
- {$IFNDEF FPC}
   uPSComponent_COM,
- {$ENDIF}
   uPSComponent_DB,
   uPSComponent_Forms,
   uPSComponent_Controls,
@@ -45,9 +43,7 @@ begin
                                        TPSDllPlugin,
                                        TPSImport_Classes,
                                        TPSImport_DateUtils,
-                                       {$IFNDEF FPC}
                                        TPSImport_ComObj,
-                                       {$ENDIF}
                                        TPSImport_DB,
                                        TPSImport_Forms,
                                        TPSImport_Controls,

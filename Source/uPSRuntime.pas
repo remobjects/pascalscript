@@ -1101,7 +1101,7 @@ function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtS
 
 implementation
 uses
-  TypInfo {$IFDEF DELPHI3UP}{$IFNDEF FPC}{$IFNDEF KYLIX} , ComObj {$ENDIF}{$ENDIF}{$ENDIF};
+  TypInfo {$IFDEF DELPHI3UP}{$IFNDEF FPC}{$IFNDEF KYLIX} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}{$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF};
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -9378,7 +9378,9 @@ begin
   RegisterDelphiFunction(@VarIsEmpty, 'VARISEMPTY', cdRegister);
   RegisterDelphiFunction(@Null, 'NULL', cdRegister);
   RegisterDelphiFunction(@VarIsNull, 'VARISNULL', cdRegister);
+  {$IFNDEF FPC}
   RegisterDelphiFunction(@VarType, 'VARTYPE', cdRegister);
+  {$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}
   RegisterDelphiFunction(@IDispatchInvoke, 'IDISPATCHINVOKE', cdregister);
   {$ENDIF}
@@ -12654,7 +12656,11 @@ begin
        if not Succeeded(i) then
        begin
          if i = DISP_E_EXCEPTION then
+           {$IFDEF FPC}
+           raise Exception.Create(ExceptInfo.Source+': '+ExceptInfo.Description)
+           {$ELSE}
            raise Exception.Create(ExceptInfo.bstrSource+': '+ExceptInfo.bstrDescription)
+           {$ENDIF}
          else
            raise Exception.Create(SysErrorMessage(i));
        end;

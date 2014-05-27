@@ -6152,9 +6152,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         exit;
       end;
       if TPSType(FarrType).BaseType = btVariant then
-        FArrType := FindAndAddType(self, '', 'array of variant');
+        FArrType := at2ut(FindAndAddType(self, '!OPENARRAYOFVARIANT', 'array of variant'));
       if TPSType(FarrType).BaseType <> btArray then 
-        FArrType := FindAndAddType(self, '', 'array of variant');
+        FArrType := at2ut(FindAndAddType(self, '!OPENARRAYOFVARIANT', 'array of variant'));
 
       tmpp := AllocStackReg(FArrType);
       tmpc := AllocStackReg(FindBaseType(bts32));

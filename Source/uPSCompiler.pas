@@ -1806,10 +1806,6 @@ const
   RPS_AbstractClass = 'Abstract Class Construction';
   RPS_UnknownWarning = 'Unknown warning';
 
-
-  RPS_ClassAlreadyRegistered = 'Class %s already registered';
-  RPS_InterfaceAlreadyRegistered = 'Interface %s already registered';
-  RPS_FunctionAlreadyRegistered = 'Function %s already registered';
   {$IFDEF DEBUG }
   RPS_UnableToRegister = 'Unable to register %s';
   {$ENDIF}
@@ -2387,6 +2383,9 @@ begin
   begin
     raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   end;
+
+  if not(AllowDuplicateRegister) and IsDuplicate(FastUpperCase(Name),[dcTypes, dcProcs, dcVars]) then
+      Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [Name]);
 
   case BaseType of
     btProcPtr: Result := TPSProceduralType.Create;
@@ -12425,6 +12424,10 @@ begin
   FType := GetTypeCopyLink(FType);
   if FType = nil then
     Raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterConst, [name]);
+
+  if not(AllowDuplicateRegister) and IsDuplicate(FastUpperCase(Name),[dcProcs, dcVars, dcConsts]) then
+      Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [Name]);
+
   pc := TPSConstant.Create;
   pc.OrgName := name;
   pc.Name := FastUppercase(name);
@@ -13386,6 +13389,10 @@ begin
   if FProcs = nil then raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   Parser := TPSPascalParser.Create;
   Parser.SetText(Decl);
+
+  if not(AllowDuplicateRegister) and (FindType(Name)<>nil) then
+      Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [Name]);
+
   Result := ReadType(Name, Parser);
   if Result<>nil then
   begin
@@ -13494,7 +13501,7 @@ begin
       Raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterFunction, [Decl]);
 
     if (FindProc(DOrgName)<>InvalidVal) and not(FAllowDuplicateRegister) then
-      Raise EPSCompilerException.CreateFmt(RPS_FunctionAlreadyRegistered, [Decl]);
+      Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [Decl]);
 
     p := TPSRegProc.Create;
     P.Name := FastUppercase(DOrgName);
@@ -13530,7 +13537,7 @@ begin
   if FProcs = nil then raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   f := FindType(Name);
   if (f<>nil) and not(FAllowDuplicateRegister) then
-    Raise EPSCompilerException.CreateFmt(RPS_InterfaceAlreadyRegistered, [Name]);
+    Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [Name]);
 
   if (f <> nil) and (f is TPSInterfaceType) then
   begin
@@ -13569,7 +13576,7 @@ begin
   if FProcs = nil then raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   Result := FindClass(tbtstring(aClass.ClassName));
   if (Result<>nil) and not(FAllowDuplicateRegister) then
-    Raise EPSCompilerException.CreateFmt(RPS_ClassAlreadyRegistered, [aClass.ClassName]);
+    Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [aClass.ClassName]);
   f := AddType(tbtstring(aClass.ClassName), btClass);
   Result := TPSCompileTimeClass.CreateC(aClass, Self, f);
   Result.FInheritsFrom := InheritsFrom;
@@ -13585,7 +13592,7 @@ begin
   if FProcs = nil then raise EPSCompilerException.Create(RPS_OnUseEventOnly);
   Result := FindClass(aClass);
   if (Result<>nil) and (Result.FInheritsFrom<>nil) and not(FAllowDuplicateRegister) then
-    Raise EPSCompilerException.CreateFmt(RPS_ClassAlreadyRegistered, [aClass]);
+    Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [aClass]);
   if Result <> nil then
   begin
     if InheritsFrom <> nil then

@@ -9076,12 +9076,15 @@ var
   arr: TPSVariantIFC;
 begin
   Arr := NewTPSVariantIFC(Stack[Stack.Count-2], True);
-  if (arr.Dta = nil) or (arr.aType.BaseType <> btArray) then
+  if (arr.aType.BaseType <> btStaticArray) and ((arr.Dta = nil) or (arr.aType.BaseType <> btArray)) then
   begin
     Result := false;
     exit;
   end;
-  Stack.SetInt(-1, PSDynArrayGetLength(Pointer(arr.Dta^), arr.aType));
+  if arr.aType.BaseType = btStaticArray then
+    Stack.SetInt(-1, TPSTypeRec_StaticArray(arr.aType).Size)
+  else
+    Stack.SetInt(-1, PSDynArrayGetLength(Pointer(arr.Dta^), arr.aType));
   Result := True;
 end;
 

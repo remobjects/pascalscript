@@ -3564,12 +3564,12 @@ var
   h, l: Longint;
   x: TPSProcedure;
 begin
-  h := MakeHash(s);
   if (s = 'RESULT') then
   begin
     Result := True;
     exit;
   end;
+  h := MakeHash(s);
   if dcTypes in Check then
   for l := FTypes.Count - 1 downto 0 do
   begin

@@ -21,6 +21,19 @@ implementation
 
 procedure SIRegister_ComObj(cl: TPSPascalCompiler);
 begin
+{$IFDEF FPC}
+    {$IFDEF PS_FPC_HAS_COM}
+    cl.AddTypeS('HResult', 'LongInt');
+    cl.AddTypeS('TGUID', 'record D1: LongWord; D2: Word; D3: Word; D4: array[0..7] of Byte; end;');
+    cl.AddTypeS('TCLSID', 'TGUID');
+    cl.AddTypeS('TIID', 'TGUID');
+    cl.AddDelphiFunction('procedure OleCheck(Result: HResult);');
+    cl.AddDelphiFunction('function StringToGUID(const S: string): TGUID;');
+    cl.AddDelphiFunction('function CreateComObject(const ClassID: TGUID): IUnknown;');
+    cl.AddDelphiFunction('function CreateOleObject(const ClassName: String): IDispatch;');
+    cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: String): IDispatch;');
+    {$ENDIF}
+{$ELSE}
   cl.AddTypeS('HResult', 'LongInt');
   cl.AddTypeS('TGUID', 'record D1: LongWord; D2: Word; D3: Word; D4: array[0..7] of Byte; end;');
   cl.AddTypeS('TCLSID', 'TGUID');
@@ -34,6 +47,7 @@ begin
 {$ENDIF}
   cl.AddDelphiFunction('function CreateOleObject(const ClassName: String): IDispatch;');
   cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: String): IDispatch;');
+{$ENDIF}  
 end;
 
 end.

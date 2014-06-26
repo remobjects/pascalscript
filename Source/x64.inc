@@ -610,6 +610,7 @@ begin
       {$ENDIF}
       btInterface, btArray, btVariant, btStaticArray:
         GetPtr(res);
+      btRecord,
       btSet:
         begin
           if res.aType.RealSize > PointerSize then GetPtr(res);
@@ -629,6 +630,7 @@ begin
         {$ENDIF}
         btInterface, btArray, btVariant, btStaticArray:
           GetPtr(res);
+        btRecord,
         btSet:
           begin
             if res.aType.RealSize > PointerSize then GetPtr(res);
@@ -666,7 +668,7 @@ begin
         btu32,bts32:   tbtu32(res.dta^) := _RAX;
         btPChar:       pansichar(res.dta^) := Pansichar(_RAX);
         bts64: tbts64(res.dta^) := Int64(_RAX);
-        btCurrency:    tbtCurrency(res.Dta^) := Int64(_RAX);
+        btCurrency:    tbts64(res.Dta^) := Int64(_RAX);
         btInterface,
         btVariant,
         {$IFDEF x64_string_result_as_varparameter}

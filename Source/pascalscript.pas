@@ -15,7 +15,7 @@ uses
     uPSDisassembly, uPSPreProcessor, uPSR_buttons, uPSR_classes, uPSR_controls, 
     uPSR_dateutils, uPSR_DB, uPSR_dll, uPSR_extctrls, uPSR_forms, 
     uPSR_graphics, uPSR_menus, uPSR_std, uPSR_stdctrls, uPSUtils, 
-    LazarusPackageIntf; 
+    uPSComponent_COM, uPSC_comobj, uPSR_comobj, LazarusPackageIntf;
 
 implementation
 

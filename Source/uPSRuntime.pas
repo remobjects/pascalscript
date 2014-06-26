@@ -1101,7 +1101,7 @@ function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtS
 
 implementation
 uses
-  TypInfo {$IFDEF DELPHI3UP}{$IFNDEF FPC}{$IFNDEF KYLIX} , ComObj {$ENDIF}{$ENDIF}{$ENDIF};
+  TypInfo {$IFDEF DELPHI3UP}{$IFNDEF FPC}{$IFNDEF KYLIX} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}{$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF};
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -1822,15 +1822,15 @@ const
 
 type
   TDynArrayRecHeader = packed record
+    {$ifdef FPC}
+    refCnt : ptrint;
+    high : tdynarrayindex;
+    {$else}
     {$ifdef CPUX64}
     _Padding: LongInt; // Delphi XE2+ expects 16 byte align
     {$endif}
     /// dynamic array reference count (basic garbage memory mechanism)
     refCnt: Longint;
-    {$ifdef FPC}
-    high: sizeint;
-    function length: sizeint; inline;
-    {$else}
     /// length in element count
     // - size in bytes = length*ElemSize
     length: NativeInt;
@@ -3585,10 +3585,10 @@ begin
   case aType.BaseType of
     btU8: Result := chr(tbtu8(src^));
     btU16: Result := widechar(src^);
-    btChar: Result := tbtchar(Src^);
-    btPchar: Result := pansichar(src^);
+    btChar: Result := tbtunicodestring(tbtchar(Src^));
+    btPchar: Result := tbtunicodestring(pansichar(src^));
     btWideChar: Result := tbtwidechar(Src^);
-    btString: Result := tbtstring(src^);
+    btString: Result := tbtunicodestring(tbtstring(src^));
     btWideString: Result := tbtwidestring(src^);
     btVariant:   Result := Variant(src^);
     btUnicodeString: result := tbtUnicodeString(src^);
@@ -4231,7 +4231,6 @@ begin
     {$ENDIF CPUX64}
     darr^.header.refCnt:=1;
     {$IFDEF FPC}
-    darr^.header.length := nil;
     darr^.header.high := NewLength - 1;
     {$ELSE}
     darr^.header.length := NewLength;
@@ -9077,12 +9076,15 @@ var
   arr: TPSVariantIFC;
 begin
   Arr := NewTPSVariantIFC(Stack[Stack.Count-2], True);
-  if (arr.Dta = nil) or (arr.aType.BaseType <> btArray) then
+  if (arr.aType.BaseType <> btStaticArray) and ((arr.Dta = nil) or (arr.aType.BaseType <> btArray)) then
   begin
     Result := false;
     exit;
   end;
-  Stack.SetInt(-1, PSDynArrayGetLength(Pointer(arr.Dta^), arr.aType));
+  if arr.aType.BaseType = btStaticArray then
+    Stack.SetInt(-1, TPSTypeRec_StaticArray(arr.aType).Size)
+  else
+    Stack.SetInt(-1, PSDynArrayGetLength(Pointer(arr.Dta^), arr.aType));
   Result := True;
 end;
 
@@ -9379,7 +9381,9 @@ begin
   RegisterDelphiFunction(@VarIsEmpty, 'VARISEMPTY', cdRegister);
   RegisterDelphiFunction(@Null, 'NULL', cdRegister);
   RegisterDelphiFunction(@VarIsNull, 'VARISNULL', cdRegister);
+  {$IFNDEF FPC}
   RegisterDelphiFunction(@VarType, 'VARTYPE', cdRegister);
+  {$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}
   RegisterDelphiFunction(@IDispatchInvoke, 'IDISPATCHINVOKE', cdregister);
   {$ENDIF}
@@ -12655,7 +12659,11 @@ begin
        if not Succeeded(i) then
        begin
          if i = DISP_E_EXCEPTION then
+           {$IFDEF FPC}
+           raise Exception.Create(ExceptInfo.Source+': '+ExceptInfo.Description)
+           {$ELSE}
            raise Exception.Create(ExceptInfo.bstrSource+': '+ExceptInfo.bstrDescription)
+           {$ENDIF}
          else
            raise Exception.Create(SysErrorMessage(i));
        end;

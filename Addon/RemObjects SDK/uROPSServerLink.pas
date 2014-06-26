@@ -3,7 +3,7 @@ unit uROPSServerLink;
 interface
 uses
   SysUtils, Classes, uPSCompiler, uPSUtils, uPSRuntime,
-  uROServer, uROClient, uRODL{$IFDEF WIN32},
+  uROClient, uRODL{$IFDEF WIN32},
   Windows{$ELSE}, Types{$ENDIF}, uROTypes, uROClientIntf,
   uROSerializer, uPSComponent;
 

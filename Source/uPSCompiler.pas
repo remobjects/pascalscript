@@ -8309,20 +8309,20 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                     if (TPSValueData(p2).Data.tu8 <> 0) then
                     begin
                       with MakeWarning('', ewIsNotNeeded, '"and True"') do
-                      if p1.Pos>0 then
+                      if p2.Pos>0 then
                       begin
-                        FRow := p1.Row;
-                        FCol := p1.Col;
-                        FPosition := p1.Pos;
+                        FRow := p2.Row;
+                        FCol := p2.Col;
+                        FPosition := p2.Pos;
                       end;
                     end
                     else
-          begin
+                    begin
                       with MakeWarning('', ewCalculationAlwaysEvaluatesTo, 'False') do
                       begin
-                        FRow := p1.Row;
-                        FCol := p1.Col;
-                        FPosition := p1.Pos;
+                        FRow := p2.Row;
+                        FCol := p2.Col;
+                        FPosition := p2.Pos;
                       end;
                     end;
                   end;
@@ -8353,8 +8353,8 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                     begin
                       with MakeWarning('', ewCalculationAlwaysEvaluatesTo, 'True') do
                       begin
-                        FRow := p1.Row;
-                        FCol := p1.Col;
+                        FRow := p2.Row;
+                        FCol := p2.Col;
                         FPosition := p1.Pos;
                       end;
                     end
@@ -8362,9 +8362,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                     begin
                       with MakeWarning('', ewIsNotNeeded, '"or False"') do
                       begin
-                        FRow := p1.Row;
-                        FCol := p1.Col;
-                        FPosition := p1.Pos;
+                        FRow := p2.Row;
+                        FCol := p2.Col;
+                        FPosition := p2.Pos;
                       end;
                     end
                   end;

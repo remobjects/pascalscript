@@ -12140,8 +12140,8 @@ var
   MyLen: Longint;
 begin
   MyLen := ((FLength shr 12) + 1) shl 12;
-
-  SetCapacity(MyLen);
+  if fCapacity < MyLen then
+    SetCapacity(((MyLen + MemDelta) div MemDelta) * MemDelta);
 end;
 
 procedure TPSStack.Clear;

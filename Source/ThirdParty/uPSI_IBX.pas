@@ -13,7 +13,7 @@ uses
 
 type
   TPSImport_IBX = class(TPSPlugin)
-  protected
+  public
     procedure CompOnUses(CompExec: TPSScript); override;
     procedure ExecOnUses(CompExec: TPSScript); override;
     procedure CompileImport1(CompExec: TPSScript); override;

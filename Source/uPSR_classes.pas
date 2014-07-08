@@ -15,6 +15,7 @@ procedure RIRegisterTBITS(Cl: TPSRuntimeClassImporter);
 procedure RIRegisterTSTREAM(Cl: TPSRuntimeClassImporter);
 procedure RIRegisterTHANDLESTREAM(Cl: TPSRuntimeClassImporter);
 procedure RIRegisterTFILESTREAM(Cl: TPSRuntimeClassImporter);
+procedure RIRegisterTSTRINGSTREAM(Cl: TPSRuntimeClassImporter);
 {$IFNDEF PS_MINIVCL}
 procedure RIRegisterTCUSTOMMEMORYSTREAM(Cl: TPSRuntimeClassImporter);
 procedure RIRegisterTMEMORYSTREAM(Cl: TPSRuntimeClassImporter);
@@ -72,6 +73,15 @@ begin
   Self.Values[I]:= T;
 end;
 
+procedure TStringsValueFromIndexR(Self: TStrings; var T: string; const I: Longint);
+begin
+T := Self.ValueFromIndex[I];
+end;
+procedure TStringsValueFromIndexW(Self: TStrings; Const T: String; I: Longint);
+begin
+  Self.ValueFromIndex[I]:= T;
+end;
+
 procedure RIRegisterTStrings(cl: TPSRuntimeClassImporter; Streams: Boolean); // requires TPersistent
 begin
   with Cl.Add(TStrings) do
@@ -112,6 +122,7 @@ begin
     RegisterVirtualMethod(@TStrings.SetText, 'SETTEXT');
     RegisterPropertyHelper(@TStringsNamesR, nil, 'NAMES');
     RegisterPropertyHelper(@TStringsValuesR, @TStringsValuesW, 'VALUES');
+    RegisterPropertyHelper(@TStringsValueFromIndexR, @TStringsValueFromIndexW, 'VALUEFROMINDEX');
     RegisterVirtualMethod(@TSTRINGS.ADDOBJECT, 'ADDOBJECT');
     RegisterVirtualMethod(@TSTRINGS.GETTEXT, 'GETTEXT');
     RegisterMethod(@TSTRINGS.INDEXOFOBJECT, 'INDEXOFOBJECT');
@@ -221,6 +232,14 @@ begin
     {$ELSE}
     RegisterConstructor(@TFILESTREAM.CREATE, 'CREATE');
     {$ENDIF}
+  end;
+end;
+
+procedure RIRegisterTSTRINGSTREAM(Cl: TPSRuntimeClassImporter);
+begin
+  with Cl.Add(TSTRINGSTREAM) do
+  begin
+    RegisterConstructor(@TSTRINGSTREAM.CREATE, 'CREATE');
   end;
 end;
 
@@ -375,6 +394,7 @@ begin
   begin
     RIRegisterTHANDLESTREAM(Cl);
     RIRegisterTFILESTREAM(Cl);
+    RIRegisterTSTRINGSTREAM(Cl);
     {$IFNDEF PS_MINIVCL}
     RIRegisterTCUSTOMMEMORYSTREAM(Cl);
     RIRegisterTMEMORYSTREAM(Cl);

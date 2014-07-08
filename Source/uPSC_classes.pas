@@ -27,6 +27,7 @@ procedure SIRegisterTHANDLESTREAM(Cl: TPSPascalCompiler);
 procedure SIRegisterTMEMORYSTREAM(Cl: TPSPascalCompiler);
 {$ENDIF}
 procedure SIRegisterTFILESTREAM(Cl: TPSPascalCompiler);
+procedure SIRegisterTSTRINGSTREAM(Cl: TPSPascalCompiler);
 {$IFNDEF PS_MINIVCL}
 procedure SIRegisterTCUSTOMMEMORYSTREAM(Cl: TPSPascalCompiler);
 procedure SIRegisterTRESOURCESTREAM(Cl: TPSPascalCompiler);
@@ -83,6 +84,7 @@ begin
     RegisterMethod('procedure SetText(Text: PChar); ');
     RegisterProperty('Names', 'String Integer', iptr);
     RegisterProperty('Values', 'String String', iptRW);
+    RegisterProperty('ValueFromIndex', 'String Integer', iptRW);
     RegisterMethod('function AddObject(S:String;AObject:TObject):integer');
     RegisterMethod('function GetText:PChar');
     RegisterMethod('function IndexofObject(AObject:tObject):Integer');
@@ -168,6 +170,14 @@ begin
   with Cl.AddClassN(cl.FindClass('THandleStream'), 'TFileStream') do
   begin
     RegisterMethod('constructor Create(FileName:String;Mode:Word)');
+  end;
+end;
+
+procedure SIRegisterTSTRINGSTREAM(Cl: TPSPascalCompiler);
+begin
+  with Cl.AddClassN(cl.FindClass('TSTREAM'), 'TSTRINGSTREAM') do
+  begin
+    RegisterMethod('constructor CREATE(ASTRING:STRING)');
   end;
 end;
 
@@ -306,6 +316,7 @@ begin
   begin
     SIRegisterTHANDLESTREAM(Cl);
     SIRegisterTFILESTREAM(Cl);
+    SIRegisterTSTRINGSTREAM(Cl);
     {$IFNDEF PS_MINIVCL}
     SIRegisterTCUSTOMMEMORYSTREAM(Cl);
     SIRegisterTMEMORYSTREAM(Cl);

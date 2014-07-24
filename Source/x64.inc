@@ -13,33 +13,46 @@ const
 {$IFDEF MSWINDOWS}{$DEFINE WINDOWS}{$ENDIF}
 
 {$IFDEF WINDOWS}
+type
+  TRegisters = packed record
+    _RCX,                  // 0
+    _RDX,                  // 8
+    _R8,                   // 16
+    _R9: IPointer;         // 24
+    _XMM1,                 // 32
+    _XMM2,                 // 40
+    _XMM3: Double;         // 48
+    Stack: Pointer;        // 56
+    Items: {$IFDEF FPC}PtrUInt{$ELSE}IntPtr{$ENDIF}; // 64
+    SingleBits: Integer; // 72
+  end;
+
 procedure x64call(
   Address: Pointer;
   out _RAX: IPointer;
-  _RCX, _RDX, _R8, _R9: IPointer;
   var _XMM0: Double;
-  _XMM1, _XMM2, _XMM3: Double;
-  aStack: Pointer; aItems: {$IFDEF FPC}PtrUInt{$ELSE}IntPtr{$ENDIF}); assembler; {$IFDEF FPC}nostackframe;{$ENDIF}
+  var Registers: TRegisters); assembler; {$IFDEF FPC}nostackframe;{$ENDIF}
 asm
 (* Registers:
     RCX: Address
     RDX: *_RAX
-    R8: _RCX
-    R9: _RDX
-
+    R8: _XMM0
+    R9: _REGISTERS
     fpc inserts an 20h emty space
 *)
 {$IFDEF FPC}
   push rbp
   mov rbp,rsp
 {$ENDIF}
-//  call debugbreak
-  push rcx  // address
-  push rdx  // _rax
-  push r8   // _rcx
-  push r9   // _rdx
-  mov rcx, aItems
-  mov rdx, aStack
+  push rcx  // address         ;rbp -8
+  push rdx  // @_rax           ;rbp -16
+  push r8   // @_xmm0          ;rbp -24
+  push r9   // _registers      ;rbp -32
+
+  mov rax, [rbp-32] //registers
+
+  mov rcx, [rax+64] // items/count
+  mov rdx, [rax+52] // stack
   jmp @compareitems
 @work:
 {$IFDEF FPC}
@@ -54,23 +67,55 @@ asm
   jnz @work
 
   // copy registers
-{$IFDEF FPC}
-  movd xmm0,[_XMM0]
-  movd xmm1,_XMM1
-  movd xmm2,_XMM2
-  movd xmm3,_XMM3
-  {$ELSE}
-  mov rax, [_XMM0]
-  movsd xmm0, qword ptr [rax]
-  movsd xmm1,_XMM1
-  movsd xmm2,_XMM2
-  movsd xmm3,_XMM3
-  {$ENDIF}
-  mov RAX, [rbp-8]
-  mov RCX, [rbp-24]
-  mov RDX, [rbp-32]
-  mov R8, _R8
-  mov R9, _R9
+  mov rcx, [rax+72] // single bits
+
+  bt rcx, 1
+  jnc @g1
+  cvtsd2ss xmm1, [rax+32]
+  jmp @g1e
+  @g1:
+  movsd xmm1, [rax+32]
+  @g1e:
+
+
+  bt rcx, 2
+  jnc @g2
+  cvtsd2ss xmm2, [rax+40]
+  jmp @g2e
+  @g2:
+  movsd xmm2, [rax+40]
+  @g2e:
+
+  bt rcx, 3
+  jnc @g3
+  cvtsd2ss xmm3, [rax+40]
+  jmp @g3e
+  @g3:
+  movsd xmm3, [rax+40]
+  @g3e:
+
+
+
+  // rbp-16: address of xmm0
+
+  bt rcx, 0
+  jnc @g0
+  mov rdx, [rbp -24]
+  cvtsd2ss xmm0, [rdx]
+  jmp @g0e
+  @g0:
+  mov rdx, [rbp -24]
+  movsd xmm0, [rdx]
+  @g0e:
+
+  // other registers
+  mov rcx, [rax]
+  mov rdx, [rax+8]
+  mov r8, [rax+16]
+  mov r9, [rax+24]
+
+
+  mov rax, [rbp-8]
 
   // weird thing on windows, it needs 32 bytes in the CALLEE side to do whatever in
   sub RSP, 32
@@ -82,17 +127,19 @@ asm
   // copy result back
   mov RDX, [rbp-16]
   mov [RDX], RAX
-{$IFDEF FPC}
-  movd [_XMM0],xmm0
-{$ELSE}
-  mov rax, [_XMM0]
-  movsd qword ptr [rax], xmm0
-{$ENDIF}
 
-  pop r9
-  pop r8
-  pop rdx
-  pop rcx
+  mov rax, [rbp-32] //registers
+
+  bt [rax+72], 8
+  jnc @g5
+  cvtss2sd xmm1,xmm0
+  movd [rsi],xmm1
+
+  @g5:
+  mov RDX, [rbp-24]
+  movd [rdx],xmm0
+  @g5e:
+
   leave
   ret
 end;
@@ -283,12 +330,9 @@ function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingC
 var
   Stack: array of Byte;
   _RAX: IPointer;
-{$IFDEF WINDOWS}
-  _RCX, _RDX, _R8, _R9: IPointer;
-  _XMM0, _XMM1, _XMM2, _XMM3: Double;
-{$ELSE}
 _XMM0: Double;
   Registers: TRegisters;
+{$IFNDEF WINDOWS}
   RegUsageFloat: Byte;
 {$ENDIF}
   RegUsage: Byte;
@@ -315,10 +359,10 @@ _XMM0: Double;
   var p: Pointer;
   begin
     case RegUsage of
-      0: begin inc(RegUsage); _RCX:=Data; end;
-      1: begin inc(RegUsage); _RDX:=Data; end;
-      2: begin inc(RegUsage); _R8:=Data; end;
-      3: begin inc(RegUsage); _R9:=Data; end;
+      0: begin inc(RegUsage); Registers._RCX:=Data; end;
+      1: begin inc(RegUsage); Registers._RDX:=Data; end;
+      2: begin inc(RegUsage); Registers._R8:=Data; end;
+      3: begin inc(RegUsage); Registers._R9:=Data; end;
     else begin
       SetLength(Stack, Length(Stack)+8);
       p := @Stack[LEngth(Stack)-8];
@@ -365,9 +409,24 @@ _XMM0: Double;
   begin
     case RegUsage of
       0: begin inc(RegUsage); _XMM0:=Data; end;
-      1: begin inc(RegUsage); _XMM1:=Data; end;
-      2: begin inc(RegUsage); _XMM2:=Data; end;
-      3: begin inc(RegUsage); _XMM3:=Data; end;
+      1: begin inc(RegUsage); Registers._XMM1:=Data; end;
+      2: begin inc(RegUsage); Registers._XMM2:=Data; end;
+      3: begin inc(RegUsage); Registers._XMM3:=Data; end;
+    else begin
+      SetLength(Stack, Length(Stack)+8);
+      p := @Stack[LEngth(Stack)-8];
+      Double(p^) := data;
+    end;
+    end;
+  end;
+  procedure StoreReg(data: Single); overload;
+  var p: Pointer;
+  begin
+    case RegUsage of
+      0: begin inc(RegUsage); Registers.SingleBits := Registers.SingleBits or 1;_XMM0:=Data; end;
+      1: begin inc(RegUsage); Registers.SingleBits := Registers.SingleBits or 2; Registers._XMM1:=Data; end;
+      2: begin inc(RegUsage); Registers.SingleBits := Registers.SingleBits or 4;Registers._XMM2:=Data; end;
+      3: begin inc(RegUsage); Registers.SingleBits := Registers.SingleBits or 8; Registers._XMM3:=Data; end;
     else begin
       SetLength(Stack, Length(Stack)+8);
       p := @Stack[LEngth(Stack)-8];
@@ -579,29 +638,18 @@ begin
     _XMM5 := 0;
     _XMM6 := 0;
     _XMM7 := 0;*)
-    FillChar(Registers, Sizeof(REgisters), 0);
-    _XMM0 := 0;
     RegUsageFloat := 0;
-{$ELSE}
-    _RCX := 0;
-    _RDX := 0;
-    _R8 := 0;
-    _R9 := 0;
-    _XMM0 := 0;
-    _XMM1 := 0;
-    _XMM2 := 0;
-    _XMM3 := 0;
 {$ENDIF}
+  _XMM0 := 0;
+  FillChar(Registers, Sizeof(REgisters), 0);
     _RAX := 0;
     RegUsage := 0;
     if assigned(_Self) then begin
       StoreReg(IPointer(_Self));
     end;
-{$IFNDEF WINDOWS}
     if assigned(res) and (res^.atype.basetype = btSingle) then begin
       Registers.Singlebits  := Registers.Singlebits or 256;
     end;
-{$ENDIF}
 {$IFDEF PS_RESBEFOREPARAMETERS}
    if assigned(res) then begin
     case res^.aType.BaseType of
@@ -644,7 +692,9 @@ begin
       {$ENDIF} 
       if Stack = nil then pp := nil else pp := @Stack[Length(Stack) -8];
 {$IFDEF WINDOWS}
-      x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, pp, Length(Stack) div 8);
+      Registers.Stack := pp;
+      Registers.Items := Length(Stack) div 8;
+      x64call(Address, _RAX, _XMM0, Registers);
 {$ELSE}
       x64call(Address, _RAX, Registers, pp, Length(Stack) div 8, _XMM0);
 {$ENDIF}
@@ -689,7 +739,9 @@ begin
       {$ENDIF} 
 	if Stack = nil then pp := nil else pp := @Stack[Length(Stack) -8];
 {$IFDEF WINDOWS}
-       x64call(Address, _RAX, _RCX, _RDX, _R8, _R9, _XMM0, _XMM1, _XMM2, _XMM3, pp, Length(Stack) div 8);
+        Registers.Stack := pp;
+        Registers.Items := Length(Stack) div 8;
+        x64call(Address, _RAX, _XMM0, Registers);
 {$ELSE}
        x64call(Address, _RAX, Registers, pp, Length(Stack) div 8, _XMM0);
 {$ENDIF}

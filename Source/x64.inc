@@ -52,7 +52,7 @@ asm
   mov rax, [rbp-32] //registers
 
   mov rcx, [rax+64] // items/count
-  mov rdx, [rax+52] // stack
+  mov rdx, [rax+56] // stack
   jmp @compareitems
 @work:
 {$IFDEF FPC}

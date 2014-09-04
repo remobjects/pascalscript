@@ -33,7 +33,7 @@ requires
   IndyCore, IndySystem, IndyProtocols,
   {$ENDIF}
   PascalScript_Core_D9,
-  RemObjects_Core_D9,
+  RemObjects_Server_D9,
   RemObjects_Indy_D9,
   dbrtl,
   vcl,

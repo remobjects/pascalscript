@@ -69,7 +69,7 @@
     <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\IndyProtocols.dcp" />
     <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\IndySystem.dcp" />
     <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\PascalScript_Core_D11.dcp" />
-    <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\RemObjects_Core_D11.dcp" />
+    <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\RemObjects_Server_D11.dcp" />
     <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\RemObjects_Indy_D11.dcp" />
     <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\rtl.dcp" />
     <DCCReference Include="..\..\..\Stardock\Object Desktop\DeskScapes\vcl.dcp" />

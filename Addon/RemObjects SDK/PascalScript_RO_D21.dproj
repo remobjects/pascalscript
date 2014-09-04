@@ -1,7 +1,7 @@
 ﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
 			<ProjectGuid>{5DF52809-FD88-4459-9EE6-7D9C833B66C6}</ProjectGuid>
-			<MainSource>PascalScript_RO_D17.dpk</MainSource>
+			<MainSource>PascalScript_RO_D21.dpk</MainSource>
 			<Base>True</Base>
 			<Config Condition="'$(Config)'==''">Debug</Config>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
@@ -71,10 +71,10 @@
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base_Win32)'!=''">
-			<DCC_UnitSearchPath>..\..\Dcu\D17\win32;..\..\RemObjects SDK for Delphi\Dcu\D17\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_BplOutput>..\..\Dcu\D17\win32</DCC_BplOutput>
-			<DCC_DcpOutput>..\..\Dcu\D17\win32</DCC_DcpOutput>
-			<DCC_DcuOutput>..\..\Dcu\D17\win32</DCC_DcuOutput>
+			<DCC_UnitSearchPath>..\..\Dcu\D21\win32;..\..\RemObjects SDK for Delphi\Dcu\D21\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_BplOutput>..\..\Dcu\D21\win32</DCC_BplOutput>
+			<DCC_DcpOutput>..\..\Dcu\D21\win32</DCC_DcpOutput>
+			<DCC_DcuOutput>..\..\Dcu\D21\win32</DCC_DcuOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -101,9 +101,9 @@
 			<DCCReference Include="IndyCore.dcp"/>
 			<DCCReference Include="IndySystem.dcp"/>
 			<DCCReference Include="IndyProtocols.dcp"/>
-			<DCCReference Include="PascalScript_Core_D17.dcp"/>
-			<DCCReference Include="RemObjects_Server_D17.dcp"/>
-			<DCCReference Include="RemObjects_Indy_D17.dcp"/>
+			<DCCReference Include="PascalScript_Core_D21.dcp"/>
+			<DCCReference Include="RemObjects_Server_D21.dcp"/>
+			<DCCReference Include="RemObjects_Indy_D21.dcp"/>
 			<DCCReference Include="dbrtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>
 			<DCCReference Include="vclx.dcp"/>
@@ -129,7 +129,7 @@
 			<BorlandProject>
 				<Delphi.Personality>
 					<Source>
-						<Source Name="MainSource">PascalScript_RO_D17.dpk</Source>
+						<Source Name="MainSource">PascalScript_RO_D21.dpk</Source>
 					</Source>
 					<Parameters/>
 					<VersionInfo>

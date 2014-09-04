@@ -36,7 +36,7 @@
 			<DCCReference Include="IndySystem.dcp"/>
 			<DCCReference Include="IndyProtocols.dcp"/>
 			<DCCReference Include="PascalScript_Core_D14.dcp"/>
-			<DCCReference Include="RemObjects_Core_D14.dcp"/>
+			<DCCReference Include="RemObjects_Server_D14.dcp"/>
 			<DCCReference Include="RemObjects_Indy_D1.dcp"/>
 			<DCCReference Include="dbrtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>
@@ -45,8 +45,8 @@
 			<DCCReference Include="uROPSServerLink.pas"/>
 			<DCCReference Include="uROPSImports.pas"/>
 			<DCCReference Include="RemObjects_Indy_D12.dcp"/>
-			<DCCReference Include="RemObjects_Core_D1.dcp"/>
-			<DCCReference Include="RemObjects_Core_D12.dcp"/>
+			<DCCReference Include="RemObjects_Server_D1.dcp"/>
+			<DCCReference Include="RemObjects_Server_D12.dcp"/>
 			<DCCReference Include="PascalScript_Core_D1.dcp"/>
 			<DCCReference Include="PascalScript_Core_D12.dcp"/>
 			<BuildConfiguration Include="Base">

@@ -29,7 +29,7 @@ requires
   rtl,
   indy,
   PascalScript_Core_D6,
-  RemObjects_Core_D6,
+  RemObjects_Server_D6,
   RemObjects_Indy_D6,
   dbrtl,
   vcl,

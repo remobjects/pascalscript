@@ -34,7 +34,7 @@ requires
   IndySystem,
   IndyProtocols,
   PascalScript_Core_D18,
-  RemObjects_Core_D18,
+  RemObjects_Server_D18,
   RemObjects_Indy_D18,
   dbrtl,
   vcl,

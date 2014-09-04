@@ -102,7 +102,7 @@
 			<DCCReference Include="IndySystem.dcp"/>
 			<DCCReference Include="IndyProtocols.dcp"/>
 			<DCCReference Include="PascalScript_Core_D18.dcp"/>
-			<DCCReference Include="RemObjects_Core_D18.dcp"/>
+			<DCCReference Include="RemObjects_Server_D18.dcp"/>
 			<DCCReference Include="RemObjects_Indy_D18.dcp"/>
 			<DCCReference Include="dbrtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>

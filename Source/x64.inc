@@ -40,10 +40,10 @@ asm
     R9: _REGISTERS
     fpc inserts an 20h emty space
 *)
-{$IFDEF FPC}
+//{$IFDEF FPC}
   push rbp
   mov rbp,rsp
-{$ENDIF}
+//{$ENDIF}
   push rcx  // address         ;rbp -8
   push rdx  // @_rax           ;rbp -16
   push r8   // @_xmm0          ;rbp -24

@@ -9379,6 +9379,9 @@ begin
 
   RegisterDelphiFunction(@Unassigned, 'UNASSIGNED', cdRegister);
   RegisterDelphiFunction(@VarIsEmpty, 'VARISEMPTY', cdRegister);
+  {$IFDEF DELPHI7UP}
+  RegisterDelphiFunction(@VarIsClear, 'VARISCLEAR', cdRegister);
+  {$ENDIF}
   RegisterDelphiFunction(@Null, 'NULL', cdRegister);
   RegisterDelphiFunction(@VarIsNull, 'VARISNULL', cdRegister);
   {$IFNDEF FPC}

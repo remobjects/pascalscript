@@ -13142,6 +13142,9 @@ begin
 {$ENDIF}
   AddDelphiFunction('function Unassigned: Variant;');
   AddDelphiFunction('function VarIsEmpty(const V: Variant): Boolean;');
+{$IFDEF DELPHI7UP}
+  AddDelphiFunction('function VarIsClear(const V: Variant): Boolean;');
+{$ENDIF}
   AddDelphiFunction('function Null: Variant;');
   AddDelphiFunction('function VarIsNull(const V: Variant): Boolean;');
   AddDelphiFunction('function VarType(const V: Variant): TVarType;');

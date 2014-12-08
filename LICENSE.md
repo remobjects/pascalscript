@@ -14,6 +14,5 @@ Permission is granted to anyone to use this software for any kind of application
 
 If you have any questions concerning this license contact info@remobjects.com
 
-Carlo Kok
-RemObjects Software
+Carlo Kok, RemObjects Software
 

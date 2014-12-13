@@ -543,6 +543,7 @@ begin
             if not GetPtr(rp(Params[0])) then exit; // this goes first
             RegUsage := 2;
             EDX := Longint(_Self);
+            DisposePPSVariantIFC(Params[0]);
             Params.Delete(0);
           end else
 {$ENDIF}

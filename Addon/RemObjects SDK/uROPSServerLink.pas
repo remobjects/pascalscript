@@ -2,10 +2,10 @@ unit uROPSServerLink;
 
 interface
 uses
-  SysUtils, Classes, uPSCompiler, uPSUtils, uPSRuntime,
-  uROClient, uRODL{$IFDEF WIN32},
-  Windows{$ELSE}, Types{$ENDIF}, uROTypes, uROClientIntf,
-  uROSerializer, uPSComponent;
+  {$IFDEF WIN32}Windows,{$ELSE}Types,{$ENDIF}
+  SysUtils, Classes,
+  uPSCompiler, uPSUtils, uPSRuntime, uPSComponent,
+  uROClient, uRODL, uROTypes, uROClientIntf, uROSerializer;
 
 type
   
@@ -66,7 +66,8 @@ type
 
 implementation
 uses
-  uRODLToXML, uXMLToRODL, uROPSImports;
+  uROPSImports,
+  uRODLToXML, uXMLToRODL, uROMessage, uROTransportChannel, uROClasses;
 
 procedure SIRegisterTROTRANSPORTCHANNEL(CL: TPSPascalCompiler);
 Begin

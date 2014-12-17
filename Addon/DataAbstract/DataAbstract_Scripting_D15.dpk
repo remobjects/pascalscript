@@ -29,7 +29,7 @@ requires
   rtl,
   vcl,
   RemObjects_Core_D15,
-  DataAbstract_Core_D15,
+  DataAbstract_Server_D15,
   PascalScript_Core_D15;
 
 contains

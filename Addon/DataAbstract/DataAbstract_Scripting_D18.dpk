@@ -32,7 +32,7 @@ requires
   rtl,
   vcl,
   RemObjects_Core_D18,
-  DataAbstract_Core_D18,
+  DataAbstract_Server_D18,
   PascalScript_Core_D18;
 
 contains

@@ -30,7 +30,7 @@ requires
   dbrtl,
   vcl,
   RemObjects_Core_D9,
-  DataAbstract_Core_D9,
+  DataAbstract_Server_D9,
   PascalScript_Core_D9;
 
 contains

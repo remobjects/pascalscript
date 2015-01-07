@@ -4226,13 +4226,13 @@ begin
       exit;
     end;
     GetMem(darr, Longint(NewLength * elSize) + SizeOf(TDynArrayRecHeader));
-    {$IFDEF CPUX64}
-    darr^.header._Padding:=0;
-    {$ENDIF CPUX64}
     darr^.header.refCnt:=1;
     {$IFDEF FPC}
     darr^.header.high := NewLength - 1;
     {$ELSE}
+    {$IFDEF CPUX64}
+    darr^.header._Padding:=0;
+    {$ENDIF CPUX64}
     darr^.header.length := NewLength;
     {$ENDIF FPC}
     for i := 0 to NewLength -1 do

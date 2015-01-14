@@ -10243,7 +10243,11 @@ begin
   Delete(s, 1, 1);
   CurrStack := Cardinal(Stack.Count) - Cardinal(length(s)) -1;
   if s[1] = #0 then inc(CurrStack);
+  {$IFDEF CPU64}
+  IntVal := CreateHeapVariant(Caller.FindType2(btS64));
+  {$ELSE}
   IntVal := CreateHeapVariant(Caller.FindType2(btU32));
+  {$ENDIF}
   if IntVal = nil then
   begin
     Result := False;
@@ -10253,7 +10257,11 @@ begin
   // under FPC a constructor it's called with self=0 (EAX) and
   // the VMT class pointer in EDX so they are effectively swaped
   // using register calling convention
+  {$IFDEF CPU64}
+  PPSVariantU32(IntVal).Data := Int64(FSelf);
+  {$ELSE}
   PPSVariantU32(IntVal).Data := Cardinal(FSelf);
+  {$ENDIF}
   FSelf := pointer(1);
   {$ELSE}
   PPSVariantU32(IntVal).Data := 1;

@@ -36,9 +36,9 @@ asm
 (* Registers:
     RCX: Address
     RDX: *_RAX
-    R8: _XMM0
+    R8:  * _XMM0
     R9: _REGISTERS
-    fpc inserts an 20h emty space
+    fpc inserts an 20h empty space
 *)
 //{$IFDEF FPC}
   push rbp
@@ -88,10 +88,10 @@ asm
 
   bt rcx, 3
   jnc @g3
-  cvtsd2ss xmm3, [rax+40]
+  cvtsd2ss xmm3, [rax+48]
   jmp @g3e
   @g3:
-  movsd xmm3, [rax+40]
+  movsd xmm3, [rax+48]
   @g3e:
 
 
@@ -136,8 +136,9 @@ asm
   movd [rsi],xmm1
 
   @g5:
-  mov RDX, [rbp-24]
-  movd [rdx],xmm0
+    mov rdx,[rbp-24]
+    movsd qword ptr [rdx], xmm0
+
   @g5e:
 
   leave

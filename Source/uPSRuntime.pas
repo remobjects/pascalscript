@@ -9142,6 +9142,11 @@ begin
         Stack.SetInt(-1,length(tbtstring(arr.Dta^)));
         Result:=true;
       end;
+    btChar:
+      begin
+        Stack.SetInt(-1, 1);
+        Result:=true;
+      end;
     {$IFNDEF PS_NOWIDESTRING}
     btWideString:
       begin

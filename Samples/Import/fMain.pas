@@ -223,7 +223,7 @@ begin
     x1.AllowNoEnd := true;
     if x1.Compile(s) then
     begin
-      Outputtxt('Succesfully compiled');
+      Outputtxt('Successfully compiled');
       xpre.AdjustMessages(x1);
       OutputMsgs;
       if not x1.GetOutput(s) then
@@ -412,7 +412,7 @@ begin
     x1.OnUses := MyOnUses;
     if x1.Compile(s) then
     begin
-      Memo2.Lines.Add('Succesfully compiled');
+      Memo2.Lines.Add('Successfully compiled');
       xpre.AdjustMessages(x1);
       OutputMsgs;
       if not x1.GetOutput(s) then

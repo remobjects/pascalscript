@@ -142,8 +142,8 @@ var
 resourcestring
   STR_TEXT_NOTFOUND = 'Text not found';
   STR_UNNAMED = 'Unnamed';
-  STR_SUCCESSFULLY_COMPILED = 'Succesfully compiled';
-  STR_SUCCESSFULLY_EXECUTED = 'Succesfully executed';
+  STR_SUCCESSFULLY_COMPILED = 'Successfully compiled';
+  STR_SUCCESSFULLY_EXECUTED = 'Successfully executed';
   STR_RUNTIME_ERROR='[Runtime error] %s(%d:%d), bytecode(%d:%d): %s'; //Birb
   STR_FORM_TITLE = 'Editor';
   STR_FORM_TITLE_RUNNING = 'Editor - Running';

@@ -1,6 +1,5 @@
 This program requires SynEdit (http://synedit.sf.net) to compile.
 
-Executable can be found at: http://www.carlo-kok.com/downloads/ifps3/imp.zip
 
 UnitParser v0.4, written by M. Knight.
 UnitParser v0.5, updated by NP. v/d Spek, 21-oct-2003

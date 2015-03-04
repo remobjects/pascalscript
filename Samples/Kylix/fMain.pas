@@ -142,7 +142,7 @@ begin
   x1.OnExternalProc := DllExternalProc;
   if x1.Compile(Memo1.Text) then
   begin
-    Outputtxt('Succesfully compiled');
+    Outputtxt('Successfully compiled');
     OutputMsgs;
     if not x1.GetOutput(s) then
     begin
@@ -306,7 +306,7 @@ begin
   x1.OnUses := MyOnUses;
   if x1.Compile(Memo1.Text) then
   begin
-    Memo2.Lines.Add('Succesfully compiled');
+    Memo2.Lines.Add('Successfully compiled');
     OutputMsgs;
     if not x1.GetOutput(s) then
     begin

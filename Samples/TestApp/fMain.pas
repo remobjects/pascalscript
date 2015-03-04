@@ -128,12 +128,12 @@ begin
   if PSScript.Compile then
   begin
     OutputMessages;
-    Memo2.Lines.Add('Compiled succesfully');
+    Memo2.Lines.Add('Compiled successfully');
     if not PSScript.Execute then
     begin
       Memo1.SelStart := PSScript.ExecErrorPosition;
       Memo2.Lines.Add(PSScript.ExecErrorToString +' at '+Inttostr(PSScript.ExecErrorProcNo)+'.'+Inttostr(PSScript.ExecErrorByteCodePosition));
-    end else Memo2.Lines.Add('Succesfully executed');
+    end else Memo2.Lines.Add('Successfully executed');
   end else
   begin
     OutputMessages;

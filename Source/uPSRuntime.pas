@@ -1833,7 +1833,7 @@ type
     refCnt: Longint;
     /// length in element count
     // - size in bytes = length*ElemSize
-    length: NativeInt;
+    length: IPointer;
     {$endif}
   end;
   TDynArrayRec = packed record

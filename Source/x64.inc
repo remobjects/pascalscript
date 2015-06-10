@@ -3,7 +3,7 @@
   {$DEFINE x64_string_result_as_varparameter}
 {$ENDIF}
 
-{ implementaStotion of x64 abi }
+{ implementation of x64 abi }
 //procedure DebugBreak; external 'Kernel32.dll';
 const
   EmptyPchar: array[0..0] of char = #0;

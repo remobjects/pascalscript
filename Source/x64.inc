@@ -758,6 +758,7 @@ begin
         pp := CallData[i];
         case pp^ of
           0: DestroyOpenArray(Self, Pointer(pp));
+          255: FreeMem(Pointer(pp));
         end;
       end;
       CallData.Free;

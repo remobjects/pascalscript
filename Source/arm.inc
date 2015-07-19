@@ -1,8 +1,8 @@
 { implementation of the arm procedure call standard for function calls in pascal script
-  Copyright (c) 2008 by Henry Vermaak (henry.vermaak@gmail.com) 
-  
-  todo: add eabi (define FPC_ABI_EABI) and wince support 
-  
+  Copyright (c) 2008 by Henry Vermaak (henry.vermaak@gmail.com)
+
+  todo: add eabi (define FPC_ABI_EABI) and wince support
+
   notes:
 
   most arm cpus don't allow unaligned access.  by default (?) the linux kernel
@@ -27,7 +27,7 @@
   for more information, visit:
 
   http://www.aleph1.co.uk/oldsite/armlinux/book/afaq.html
-}   
+}
 
 const
   rtINT = 0;

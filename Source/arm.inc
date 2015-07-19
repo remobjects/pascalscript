@@ -276,7 +276,9 @@ var
       end;
 {$ENDIF}
   end;
-
+var
+  tempdw : dword;
+  tempqw : qword;
 begin
   if (Integer(CallingConv) and 64) <> 0 then begin
     IsConstructor := true;
@@ -400,13 +402,25 @@ begin
         btStaticArray, btRecord: armasmcall(rint, rfloat, address, st, stindex, rtINT);
         btArray:                 res.dta := armasmcall(rint, rfloat, address, st, stindex, rtINT);
           *)
-        btU8, btS8:              pbyte(res.dta)^ := lo(lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT))));
+        btString:                begin
+                                   tempdword := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
+                                   pstring(res.dta)^ := pstring(@tempdword)^;
+                                 end;
+        btU8, btS8, btChar:      pbyte(res.dta)^ := lo(lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT))));
         btU16, btS16:            pword(res.dta)^ := lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT)));
-        btString,btU32, btS32,btPChar:
-           pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
-        btSingle:pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT));
+        btU32, btS32,btPChar:    pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
+        btS64:                   pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex,rtINT);
+{$IFDEF FPC_abi_eabi}
+        btSingle:                pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT));
+{$ELSE}
+        btSingle:                begin
+                                   tempqword := armasmcall(rint, rfloat, address, st, stindex, rtFLOAT);
+                                   psingle(res.dta)^ := pdouble(@tempqword)^;
+                                 end;
+{$ENDIF}
+
         btDouble:pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex, rtFLOAT);
-        bts64:   pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex,rtINT);
+        btStaticArray, btRecord: armasmcall(rint, rfloat, address, st, stindex, rtINT);
         else begin
           writeln(stderr, 'Result type not implemented!');
           exit;

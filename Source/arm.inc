@@ -36,8 +36,14 @@ const
 
 type
   Trint = array[1..4] of dword;
+{$IFDEF FPC_abi_eabihf}
+  Trfloat = record case byte of
+          1:(s:array[0..15] of single);
+          2:(d:array[0..7] of double);
+          end;
+{$ELSE}
   Trfloat = array[1..4] of double;
-
+{$ENDIF}
 {$goto on}
 { define labels }
 label
@@ -50,7 +56,7 @@ label
 
 { call a function from a pointer }
 { resulttype: 0 = int, 1 = int64, 2 = float }
-function armasmcall(rint: Trint; rfloat: Trfloat; proc, stack: pointer; stacksize, resulttype: integer): pointer; assembler; nostackframe;
+function armasmcall(constref rint: Trint;constref rfloat: Trfloat; proc, stack: pointer; stacksize, resulttype: integer): int64; assembler; nostackframe;
 asm
 	mov	r12, r13
 	stmfd	r13!, {r4, r5, r6, r7, r8, r9, r10, r11, r12, r14, r15}
@@ -59,6 +65,11 @@ asm
 	ldr	r5, [r11, #4]		(* stacksize we need for subroutine *)
 	add	r4, r4, r5
 	sub	r13, r13, r4		(* create stack space *)
+
+{$ifdef FPC_abi_eabi}
+	(* EABI requires 8 byte aligned stack pointer for procedure calls, ensure alignment. *)
+	bic	r13, r13, #7
+{$endif}
 
 	(* store parameters on stack *)
 	str	r0, [r11, #-44]		(* rint *)
@@ -98,15 +109,34 @@ load_regs:
 	ldfd	f2, [r4, #16]
 	ldfd	f3, [r4, #24]
 {$endif}
+{$ifdef FPC_abi_eabihf}
+	(* load float regs *)
+	ldr	r4, [r11, #-48]	(* rfloat *)
+	fldmiad r4, {d0,d1,d2,d3,d4,d5,d6,d7}
+{$endif}
 
 	(* branch to the proc pointer *)
 	ldr	r4, [r11, #-52]
+
+{$ifdef FPC_abi_eabi}
+	blx	r4
+{$else}
 	mov	r14, r15
 	mov	r15, r4
-(*	blx	r4  *)
+{$endif}
 
 	ldr	r4, [r11, #-64]		(* get resulttype *)
 	cmp	r4, #1
+
+	ble     asmcall_end
+{$ifdef FPUFPA}
+	{$error not implemented}
+{$endif}
+{$IFDEF FPC_abi_eabihf}
+	fmrrd    r0, r1, d0
+{$endif}
+
+(*
 	blt	int_result
 	beq	int64_result
 	bgt	float_result
@@ -124,13 +154,19 @@ float_result:
 {$ifdef FPUFPA}
 	stfd	f0, [r11, #-72]
 {$else}
+{$IFDEF FPC_abi_eabihf}
+	fstd    d0, [r11, #-72]
+{$else}
 	b	int64_result
+{$endif}
 {$endif}
 	b	asmcall_end
 
 asmcall_end:
 	sub	r0, r11, #72		(* return pointer to result on stack *)
-	
+
+
+asmcall_end:
 	ldmea	r11,{r4,r5,r6,r7,r8,r9,r10,r11,r13,r15}
 end;
 
@@ -139,7 +175,7 @@ var
   rint: Trint;			{ registers r0 to r3 }
   rfloat: Trfloat;		{ registers f0 to f3 }
   st: packed array of byte;	{ stack }
-  i, j, rindex, findex, stindex: integer;
+  i, j, rindex, findex, stindex,sindex: integer;
   fvar: PPSVariantIFC;
   IsConstructor: Boolean;
 
@@ -151,6 +187,14 @@ var
     inc(stindex, 4);
   end;
 
+  { add a qword to stack }
+  procedure addstackqword(value: qword);
+  begin
+    if (stindex and 4)<>0 then inc(stindex, 4);
+    setlength(st, stindex+8);
+    pqword(@st[stindex])^ := value;
+    inc(stindex, 8);
+  end;
   { add a float to stack }
   procedure addstackfloat(value: pointer; size: integer);
   begin
@@ -173,10 +217,53 @@ var
         addstackdword(value);
       end;
   end;
+
+  { add to the general registers or overflow to stack }
+  procedure addgend(value: qword);
+  begin
+    if (rindex and 1)=0 then inc(rindex);
+    if rindex <= 4
+      then begin
+        rint[rindex] := lo(value);
+        inc(rindex);
+        rint[rindex] := hi(value);
+        inc(rindex);
+      end
+      else begin
+        addstackqword(value);
+      end;
+  end;
   { add to the float registers or overflow to stack }
   { size = 1 for single, 2 for double }
   procedure addfloat(value: pointer; size: integer);
   begin
+{$IFDEF FPC_abi_eabihf}
+    if (findex <= 7) or ((size = 1) and (sindex >= 0))
+      then begin
+        if size = 1
+          then if sindex>=0 then begin
+
+             rfloat.s[sindex] := single(value^);
+             sindex:=-1;
+          end else begin
+
+             rfloat.s[findex*2] := single(value^);
+             sindex:=findex*2+1;
+             inc(findex);
+          end
+          else begin rfloat.d[findex] := double(value^);
+             inc(findex);
+          end;
+      end
+      else begin
+        sindex := -1;
+        if size = 1
+          then addstackdword(pdword(value)^)
+          else addstackqword(pqword(value)^);
+
+      end;
+
+{$ELSE}
     if findex <= 4
       then begin
         if size = 1
@@ -187,6 +274,7 @@ var
       else begin
         addstackfloat(value, size);
       end;
+{$ENDIF}
   end;
 
 begin
@@ -196,7 +284,11 @@ begin
   end else IsConstructor := false;
 
   rindex := 1;
+{$IFDEF FPC_abi_eabihf}
+  findex := 0;
+{$ELSE}
   findex := 1;
+{$ENDIF}
   stindex := 0;
   setlength(st, stindex);
   Result := False;
@@ -242,24 +334,32 @@ begin
           btU8, btS8:                          addgen(dword(pbyte(fvar.dta)^));
           btU16, BtS16:                        addgen(dword(pword(fvar.dta)^));
           btU32, btS32:                        addgen(dword(pdword(fvar.dta)^));
-          btSingle:                            {$ifdef FPUFPA}
+          btSingle:                            {$if defined(FPUFPA) or defined(FPC_abi_eabihf)}
 	                                         addfloat(fvar.dta, 1);
 	                                       {$else}
 					         addgen(dword(psingle(fvar.dta)^));
 					       {$endif}
-          btDouble{, btExtended}:              {$ifdef FPUFPA}
+          btDouble{, btExtended}:              {$if defined(FPUFPA) or defined(FPC_abi_eabihf)}
 	                                         addfloat(fvar.dta, 2);
 	                                       {$else}
 					         begin
+					           {$IFDEF FPC_abi_eabi}
+					           addgend(qword(pint64(fvar.dta)^));
+					           {$ELSE}
 					           addgen(lo(qword(pdouble(fvar.dta)^)));
 					           addgen(hi(qword(pdouble(fvar.dta)^)));
+					           {$ENDIF}
 						 end;
 					       {$endif}
           btPChar:                             addgen(dword(ppchar(fvar.dta)^));
           btChar:                              addgen(dword(pchar(fvar.dta)^));
           {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   begin
+                                                 {$IFDEF FPC_abi_eabi}
+                                                 addgend(qword(pint64(fvar.dta)^));
+                                                 {$ELSE}
                                                  addgen(dword(pint64(fvar.dta)^ and $ffffffff));
                                                  addgen(dword(pint64(fvar.dta)^ shr 32));
+                                                 {$ENDIF}
                                                end;
           btStaticArray:                       addgen(dword(fvar.dta));
           btRecord:                            for j := 0 to (fvar.atype.realsize div 4)-1 do
@@ -283,17 +383,30 @@ begin
     else begin
       case res.atype.basetype of
         { add result types here }
+        (*
         btString:                pstring(res.dta)^ := pstring(armasmcall(rint, rfloat, address, st, stindex, rtINT))^;
         btU8, btS8:              pbyte(res.dta)^ := byte(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btU16, btS16:            pword(res.dta)^ := word(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btU32, btS32:            pdword(res.dta)^ := pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^;
+        bts64:                   pqword(res.dta)^ := pqword(armasmcall(rint, rfloat, address, st, stindex, rtINT64))^;
+{$IFDEF FPC_abi_eabi}
+        btSingle:                psingle(res.dta)^ := psingle(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
+{$ELSE}
         btSingle:                psingle(res.dta)^ := pdouble(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
+{$ENDIF}
         btDouble{, btExtended}:  pdouble(res.dta)^ := pdouble(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
         btPChar:                 ppchar(res.dta)^ := pchar(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btChar:                  pchar(res.dta)^ := char(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btStaticArray, btRecord: armasmcall(rint, rfloat, address, st, stindex, rtINT);
         btArray:                 res.dta := armasmcall(rint, rfloat, address, st, stindex, rtINT);
-
+          *)
+        btU8, btS8:              pbyte(res.dta)^ := lo(lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT))));
+        btU16, btS16:            pword(res.dta)^ := lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT)));
+        btString,btU32, btS32,btPChar:
+           pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
+        btSingle:pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT));
+        btDouble:pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex, rtFLOAT);
+        bts64:   pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex,rtINT);
         else begin
           writeln(stderr, 'Result type not implemented!');
           exit;

@@ -76,7 +76,7 @@ asm
 	str	r1, [r11, #-48]		(* rfloat *)
 	str	r2, [r11, #-52]		(* proc *)
 	str	r3, [r11, #-56] 	(* stack *)
-	ldr	r0, [r11, #4]		
+	ldr	r0, [r11, #4]
 	str	r0, [r11, #-60]		(* stacksize *)
 	ldr	r0, [r11, #8]		
 	str	r0, [r11, #-64]		(* resulttype *)
@@ -299,7 +299,7 @@ begin
   if assigned(res)
     then begin
       case res.atype.basetype of
-        btStaticArray, btRecord: addgen(dword(res.dta));
+        btStaticArray, btRecord,btString: addgen(dword(res.dta));
       end;
     end;
 
@@ -402,10 +402,10 @@ begin
         btStaticArray, btRecord: armasmcall(rint, rfloat, address, st, stindex, rtINT);
         btArray:                 res.dta := armasmcall(rint, rfloat, address, st, stindex, rtINT);
           *)
-        btString:                begin
-                                   tempdword := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
-                                   pstring(res.dta)^ := pstring(@tempdword)^;
-                                 end;
+    (*    btString:                begin{this code disabled because freepascal seems to handle string returns as var params}
+                                   tempdw := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
+                                   pstring(res.dta)^ := pstring(@tempdw)^;
+                                 end;*)
         btU8, btS8, btChar:      pbyte(res.dta)^ := lo(lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT))));
         btU16, btS16:            pword(res.dta)^ := lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT)));
         btU32, btS32,btPChar:    pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
@@ -414,13 +414,13 @@ begin
         btSingle:                pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT));
 {$ELSE}
         btSingle:                begin
-                                   tempqword := armasmcall(rint, rfloat, address, st, stindex, rtFLOAT);
-                                   psingle(res.dta)^ := pdouble(@tempqword)^;
+                                   tempqw := armasmcall(rint, rfloat, address, st, stindex, rtFLOAT);
+                                   psingle(res.dta)^ := pdouble(@tempqw)^;
                                  end;
 {$ENDIF}
 
         btDouble:pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex, rtFLOAT);
-        btStaticArray, btRecord: armasmcall(rint, rfloat, address, st, stindex, rtINT);
+        btStaticArray, btRecord,btString: armasmcall(rint, rfloat, address, st, stindex, rtINT);
         else begin
           writeln(stderr, 'Result type not implemented!');
           exit;

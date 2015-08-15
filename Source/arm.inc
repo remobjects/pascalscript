@@ -418,7 +418,11 @@ begin
                                    psingle(res.dta)^ := pdouble(@tempqw)^;
                                  end;
 {$ENDIF}
-
+        btArray:                 begin
+                                    tempdw := armasmcall(rint, rfloat, address, st, stindex, rtINT);
+                                    //FIXME menory leak
+                                    pdword(res.dta)^:=tempdw;
+                                 end;
         btDouble:pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex, rtFLOAT);
         btStaticArray, btRecord,btString: armasmcall(rint, rfloat, address, st, stindex, rtINT);
         else begin

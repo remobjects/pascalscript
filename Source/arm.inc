@@ -130,7 +130,9 @@ load_regs:
 
 	ble     asmcall_end
 {$ifdef FPUFPA}
-	{$error not implemented}
+	stfd f0, [r11, #-72]
+	ldr r0, [r11, #-72]
+	ldr r1, [r11, #-68]
 {$endif}
 {$IFDEF FPC_abi_eabihf}
 	fmrrd    r0, r1, d0

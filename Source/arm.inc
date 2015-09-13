@@ -142,35 +142,6 @@ load_regs:
 	fmrrd    r0, r1, d0
 {$endif}
 
-(*
-	blt	int_result
-	beq	int64_result
-	bgt	float_result
-
-int_result:
-	str	r0, [r11, #-72]
-	b	asmcall_end
-
-int64_result:
-	str	r0, [r11, #-72]
-	str	r1, [r11, #-68]
-	b	asmcall_end
-
-float_result:
-{$ifdef FPUFPA}
-	stfd	f0, [r11, #-72]
-{$else}
-{$IFDEF FPC_abi_eabihf}
-	fstd    d0, [r11, #-72]
-{$else}
-	b	int64_result
-{$endif}
-{$endif}
-	b	asmcall_end
-
-asmcall_end:
-	sub	r0, r11, #72		(* return pointer to result on stack *)
-
 
 asmcall_end:
 	ldmea	r11,{r4,r5,r6,r7,r8,r9,r10,r11,r13,r15}
@@ -392,27 +363,6 @@ begin
     else begin
       case res.atype.basetype of
         { add result types here }
-        (*
-        btString:                pstring(res.dta)^ := pstring(armasmcall(rint, rfloat, address, st, stindex, rtINT))^;
-        btU8, btS8:              pbyte(res.dta)^ := byte(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
-        btU16, btS16:            pword(res.dta)^ := word(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
-        btU32, btS32:            pdword(res.dta)^ := pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^;
-        bts64:                   pqword(res.dta)^ := pqword(armasmcall(rint, rfloat, address, st, stindex, rtINT64))^;
-{$IFDEF FPC_abi_eabi}
-        btSingle:                psingle(res.dta)^ := psingle(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
-{$ELSE}
-        btSingle:                psingle(res.dta)^ := pdouble(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
-{$ENDIF}
-        btDouble{, btExtended}:  pdouble(res.dta)^ := pdouble(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
-        btPChar:                 ppchar(res.dta)^ := pchar(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
-        btChar:                  pchar(res.dta)^ := char(pdword(armasmcall(rint, rfloat, address, st, stindex, rtINT))^);
-        btStaticArray, btRecord: armasmcall(rint, rfloat, address, st, stindex, rtINT);
-        btArray:                 res.dta := armasmcall(rint, rfloat, address, st, stindex, rtINT);
-          *)
-    (*    btString:                begin{this code disabled because freepascal seems to handle string returns as var params}
-                                   tempdw := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
-                                   pstring(res.dta)^ := pstring(@tempdw)^;
-                                 end;*)
         btU8, btS8, btChar:      pbyte(res.dta)^ := lo(lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT))));
         btU16, btS16:            pword(res.dta)^ := lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT)));
         btU32, btS32,btPChar:    pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));

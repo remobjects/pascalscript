@@ -1,7 +1,11 @@
 { implementation of the arm procedure call standard for function calls in pascal script
   Copyright (c) 2008 by Henry Vermaak (henry.vermaak@gmail.com)
 
-  todo: add eabi (define FPC_ABI_EABI) and wince support
+  Support for EABI baseline and EABI hardfloat (c) 2015
+    modulo7 ( https://github.com/modulo7 )
+    Peter Michael Green ( plugwash@p10link.net )
+
+  todo: add wince support
 
   notes:
 
@@ -290,6 +294,7 @@ begin
   rindex := 1;
 {$IFDEF FPC_abi_eabihf}
   findex := 0;
+  sindex := -1;
 {$ELSE}
   findex := 1;
 {$ENDIF}

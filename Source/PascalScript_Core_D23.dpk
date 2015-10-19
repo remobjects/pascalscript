@@ -5,7 +5,7 @@ package PascalScript_Core_D23;
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
@@ -26,7 +26,6 @@ package PascalScript_Core_D23;
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'RemObjects Pascal Script - Core Package'}
-{$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
 requires

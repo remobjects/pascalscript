@@ -13580,6 +13580,12 @@ begin
   Result := FindClass(tbtstring(aClass.ClassName));
   if (Result<>nil) and not(FAllowDuplicateRegister) then
     Raise EPSCompilerException.CreateFmt(RPS_DuplicateIdent, [aClass.ClassName]);
+  if Result <> nil then
+  begin
+    if InheritsFrom <> nil then
+      Result.FInheritsFrom := InheritsFrom;
+    exit;
+  end;
   f := AddType(tbtstring(aClass.ClassName), btClass);
   Result := TPSCompileTimeClass.CreateC(aClass, Self, f);
   Result.FInheritsFrom := InheritsFrom;

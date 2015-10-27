@@ -2266,7 +2266,7 @@ begin
   p^.Hash := MakeHash(s);
   p^.ProcPtr := ProcPtr;
   p^.FreeProc := nil;
-  p.Ext1 := Ext1;
+  p^.Ext1 := Ext1;
   p^.Ext2 := Ext2;
   FRegProcs.Add(p);
   Result := P;

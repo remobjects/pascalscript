@@ -60,7 +60,9 @@ begin
     RegisterMethod('procedure Insert(Index: Integer; S: string); ');
     RegisterProperty('Capacity', 'Integer', iptRW);
     RegisterProperty('Delimiter', 'char', iptRW);
+{$IFDEF DELPHI2006UP}
     RegisterProperty('StrictDelimiter', 'boolean', iptRW);
+{$ENDIF}
     RegisterProperty('DelimitedText', 'string', iptrw);
     RegisterProperty('NameValueSeparator', 'char', iptRW);
     RegisterProperty('QuoteChar', 'char', iptRW);

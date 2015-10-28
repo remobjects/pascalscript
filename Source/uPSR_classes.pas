@@ -34,6 +34,21 @@ implementation
 uses
   Classes;
 
+procedure TStringsCapacityR(Self: TStrings; var T: Longint); begin T := Self.Capacity; end;
+procedure TStringsCapacityW(Self: TStrings; T: Longint); begin Self.Capacity := T; end;
+procedure TStringsDelimiterR(Self: TStrings; var T: char); begin T := Self.Delimiter; end;
+procedure TStringsDelimiterW(Self: TStrings; T: char); begin Self.Delimiter:= T; end;
+{$IFDEF DELPHI2006UP}
+procedure TStringsStrictDelimiterR(Self: TStrings; var T: boolean); begin T := Self.StrictDelimiter; end;
+procedure TStringsStrictDelimiterW(Self: TStrings; T: boolean); begin Self.StrictDelimiter:= T; end;
+{$ENDIF}
+procedure TStringsDelimitedTextR(Self: TStrings; var T: string); begin T := Self.DelimitedText; end;
+procedure TStringsDelimitedTextW(Self: TStrings; T: string); begin Self.DelimitedText:= T; end;
+procedure TStringsNameValueSeparatorR(Self: TStrings; var T: char); begin T := Self.NameValueSeparator; end;
+procedure TStringsNameValueSeparatorW(Self: TStrings; T: char); begin Self.NameValueSeparator:= T; end;
+procedure TStringsQuoteCharR(Self: TStrings; var T: char); begin T := Self.QuoteChar; end;
+procedure TStringsQuoteCharW(Self: TStrings; T: char); begin Self.QuoteChar:= T; end;
+
 procedure TStringsCountR(Self: TStrings; var T: Longint); begin T := Self.Count; end;
 
 procedure TStringsTextR(Self: TStrings; var T: string); begin T := Self.Text; end;
@@ -97,6 +112,14 @@ begin
     RegisterVirtualAbstractMethod(TStringList, @TStringList.Delete, 'DELETE');
     RegisterVirtualMethod(@TStrings.IndexOf, 'INDEXOF');
     RegisterVirtualAbstractMethod(TStringList, @TStringList.Insert, 'INSERT');
+    RegisterPropertyHelper(@TStringsCapacityR, @TStringsCapacityW, 'CAPACITY');
+    RegisterPropertyHelper(@TStringsDelimiterR, @TStringsDelimiterW, 'DELIMITER');
+{$IFDEF DELPHI2006UP}
+    RegisterPropertyHelper(@TStringsStrictDelimiterR, @TStringsStrictDelimiterW, 'STRICTDELIMITER');
+{$ENDIF}
+    RegisterPropertyHelper(@TStringsDelimitedTextR, @TStringsDelimitedTextW, 'DELIMITEDTEXT');
+    RegisterPropertyHelper(@TStringsNameValueSeparatorR, @TStringsNameValueSeparatorW, 'NAMEVALUESEPARATOR');
+    RegisterPropertyHelper(@TStringsQuoteCharR, @TStringsQuoteCharW, 'QUOTECHAR');
     RegisterPropertyHelper(@TStringsCountR, nil, 'COUNT');
     RegisterPropertyHelper(@TStringsTextR, @TStringsTextW, 'TEXT');
     RegisterPropertyHelper(@TStringsCommaTextR, @TStringsCommatextW, 'COMMATEXT');
@@ -131,6 +154,8 @@ begin
   end;
 end;
 
+procedure TSTRINGLISTCASESENSITIVE_R(Self: TSTRINGLIST; var T: BOOLEAN); begin T := Self.CASESENSITIVE; end;
+procedure TSTRINGLISTCASESENSITIVE_W(Self: TSTRINGLIST; const T: BOOLEAN); begin Self.CASESENSITIVE := T; end;
 procedure TSTRINGLISTDUPLICATES_R(Self: TSTRINGLIST; var T: TDUPLICATES); begin T := Self.DUPLICATES; end;
 procedure TSTRINGLISTDUPLICATES_W(Self: TSTRINGLIST; const T: TDUPLICATES); begin Self.DUPLICATES := T; end;
 procedure TSTRINGLISTSORTED_R(Self: TSTRINGLIST; var T: BOOLEAN); begin T := Self.SORTED; end;
@@ -152,6 +177,7 @@ begin
 {$ENDIF}
     RegisterVirtualMethod(@TSTRINGLIST.FIND, 'FIND');
     RegisterVirtualMethod(@TSTRINGLIST.SORT, 'SORT');
+    RegisterPropertyHelper(@TSTRINGLISTCASESENSITIVE_R, @TSTRINGLISTCASESENSITIVE_W, 'CASESENSITIVE');
     RegisterPropertyHelper(@TSTRINGLISTDUPLICATES_R, @TSTRINGLISTDUPLICATES_W, 'DUPLICATES');
     RegisterPropertyHelper(@TSTRINGLISTSORTED_R, @TSTRINGLISTSORTED_W, 'SORTED');
     RegisterEventPropertyHelper(@TSTRINGLISTONCHANGE_R, @TSTRINGLISTONCHANGE_W, 'ONCHANGE');

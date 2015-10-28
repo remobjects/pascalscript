@@ -58,6 +58,14 @@ begin
     RegisterMethod('procedure Delete(Index: Integer);');
     RegisterMethod('function IndexOf(const S: string): Integer; ');
     RegisterMethod('procedure Insert(Index: Integer; S: string); ');
+    RegisterProperty('Capacity', 'Integer', iptRW);
+    RegisterProperty('Delimiter', 'char', iptRW);
+{$IFDEF DELPHI2006UP}
+    RegisterProperty('StrictDelimiter', 'boolean', iptRW);
+{$ENDIF}
+    RegisterProperty('DelimitedText', 'string', iptrw);
+    RegisterProperty('NameValueSeparator', 'char', iptRW);
+    RegisterProperty('QuoteChar', 'char', iptRW);
     RegisterProperty('Count', 'Integer', iptR);
     RegisterProperty('Text', 'String', iptrw);
     RegisterProperty('CommaText', 'String', iptrw);
@@ -102,6 +110,7 @@ begin
 {$ENDIF}
     RegisterMethod('function Find(S:String;var Index:Integer):Boolean');
     RegisterMethod('procedure Sort');
+    RegisterProperty('CaseSensitive', 'Boolean', iptrw);
     RegisterProperty('Duplicates', 'TDuplicates', iptrw);
     RegisterProperty('Sorted', 'Boolean', iptrw);
     RegisterProperty('OnChange', 'TNotifyEvent', iptrw);

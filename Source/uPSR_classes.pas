@@ -38,8 +38,10 @@ procedure TStringsCapacityR(Self: TStrings; var T: Longint); begin T := Self.Cap
 procedure TStringsCapacityW(Self: TStrings; T: Longint); begin Self.Capacity := T; end;
 procedure TStringsDelimiterR(Self: TStrings; var T: char); begin T := Self.Delimiter; end;
 procedure TStringsDelimiterW(Self: TStrings; T: char); begin Self.Delimiter:= T; end;
+{$IFDEF DELPHI2006UP}
 procedure TStringsStrictDelimiterR(Self: TStrings; var T: boolean); begin T := Self.StrictDelimiter; end;
 procedure TStringsStrictDelimiterW(Self: TStrings; T: boolean); begin Self.StrictDelimiter:= T; end;
+{$ENDIF}
 procedure TStringsDelimitedTextR(Self: TStrings; var T: string); begin T := Self.DelimitedText; end;
 procedure TStringsDelimitedTextW(Self: TStrings; T: string); begin Self.DelimitedText:= T; end;
 procedure TStringsNameValueSeparatorR(Self: TStrings; var T: char); begin T := Self.NameValueSeparator; end;
@@ -112,7 +114,9 @@ begin
     RegisterVirtualAbstractMethod(TStringList, @TStringList.Insert, 'INSERT');
     RegisterPropertyHelper(@TStringsCapacityR, @TStringsCapacityW, 'CAPACITY');
     RegisterPropertyHelper(@TStringsDelimiterR, @TStringsDelimiterW, 'DELIMITER');
+{$IFDEF DELPHI2006UP}
     RegisterPropertyHelper(@TStringsStrictDelimiterR, @TStringsStrictDelimiterW, 'STRICTDELIMITER');
+{$ENDIF}
     RegisterPropertyHelper(@TStringsDelimitedTextR, @TStringsDelimitedTextW, 'DELIMITEDTEXT');
     RegisterPropertyHelper(@TStringsNameValueSeparatorR, @TStringsNameValueSeparatorW, 'NAMEVALUESEPARATOR');
     RegisterPropertyHelper(@TStringsQuoteCharR, @TStringsQuoteCharW, 'QUOTECHAR');

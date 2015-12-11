@@ -115,7 +115,7 @@ asm
   mov r9, [rax+24]
 
 
-  mov rax, [rbp-8]
+  mov RAX, [rbp-8]
 
   // weird thing on windows, it needs 32 bytes in the CALLEE side to do whatever in
   sub RSP, 32
@@ -130,16 +130,19 @@ asm
 
   mov rax, [rbp-32] //registers
 
-  bt [rax+72], 8
-  jnc @g5
-  cvtss2sd xmm1,xmm0
-  movd [rsi],xmm1
+  bt [rax+72], 8                 // if atype.basetype  <> btSingle
+  jnc @g5                        //
+  cvtss2sd xmm1,xmm0             // convert single to double  into xmm1
+  mov rdx,[rbp-24]               // @_xmm0  ;rbp -24
+  movsd qword ptr [rdx], xmm1    // save  xmm1 to param _xmm0
+  jmp @g5e                       // exit if atype.basetype  = btSingle
 
-  @g5:
-    mov rdx,[rbp-24]
-    movsd qword ptr [rdx], xmm0
+  @g5:                           //else "if atype.basetype  = btSingle"
+    mov rdx,[rbp-24]             // @_xmm0  ;rbp -24
+    movsd qword ptr [rdx], xmm0  // save  xmm1 to param _xmm0
 
   @g5e:
+
 
   leave
   ret

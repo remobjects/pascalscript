@@ -307,20 +307,21 @@ asm
   // add RSP, 32 // undo the damage done earlier
 
   // copy result back
-  mov rsi, [rbp-16]
+  mov rsi, [rbp-16]          // _RAX parameter
   mov [rsi], RAX
-  mov rsi, [rbp-24]
+  mov rsi, [rbp-24]          // _XMM0 parameter
 
   // xmm0 res
-  mov rax, [rbp-32]
-  bt [rax+104], 8
-  jnc @skipres
-  cvtss2sd xmm1,xmm0
-  movd [rsi],xmm1
-  jmp @skipresre
+  mov rax, [rbp-32]          // Registers parameter
+  bt [rax+104], 8            // if atype.basetype  <> btSingle
+  jnc @skipres               // then goto skipres else begin
+  cvtss2sd xmm1,xmm0         // convert single to double  into xmm1
+  movq [rsi],xmm1            // move quadword to _XMM0
+  jmp @skipresre             // end
   @skipres:
-  movd [rsi],xmm0
+  movq [rsi],xmm0            // move quadword to _XMM0
   @skipresre:
+
 
   pop rdx
   pop r9   // xmm0

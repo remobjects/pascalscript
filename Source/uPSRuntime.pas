@@ -9389,9 +9389,7 @@ begin
   {$ENDIF}
   RegisterDelphiFunction(@Null, 'NULL', cdRegister);
   RegisterDelphiFunction(@VarIsNull, 'VARISNULL', cdRegister);
-  {$IFNDEF FPC}
   RegisterDelphiFunction(@VarType, 'VARTYPE', cdRegister);
-  {$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}
   RegisterDelphiFunction(@IDispatchInvoke, 'IDISPATCHINVOKE', cdregister);
   {$ENDIF}

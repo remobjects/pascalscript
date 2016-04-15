@@ -71,10 +71,10 @@
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base_Win32)'!=''">
-			<DCC_UnitSearchPath>..\..\Dcu\D21\win32;..\..\RemObjects SDK for Delphi\Dcu\D21\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-			<DCC_BplOutput>..\..\Dcu\D21\win32</DCC_BplOutput>
-			<DCC_DcpOutput>..\..\Dcu\D21\win32</DCC_DcpOutput>
-			<DCC_DcuOutput>..\..\Dcu\D21\win32</DCC_DcuOutput>
+			<DCC_UnitSearchPath>..\..\Dcu\D22\win32;..\..\RemObjects SDK for Delphi\Dcu\D22\win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_BplOutput>..\..\Dcu\D22\win32</DCC_BplOutput>
+			<DCC_DcpOutput>..\..\Dcu\D22\win32</DCC_DcpOutput>
+			<DCC_DcuOutput>..\..\Dcu\D22\win32</DCC_DcuOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>

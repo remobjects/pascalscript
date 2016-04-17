@@ -589,7 +589,7 @@ begin
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass :
               begin
-              {$IFDEF FPC}
+              {$IF DEFINED (fpc) and (fpc_version < 3)}
                 if IsConstructor or IsVirtualCons then
                   tbtu32(res.dta^) := RealCall_Register(Address, EDX, EAX, ECX,
                   @Stack[Length(Stack) - 3], Length(Stack) div 4, 4, nil)

@@ -35,15 +35,15 @@ uses
 
 procedure SIRegisterTGRAPHICSOBJECT(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TPERSISTENT'), 'TGRAPHICSOBJECT') do
+  with Cl.AddClassN(cl.FindClass('TPersistent'), 'TGraphicsObject') do
   begin
-    RegisterProperty('ONCHANGE', 'TNOTIFYEVENT', iptrw);
+    RegisterProperty('OnChange', 'TNotifyEvent', iptrw);
   end;
 end;
 
 procedure SIRegisterTFont(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TGraphicsObject'), 'TFONT') do
+  with Cl.AddClassN(cl.FindClass('TGraphicsObject'), 'TFont') do
   begin
     RegisterMethod('constructor Create;');
 {$IFNDEF CLX}
@@ -51,7 +51,7 @@ begin
 {$ENDIF}
     RegisterProperty('Color', 'TColor', iptRW);
     RegisterProperty('Height', 'Integer', iptRW);
-    RegisterProperty('Name', 'String', iptRW);
+    RegisterProperty('Name', 'string', iptRW);
     RegisterProperty('Pitch', 'Byte', iptRW);
     RegisterProperty('Size', 'Integer', iptRW);
     RegisterProperty('PixelsPerInch', 'Integer', iptRW);
@@ -61,7 +61,7 @@ end;
 
 procedure SIRegisterTCanvas(cl: TPSPascalCompiler); // requires TPersistent
 begin
-  with Cl.AddClassN(cl.FindClass('TPersistent'), 'TCANVAS') do
+  with Cl.AddClassN(cl.FindClass('TPersistent'), 'TCanvas') do
   begin
     RegisterMethod('procedure Arc(X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);');
     RegisterMethod('procedure Chord(X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);');
@@ -77,9 +77,9 @@ begin
     RegisterMethod('procedure Rectangle(X1, Y1, X2, Y2: Integer);');
     RegisterMethod('procedure Refresh;');
     RegisterMethod('procedure RoundRect(X1, Y1, X2, Y2, X3, Y3: Integer);');
-    RegisterMethod('function TextHeight(Text: String): Integer;');
-    RegisterMethod('procedure TextOut(X, Y: Integer; Text: String);');
-    RegisterMethod('function TextWidth(Text: String): Integer;');
+    RegisterMethod('function TextHeight(Text: string): Integer;');
+    RegisterMethod('procedure TextOut(X, Y: Integer; Text: string);');
+    RegisterMethod('function TextWidth(Text: string): Integer;');
 {$IFNDEF CLX}
     RegisterProperty('Handle', 'Integer', iptRw);
 {$ENDIF}
@@ -93,23 +93,23 @@ end;
 
 procedure SIRegisterTPEN(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TGRAPHICSOBJECT'), 'TPEN') do
+  with Cl.AddClassN(cl.FindClass('TGraphicsObject'), 'TPen') do
   begin
-    RegisterMethod('constructor CREATE');
-    RegisterProperty('COLOR', 'TCOLOR', iptrw);
-    RegisterProperty('MODE', 'TPENMODE', iptrw);
-    RegisterProperty('STYLE', 'TPENSTYLE', iptrw);
-    RegisterProperty('WIDTH', 'INTEGER', iptrw);
+    RegisterMethod('constructor Create');
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Mode', 'TPenMode', iptrw);
+    RegisterProperty('Style', 'TPenStyle', iptrw);
+    RegisterProperty('Width', 'Integer', iptrw);
   end;
 end;
 
 procedure SIRegisterTBRUSH(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TGRAPHICSOBJECT'), 'TBRUSH') do
+  with Cl.AddClassN(cl.FindClass('TGraphicsObject'), 'TBrush') do
   begin
-    RegisterMethod('constructor CREATE');
-    RegisterProperty('COLOR', 'TCOLOR', iptrw);
-    RegisterProperty('STYLE', 'TBRUSHSTYLE', iptrw);
+    RegisterMethod('constructor Create');
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Style', 'TBrushStyle', iptrw);
   end;
 end;
 
@@ -195,14 +195,14 @@ begin
   cl.AddConstantN('clNone', 'Integer').Value.ts32 := $1FFFFFFF;
   cl.AddConstantN('clDefault', 'Integer').Value.ts32 := $20000000;
 
-  Cl.addTypeS('TFONTSTYLE', '(FSBOLD, FSITALIC, FSUNDERLINE, FSSTRIKEOUT)');
-  Cl.addTypeS('TFONTSTYLES', 'set of TFONTSTYLE');
+  Cl.addTypeS('TFontStyle', '(fsBold, fsItalic, fsUnderline, fsStrikeOut)');
+  Cl.addTypeS('TFontStyles', 'set of TFontStyle');
 
   cl.AddTypeS('TFontPitch', '(fpDefault, fpVariable, fpFixed)');
   cl.AddTypeS('TPenStyle', '(psSolid, psDash, psDot, psDashDot, psDashDotDot, psClear, psInsideFrame)');
   cl.AddTypeS('TPenMode', '(pmBlack, pmWhite, pmNop, pmNot, pmCopy, pmNotCopy, pmMergePenNot, pmMaskPenNot, pmMergeNotPen, pmMaskNotPen, pmMerge, pmNotMerge, pmMask, pmNotMask, pmXor, pmNotXor)');
   cl.AddTypeS('TBrushStyle', '(bsSolid, bsClear, bsHorizontal, bsVertical, bsFDiagonal, bsBDiagonal, bsCross, bsDiagCross)');
-  cl.addTypeS('TColor', 'integer');
+  cl.addTypeS('TColor', 'Integer');
 
 {$IFNDEF CLX}
   cl.addTypeS('HBITMAP', 'Integer');
@@ -215,8 +215,8 @@ begin
   with CL.AddClassN(CL.FindClass('TPersistent'),'TGraphic') do
   begin
     RegisterMethod('constructor Create');
-    RegisterMethod('Procedure LoadFromFile( const Filename : String)');
-    RegisterMethod('Procedure SaveToFile( const Filename : String)');
+    RegisterMethod('procedure LoadFromFile(const FileName: string)');
+    RegisterMethod('procedure SaveToFile(const FileName: string)');
     RegisterProperty('Empty', 'Boolean', iptr);
     RegisterProperty('Height', 'Integer', iptrw);
     RegisterProperty('Modified', 'Boolean', iptrw);
@@ -230,8 +230,8 @@ begin
   with CL.AddClassN(CL.FindClass('TGraphic'),'TBitmap') do
   begin
     if Streams then begin
-      RegisterMethod('Procedure LoadFromStream( Stream : TStream)');
-      RegisterMethod('Procedure SaveToStream( Stream : TStream)');
+      RegisterMethod('procedure LoadFromStream(Stream: TStream)');
+      RegisterMethod('procedure SaveToStream(Stream: TStream)');
     end;
     RegisterProperty('Canvas', 'TCanvas', iptr);
 {$IFNDEF CLX}
@@ -239,17 +239,17 @@ begin
 {$ENDIF}
 
     {$IFNDEF IFPS_MINIVCL}
-    RegisterMethod('Procedure Dormant');
-    RegisterMethod('Procedure FreeImage');
+    RegisterMethod('procedure Dormant');
+    RegisterMethod('procedure FreeImage');
 {$IFNDEF CLX}
-    RegisterMethod('Procedure LoadFromClipboardFormat( AFormat : Word; AData : THandle; APalette : HPALETTE)');
+    RegisterMethod('procedure LoadFromClipboardFormat(AFormat: Word; AData: THandle; APalette: HPALETTE)');
 {$ENDIF}
-    RegisterMethod('Procedure LoadFromResourceName( Instance : THandle; const ResName : String)');
-    RegisterMethod('Procedure LoadFromResourceID( Instance : THandle; ResID : Integer)');
+    RegisterMethod('procedure LoadFromResourceName(Instance: THandle; const ResName: string)');
+    RegisterMethod('procedure LoadFromResourceID(Instance: THandle; ResID: Integer)');
 {$IFNDEF CLX}
-    RegisterMethod('Function ReleaseHandle : HBITMAP');
-    RegisterMethod('Function ReleasePalette : HPALETTE');
-    RegisterMethod('Procedure SaveToClipboardFormat( var Format : Word; var Data : THandle; var APalette : HPALETTE)');
+    RegisterMethod('function ReleaseHandle: HBITMAP');
+    RegisterMethod('function ReleasePalette: HPALETTE');
+    RegisterMethod('procedure SaveToClipboardFormat(var Format: Word; var Data: THandle; var APalette: HPALETTE)');
     RegisterProperty('Monochrome', 'Boolean', iptrw);
     RegisterProperty('Palette', 'HPALETTE', iptrw);
     RegisterProperty('IgnorePalette', 'Boolean', iptrw);

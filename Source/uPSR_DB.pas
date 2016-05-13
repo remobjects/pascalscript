@@ -1320,117 +1320,117 @@ procedure RIRegisterTDATASET(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TDATASET) do
   begin
-  RegisterMethod(@TDATASET.ACTIVEBUFFER, 'ACTIVEBUFFER');
-  RegisterMethod(@TDATASET.APPEND, 'APPEND');
-  RegisterMethod(@TDATASET.APPENDRECORD, 'APPENDRECORD');
-//  RegisterVirtualMethod(@TDATASET.BOOKMARKVALID, 'BOOKMARKVALID');
-  RegisterVirtualMethod(@TDATASET.CANCEL, 'CANCEL');
-  RegisterMethod(@TDATASET.CHECKBROWSEMODE, 'CHECKBROWSEMODE');
-  RegisterMethod(@TDATASET.CLEARFIELDS, 'CLEARFIELDS');
-  RegisterMethod(@TDATASET.CLOSE, 'CLOSE');
-  RegisterMethod(@TDATASET.CONTROLSDISABLED, 'CONTROLSDISABLED');
-//  RegisterVirtualMethod(@TDATASET.COMPAREBOOKMARKS, 'COMPAREBOOKMARKS');
-  RegisterVirtualMethod(@TDATASET.CREATEBLOBSTREAM, 'CREATEBLOBSTREAM');
-  RegisterMethod(@TDATASET.CURSORPOSCHANGED, 'CURSORPOSCHANGED');
-  RegisterMethod(@TDATASET.DELETE, 'DELETE');
-  RegisterMethod(@TDATASET.DISABLECONTROLS, 'DISABLECONTROLS');
-  RegisterMethod(@TDATASET.EDIT, 'EDIT');
-  RegisterMethod(@TDATASET.ENABLECONTROLS, 'ENABLECONTROLS');
-  RegisterMethod(@TDATASET.FIELDBYNAME, 'FIELDBYNAME');
-  RegisterMethod(@TDATASET.FINDFIELD, 'FINDFIELD');
-  RegisterMethod(@TDATASET.FINDFIRST, 'FINDFIRST');
-  RegisterMethod(@TDATASET.FINDLAST, 'FINDLAST');
-  RegisterMethod(@TDATASET.FINDNEXT, 'FINDNEXT');
-  RegisterMethod(@TDATASET.FINDPRIOR, 'FINDPRIOR');
-  RegisterMethod(@TDATASET.FIRST, 'FIRST');
-//  RegisterVirtualMethod(@TDATASET.FREEBOOKMARK, 'FREEBOOKMARK');
-//  RegisterVirtualMethod(@TDATASET.GETBOOKMARK, 'GETBOOKMARK');
-  RegisterVirtualMethod(@TDATASET.GETCURRENTRECORD, 'GETCURRENTRECORD');
-//  RegisterVirtualMethod(@TDATASET.GETDETAILDATASETS, 'GETDETAILDATASETS');
-//  RegisterVirtualMethod(@TDATASET.GETDETAILLINKFIELDS, 'GETDETAILLINKFIELDS');
-//  RegisterVirtualMethod(@TDATASET.GETBLOBFIELDDATA, 'GETBLOBFIELDDATA');
-//  RegisterMethod(@TDATASET.GETFIELDLIST, 'GETFIELDLIST');
-  RegisterMethod(@TDATASET.GETFIELDNAMES, 'GETFIELDNAMES');
-//  RegisterMethod(@TDATASET.GOTOBOOKMARK, 'GOTOBOOKMARK');
-  RegisterMethod(@TDATASET.INSERT, 'INSERT');
-  RegisterMethod(@TDATASET.INSERTRECORD, 'INSERTRECORD');
-  RegisterMethod(@TDATASET.ISEMPTY, 'ISEMPTY');
-  RegisterMethod(@TDATASET.ISLINKEDTO, 'ISLINKEDTO');
-  RegisterVirtualMethod(@TDATASET.ISSEQUENCED, 'ISSEQUENCED');
-  RegisterMethod(@TDATASET.LAST, 'LAST');
-  RegisterVirtualMethod(@TDATASET.LOCATE, 'LOCATE');
-  RegisterVirtualMethod(@TDATASET.LOOKUP, 'LOOKUP');
-  RegisterMethod(@TDATASET.MOVEBY, 'MOVEBY');
-  RegisterMethod(@TDATASET.NEXT, 'NEXT');
-  RegisterMethod(@TDATASET.OPEN, 'OPEN');
-  RegisterVirtualMethod(@TDATASET.POST, 'POST');
-  RegisterMethod(@TDATASET.PRIOR, 'PRIOR');
-  RegisterMethod(@TDATASET.REFRESH, 'REFRESH');
-//  RegisterVirtualMethod(@TDATASET.RESYNC, 'RESYNC');
-  RegisterMethod(@TDATASET.SETFIELDS, 'SETFIELDS');
-  RegisterVirtualMethod(@TDATASET.TRANSLATE, 'TRANSLATE');
-  RegisterMethod(@TDATASET.UPDATECURSORPOS, 'UPDATECURSORPOS');
-  RegisterMethod(@TDATASET.UPDATERECORD, 'UPDATERECORD');
-  RegisterVirtualMethod(@TDATASET.UPDATESTATUS, 'UPDATESTATUS');
+  RegisterMethod(@TDATASET.ACTIVEBUFFER, 'ActiveBuffer');
+  RegisterMethod(@TDATASET.APPEND, 'Append');
+  RegisterMethod(@TDATASET.APPENDRECORD, 'AppendRecord');
+//  RegisterVirtualMethod(@TDATASET.BOOKMARKVALID, 'BookmarkValid');
+  RegisterVirtualMethod(@TDATASET.CANCEL, 'Cancel');
+  RegisterMethod(@TDATASET.CHECKBROWSEMODE, 'CheckBrowseMode');
+  RegisterMethod(@TDATASET.CLEARFIELDS, 'ClearFields');
+  RegisterMethod(@TDATASET.CLOSE, 'Close');
+  RegisterMethod(@TDATASET.CONTROLSDISABLED, 'ControlsDisabled');
+//  RegisterVirtualMethod(@TDATASET.COMPAREBOOKMARKS, 'CompareBookmarks');
+  RegisterVirtualMethod(@TDATASET.CREATEBLOBSTREAM, 'CreateBlobStream');
+  RegisterMethod(@TDATASET.CURSORPOSCHANGED, 'CursorPosChanged');
+  RegisterMethod(@TDATASET.DELETE, 'Delete');
+  RegisterMethod(@TDATASET.DISABLECONTROLS, 'DisableControls');
+  RegisterMethod(@TDATASET.EDIT, 'Edit');
+  RegisterMethod(@TDATASET.ENABLECONTROLS, 'EnableControls');
+  RegisterMethod(@TDATASET.FIELDBYNAME, 'FieldByName');
+  RegisterMethod(@TDATASET.FINDFIELD, 'FindField');
+  RegisterMethod(@TDATASET.FINDFIRST, 'FindFirst');
+  RegisterMethod(@TDATASET.FINDLAST, 'FindLast');
+  RegisterMethod(@TDATASET.FINDNEXT, 'FindNext');
+  RegisterMethod(@TDATASET.FINDPRIOR, 'FindPrior');
+  RegisterMethod(@TDATASET.FIRST, 'First');
+//  RegisterVirtualMethod(@TDATASET.FREEBOOKMARK, 'FreeBookmark');
+//  RegisterVirtualMethod(@TDATASET.GETBOOKMARK, 'GetBookmark');
+  RegisterVirtualMethod(@TDATASET.GETCURRENTRECORD, 'GetCurrentRecord');
+//  RegisterVirtualMethod(@TDATASET.GETDETAILDATASETS, 'GetDetailDataSets');
+//  RegisterVirtualMethod(@TDATASET.GETDETAILLINKFIELDS, 'GetDetailLinkFields');
+//  RegisterVirtualMethod(@TDATASET.GETBLOBFIELDDATA, 'GetBlobFieldData');
+//  RegisterMethod(@TDATASET.GETFIELDLIST, 'GetFieldList');
+  RegisterMethod(@TDATASET.GETFIELDNAMES, 'GetFieldNames');
+//  RegisterMethod(@TDATASET.GOTOBOOKMARK, 'GotoBookmark');
+  RegisterMethod(@TDATASET.INSERT, 'Insert');
+  RegisterMethod(@TDATASET.INSERTRECORD, 'InsertRecord');
+  RegisterMethod(@TDATASET.ISEMPTY, 'IsEmpty');
+  RegisterMethod(@TDATASET.ISLINKEDTO, 'IsLinkedTo');
+  RegisterVirtualMethod(@TDATASET.ISSEQUENCED, 'IsSequenced');
+  RegisterMethod(@TDATASET.LAST, 'Last');
+  RegisterVirtualMethod(@TDATASET.LOCATE, 'Locate');
+  RegisterVirtualMethod(@TDATASET.LOOKUP, 'Lookup');
+  RegisterMethod(@TDATASET.MOVEBY, 'MoveBy');
+  RegisterMethod(@TDATASET.NEXT, 'Next');
+  RegisterMethod(@TDATASET.OPEN, 'Open');
+  RegisterVirtualMethod(@TDATASET.POST, 'Post');
+  RegisterMethod(@TDATASET.PRIOR, 'Prior');
+  RegisterMethod(@TDATASET.REFRESH, 'Refresh');
+//  RegisterVirtualMethod(@TDATASET.RESYNC, 'Resync');
+  RegisterMethod(@TDATASET.SETFIELDS, 'SetFields');
+  RegisterVirtualMethod(@TDATASET.TRANSLATE, 'Translate');
+  RegisterMethod(@TDATASET.UPDATECURSORPOS, 'UpdateCursorPos');
+  RegisterMethod(@TDATASET.UPDATERECORD, 'UpdateRecord');
+  RegisterVirtualMethod(@TDATASET.UPDATESTATUS, 'UpdateStatus');
   RegisterPropertyHelper(@TDATASETBOF_R,nil,'BOF');
-//  RegisterPropertyHelper(@TDATASETBOOKMARK_R,@TDATASETBOOKMARK_W,'BOOKMARK');
-  RegisterPropertyHelper(@TDATASETCANMODIFY_R,nil,'CANMODIFY');
-  RegisterPropertyHelper(@TDATASETDATASOURCE_R,nil,'DATASOURCE');
-  RegisterPropertyHelper(@TDATASETDEFAULTFIELDS_R,nil,'DEFAULTFIELDS');
+//  RegisterPropertyHelper(@TDATASETBOOKMARK_R,@TDATASETBOOKMARK_W,'Bookmark');
+  RegisterPropertyHelper(@TDATASETCANMODIFY_R,nil,'CanModify');
+  RegisterPropertyHelper(@TDATASETDATASOURCE_R,nil,'DataSource');
+  RegisterPropertyHelper(@TDATASETDEFAULTFIELDS_R,nil,'DefaultFields');
   RegisterPropertyHelper(@TDATASETEOF_R,nil,'EOF');
-  RegisterPropertyHelper(@TDATASETFIELDCOUNT_R,nil,'FIELDCOUNT');
-  RegisterPropertyHelper(@TDATASETFIELDS_R,nil,'FIELDS');
-  RegisterPropertyHelper(@TDATASETFIELDVALUES_R,@TDATASETFIELDVALUES_W,'FIELDVALUES');
-  RegisterPropertyHelper(@TDATASETFOUND_R,nil,'FOUND');
+  RegisterPropertyHelper(@TDATASETFIELDCOUNT_R,nil,'FieldCount');
+  RegisterPropertyHelper(@TDATASETFIELDS_R,nil,'Fields');
+  RegisterPropertyHelper(@TDATASETFIELDVALUES_R,@TDATASETFIELDVALUES_W,'FieldValues');
+  RegisterPropertyHelper(@TDATASETFOUND_R,nil,'Found');
 {$IFDEF DELPHI6UP}
-  RegisterPropertyHelper(@TDATASETISUNIDIRECTIONAL_R,nil,'ISUNIDIRECTIONAL');
+  RegisterPropertyHelper(@TDATASETISUNIDIRECTIONAL_R,nil,'IsUnidirectional');
 {$ENDIF}
-  RegisterPropertyHelper(@TDATASETMODIFIED_R,nil,'MODIFIED');
-  RegisterPropertyHelper(@TDATASETRECORDCOUNT_R,nil,'RECORDCOUNT');
-  RegisterPropertyHelper(@TDATASETRECNO_R,@TDATASETRECNO_W,'RECNO');
-  RegisterPropertyHelper(@TDATASETRECORDSIZE_R,nil,'RECORDSIZE');
-  RegisterPropertyHelper(@TDATASETSTATE_R,nil,'STATE');
-  RegisterPropertyHelper(@TDATASETFILTER_R,@TDATASETFILTER_W,'FILTER');
-  RegisterPropertyHelper(@TDATASETFILTERED_R,@TDATASETFILTERED_W,'FILTERED');
-  RegisterPropertyHelper(@TDATASETFILTEROPTIONS_R,@TDATASETFILTEROPTIONS_W,'FILTEROPTIONS');
-  RegisterPropertyHelper(@TDATASETACTIVE_R,@TDATASETACTIVE_W,'ACTIVE');
-  RegisterPropertyHelper(@TDATASETAUTOCALCFIELDS_R,@TDATASETAUTOCALCFIELDS_W,'AUTOCALCFIELDS');
-  RegisterPropertyHelper(@TDATASETBEFOREOPEN_R,@TDATASETBEFOREOPEN_W,'BEFOREOPEN');
-  RegisterPropertyHelper(@TDATASETAFTEROPEN_R,@TDATASETAFTEROPEN_W,'AFTEROPEN');
-  RegisterPropertyHelper(@TDATASETBEFORECLOSE_R,@TDATASETBEFORECLOSE_W,'BEFORECLOSE');
-  RegisterPropertyHelper(@TDATASETAFTERCLOSE_R,@TDATASETAFTERCLOSE_W,'AFTERCLOSE');
-  RegisterPropertyHelper(@TDATASETBEFOREINSERT_R,@TDATASETBEFOREINSERT_W,'BEFOREINSERT');
-  RegisterPropertyHelper(@TDATASETAFTERINSERT_R,@TDATASETAFTERINSERT_W,'AFTERINSERT');
-  RegisterPropertyHelper(@TDATASETBEFOREEDIT_R,@TDATASETBEFOREEDIT_W,'BEFOREEDIT');
-  RegisterPropertyHelper(@TDATASETAFTEREDIT_R,@TDATASETAFTEREDIT_W,'AFTEREDIT');
-  RegisterPropertyHelper(@TDATASETBEFOREPOST_R,@TDATASETBEFOREPOST_W,'BEFOREPOST');
-  RegisterPropertyHelper(@TDATASETAFTERPOST_R,@TDATASETAFTERPOST_W,'AFTERPOST');
-  RegisterPropertyHelper(@TDATASETBEFORECANCEL_R,@TDATASETBEFORECANCEL_W,'BEFORECANCEL');
-  RegisterPropertyHelper(@TDATASETAFTERCANCEL_R,@TDATASETAFTERCANCEL_W,'AFTERCANCEL');
-  RegisterPropertyHelper(@TDATASETBEFOREDELETE_R,@TDATASETBEFOREDELETE_W,'BEFOREDELETE');
-  RegisterPropertyHelper(@TDATASETAFTERDELETE_R,@TDATASETAFTERDELETE_W,'AFTERDELETE');
-  RegisterPropertyHelper(@TDATASETBEFORESCROLL_R,@TDATASETBEFORESCROLL_W,'BEFORESCROLL');
-  RegisterPropertyHelper(@TDATASETAFTERSCROLL_R,@TDATASETAFTERSCROLL_W,'AFTERSCROLL');
+  RegisterPropertyHelper(@TDATASETMODIFIED_R,nil,'Modified');
+  RegisterPropertyHelper(@TDATASETRECORDCOUNT_R,nil,'RecordCount');
+  RegisterPropertyHelper(@TDATASETRECNO_R,@TDATASETRECNO_W,'RecNo');
+  RegisterPropertyHelper(@TDATASETRECORDSIZE_R,nil,'RecordSize');
+  RegisterPropertyHelper(@TDATASETSTATE_R,nil,'State');
+  RegisterPropertyHelper(@TDATASETFILTER_R,@TDATASETFILTER_W,'Filter');
+  RegisterPropertyHelper(@TDATASETFILTERED_R,@TDATASETFILTERED_W,'Filtered');
+  RegisterPropertyHelper(@TDATASETFILTEROPTIONS_R,@TDATASETFILTEROPTIONS_W,'FilterOptions');
+  RegisterPropertyHelper(@TDATASETACTIVE_R,@TDATASETACTIVE_W,'Active');
+  RegisterPropertyHelper(@TDATASETAUTOCALCFIELDS_R,@TDATASETAUTOCALCFIELDS_W,'AutoCalcFields');
+  RegisterPropertyHelper(@TDATASETBEFOREOPEN_R,@TDATASETBEFOREOPEN_W,'BeforeOpen');
+  RegisterPropertyHelper(@TDATASETAFTEROPEN_R,@TDATASETAFTEROPEN_W,'AfterOpen');
+  RegisterPropertyHelper(@TDATASETBEFORECLOSE_R,@TDATASETBEFORECLOSE_W,'BeforeClose');
+  RegisterPropertyHelper(@TDATASETAFTERCLOSE_R,@TDATASETAFTERCLOSE_W,'AfterClose');
+  RegisterPropertyHelper(@TDATASETBEFOREINSERT_R,@TDATASETBEFOREINSERT_W,'BeforeInsert');
+  RegisterPropertyHelper(@TDATASETAFTERINSERT_R,@TDATASETAFTERINSERT_W,'AfterInsert');
+  RegisterPropertyHelper(@TDATASETBEFOREEDIT_R,@TDATASETBEFOREEDIT_W,'BeforeEdit');
+  RegisterPropertyHelper(@TDATASETAFTEREDIT_R,@TDATASETAFTEREDIT_W,'AfterEdit');
+  RegisterPropertyHelper(@TDATASETBEFOREPOST_R,@TDATASETBEFOREPOST_W,'BeforePost');
+  RegisterPropertyHelper(@TDATASETAFTERPOST_R,@TDATASETAFTERPOST_W,'AfterPost');
+  RegisterPropertyHelper(@TDATASETBEFORECANCEL_R,@TDATASETBEFORECANCEL_W,'BeforeCancel');
+  RegisterPropertyHelper(@TDATASETAFTERCANCEL_R,@TDATASETAFTERCANCEL_W,'AfterCancel');
+  RegisterPropertyHelper(@TDATASETBEFOREDELETE_R,@TDATASETBEFOREDELETE_W,'BeforeDelete');
+  RegisterPropertyHelper(@TDATASETAFTERDELETE_R,@TDATASETAFTERDELETE_W,'AfterDelete');
+  RegisterPropertyHelper(@TDATASETBEFORESCROLL_R,@TDATASETBEFORESCROLL_W,'BeforeScroll');
+  RegisterPropertyHelper(@TDATASETAFTERSCROLL_R,@TDATASETAFTERSCROLL_W,'AfterScroll');
   {$IFNDEF FPC}
-  RegisterPropertyHelper(@TDATASETFIELDLIST_R,nil,'FIELDLIST');
-  RegisterPropertyHelper(@TDATASETDESIGNER_R,nil,'DESIGNER');
-  RegisterPropertyHelper(@TDATASETBLOCKREADSIZE_R,@TDATASETBLOCKREADSIZE_W,'BLOCKREADSIZE');
-  RegisterPropertyHelper(@TDATASETBEFOREREFRESH_R,@TDATASETBEFOREREFRESH_W,'BEFOREREFRESH');
-  RegisterPropertyHelper(@TDATASETAFTERREFRESH_R,@TDATASETAFTERREFRESH_W,'AFTERREFRESH');
-  RegisterPropertyHelper(@TDATASETAGGFIELDS_R,nil,'AGGFIELDS');
-  RegisterPropertyHelper(@TDATASETDATASETFIELD_R,@TDATASETDATASETFIELD_W,'DATASETFIELD');
-  RegisterPropertyHelper(@TDATASETOBJECTVIEW_R,@TDATASETOBJECTVIEW_W,'OBJECTVIEW');
-  RegisterPropertyHelper(@TDATASETSPARSEARRAYS_R,@TDATASETSPARSEARRAYS_W,'SPARSEARRAYS');
-  RegisterPropertyHelper(@TDATASETFIELDDEFS_R,@TDATASETFIELDDEFS_W,'FIELDDEFS');
-  RegisterPropertyHelper(@TDATASETFIELDDEFLIST_R,nil,'FIELDDEFLIST');
+  RegisterPropertyHelper(@TDATASETFIELDLIST_R,nil,'FieldList');
+  RegisterPropertyHelper(@TDATASETDESIGNER_R,nil,'Designer');
+  RegisterPropertyHelper(@TDATASETBLOCKREADSIZE_R,@TDATASETBLOCKREADSIZE_W,'BlockReadSize');
+  RegisterPropertyHelper(@TDATASETBEFOREREFRESH_R,@TDATASETBEFOREREFRESH_W,'BeforeRefresh');
+  RegisterPropertyHelper(@TDATASETAFTERREFRESH_R,@TDATASETAFTERREFRESH_W,'AfterRefresh');
+  RegisterPropertyHelper(@TDATASETAGGFIELDS_R,nil,'AggFields');
+  RegisterPropertyHelper(@TDATASETDATASETFIELD_R,@TDATASETDATASETFIELD_W,'DataSetField');
+  RegisterPropertyHelper(@TDATASETOBJECTVIEW_R,@TDATASETOBJECTVIEW_W,'ObjectView');
+  RegisterPropertyHelper(@TDATASETSPARSEARRAYS_R,@TDATASETSPARSEARRAYS_W,'SparseArrays');
+  RegisterPropertyHelper(@TDATASETFIELDDEFS_R,@TDATASETFIELDDEFS_W,'FieldDefs');
+  RegisterPropertyHelper(@TDATASETFIELDDEFLIST_R,nil,'FieldDefList');
 
   {$ENDIF}
-  RegisterEventPropertyHelper(@TDATASETONCALCFIELDS_R,@TDATASETONCALCFIELDS_W,'ONCALCFIELDS');
-  RegisterEventPropertyHelper(@TDATASETONDELETEERROR_R,@TDATASETONDELETEERROR_W,'ONDELETEERROR');
-  RegisterEventPropertyHelper(@TDATASETONEDITERROR_R,@TDATASETONEDITERROR_W,'ONEDITERROR');
-  RegisterEventPropertyHelper(@TDATASETONFILTERRECORD_R,@TDATASETONFILTERRECORD_W,'ONFILTERRECORD');
-  RegisterEventPropertyHelper(@TDATASETONNEWRECORD_R,@TDATASETONNEWRECORD_W,'ONNEWRECORD');
-  RegisterEventPropertyHelper(@TDATASETONPOSTERROR_R,@TDATASETONPOSTERROR_W,'ONPOSTERROR');
+  RegisterEventPropertyHelper(@TDATASETONCALCFIELDS_R,@TDATASETONCALCFIELDS_W,'OnCalcFields');
+  RegisterEventPropertyHelper(@TDATASETONDELETEERROR_R,@TDATASETONDELETEERROR_W,'OnDeleteError');
+  RegisterEventPropertyHelper(@TDATASETONEDITERROR_R,@TDATASETONEDITERROR_W,'OnEditError');
+  RegisterEventPropertyHelper(@TDATASETONFILTERRECORD_R,@TDATASETONFILTERRECORD_W,'OnFilterRecord');
+  RegisterEventPropertyHelper(@TDATASETONNEWRECORD_R,@TDATASETONNEWRECORD_W,'OnNewRecord');
+  RegisterEventPropertyHelper(@TDATASETONPOSTERROR_R,@TDATASETONPOSTERROR_W,'OnPostError');
   end;
 end;
 
@@ -1438,17 +1438,17 @@ procedure RIRegisterTPARAMS(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TPARAMS) do
   begin
-//  RegisterMethod(@TPARAMS.ASSIGNVALUES, 'ASSIGNVALUES');
-  RegisterMethod(@TPARAMS.ADDPARAM, 'ADDPARAM');
-  RegisterMethod(@TPARAMS.REMOVEPARAM, 'REMOVEPARAM');
-  RegisterMethod(@TPARAMS.CREATEPARAM, 'CREATEPARAM');
-  RegisterMethod(@TPARAMS.GETPARAMLIST, 'GETPARAMLIST');
-  RegisterMethod(@TPARAMS.ISEQUAL, 'ISEQUAL');
-  RegisterMethod(@TPARAMS.PARSESQL, 'PARSESQL');
-  RegisterMethod(@TPARAMS.PARAMBYNAME, 'PARAMBYNAME');
-  RegisterMethod(@TPARAMS.FINDPARAM, 'FINDPARAM');
-  RegisterPropertyHelper(@TPARAMSITEMS_R,@TPARAMSITEMS_W,'ITEMS');
-  RegisterPropertyHelper(@TPARAMSPARAMVALUES_R,@TPARAMSPARAMVALUES_W,'PARAMVALUES');
+//  RegisterMethod(@TPARAMS.ASSIGNVALUES, 'AssignValues');
+  RegisterMethod(@TPARAMS.ADDPARAM, 'AddParam');
+  RegisterMethod(@TPARAMS.REMOVEPARAM, 'RemoveParam');
+  RegisterMethod(@TPARAMS.CREATEPARAM, 'CreateParam');
+  RegisterMethod(@TPARAMS.GETPARAMLIST, 'GetParamList');
+  RegisterMethod(@TPARAMS.ISEQUAL, 'IsEqual');
+  RegisterMethod(@TPARAMS.PARSESQL, 'ParseSQL');
+  RegisterMethod(@TPARAMS.PARAMBYNAME, 'ParamByName');
+  RegisterMethod(@TPARAMS.FINDPARAM, 'FindParam');
+  RegisterPropertyHelper(@TPARAMSITEMS_R,@TPARAMSITEMS_W,'Items');
+  RegisterPropertyHelper(@TPARAMSPARAMVALUES_R,@TPARAMSPARAMVALUES_W,'ParamValues');
   end;
 end;
 
@@ -1456,46 +1456,46 @@ procedure RIRegisterTPARAM(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TPARAM) do
   begin
-  RegisterMethod(@TPARAM.ASSIGNFIELD, 'ASSIGNFIELD');
-  RegisterMethod(@TPARAM.ASSIGNFIELDVALUE, 'ASSIGNFIELDVALUE');
-  RegisterMethod(@TPARAM.CLEAR, 'CLEAR');
-//  RegisterMethod(@TPARAM.GETDATA, 'GETDATA');
-  RegisterMethod(@TPARAM.GETDATASIZE, 'GETDATASIZE');
-  RegisterMethod(@TPARAM.LOADFROMFILE, 'LOADFROMFILE');
-  RegisterMethod(@TPARAM.LOADFROMSTREAM, 'LOADFROMSTREAM');
-//  RegisterMethod(@TPARAM.SETBLOBDATA, 'SETBLOBDATA');
-//  RegisterMethod(@TPARAM.SETDATA, 'SETDATA');
+  RegisterMethod(@TPARAM.ASSIGNFIELD, 'AssignField');
+  RegisterMethod(@TPARAM.ASSIGNFIELDVALUE, 'AssignFieldValue');
+  RegisterMethod(@TPARAM.CLEAR, 'Clear');
+//  RegisterMethod(@TPARAM.GETDATA, 'GetData');
+  RegisterMethod(@TPARAM.GETDATASIZE, 'GetDataSize');
+  RegisterMethod(@TPARAM.LOADFROMFILE, 'LoadFromFile');
+  RegisterMethod(@TPARAM.LOADFROMSTREAM, 'LoadFromStream');
+//  RegisterMethod(@TPARAM.SETBLOBDATA, 'SetBlobData');
+//  RegisterMethod(@TPARAM.SETDATA, 'SetData');
   {$IFNDEF FPC}
-  RegisterPropertyHelper(@TPARAMASBCD_R,@TPARAMASBCD_W,'ASBCD');
+  RegisterPropertyHelper(@TPARAMASBCD_R,@TPARAMASBCD_W,'AsBCD');
 {$IFDEF DELPHI6UP}
-  RegisterPropertyHelper(@TPARAMASFMTBCD_R,@TPARAMASFMTBCD_W,'ASFMTBCD');
+  RegisterPropertyHelper(@TPARAMASFMTBCD_R,@TPARAMASFMTBCD_W,'AsFMTBCD');
 {$ENDIF}
   {$ENDIF}
-  RegisterPropertyHelper(@TPARAMASBLOB_R,@TPARAMASBLOB_W,'ASBLOB');
-  RegisterPropertyHelper(@TPARAMASBOOLEAN_R,@TPARAMASBOOLEAN_W,'ASBOOLEAN');
-  RegisterPropertyHelper(@TPARAMASCURRENCY_R,@TPARAMASCURRENCY_W,'ASCURRENCY');
-  RegisterPropertyHelper(@TPARAMASDATE_R,@TPARAMASDATE_W,'ASDATE');
-  RegisterPropertyHelper(@TPARAMASDATETIME_R,@TPARAMASDATETIME_W,'ASDATETIME');
-  RegisterPropertyHelper(@TPARAMASFLOAT_R,@TPARAMASFLOAT_W,'ASFLOAT');
-  RegisterPropertyHelper(@TPARAMASINTEGER_R,@TPARAMASINTEGER_W,'ASINTEGER');
-  RegisterPropertyHelper(@TPARAMASSMALLINT_R,@TPARAMASSMALLINT_W,'ASSMALLINT');
-  RegisterPropertyHelper(@TPARAMASMEMO_R,@TPARAMASMEMO_W,'ASMEMO');
-  RegisterPropertyHelper(@TPARAMASSTRING_R,@TPARAMASSTRING_W,'ASSTRING');
-  RegisterPropertyHelper(@TPARAMASTIME_R,@TPARAMASTIME_W,'ASTIME');
-  RegisterPropertyHelper(@TPARAMASWORD_R,@TPARAMASWORD_W,'ASWORD');
-  RegisterPropertyHelper(@TPARAMBOUND_R,@TPARAMBOUND_W,'BOUND');
-  RegisterPropertyHelper(@TPARAMISNULL_R,nil,'ISNULL');
-  RegisterPropertyHelper(@TPARAMNATIVESTR_R,@TPARAMNATIVESTR_W,'NATIVESTR');
-  RegisterPropertyHelper(@TPARAMTEXT_R,@TPARAMTEXT_W,'TEXT');
-  RegisterPropertyHelper(@TPARAMDATATYPE_R,@TPARAMDATATYPE_W,'DATATYPE');
+  RegisterPropertyHelper(@TPARAMASBLOB_R,@TPARAMASBLOB_W,'AsBlob');
+  RegisterPropertyHelper(@TPARAMASBOOLEAN_R,@TPARAMASBOOLEAN_W,'AsBoolean');
+  RegisterPropertyHelper(@TPARAMASCURRENCY_R,@TPARAMASCURRENCY_W,'AsCurrency');
+  RegisterPropertyHelper(@TPARAMASDATE_R,@TPARAMASDATE_W,'AsDate');
+  RegisterPropertyHelper(@TPARAMASDATETIME_R,@TPARAMASDATETIME_W,'AsDateTime');
+  RegisterPropertyHelper(@TPARAMASFLOAT_R,@TPARAMASFLOAT_W,'AsFloat');
+  RegisterPropertyHelper(@TPARAMASINTEGER_R,@TPARAMASINTEGER_W,'AsInteger');
+  RegisterPropertyHelper(@TPARAMASSMALLINT_R,@TPARAMASSMALLINT_W,'AsSmallInt');
+  RegisterPropertyHelper(@TPARAMASMEMO_R,@TPARAMASMEMO_W,'AsMemo');
+  RegisterPropertyHelper(@TPARAMASSTRING_R,@TPARAMASSTRING_W,'AsString');
+  RegisterPropertyHelper(@TPARAMASTIME_R,@TPARAMASTIME_W,'AsTime');
+  RegisterPropertyHelper(@TPARAMASWORD_R,@TPARAMASWORD_W,'AsWord');
+  RegisterPropertyHelper(@TPARAMBOUND_R,@TPARAMBOUND_W,'Bound');
+  RegisterPropertyHelper(@TPARAMISNULL_R,nil,'IsNull');
+  RegisterPropertyHelper(@TPARAMNATIVESTR_R,@TPARAMNATIVESTR_W,'NativeStr');
+  RegisterPropertyHelper(@TPARAMTEXT_R,@TPARAMTEXT_W,'Text');
+  RegisterPropertyHelper(@TPARAMDATATYPE_R,@TPARAMDATATYPE_W,'DataType');
 {$IFDEF DELPHI6UP}
-  RegisterPropertyHelper(@TPARAMPRECISION_R,@TPARAMPRECISION_W,'PRECISION');
-  RegisterPropertyHelper(@TPARAMNUMERICSCALE_R,@TPARAMNUMERICSCALE_W,'NUMERICSCALE');
-  RegisterPropertyHelper(@TPARAMSIZE_R,@TPARAMSIZE_W,'SIZE');
+  RegisterPropertyHelper(@TPARAMPRECISION_R,@TPARAMPRECISION_W,'Precision');
+  RegisterPropertyHelper(@TPARAMNUMERICSCALE_R,@TPARAMNUMERICSCALE_W,'NumericScale');
+  RegisterPropertyHelper(@TPARAMSIZE_R,@TPARAMSIZE_W,'Size');
 {$ENDIF}
-  RegisterPropertyHelper(@TPARAMNAME_R,@TPARAMNAME_W,'NAME');
-  RegisterPropertyHelper(@TPARAMPARAMTYPE_R,@TPARAMPARAMTYPE_W,'PARAMTYPE');
-  RegisterPropertyHelper(@TPARAMVALUE_R,@TPARAMVALUE_W,'VALUE');
+  RegisterPropertyHelper(@TPARAMNAME_R,@TPARAMNAME_W,'Name');
+  RegisterPropertyHelper(@TPARAMPARAMTYPE_R,@TPARAMPARAMTYPE_W,'ParamType');
+  RegisterPropertyHelper(@TPARAMVALUE_R,@TPARAMVALUE_W,'Value');
   end;
 end;
 
@@ -1518,7 +1518,7 @@ procedure RIRegisterTREFERENCEFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TREFERENCEFIELD) do
   begin
-  RegisterPropertyHelper(@TREFERENCEFIELDREFERENCETABLENAME_R,@TREFERENCEFIELDREFERENCETABLENAME_W,'REFERENCETABLENAME');
+  RegisterPropertyHelper(@TREFERENCEFIELDREFERENCETABLENAME_R,@TREFERENCEFIELDREFERENCETABLENAME_W,'ReferenceTableName');
   end;
 end;
 
@@ -1527,8 +1527,8 @@ procedure RIRegisterTDATASETFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TDATASETFIELD) do
   begin
-  RegisterPropertyHelper(@TDATASETFIELDNESTEDDATASET_R,nil,'NESTEDDATASET');
-  RegisterPropertyHelper(@TDATASETFIELDINCLUDEOBJECTFIELD_R,@TDATASETFIELDINCLUDEOBJECTFIELD_W,'INCLUDEOBJECTFIELD');
+  RegisterPropertyHelper(@TDATASETFIELDNESTEDDATASET_R,nil,'NestedDataSet');
+  RegisterPropertyHelper(@TDATASETFIELDINCLUDEOBJECTFIELD_R,@TDATASETFIELDINCLUDEOBJECTFIELD_W,'IncludeObjectField');
   end;
 end;
 
@@ -1553,11 +1553,11 @@ procedure RIRegisterTOBJECTFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TOBJECTFIELD) do
   begin
-  RegisterPropertyHelper(@TOBJECTFIELDFIELDCOUNT_R,nil,'FIELDCOUNT');
-  RegisterPropertyHelper(@TOBJECTFIELDFIELDS_R,nil,'FIELDS');
-  RegisterPropertyHelper(@TOBJECTFIELDFIELDVALUES_R,@TOBJECTFIELDFIELDVALUES_W,'FIELDVALUES');
-  RegisterPropertyHelper(@TOBJECTFIELDUNNAMED_R,nil,'UNNAMED');
-  RegisterPropertyHelper(@TOBJECTFIELDOBJECTTYPE_R,@TOBJECTFIELDOBJECTTYPE_W,'OBJECTTYPE');
+  RegisterPropertyHelper(@TOBJECTFIELDFIELDCOUNT_R,nil,'FieldCount');
+  RegisterPropertyHelper(@TOBJECTFIELDFIELDS_R,nil,'Fields');
+  RegisterPropertyHelper(@TOBJECTFIELDFIELDVALUES_R,@TOBJECTFIELDFIELDVALUES_W,'FieldValues');
+  RegisterPropertyHelper(@TOBJECTFIELDUNNAMED_R,nil,'UnNamed');
+  RegisterPropertyHelper(@TOBJECTFIELDOBJECTTYPE_R,@TOBJECTFIELDOBJECTTYPE_W,'ObjectType');
   end;
 end;
 {$ENDIF}
@@ -1581,18 +1581,18 @@ procedure RIRegisterTBLOBFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TBLOBFIELD) do
   begin
-  RegisterMethod(@TBLOBFIELD.LOADFROMFILE, 'LOADFROMFILE');
-  RegisterMethod(@TBLOBFIELD.LOADFROMSTREAM, 'LOADFROMSTREAM');
-  RegisterMethod(@TBLOBFIELD.SAVETOFILE, 'SAVETOFILE');
-  RegisterMethod(@TBLOBFIELD.SAVETOSTREAM, 'SAVETOSTREAM');
-  RegisterPropertyHelper(@TBLOBFIELDBLOBSIZE_R,nil,'BLOBSIZE');
-  RegisterPropertyHelper(@TBLOBFIELDMODIFIED_R,@TBLOBFIELDMODIFIED_W,'MODIFIED');
-  RegisterPropertyHelper(@TBLOBFIELDVALUE_R,@TBLOBFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TBLOBFIELDTRANSLITERATE_R,@TBLOBFIELDTRANSLITERATE_W,'TRANSLITERATE');
-  RegisterPropertyHelper(@TBLOBFIELDBLOBTYPE_R,@TBLOBFIELDBLOBTYPE_W,'BLOBTYPE');
+  RegisterMethod(@TBLOBFIELD.LOADFROMFILE, 'LoadFromFile');
+  RegisterMethod(@TBLOBFIELD.LOADFROMSTREAM, 'LoadFromStream');
+  RegisterMethod(@TBLOBFIELD.SAVETOFILE, 'SaveToFile');
+  RegisterMethod(@TBLOBFIELD.SAVETOSTREAM, 'SaveToStream');
+  RegisterPropertyHelper(@TBLOBFIELDBLOBSIZE_R,nil,'BlobSize');
+  RegisterPropertyHelper(@TBLOBFIELDMODIFIED_R,@TBLOBFIELDMODIFIED_W,'Modified');
+  RegisterPropertyHelper(@TBLOBFIELDVALUE_R,@TBLOBFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TBLOBFIELDTRANSLITERATE_R,@TBLOBFIELDTRANSLITERATE_W,'Transliterate');
+  RegisterPropertyHelper(@TBLOBFIELDBLOBTYPE_R,@TBLOBFIELDBLOBTYPE_W,'BlobType');
 {$IFNDEF FPC}
 {$IFDEF DELPHI6UP}
-  RegisterPropertyHelper(@TBLOBFIELDGRAPHICHEADER_R,@TBLOBFIELDGRAPHICHEADER_W,'GRAPHICHEADER');
+  RegisterPropertyHelper(@TBLOBFIELDGRAPHICHEADER_R,@TBLOBFIELDGRAPHICHEADER_W,'GraphicHeader');
 {$ENDIF}
 {$ENDIF}
   end;
@@ -1606,11 +1606,11 @@ procedure RIRegisterTFMTBCDFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFMTBCDFIELD) do
   begin
-  RegisterPropertyHelper(@TFMTBCDFIELDVALUE_R,@TFMTBCDFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TFMTBCDFIELDCURRENCY_R,@TFMTBCDFIELDCURRENCY_W,'CURRENCY');
-  RegisterPropertyHelper(@TFMTBCDFIELDMAXVALUE_R,@TFMTBCDFIELDMAXVALUE_W,'MAXVALUE');
-  RegisterPropertyHelper(@TFMTBCDFIELDMINVALUE_R,@TFMTBCDFIELDMINVALUE_W,'MINVALUE');
-  RegisterPropertyHelper(@TFMTBCDFIELDPRECISION_R,@TFMTBCDFIELDPRECISION_W,'PRECISION');
+  RegisterPropertyHelper(@TFMTBCDFIELDVALUE_R,@TFMTBCDFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TFMTBCDFIELDCURRENCY_R,@TFMTBCDFIELDCURRENCY_W,'Currency');
+  RegisterPropertyHelper(@TFMTBCDFIELDMAXVALUE_R,@TFMTBCDFIELDMAXVALUE_W,'MaxValue');
+  RegisterPropertyHelper(@TFMTBCDFIELDMINVALUE_R,@TFMTBCDFIELDMINVALUE_W,'MinValue');
+  RegisterPropertyHelper(@TFMTBCDFIELDPRECISION_R,@TFMTBCDFIELDPRECISION_W,'Precision');
   end;
 end;
 {$ENDIF}
@@ -1618,11 +1618,11 @@ procedure RIRegisterTBCDFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TBCDFIELD) do
   begin
-  RegisterPropertyHelper(@TBCDFIELDVALUE_R,@TBCDFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TBCDFIELDCURRENCY_R,@TBCDFIELDCURRENCY_W,'CURRENCY');
-  RegisterPropertyHelper(@TBCDFIELDMAXVALUE_R,@TBCDFIELDMAXVALUE_W,'MAXVALUE');
-  RegisterPropertyHelper(@TBCDFIELDMINVALUE_R,@TBCDFIELDMINVALUE_W,'MINVALUE');
-  RegisterPropertyHelper(@TBCDFIELDPRECISION_R,@TBCDFIELDPRECISION_W,'PRECISION');
+  RegisterPropertyHelper(@TBCDFIELDVALUE_R,@TBCDFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TBCDFIELDCURRENCY_R,@TBCDFIELDCURRENCY_W,'Currency');
+  RegisterPropertyHelper(@TBCDFIELDMAXVALUE_R,@TBCDFIELDMAXVALUE_W,'MaxValue');
+  RegisterPropertyHelper(@TBCDFIELDMINVALUE_R,@TBCDFIELDMINVALUE_W,'MinValue');
+  RegisterPropertyHelper(@TBCDFIELDPRECISION_R,@TBCDFIELDPRECISION_W,'Precision');
   end;
 end;
 {$ENDIF}
@@ -1666,8 +1666,8 @@ procedure RIRegisterTDATETIMEFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TDATETIMEFIELD) do
   begin
-  RegisterPropertyHelper(@TDATETIMEFIELDVALUE_R,@TDATETIMEFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TDATETIMEFIELDDISPLAYFORMAT_R,@TDATETIMEFIELDDISPLAYFORMAT_W,'DISPLAYFORMAT');
+  RegisterPropertyHelper(@TDATETIMEFIELDVALUE_R,@TDATETIMEFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TDATETIMEFIELDDISPLAYFORMAT_R,@TDATETIMEFIELDDISPLAYFORMAT_W,'DisplayFormat');
   end;
 end;
 
@@ -1675,8 +1675,8 @@ procedure RIRegisterTBOOLEANFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TBOOLEANFIELD) do
   begin
-  RegisterPropertyHelper(@TBOOLEANFIELDVALUE_R,@TBOOLEANFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TBOOLEANFIELDDISPLAYVALUES_R,@TBOOLEANFIELDDISPLAYVALUES_W,'DISPLAYVALUES');
+  RegisterPropertyHelper(@TBOOLEANFIELDVALUE_R,@TBOOLEANFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TBOOLEANFIELDDISPLAYVALUES_R,@TBOOLEANFIELDDISPLAYVALUES_W,'DisplayValues');
   end;
 end;
 
@@ -1692,12 +1692,12 @@ Begin
 with Cl.Add(TFLOATFIELD) do
   begin
   {$IFNDEF FPC}
-  RegisterPropertyHelper(@TFLOATFIELDCURRENCY_R,@TFLOATFIELDCURRENCY_W,'CURRENCY');
+  RegisterPropertyHelper(@TFLOATFIELDCURRENCY_R,@TFLOATFIELDCURRENCY_W,'Currency');
   {$ENDIF}
-  RegisterPropertyHelper(@TFLOATFIELDVALUE_R,@TFLOATFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TFLOATFIELDMAXVALUE_R,@TFLOATFIELDMAXVALUE_W,'MAXVALUE');
-  RegisterPropertyHelper(@TFLOATFIELDMINVALUE_R,@TFLOATFIELDMINVALUE_W,'MINVALUE');
-  RegisterPropertyHelper(@TFLOATFIELDPRECISION_R,@TFLOATFIELDPRECISION_W,'PRECISION');
+  RegisterPropertyHelper(@TFLOATFIELDVALUE_R,@TFLOATFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TFLOATFIELDMAXVALUE_R,@TFLOATFIELDMAXVALUE_W,'MaxValue');
+  RegisterPropertyHelper(@TFLOATFIELDMINVALUE_R,@TFLOATFIELDMINVALUE_W,'MinValue');
+  RegisterPropertyHelper(@TFLOATFIELDPRECISION_R,@TFLOATFIELDPRECISION_W,'Precision');
   end;
 end;
 
@@ -1719,10 +1719,10 @@ procedure RIRegisterTLARGEINTFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TLARGEINTFIELD) do
   begin
-  RegisterPropertyHelper(@TLARGEINTFIELDASLARGEINT_R,@TLARGEINTFIELDASLARGEINT_W,'ASLARGEINT');
-  RegisterPropertyHelper(@TLARGEINTFIELDVALUE_R,@TLARGEINTFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TLARGEINTFIELDMAXVALUE_R,@TLARGEINTFIELDMAXVALUE_W,'MAXVALUE');
-  RegisterPropertyHelper(@TLARGEINTFIELDMINVALUE_R,@TLARGEINTFIELDMINVALUE_W,'MINVALUE');
+  RegisterPropertyHelper(@TLARGEINTFIELDASLARGEINT_R,@TLARGEINTFIELDASLARGEINT_W,'AsLargeInt');
+  RegisterPropertyHelper(@TLARGEINTFIELDVALUE_R,@TLARGEINTFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TLARGEINTFIELDMAXVALUE_R,@TLARGEINTFIELDMAXVALUE_W,'MaxValue');
+  RegisterPropertyHelper(@TLARGEINTFIELDMINVALUE_R,@TLARGEINTFIELDMINVALUE_W,'MinValue');
   end;
 end;
 
@@ -1737,9 +1737,9 @@ procedure RIRegisterTINTEGERFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TINTEGERFIELD) do
   begin
-  RegisterPropertyHelper(@TINTEGERFIELDVALUE_R,@TINTEGERFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TINTEGERFIELDMAXVALUE_R,@TINTEGERFIELDMAXVALUE_W,'MAXVALUE');
-  RegisterPropertyHelper(@TINTEGERFIELDMINVALUE_R,@TINTEGERFIELDMINVALUE_W,'MINVALUE');
+  RegisterPropertyHelper(@TINTEGERFIELDVALUE_R,@TINTEGERFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TINTEGERFIELDMAXVALUE_R,@TINTEGERFIELDMAXVALUE_W,'MaxValue');
+  RegisterPropertyHelper(@TINTEGERFIELDMINVALUE_R,@TINTEGERFIELDMINVALUE_W,'MinValue');
   end;
 end;
 
@@ -1747,8 +1747,8 @@ procedure RIRegisterTNUMERICFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TNUMERICFIELD) do
   begin
-  RegisterPropertyHelper(@TNUMERICFIELDDISPLAYFORMAT_R,@TNUMERICFIELDDISPLAYFORMAT_W,'DISPLAYFORMAT');
-  RegisterPropertyHelper(@TNUMERICFIELDEDITFORMAT_R,@TNUMERICFIELDEDITFORMAT_W,'EDITFORMAT');
+  RegisterPropertyHelper(@TNUMERICFIELDDISPLAYFORMAT_R,@TNUMERICFIELDDISPLAYFORMAT_W,'DisplayFormat');
+  RegisterPropertyHelper(@TNUMERICFIELDEDITFORMAT_R,@TNUMERICFIELDEDITFORMAT_W,'EditFormat');
   end;
 end;
 
@@ -1757,7 +1757,7 @@ procedure RIRegisterTWIDESTRINGFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TWIDESTRINGFIELD) do
   begin
-  RegisterPropertyHelper(@TWIDESTRINGFIELDVALUE_R,@TWIDESTRINGFIELDVALUE_W,'VALUE');
+  RegisterPropertyHelper(@TWIDESTRINGFIELDVALUE_R,@TWIDESTRINGFIELDVALUE_W,'Value');
   end;
 end;
 {$ENDIF}
@@ -1766,10 +1766,10 @@ procedure RIRegisterTSTRINGFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TSTRINGFIELD) do
   begin
-  RegisterPropertyHelper(@TSTRINGFIELDVALUE_R,@TSTRINGFIELDVALUE_W,'VALUE');
+  RegisterPropertyHelper(@TSTRINGFIELDVALUE_R,@TSTRINGFIELDVALUE_W,'Value');
   {$IFNDEF FPC}
-  RegisterPropertyHelper(@TSTRINGFIELDFIXEDCHAR_R,@TSTRINGFIELDFIXEDCHAR_W,'FIXEDCHAR');
-  RegisterPropertyHelper(@TSTRINGFIELDTRANSLITERATE_R,@TSTRINGFIELDTRANSLITERATE_W,'TRANSLITERATE');
+  RegisterPropertyHelper(@TSTRINGFIELDFIXEDCHAR_R,@TSTRINGFIELDFIXEDCHAR_W,'FixedChar');
+  RegisterPropertyHelper(@TSTRINGFIELDTRANSLITERATE_R,@TSTRINGFIELDTRANSLITERATE_W,'Transliterate');
   {$ENDIF}
   end;
 end;
@@ -1778,82 +1778,82 @@ procedure RIRegisterTFIELD(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFIELD) do
   begin
-  RegisterMethod(@TFIELD.ASSIGNVALUE, 'ASSIGNVALUE');
-  RegisterVirtualMethod(@TFIELD.CLEAR, 'CLEAR');
-  RegisterMethod(@TFIELD.FOCUSCONTROL, 'FOCUSCONTROL');
-//  RegisterMethod(@TFIELD.GETDATA, 'GETDATA');
-  RegisterVirtualMethod(@TFIELD.ISVALIDCHAR, 'ISVALIDCHAR');
-  RegisterMethod(@TFIELD.REFRESHLOOKUPLIST, 'REFRESHLOOKUPLIST');
-//  RegisterMethod(@TFIELD.SETDATA, 'SETDATA');
-  RegisterVirtualMethod(@TFIELD.SETFIELDTYPE, 'SETFIELDTYPE');
-//  RegisterMethod(@TFIELD.VALIDATE, 'VALIDATE');
+  RegisterMethod(@TFIELD.ASSIGNVALUE, 'AssignValue');
+  RegisterVirtualMethod(@TFIELD.CLEAR, 'Clear');
+  RegisterMethod(@TFIELD.FOCUSCONTROL, 'FocusControl');
+//  RegisterMethod(@TFIELD.GETDATA, 'GetData');
+  RegisterVirtualMethod(@TFIELD.ISVALIDCHAR, 'IsValidChar');
+  RegisterMethod(@TFIELD.REFRESHLOOKUPLIST, 'RefreshLookupList');
+//  RegisterMethod(@TFIELD.SETDATA, 'SetData');
+  RegisterVirtualMethod(@TFIELD.SETFIELDTYPE, 'SetFieldType');
+//  RegisterMethod(@TFIELD.VALIDATE, 'Validate');
 {$IFNDEF FPC}
 
-  RegisterPropertyHelper(@TFIELDEDITMASK_R,@TFIELDEDITMASK_W,'EDITMASK');
-  RegisterPropertyHelper(@TFIELDEDITMASKPTR_R,nil,'EDITMASKPTR');
-  RegisterPropertyHelper(@TFIELDEDITMASK_R,@TFIELDEDITMASK_W,'EDITMASK');
-  RegisterPropertyHelper(@TFIELDEDITMASKPTR_R,nil,'EDITMASKPTR');
-  RegisterPropertyHelper(@TFIELDFULLNAME_R,nil,'FULLNAME');
-  RegisterPropertyHelper(@TFIELDLOOKUP_R,@TFIELDLOOKUP_W,'LOOKUP');
-  RegisterPropertyHelper(@TFIELDPARENTFIELD_R,@TFIELDPARENTFIELD_W,'PARENTFIELD');
-  RegisterPropertyHelper(@TFIELDVALIDCHARS_R,@TFIELDVALIDCHARS_W,'VALIDCHARS');
-  RegisterPropertyHelper(@TFIELDAUTOGENERATEVALUE_R,@TFIELDAUTOGENERATEVALUE_W,'AUTOGENERATEVALUE');
+  RegisterPropertyHelper(@TFIELDEDITMASK_R,@TFIELDEDITMASK_W,'EditMask');
+  RegisterPropertyHelper(@TFIELDEDITMASKPTR_R,nil,'EditMaskPtr');
+  RegisterPropertyHelper(@TFIELDEDITMASK_R,@TFIELDEDITMASK_W,'EditMask');
+  RegisterPropertyHelper(@TFIELDEDITMASKPTR_R,nil,'EditMaskPtr');
+  RegisterPropertyHelper(@TFIELDFULLNAME_R,nil,'FullName');
+  RegisterPropertyHelper(@TFIELDLOOKUP_R,@TFIELDLOOKUP_W,'Lookup');
+  RegisterPropertyHelper(@TFIELDPARENTFIELD_R,@TFIELDPARENTFIELD_W,'ParentField');
+  RegisterPropertyHelper(@TFIELDVALIDCHARS_R,@TFIELDVALIDCHARS_W,'ValidChars');
+  RegisterPropertyHelper(@TFIELDAUTOGENERATEVALUE_R,@TFIELDAUTOGENERATEVALUE_W,'AutoGenerateValue');
 
 {$IFDEF DELPHI6UP}
-  RegisterPropertyHelper(@TFIELDASBCD_R,@TFIELDASBCD_W,'ASBCD');
+  RegisterPropertyHelper(@TFIELDASBCD_R,@TFIELDASBCD_W,'AsBCD');
 {$ENDIF}
 {$ENDIF}
-  RegisterPropertyHelper(@TFIELDASBOOLEAN_R,@TFIELDASBOOLEAN_W,'ASBOOLEAN');
-  RegisterPropertyHelper(@TFIELDASCURRENCY_R,@TFIELDASCURRENCY_W,'ASCURRENCY');
-  RegisterPropertyHelper(@TFIELDASDATETIME_R,@TFIELDASDATETIME_W,'ASDATETIME');
-  RegisterPropertyHelper(@TFIELDASFLOAT_R,@TFIELDASFLOAT_W,'ASFLOAT');
-  RegisterPropertyHelper(@TFIELDASINTEGER_R,@TFIELDASINTEGER_W,'ASINTEGER');
-  RegisterPropertyHelper(@TFIELDASSTRING_R,@TFIELDASSTRING_W,'ASSTRING');
-  RegisterPropertyHelper(@TFIELDASVARIANT_R,@TFIELDASVARIANT_W,'ASVARIANT');
-  RegisterPropertyHelper(@TFIELDATTRIBUTESET_R,@TFIELDATTRIBUTESET_W,'ATTRIBUTESET');
-  RegisterPropertyHelper(@TFIELDCALCULATED_R,@TFIELDCALCULATED_W,'CALCULATED');
-  RegisterPropertyHelper(@TFIELDCANMODIFY_R,nil,'CANMODIFY');
-  RegisterPropertyHelper(@TFIELDCURVALUE_R,nil,'CURVALUE');
-  RegisterPropertyHelper(@TFIELDDATASET_R,@TFIELDDATASET_W,'DATASET');
-  RegisterPropertyHelper(@TFIELDDATASIZE_R,nil,'DATASIZE');
-  RegisterPropertyHelper(@TFIELDDATATYPE_R,nil,'DATATYPE');
-  RegisterPropertyHelper(@TFIELDDISPLAYNAME_R,nil,'DISPLAYNAME');
-  RegisterPropertyHelper(@TFIELDDISPLAYTEXT_R,nil,'DISPLAYTEXT');
-  RegisterPropertyHelper(@TFIELDFIELDNO_R,nil,'FIELDNO');
-  RegisterPropertyHelper(@TFIELDISINDEXFIELD_R,nil,'ISINDEXFIELD');
-  RegisterPropertyHelper(@TFIELDISNULL_R,nil,'ISNULL');
-  RegisterPropertyHelper(@TFIELDLOOKUPLIST_R,nil,'LOOKUPLIST');
-  RegisterPropertyHelper(@TFIELDNEWVALUE_R,@TFIELDNEWVALUE_W,'NEWVALUE');
-  RegisterPropertyHelper(@TFIELDOFFSET_R,nil,'OFFSET');
-  RegisterPropertyHelper(@TFIELDOLDVALUE_R,nil,'OLDVALUE');
-  RegisterPropertyHelper(@TFIELDSIZE_R,@TFIELDSIZE_W,'SIZE');
-  RegisterPropertyHelper(@TFIELDTEXT_R,@TFIELDTEXT_W,'TEXT');
-  RegisterPropertyHelper(@TFIELDVALUE_R,@TFIELDVALUE_W,'VALUE');
-  RegisterPropertyHelper(@TFIELDALIGNMENT_R,@TFIELDALIGNMENT_W,'ALIGNMENT');
-  RegisterPropertyHelper(@TFIELDCUSTOMCONSTRAINT_R,@TFIELDCUSTOMCONSTRAINT_W,'CUSTOMCONSTRAINT');
-  RegisterPropertyHelper(@TFIELDCONSTRAINTERRORMESSAGE_R,@TFIELDCONSTRAINTERRORMESSAGE_W,'CONSTRAINTERRORMESSAGE');
-  RegisterPropertyHelper(@TFIELDDEFAULTEXPRESSION_R,@TFIELDDEFAULTEXPRESSION_W,'DEFAULTEXPRESSION');
-  RegisterPropertyHelper(@TFIELDDISPLAYLABEL_R,@TFIELDDISPLAYLABEL_W,'DISPLAYLABEL');
-  RegisterPropertyHelper(@TFIELDDISPLAYWIDTH_R,@TFIELDDISPLAYWIDTH_W,'DISPLAYWIDTH');
-  RegisterPropertyHelper(@TFIELDFIELDKIND_R,@TFIELDFIELDKIND_W,'FIELDKIND');
-  RegisterPropertyHelper(@TFIELDFIELDNAME_R,@TFIELDFIELDNAME_W,'FIELDNAME');
-  RegisterPropertyHelper(@TFIELDHASCONSTRAINTS_R,nil,'HASCONSTRAINTS');
-  RegisterPropertyHelper(@TFIELDINDEX_R,@TFIELDINDEX_W,'INDEX');
-  RegisterPropertyHelper(@TFIELDIMPORTEDCONSTRAINT_R,@TFIELDIMPORTEDCONSTRAINT_W,'IMPORTEDCONSTRAINT');
-  RegisterPropertyHelper(@TFIELDLOOKUPDATASET_R,@TFIELDLOOKUPDATASET_W,'LOOKUPDATASET');
-  RegisterPropertyHelper(@TFIELDLOOKUPKEYFIELDS_R,@TFIELDLOOKUPKEYFIELDS_W,'LOOKUPKEYFIELDS');
-  RegisterPropertyHelper(@TFIELDLOOKUPRESULTFIELD_R,@TFIELDLOOKUPRESULTFIELD_W,'LOOKUPRESULTFIELD');
-  RegisterPropertyHelper(@TFIELDKEYFIELDS_R,@TFIELDKEYFIELDS_W,'KEYFIELDS');
-  RegisterPropertyHelper(@TFIELDLOOKUPCACHE_R,@TFIELDLOOKUPCACHE_W,'LOOKUPCACHE');
-  RegisterPropertyHelper(@TFIELDORIGIN_R,@TFIELDORIGIN_W,'ORIGIN');
-  RegisterPropertyHelper(@TFIELDPROVIDERFLAGS_R,@TFIELDPROVIDERFLAGS_W,'PROVIDERFLAGS');
-  RegisterPropertyHelper(@TFIELDREADONLY_R,@TFIELDREADONLY_W,'READONLY');
-  RegisterPropertyHelper(@TFIELDREQUIRED_R,@TFIELDREQUIRED_W,'REQUIRED');
-  RegisterPropertyHelper(@TFIELDVISIBLE_R,@TFIELDVISIBLE_W,'VISIBLE');
-  RegisterEventPropertyHelper(@TFIELDONCHANGE_R,@TFIELDONCHANGE_W,'ONCHANGE');
-  RegisterEventPropertyHelper(@TFIELDONGETTEXT_R,@TFIELDONGETTEXT_W,'ONGETTEXT');
-  RegisterEventPropertyHelper(@TFIELDONSETTEXT_R,@TFIELDONSETTEXT_W,'ONSETTEXT');
-  RegisterEventPropertyHelper(@TFIELDONVALIDATE_R,@TFIELDONVALIDATE_W,'ONVALIDATE');
+  RegisterPropertyHelper(@TFIELDASBOOLEAN_R,@TFIELDASBOOLEAN_W,'AsBoolean');
+  RegisterPropertyHelper(@TFIELDASCURRENCY_R,@TFIELDASCURRENCY_W,'AsCurrency');
+  RegisterPropertyHelper(@TFIELDASDATETIME_R,@TFIELDASDATETIME_W,'AsDateTime');
+  RegisterPropertyHelper(@TFIELDASFLOAT_R,@TFIELDASFLOAT_W,'AsFloat');
+  RegisterPropertyHelper(@TFIELDASINTEGER_R,@TFIELDASINTEGER_W,'AsInteger');
+  RegisterPropertyHelper(@TFIELDASSTRING_R,@TFIELDASSTRING_W,'AsString');
+  RegisterPropertyHelper(@TFIELDASVARIANT_R,@TFIELDASVARIANT_W,'AsVariant');
+  RegisterPropertyHelper(@TFIELDATTRIBUTESET_R,@TFIELDATTRIBUTESET_W,'AttributeSet');
+  RegisterPropertyHelper(@TFIELDCALCULATED_R,@TFIELDCALCULATED_W,'Calculated');
+  RegisterPropertyHelper(@TFIELDCANMODIFY_R,nil,'CanModify');
+  RegisterPropertyHelper(@TFIELDCURVALUE_R,nil,'CurValue');
+  RegisterPropertyHelper(@TFIELDDATASET_R,@TFIELDDATASET_W,'Dataset');
+  RegisterPropertyHelper(@TFIELDDATASIZE_R,nil,'DataSize');
+  RegisterPropertyHelper(@TFIELDDATATYPE_R,nil,'DataType');
+  RegisterPropertyHelper(@TFIELDDISPLAYNAME_R,nil,'DisplayName');
+  RegisterPropertyHelper(@TFIELDDISPLAYTEXT_R,nil,'DisplayText');
+  RegisterPropertyHelper(@TFIELDFIELDNO_R,nil,'FieldNo');
+  RegisterPropertyHelper(@TFIELDISINDEXFIELD_R,nil,'IsIndexField');
+  RegisterPropertyHelper(@TFIELDISNULL_R,nil,'IsNull');
+  RegisterPropertyHelper(@TFIELDLOOKUPLIST_R,nil,'LookupList');
+  RegisterPropertyHelper(@TFIELDNEWVALUE_R,@TFIELDNEWVALUE_W,'NewValue');
+  RegisterPropertyHelper(@TFIELDOFFSET_R,nil,'Offset');
+  RegisterPropertyHelper(@TFIELDOLDVALUE_R,nil,'OldValue');
+  RegisterPropertyHelper(@TFIELDSIZE_R,@TFIELDSIZE_W,'Size');
+  RegisterPropertyHelper(@TFIELDTEXT_R,@TFIELDTEXT_W,'Text');
+  RegisterPropertyHelper(@TFIELDVALUE_R,@TFIELDVALUE_W,'Value');
+  RegisterPropertyHelper(@TFIELDALIGNMENT_R,@TFIELDALIGNMENT_W,'Alignment');
+  RegisterPropertyHelper(@TFIELDCUSTOMCONSTRAINT_R,@TFIELDCUSTOMCONSTRAINT_W,'CustomConstraint');
+  RegisterPropertyHelper(@TFIELDCONSTRAINTERRORMESSAGE_R,@TFIELDCONSTRAINTERRORMESSAGE_W,'ConstraintErrorMessage');
+  RegisterPropertyHelper(@TFIELDDEFAULTEXPRESSION_R,@TFIELDDEFAULTEXPRESSION_W,'DefaultExpression');
+  RegisterPropertyHelper(@TFIELDDISPLAYLABEL_R,@TFIELDDISPLAYLABEL_W,'DisplayLabel');
+  RegisterPropertyHelper(@TFIELDDISPLAYWIDTH_R,@TFIELDDISPLAYWIDTH_W,'DisplayWidth');
+  RegisterPropertyHelper(@TFIELDFIELDKIND_R,@TFIELDFIELDKIND_W,'FieldKind');
+  RegisterPropertyHelper(@TFIELDFIELDNAME_R,@TFIELDFIELDNAME_W,'FieldName');
+  RegisterPropertyHelper(@TFIELDHASCONSTRAINTS_R,nil,'HasConstraints');
+  RegisterPropertyHelper(@TFIELDINDEX_R,@TFIELDINDEX_W,'Index');
+  RegisterPropertyHelper(@TFIELDIMPORTEDCONSTRAINT_R,@TFIELDIMPORTEDCONSTRAINT_W,'ImportedConstraint');
+  RegisterPropertyHelper(@TFIELDLOOKUPDATASET_R,@TFIELDLOOKUPDATASET_W,'LookupDataSet');
+  RegisterPropertyHelper(@TFIELDLOOKUPKEYFIELDS_R,@TFIELDLOOKUPKEYFIELDS_W,'LookupKeyFields');
+  RegisterPropertyHelper(@TFIELDLOOKUPRESULTFIELD_R,@TFIELDLOOKUPRESULTFIELD_W,'LookupResultField');
+  RegisterPropertyHelper(@TFIELDKEYFIELDS_R,@TFIELDKEYFIELDS_W,'KeyFields');
+  RegisterPropertyHelper(@TFIELDLOOKUPCACHE_R,@TFIELDLOOKUPCACHE_W,'LookupCache');
+  RegisterPropertyHelper(@TFIELDORIGIN_R,@TFIELDORIGIN_W,'Origin');
+  RegisterPropertyHelper(@TFIELDPROVIDERFLAGS_R,@TFIELDPROVIDERFLAGS_W,'ProviderFlags');
+  RegisterPropertyHelper(@TFIELDREADONLY_R,@TFIELDREADONLY_W,'ReadOnly');
+  RegisterPropertyHelper(@TFIELDREQUIRED_R,@TFIELDREQUIRED_W,'Required');
+  RegisterPropertyHelper(@TFIELDVISIBLE_R,@TFIELDVISIBLE_W,'Visible');
+  RegisterEventPropertyHelper(@TFIELDONCHANGE_R,@TFIELDONCHANGE_W,'OnChange');
+  RegisterEventPropertyHelper(@TFIELDONGETTEXT_R,@TFIELDONGETTEXT_W,'OnGetText');
+  RegisterEventPropertyHelper(@TFIELDONSETTEXT_R,@TFIELDONSETTEXT_W,'OnSetText');
+  RegisterEventPropertyHelper(@TFIELDONVALIDATE_R,@TFIELDONVALIDATE_W,'OnValidate');
   end;
 end;
 
@@ -1861,15 +1861,15 @@ procedure RIRegisterTLOOKUPLIST(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TLOOKUPLIST) do
   begin
-  RegisterConstructor(@TLOOKUPLIST.CREATE, 'CREATE');
+  RegisterConstructor(@TLOOKUPLIST.CREATE, 'Create');
   {$IFDEF DELPHI2009UP}
-  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.ADD, 'ADD');  
-  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.CLEAR, 'CLEAR');  
-  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.VALUEOFKEY, 'VALUEOFKEY');  
+  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.ADD, 'Add');
+  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.CLEAR, 'Clear');
+  RegisterVirtualAbstractMethod(TDefaultLookupList, @TDefaultLookupList.VALUEOFKEY, 'ValueOfKey');
   {$ELSE}
-  RegisterMethod(@TLOOKUPLIST.ADD, 'ADD');
-  RegisterMethod(@TLOOKUPLIST.CLEAR, 'CLEAR');
-  RegisterMethod(@TLOOKUPLIST.VALUEOFKEY, 'VALUEOFKEY');
+  RegisterMethod(@TLOOKUPLIST.ADD, 'Add');
+  RegisterMethod(@TLOOKUPLIST.CLEAR, 'Clear');
+  RegisterMethod(@TLOOKUPLIST.VALUEOFKEY, 'ValueOfKey');
   {$ENDIF}
   end;
 end;
@@ -1878,20 +1878,20 @@ procedure RIRegisterTFIELDS(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFIELDS) do
   begin
-  RegisterConstructor(@TFIELDS.CREATE, 'CREATE');
-  RegisterMethod(@TFIELDS.ADD, 'ADD');
-  RegisterMethod(@TFIELDS.CHECKFIELDNAME, 'CHECKFIELDNAME');
-  RegisterMethod(@TFIELDS.CHECKFIELDNAMES, 'CHECKFIELDNAMES');
-  RegisterMethod(@TFIELDS.CLEAR, 'CLEAR');
-  RegisterMethod(@TFIELDS.FINDFIELD, 'FINDFIELD');
-  RegisterMethod(@TFIELDS.FIELDBYNAME, 'FIELDBYNAME');
-  RegisterMethod(@TFIELDS.FIELDBYNUMBER, 'FIELDBYNUMBER');
-  RegisterMethod(@TFIELDS.GETFIELDNAMES, 'GETFIELDNAMES');
-  RegisterMethod(@TFIELDS.INDEXOF, 'INDEXOF');
-  RegisterMethod(@TFIELDS.REMOVE, 'REMOVE');
-  RegisterPropertyHelper(@TFIELDSCOUNT_R,nil,'COUNT');
-  RegisterPropertyHelper(@TFIELDSDATASET_R,nil,'DATASET');
-  RegisterPropertyHelper(@TFIELDSFIELDS_R,@TFIELDSFIELDS_W,'FIELDS');
+  RegisterConstructor(@TFIELDS.CREATE, 'Create');
+  RegisterMethod(@TFIELDS.ADD, 'Add');
+  RegisterMethod(@TFIELDS.CHECKFIELDNAME, 'CheckFieldName');
+  RegisterMethod(@TFIELDS.CHECKFIELDNAMES, 'CheckFieldNames');
+  RegisterMethod(@TFIELDS.CLEAR, 'Clear');
+  RegisterMethod(@TFIELDS.FINDFIELD, 'FindField');
+  RegisterMethod(@TFIELDS.FIELDBYNAME, 'FieldByName');
+  RegisterMethod(@TFIELDS.FIELDBYNUMBER, 'FieldByNumber');
+  RegisterMethod(@TFIELDS.GETFIELDNAMES, 'GetFieldNames');
+  RegisterMethod(@TFIELDS.INDEXOF, 'IndexOf');
+  RegisterMethod(@TFIELDS.REMOVE, 'Remove');
+  RegisterPropertyHelper(@TFIELDSCOUNT_R,nil,'Count');
+  RegisterPropertyHelper(@TFIELDSDATASET_R,nil,'Dataset');
+  RegisterPropertyHelper(@TFIELDSFIELDS_R,@TFIELDSFIELDS_W,'Fields');
   end;
 end;
 
@@ -1900,9 +1900,9 @@ procedure RIRegisterTFIELDLIST(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFIELDLIST) do
   begin
-  RegisterMethod(@TFIELDLIST.FIELDBYNAME, 'FIELDBYNAME');
-  RegisterMethod(@TFIELDLIST.FIND, 'FIND');
-  RegisterPropertyHelper(@TFIELDLISTFIELDS_R,nil,'FIELDS');
+  RegisterMethod(@TFIELDLIST.FIELDBYNAME, 'FieldByName');
+  RegisterMethod(@TFIELDLIST.FIND, 'Find');
+  RegisterPropertyHelper(@TFIELDLISTFIELDS_R,nil,'Fields');
   end;
 end;
 
@@ -1910,9 +1910,9 @@ procedure RIRegisterTFIELDDEFLIST(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFIELDDEFLIST) do
   begin
-  RegisterMethod(@TFIELDDEFLIST.FIELDBYNAME, 'FIELDBYNAME');
-  RegisterMethod(@TFIELDDEFLIST.FIND, 'FIND');
-  RegisterPropertyHelper(@TFIELDDEFLISTFIELDDEFS_R,nil,'FIELDDEFS');
+  RegisterMethod(@TFIELDDEFLIST.FIELDBYNAME, 'FieldByName');
+  RegisterMethod(@TFIELDDEFLIST.FIND, 'Find');
+  RegisterPropertyHelper(@TFIELDDEFLISTFIELDDEFS_R,nil,'FieldDefs');
   end;
 end;
 
@@ -1921,9 +1921,9 @@ procedure RIRegisterTFLATLIST(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFLATLIST) do
   begin
-  RegisterConstructor(@TFLATLIST.CREATE, 'CREATE');
-  RegisterMethod(@TFLATLIST.UPDATE, 'UPDATE');
-  RegisterPropertyHelper(@TFLATLISTDATASET_R,nil,'DATASET');
+  RegisterConstructor(@TFLATLIST.CREATE, 'Create');
+  RegisterMethod(@TFLATLIST.UPDATE, 'Update');
+  RegisterPropertyHelper(@TFLATLISTDATASET_R,nil,'Dataset');
   end;
 end;
 {$ENDIF}
@@ -1933,14 +1933,14 @@ procedure RIRegisterTINDEXDEFS(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TINDEXDEFS) do
   begin
-  RegisterConstructor(@TINDEXDEFS.CREATE, 'CREATE');
-  RegisterMethod(@TINDEXDEFS.ADDINDEXDEF, 'ADDINDEXDEF');
-  RegisterMethod(@TINDEXDEFS.FIND, 'FIND');
-  RegisterMethod(@TINDEXDEFS.UPDATE, 'UPDATE');
-  RegisterMethod(@TINDEXDEFS.FINDINDEXFORFIELDS, 'FINDINDEXFORFIELDS');
-  RegisterMethod(@TINDEXDEFS.GETINDEXFORFIELDS, 'GETINDEXFORFIELDS');
-  RegisterMethod(@TINDEXDEFS.ADD, 'ADD');
-  RegisterPropertyHelper(@TINDEXDEFSITEMS_R,@TINDEXDEFSITEMS_W,'ITEMS');
+  RegisterConstructor(@TINDEXDEFS.CREATE, 'Create');
+  RegisterMethod(@TINDEXDEFS.ADDINDEXDEF, 'AddIndexDef');
+  RegisterMethod(@TINDEXDEFS.FIND, 'Find');
+  RegisterMethod(@TINDEXDEFS.UPDATE, 'Update');
+  RegisterMethod(@TINDEXDEFS.FINDINDEXFORFIELDS, 'FindIndexForFields');
+  RegisterMethod(@TINDEXDEFS.GETINDEXFORFIELDS, 'GetIndexForFields');
+  RegisterMethod(@TINDEXDEFS.ADD, 'Add');
+  RegisterPropertyHelper(@TINDEXDEFSITEMS_R,@TINDEXDEFSITEMS_W,'Items');
   end;
 end;
 
@@ -1948,18 +1948,18 @@ procedure RIRegisterTINDEXDEF(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TINDEXDEF) do
   begin
-  RegisterConstructor(@TINDEXDEF.CREATE, 'CREATE');
+  RegisterConstructor(@TINDEXDEF.CREATE, 'Create');
 {$IFNDEF FPC}
-  RegisterPropertyHelper(@TINDEXDEFFIELDEXPRESSION_R,nil,'FIELDEXPRESSION');
-  RegisterPropertyHelper(@TINDEXDEFCASEINSFIELDS_R,@TINDEXDEFCASEINSFIELDS_W,'CASEINSFIELDS');
-  RegisterPropertyHelper(@TINDEXDEFGROUPINGLEVEL_R,@TINDEXDEFGROUPINGLEVEL_W,'GROUPINGLEVEL');
-  RegisterPropertyHelper(@TINDEXDEFDESCFIELDS_R,@TINDEXDEFDESCFIELDS_W,'DESCFIELDS');
+  RegisterPropertyHelper(@TINDEXDEFFIELDEXPRESSION_R,nil,'FieldExpression');
+  RegisterPropertyHelper(@TINDEXDEFCASEINSFIELDS_R,@TINDEXDEFCASEINSFIELDS_W,'CaseInsFields');
+  RegisterPropertyHelper(@TINDEXDEFGROUPINGLEVEL_R,@TINDEXDEFGROUPINGLEVEL_W,'GroupingLevel');
+  RegisterPropertyHelper(@TINDEXDEFDESCFIELDS_R,@TINDEXDEFDESCFIELDS_W,'DescFields');
 
 {$ENDIF}
-  RegisterPropertyHelper(@TINDEXDEFEXPRESSION_R,@TINDEXDEFEXPRESSION_W,'EXPRESSION');
-  RegisterPropertyHelper(@TINDEXDEFFIELDS_R,@TINDEXDEFFIELDS_W,'FIELDS');
-  RegisterPropertyHelper(@TINDEXDEFOPTIONS_R,@TINDEXDEFOPTIONS_W,'OPTIONS');
-  RegisterPropertyHelper(@TINDEXDEFSOURCE_R,@TINDEXDEFSOURCE_W,'SOURCE');
+  RegisterPropertyHelper(@TINDEXDEFEXPRESSION_R,@TINDEXDEFEXPRESSION_W,'Expression');
+  RegisterPropertyHelper(@TINDEXDEFFIELDS_R,@TINDEXDEFFIELDS_W,'Fields');
+  RegisterPropertyHelper(@TINDEXDEFOPTIONS_R,@TINDEXDEFOPTIONS_W,'Options');
+  RegisterPropertyHelper(@TINDEXDEFSOURCE_R,@TINDEXDEFSOURCE_W,'Source');
   end;
 end;
 
@@ -1967,17 +1967,17 @@ procedure RIRegisterTFIELDDEFS(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFIELDDEFS) do
   begin
-  RegisterConstructor(@TFIELDDEFS.CREATE, 'CREATE');
-  RegisterMethod(@TFIELDDEFS.ADDFIELDDEF, 'ADDFIELDDEF');
-  RegisterMethod(@TFIELDDEFS.FIND, 'FIND');
-  RegisterMethod(@TFIELDDEFS.UPDATE, 'UPDATE');
+  RegisterConstructor(@TFIELDDEFS.CREATE, 'Create');
+  RegisterMethod(@TFIELDDEFS.ADDFIELDDEF, 'AddFieldDef');
+  RegisterMethod(@TFIELDDEFS.FIND, 'Find');
+  RegisterMethod(@TFIELDDEFS.UPDATE, 'Update');
 {$IFNDEF FPC}
-  RegisterMethod(@TFIELDDEFS.ADD, 'ADD');
-  RegisterPropertyHelper(@TFIELDDEFSPARENTDEF_R,nil,'PARENTDEF');
+  RegisterMethod(@TFIELDDEFS.ADD, 'Add');
+  RegisterPropertyHelper(@TFIELDDEFSPARENTDEF_R,nil,'ParentDef');
 
 {$ENDIF}
-  RegisterPropertyHelper(@TFIELDDEFSHIDDENFIELDS_R,@TFIELDDEFSHIDDENFIELDS_W,'HIDDENFIELDS');
-  RegisterPropertyHelper(@TFIELDDEFSITEMS_R,@TFIELDDEFSITEMS_W,'ITEMS');
+  RegisterPropertyHelper(@TFIELDDEFSHIDDENFIELDS_R,@TFIELDDEFSHIDDENFIELDS_W,'HiddenFields');
+  RegisterPropertyHelper(@TFIELDDEFSITEMS_R,@TFIELDDEFSITEMS_W,'Items');
   end;
 end;
 
@@ -1985,26 +1985,26 @@ procedure RIRegisterTFIELDDEF(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TFIELDDEF) do
   begin
-//  RegisterConstructor(@TFIELDDEF.CREATE, 'CREATE');
+//  RegisterConstructor(@TFIELDDEF.CREATE, 'Create');
 {$IFNDEF FPC}
-  RegisterMethod(@TFIELDDEF.ADDCHILD, 'ADDCHILD');
-  RegisterMethod(@TFIELDDEF.HASCHILDDEFS, 'HASCHILDDEFS');
+  RegisterMethod(@TFIELDDEF.ADDCHILD, 'AddChild');
+  RegisterMethod(@TFIELDDEF.HASCHILDDEFS, 'HasChildDefs');
 
 {$ENDIF}
-  RegisterMethod(@TFIELDDEF.CREATEFIELD, 'CREATEFIELD');
+  RegisterMethod(@TFIELDDEF.CREATEFIELD, 'CreateField');
 {$IFNDEF FPC}
-  RegisterPropertyHelper(@TFIELDDEFFIELDNO_R,@TFIELDDEFFIELDNO_W,'FIELDNO');
-  RegisterPropertyHelper(@TFIELDDEFPARENTDEF_R,nil,'PARENTDEF');
-  RegisterPropertyHelper(@TFIELDDEFCHILDDEFS_R,@TFIELDDEFCHILDDEFS_W,'CHILDDEFS');
-  RegisterPropertyHelper(@TFIELDDEFREQUIRED_R,@TFIELDDEFREQUIRED_W,'REQUIRED');
+  RegisterPropertyHelper(@TFIELDDEFFIELDNO_R,@TFIELDDEFFIELDNO_W,'FieldNo');
+  RegisterPropertyHelper(@TFIELDDEFPARENTDEF_R,nil,'ParentDef');
+  RegisterPropertyHelper(@TFIELDDEFCHILDDEFS_R,@TFIELDDEFCHILDDEFS_W,'ChildDefs');
+  RegisterPropertyHelper(@TFIELDDEFREQUIRED_R,@TFIELDDEFREQUIRED_W,'Required');
 
 {$ENDIF}
-  RegisterPropertyHelper(@TFIELDDEFFIELDCLASS_R,nil,'FIELDCLASS');
-  RegisterPropertyHelper(@TFIELDDEFINTERNALCALCFIELD_R,@TFIELDDEFINTERNALCALCFIELD_W,'INTERNALCALCFIELD');
-  RegisterPropertyHelper(@TFIELDDEFATTRIBUTES_R,@TFIELDDEFATTRIBUTES_W,'ATTRIBUTES');
-  RegisterPropertyHelper(@TFIELDDEFDATATYPE_R,@TFIELDDEFDATATYPE_W,'DATATYPE');
-  RegisterPropertyHelper(@TFIELDDEFPRECISION_R,@TFIELDDEFPRECISION_W,'PRECISION');
-  RegisterPropertyHelper(@TFIELDDEFSIZE_R,@TFIELDDEFSIZE_W,'SIZE');
+  RegisterPropertyHelper(@TFIELDDEFFIELDCLASS_R,nil,'FieldClass');
+  RegisterPropertyHelper(@TFIELDDEFINTERNALCALCFIELD_R,@TFIELDDEFINTERNALCALCFIELD_W,'InternalCalcField');
+  RegisterPropertyHelper(@TFIELDDEFATTRIBUTES_R,@TFIELDDEFATTRIBUTES_W,'Attributes');
+  RegisterPropertyHelper(@TFIELDDEFDATATYPE_R,@TFIELDDEFDATATYPE_W,'DataType');
+  RegisterPropertyHelper(@TFIELDDEFPRECISION_R,@TFIELDDEFPRECISION_W,'Precision');
+  RegisterPropertyHelper(@TFIELDDEFSIZE_R,@TFIELDDEFSIZE_W,'Size');
   end;
 end;
 
@@ -2013,12 +2013,12 @@ procedure RIRegisterTDEFCOLLECTION(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TDEFCOLLECTION) do
   begin
-  RegisterConstructor(@TDEFCOLLECTION.CREATE, 'CREATE');
-  RegisterMethod(@TDEFCOLLECTION.FIND, 'FIND');
-  RegisterMethod(@TDEFCOLLECTION.GETITEMNAMES, 'GETITEMNAMES');
-  RegisterMethod(@TDEFCOLLECTION.INDEXOF, 'INDEXOF');
-  RegisterPropertyHelper(@TDEFCOLLECTIONDATASET_R,nil,'DATASET');
-  RegisterPropertyHelper(@TDEFCOLLECTIONUPDATED_R,@TDEFCOLLECTIONUPDATED_W,'UPDATED');
+  RegisterConstructor(@TDEFCOLLECTION.CREATE, 'Create');
+  RegisterMethod(@TDEFCOLLECTION.FIND, 'Find');
+  RegisterMethod(@TDEFCOLLECTION.GETITEMNAMES, 'GetItemNames');
+  RegisterMethod(@TDEFCOLLECTION.INDEXOF, 'IndexOf');
+  RegisterPropertyHelper(@TDEFCOLLECTIONDATASET_R,nil,'Dataset');
+  RegisterPropertyHelper(@TDEFCOLLECTIONUPDATED_R,@TDEFCOLLECTIONUPDATED_W,'Updated');
   end;
 end;
 
@@ -2026,7 +2026,7 @@ procedure RIRegisterTNAMEDITEM(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TNAMEDITEM) do
   begin
-  RegisterPropertyHelper(@TNAMEDITEMNAME_R,@TNAMEDITEMNAME_W,'NAME');
+  RegisterPropertyHelper(@TNAMEDITEMNAME_R,@TNAMEDITEMNAME_W,'Name');
   end;
 end;
 {$ENDIF}

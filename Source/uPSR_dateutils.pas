@@ -43,21 +43,21 @@ end;
 
 procedure RegisterDateTimeLibrary_R(S: TPSExec);
 begin
-  S.RegisterDelphiFunction(@EncodeDate, 'ENCODEDATE', cdRegister);
-  S.RegisterDelphiFunction(@EncodeTime, 'ENCODETIME', cdRegister);
-  S.RegisterDelphiFunction(@TryEncodeDate, 'TRYENCODEDATE', cdRegister);
-  S.RegisterDelphiFunction(@TryEncodeTime, 'TRYENCODETIME', cdRegister);
-  S.RegisterDelphiFunction(@DecodeDate, 'DECODEDATE', cdRegister);
-  S.RegisterDelphiFunction(@DecodeTime, 'DECODETIME', cdRegister);
-  S.RegisterDelphiFunction(@DayOfWeek, 'DAYOFWEEK', cdRegister);
-  S.RegisterDelphiFunction(@Date, 'DATE', cdRegister);
-  S.RegisterDelphiFunction(@Time, 'TIME', cdRegister);
-  S.RegisterDelphiFunction(@Now, 'NOW', cdRegister);
-  S.RegisterDelphiFunction(@DateTimeToUnix, 'DATETIMETOUNIX', cdRegister);
-  S.RegisterDelphiFunction(@UnixToDateTime, 'UNIXTODATETIME', cdRegister);
-  S.RegisterDelphiFunction(@DateToStr, 'DATETOSTR', cdRegister);
-  S.RegisterDelphiFunction(@FormatDateTime, 'FORMATDATETIME', cdRegister);
-  S.RegisterDelphiFunction(@StrToDate, 'STRTODATE', cdRegister);
+  S.RegisterDelphiFunction(@EncodeDate, 'EncodeDate', cdRegister);
+  S.RegisterDelphiFunction(@EncodeTime, 'EncodeTime', cdRegister);
+  S.RegisterDelphiFunction(@TryEncodeDate, 'TryEncodeDate', cdRegister);
+  S.RegisterDelphiFunction(@TryEncodeTime, 'TryEncodeTime', cdRegister);
+  S.RegisterDelphiFunction(@DecodeDate, 'DecodeDate', cdRegister);
+  S.RegisterDelphiFunction(@DecodeTime, 'DecodeTime', cdRegister);
+  S.RegisterDelphiFunction(@DayOfWeek, 'DayOfWeek', cdRegister);
+  S.RegisterDelphiFunction(@Date, 'Date', cdRegister);
+  S.RegisterDelphiFunction(@Time, 'Time', cdRegister);
+  S.RegisterDelphiFunction(@Now, 'Now', cdRegister);
+  S.RegisterDelphiFunction(@DateTimeToUnix, 'DateTimeToUnix', cdRegister);
+  S.RegisterDelphiFunction(@UnixToDateTime, 'UnixToDateTime', cdRegister);
+  S.RegisterDelphiFunction(@DateToStr, 'DateToStr', cdRegister);
+  S.RegisterDelphiFunction(@FormatDateTime, 'FormatDateTime', cdRegister);
+  S.RegisterDelphiFunction(@StrToDate, 'StrToDate', cdRegister);
 end;
 
 end.

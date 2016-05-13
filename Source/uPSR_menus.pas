@@ -292,17 +292,17 @@ begin T := Self.COMMAND; end;
 
 procedure RIRegister_Menus_Routines(S: TPSExec);
 begin
-  S.RegisterDelphiFunction(@SHORTCUT, 'SHORTCUT', cdRegister);
-	S.RegisterDelphiFunction(@SHORTCUTTOKEY, 'SHORTCUTTOKEY', cdRegister);
+  S.RegisterDelphiFunction(@SHORTCUT, 'ShortCut', cdRegister);
+	S.RegisterDelphiFunction(@SHORTCUTTOKEY, 'ShortCutToKey', cdRegister);
 {$IFNDEF FPC}
-  S.RegisterDelphiFunction(@SHORTCUTTOTEXT, 'SHORTCUTTOTEXT', cdRegister);
-  S.RegisterDelphiFunction(@TEXTTOSHORTCUT, 'TEXTTOSHORTCUT', cdRegister);
-  S.RegisterDelphiFunction(@NEWMENU, 'NEWMENU', cdRegister);
-  S.RegisterDelphiFunction(@NEWPOPUPMENU, 'NEWPOPUPMENU', cdRegister);
-  S.RegisterDelphiFunction(@NEWSUBMENU, 'NEWSUBMENU', cdRegister);
-  S.RegisterDelphiFunction(@NEWITEM, 'NEWITEM', cdRegister);
-  S.RegisterDelphiFunction(@NEWLINE, 'NEWLINE', cdRegister);
-	S.RegisterDelphiFunction(@DRAWMENUITEM, 'DRAWMENUITEM', cdRegister);
+  S.RegisterDelphiFunction(@SHORTCUTTOTEXT, 'ShortCutToText', cdRegister);
+  S.RegisterDelphiFunction(@TEXTTOSHORTCUT, 'TextToShortCut', cdRegister);
+  S.RegisterDelphiFunction(@NEWMENU, 'NewMenu', cdRegister);
+  S.RegisterDelphiFunction(@NEWPOPUPMENU, 'NewPopupMenu', cdRegister);
+  S.RegisterDelphiFunction(@NEWSUBMENU, 'NewSubMenu', cdRegister);
+  S.RegisterDelphiFunction(@NEWITEM, 'NewItem', cdRegister);
+  S.RegisterDelphiFunction(@NEWLINE, 'NewLine', cdRegister);
+	S.RegisterDelphiFunction(@DRAWMENUITEM, 'DrawMenuItem', cdRegister);
 {$ENDIF}	
 end;
 
@@ -311,7 +311,7 @@ procedure RIRegisterTMENUITEMSTACK(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TMENUITEMSTACK) do
 	begin
-		RegisterMethod(@TMENUITEMSTACK.CLEARITEM, 'CLEARITEM');
+		RegisterMethod(@TMENUITEMSTACK.CLEARITEM, 'ClearItem');
 	end;
 end;
 
@@ -319,9 +319,9 @@ procedure RIRegisterTPOPUPLIST(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TPOPUPLIST) do
 	begin
-		RegisterPropertyHelper(@TPOPUPLISTWINDOW_R,nil,'WINDOW');
-		RegisterMethod(@TPOPUPLIST.ADD, 'ADD');
-		RegisterMethod(@TPOPUPLIST.REMOVE, 'REMOVE');
+		RegisterPropertyHelper(@TPOPUPLISTWINDOW_R,nil,'Window');
+		RegisterMethod(@TPOPUPLIST.ADD, 'Add');
+		RegisterMethod(@TPOPUPLIST.REMOVE, 'Remove');
 	end;
 end;
 {$ENDIF}
@@ -331,16 +331,16 @@ procedure RIRegisterTPOPUPMENU(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TPOPUPMENU) do
   begin
-		RegisterConstructor(@TPOPUPMENU.CREATE, 'CREATE');
-		RegisterVirtualMethod(@TPOPUPMENU.POPUP, 'POPUP');
-		RegisterPropertyHelper(@TPOPUPMENUPOPUPCOMPONENT_R,@TPOPUPMENUPOPUPCOMPONENT_W,'POPUPCOMPONENT');
-		RegisterEventPropertyHelper(@TPOPUPMENUONPOPUP_R,@TPOPUPMENUONPOPUP_W,'ONPOPUP');
+		RegisterConstructor(@TPOPUPMENU.CREATE, 'Create');
+		RegisterVirtualMethod(@TPOPUPMENU.POPUP, 'Popup');
+		RegisterPropertyHelper(@TPOPUPMENUPOPUPCOMPONENT_R,@TPOPUPMENUPOPUPCOMPONENT_W,'PopupComponent');
+		RegisterEventPropertyHelper(@TPOPUPMENUONPOPUP_R,@TPOPUPMENUONPOPUP_W,'OnPopup');
 {$IFNDEF FPC}
-		RegisterPropertyHelper(@TPOPUPMENUALIGNMENT_R,@TPOPUPMENUALIGNMENT_W,'ALIGNMENT');
-		RegisterPropertyHelper(@TPOPUPMENUAUTOPOPUP_R,@TPOPUPMENUAUTOPOPUP_W,'AUTOPOPUP');
-		RegisterPropertyHelper(@TPOPUPMENUHELPCONTEXT_R,@TPOPUPMENUHELPCONTEXT_W,'HELPCONTEXT');
-		RegisterPropertyHelper(@TPOPUPMENUMENUANIMATION_R,@TPOPUPMENUMENUANIMATION_W,'MENUANIMATION');
-		RegisterPropertyHelper(@TPOPUPMENUTRACKBUTTON_R,@TPOPUPMENUTRACKBUTTON_W,'TRACKBUTTON');
+		RegisterPropertyHelper(@TPOPUPMENUALIGNMENT_R,@TPOPUPMENUALIGNMENT_W,'Alignment');
+		RegisterPropertyHelper(@TPOPUPMENUAUTOPOPUP_R,@TPOPUPMENUAUTOPOPUP_W,'AutoPopup');
+		RegisterPropertyHelper(@TPOPUPMENUHELPCONTEXT_R,@TPOPUPMENUHELPCONTEXT_W,'HelpContext');
+		RegisterPropertyHelper(@TPOPUPMENUMENUANIMATION_R,@TPOPUPMENUMENUANIMATION_W,'MenuAnimation');
+		RegisterPropertyHelper(@TPOPUPMENUTRACKBUTTON_R,@TPOPUPMENUTRACKBUTTON_W,'TrackButton');
 {$ENDIF}
 	end;
 end;
@@ -350,12 +350,12 @@ begin
 	with Cl.Add(TMAINMENU) do
 	begin
 {$IFNDEF FPC}
-		RegisterMethod(@TMAINMENU.MERGE, 'MERGE');
-		RegisterMethod(@TMAINMENU.UNMERGE, 'UNMERGE');
-		RegisterMethod(@TMAINMENU.POPULATEOLE2MENU, 'POPULATEOLE2MENU');
-		RegisterMethod(@TMAINMENU.GETOLE2ACCELERATORTABLE, 'GETOLE2ACCELERATORTABLE');
-		RegisterMethod(@TMAINMENU.SETOLE2MENUHANDLE, 'SETOLE2MENUHANDLE');
-		RegisterPropertyHelper(@TMAINMENUAUTOMERGE_R,@TMAINMENUAUTOMERGE_W,'AUTOMERGE');
+		RegisterMethod(@TMAINMENU.MERGE, 'Merge');
+		RegisterMethod(@TMAINMENU.UNMERGE, 'Unmerge');
+		RegisterMethod(@TMAINMENU.POPULATEOLE2MENU, 'PopulateOle2Menu');
+		RegisterMethod(@TMAINMENU.GETOLE2ACCELERATORTABLE, 'GetOle2AcceleratorTable');
+		RegisterMethod(@TMAINMENU.SETOLE2MENUHANDLE, 'SetOle2MenuHandle');
+		RegisterPropertyHelper(@TMAINMENUAUTOMERGE_R,@TMAINMENUAUTOMERGE_W,'AutoMerge');
 {$ENDIF}		
 	end;
 end;
@@ -365,24 +365,24 @@ procedure RIRegisterTMENU(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TMENU) do
 	begin
-		RegisterConstructor(@TMENU.CREATE, 'CREATE');
-		RegisterMethod(@TMENU.DISPATCHCOMMAND, 'DISPATCHCOMMAND');
-		RegisterMethod(@TMENU.FINDITEM, 'FINDITEM');
-		RegisterPropertyHelper(@TMENUIMAGES_R,@TMENUIMAGES_W,'IMAGES');
-		RegisterMethod(@TMENU.ISRIGHTTOLEFT, 'ISRIGHTTOLEFT');
-		RegisterPropertyHelper(@TMENUHANDLE_R,nil,'HANDLE');
-		RegisterPropertyHelper(@TMENUITEMS_R,nil,'ITEMS');
+		RegisterConstructor(@TMENU.CREATE, 'Create');
+		RegisterMethod(@TMENU.DISPATCHCOMMAND, 'DispatchCommand');
+		RegisterMethod(@TMENU.FINDITEM, 'FindItem');
+		RegisterPropertyHelper(@TMENUIMAGES_R,@TMENUIMAGES_W,'Images');
+		RegisterMethod(@TMENU.ISRIGHTTOLEFT, 'IsRightToLeft');
+		RegisterPropertyHelper(@TMENUHANDLE_R,nil,'Handle');
+		RegisterPropertyHelper(@TMENUITEMS_R,nil,'Items');
 {$IFNDEF FPC}
-		RegisterMethod(@TMENU.DISPATCHPOPUP, 'DISPATCHPOPUP');
-		RegisterMethod(@TMENU.PARENTBIDIMODECHANGED, 'PARENTBIDIMODECHANGED');
-		RegisterMethod(@TMENU.PROCESSMENUCHAR, 'PROCESSMENUCHAR');
-		RegisterPropertyHelper(@TMENUAUTOHOTKEYS_R,@TMENUAUTOHOTKEYS_W,'AUTOHOTKEYS');
-		RegisterPropertyHelper(@TMENUAUTOLINEREDUCTION_R,@TMENUAUTOLINEREDUCTION_W,'AUTOLINEREDUCTION');
-		RegisterPropertyHelper(@TMENUBIDIMODE_R,@TMENUBIDIMODE_W,'BIDIMODE');
-		RegisterMethod(@TMENU.GETHELPCONTEXT, 'GETHELPCONTEXT');
-		RegisterPropertyHelper(@TMENUOWNERDRAW_R,@TMENUOWNERDRAW_W,'OWNERDRAW');
-		RegisterPropertyHelper(@TMENUPARENTBIDIMODE_R,@TMENUPARENTBIDIMODE_W,'PARENTBIDIMODE');
-		RegisterPropertyHelper(@TMENUWINDOWHANDLE_R,@TMENUWINDOWHANDLE_W,'WINDOWHANDLE');
+		RegisterMethod(@TMENU.DISPATCHPOPUP, 'DispatchPopup');
+		RegisterMethod(@TMENU.PARENTBIDIMODECHANGED, 'ParentBiDiModeChanged');
+		RegisterMethod(@TMENU.PROCESSMENUCHAR, 'ProcessMenuChar');
+		RegisterPropertyHelper(@TMENUAUTOHOTKEYS_R,@TMENUAUTOHOTKEYS_W,'AutoHotkeys');
+		RegisterPropertyHelper(@TMENUAUTOLINEREDUCTION_R,@TMENUAUTOLINEREDUCTION_W,'AutoLineReduction');
+		RegisterPropertyHelper(@TMENUBIDIMODE_R,@TMENUBIDIMODE_W,'BiDiMode');
+		RegisterMethod(@TMENU.GETHELPCONTEXT, 'GetHelpContext');
+		RegisterPropertyHelper(@TMENUOWNERDRAW_R,@TMENUOWNERDRAW_W,'OwnerDraw');
+		RegisterPropertyHelper(@TMENUPARENTBIDIMODE_R,@TMENUPARENTBIDIMODE_W,'ParentBiDiMode');
+		RegisterPropertyHelper(@TMENUWINDOWHANDLE_R,@TMENUWINDOWHANDLE_W,'WindowHandle');
 {$ENDIF}
 	end;
 end;
@@ -391,57 +391,57 @@ procedure RIRegisterTMENUITEM(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TMENUITEM) do
 	begin
-		RegisterConstructor(@TMENUITEM.CREATE, 'CREATE');
-		RegisterVirtualMethod(@TMENUITEM.INITIATEACTION, 'INITIATEACTION');
-		RegisterMethod(@TMENUITEM.INSERT, 'INSERT');
-		RegisterMethod(@TMENUITEM.DELETE, 'DELETE');
-		RegisterMethod(@TMENUITEM.CLEAR, 'CLEAR');
-		RegisterVirtualMethod(@TMENUITEM.CLICK, 'CLICK');
+		RegisterConstructor(@TMENUITEM.CREATE, 'Create');
+		RegisterVirtualMethod(@TMENUITEM.INITIATEACTION, 'InitiateAction');
+		RegisterMethod(@TMENUITEM.INSERT, 'Insert');
+		RegisterMethod(@TMENUITEM.DELETE, 'Delete');
+		RegisterMethod(@TMENUITEM.CLEAR, 'Clear');
+		RegisterVirtualMethod(@TMENUITEM.CLICK, 'Click');
 {$IFNDEF FPC}
-		RegisterMethod(@TMENUITEM.FIND, 'FIND');
-		RegisterMethod(@TMENUITEM.NEWTOPLINE, 'NEWTOPLINE');
-		RegisterMethod(@TMENUITEM.NEWBOTTOMLINE, 'NEWBOTTOMLINE');
-		RegisterMethod(@TMENUITEM.INSERTNEWLINEBEFORE, 'INSERTNEWLINEBEFORE');
-		RegisterMethod(@TMENUITEM.INSERTNEWLINEAFTER, 'INSERTNEWLINEAFTER');
-		RegisterMethod(@TMENUITEM.RETHINKHOTKEYS, 'RETHINKHOTKEYS');
-		RegisterMethod(@TMENUITEM.RETHINKLINES, 'RETHINKLINES');
-		RegisterMethod(@TMENUITEM.ISLINE, 'ISLINE');
+		RegisterMethod(@TMENUITEM.FIND, 'Find');
+		RegisterMethod(@TMENUITEM.NEWTOPLINE, 'NewTopLine');
+		RegisterMethod(@TMENUITEM.NEWBOTTOMLINE, 'NewBottomLine');
+		RegisterMethod(@TMENUITEM.INSERTNEWLINEBEFORE, 'InsertNewLineBefore');
+		RegisterMethod(@TMENUITEM.INSERTNEWLINEAFTER, 'InsertNewLineAfter');
+		RegisterMethod(@TMENUITEM.RETHINKHOTKEYS, 'RethinkHotkeys');
+		RegisterMethod(@TMENUITEM.RETHINKLINES, 'RethinkLines');
+		RegisterMethod(@TMENUITEM.ISLINE, 'IsLine');
 {$ENDIF}
-		RegisterMethod(@TMENUITEM.INDEXOF, 'INDEXOF');
-		RegisterMethod(@TMENUITEM.GETIMAGELIST, 'GETIMAGELIST');
-		RegisterMethod(@TMENUITEM.GETPARENTCOMPONENT, 'GETPARENTCOMPONENT');
-		RegisterMethod(@TMENUITEM.GETPARENTMENU, 'GETPARENTMENU');
-		RegisterMethod(@TMENUITEM.HASPARENT, 'HASPARENT');
-		RegisterMethod(@TMENUITEM.ADD, 'ADD');
-		RegisterMethod(@TMENUITEM.REMOVE, 'REMOVE');
+		RegisterMethod(@TMENUITEM.INDEXOF, 'IndexOf');
+		RegisterMethod(@TMENUITEM.GETIMAGELIST, 'GetImageList');
+		RegisterMethod(@TMENUITEM.GETPARENTCOMPONENT, 'GetParentComponent');
+		RegisterMethod(@TMENUITEM.GETPARENTMENU, 'GetParentMenu');
+		RegisterMethod(@TMENUITEM.HASPARENT, 'HasParent');
+		RegisterMethod(@TMENUITEM.ADD, 'Add');
+		RegisterMethod(@TMENUITEM.REMOVE, 'Remove');
 {$IFNDEF FPC}
-		RegisterPropertyHelper(@TMENUITEMAUTOHOTKEYS_R,@TMENUITEMAUTOHOTKEYS_W,'AUTOHOTKEYS');
-		RegisterPropertyHelper(@TMENUITEMAUTOLINEREDUCTION_R,@TMENUITEMAUTOLINEREDUCTION_W,'AUTOLINEREDUCTION');
-		RegisterEventPropertyHelper(@TMENUITEMONDRAWITEM_R,@TMENUITEMONDRAWITEM_W,'ONDRAWITEM');
-		RegisterEventPropertyHelper(@TMENUITEMONADVANCEDDRAWITEM_R,@TMENUITEMONADVANCEDDRAWITEM_W,'ONADVANCEDDRAWITEM');
-		RegisterEventPropertyHelper(@TMENUITEMONMEASUREITEM_R,@TMENUITEMONMEASUREITEM_W,'ONMEASUREITEM');
+		RegisterPropertyHelper(@TMENUITEMAUTOHOTKEYS_R,@TMENUITEMAUTOHOTKEYS_W,'AutoHotkeys');
+		RegisterPropertyHelper(@TMENUITEMAUTOLINEREDUCTION_R,@TMENUITEMAUTOLINEREDUCTION_W,'AutoLineReduction');
+		RegisterEventPropertyHelper(@TMENUITEMONDRAWITEM_R,@TMENUITEMONDRAWITEM_W,'OnDrawItem');
+		RegisterEventPropertyHelper(@TMENUITEMONADVANCEDDRAWITEM_R,@TMENUITEMONADVANCEDDRAWITEM_W,'OnAdvancedDrawItem');
+		RegisterEventPropertyHelper(@TMENUITEMONMEASUREITEM_R,@TMENUITEMONMEASUREITEM_W,'OnMeasureItem');
 {$ENDIF}
-		RegisterPropertyHelper(@TMENUITEMCOMMAND_R,nil,'COMMAND');
-		RegisterPropertyHelper(@TMENUITEMHANDLE_R,nil,'HANDLE');
-		RegisterPropertyHelper(@TMENUITEMCOUNT_R,nil,'COUNT');
-		RegisterPropertyHelper(@TMENUITEMITEMS_R,nil,'ITEMS');
-		RegisterPropertyHelper(@TMENUITEMMENUINDEX_R,@TMENUITEMMENUINDEX_W,'MENUINDEX');
-		RegisterPropertyHelper(@TMENUITEMPARENT_R,nil,'PARENT');
-		RegisterPropertyHelper(@TMENUITEMACTION_R,@TMENUITEMACTION_W,'ACTION');
-		RegisterPropertyHelper(@TMENUITEMBITMAP_R,@TMENUITEMBITMAP_W,'BITMAP');
-		RegisterPropertyHelper(@TMENUITEMCAPTION_R,@TMENUITEMCAPTION_W,'CAPTION');
-		RegisterPropertyHelper(@TMENUITEMCHECKED_R,@TMENUITEMCHECKED_W,'CHECKED');
-		RegisterPropertyHelper(@TMENUITEMSUBMENUIMAGES_R,@TMENUITEMSUBMENUIMAGES_W,'SUBMENUIMAGES');
-		RegisterPropertyHelper(@TMENUITEMDEFAULT_R,@TMENUITEMDEFAULT_W,'DEFAULT');
-		RegisterPropertyHelper(@TMENUITEMENABLED_R,@TMENUITEMENABLED_W,'ENABLED');
-		RegisterPropertyHelper(@TMENUITEMGROUPINDEX_R,@TMENUITEMGROUPINDEX_W,'GROUPINDEX');
-		RegisterPropertyHelper(@TMENUITEMHELPCONTEXT_R,@TMENUITEMHELPCONTEXT_W,'HELPCONTEXT');
-		RegisterPropertyHelper(@TMENUITEMHINT_R,@TMENUITEMHINT_W,'HINT');
-		RegisterPropertyHelper(@TMENUITEMIMAGEINDEX_R,@TMENUITEMIMAGEINDEX_W,'IMAGEINDEX');
-		RegisterPropertyHelper(@TMENUITEMRADIOITEM_R,@TMENUITEMRADIOITEM_W,'RADIOITEM');
-		RegisterPropertyHelper(@TMENUITEMSHORTCUT_R,@TMENUITEMSHORTCUT_W,'SHORTCUT');
-		RegisterPropertyHelper(@TMENUITEMVISIBLE_R,@TMENUITEMVISIBLE_W,'VISIBLE');
-		RegisterEventPropertyHelper(@TMENUITEMONCLICK_R,@TMENUITEMONCLICK_W,'ONCLICK');
+		RegisterPropertyHelper(@TMENUITEMCOMMAND_R,nil,'Command');
+		RegisterPropertyHelper(@TMENUITEMHANDLE_R,nil,'Handle');
+		RegisterPropertyHelper(@TMENUITEMCOUNT_R,nil,'Count');
+		RegisterPropertyHelper(@TMENUITEMITEMS_R,nil,'Items');
+		RegisterPropertyHelper(@TMENUITEMMENUINDEX_R,@TMENUITEMMENUINDEX_W,'MenuIndex');
+		RegisterPropertyHelper(@TMENUITEMPARENT_R,nil,'Parent');
+		RegisterPropertyHelper(@TMENUITEMACTION_R,@TMENUITEMACTION_W,'Action');
+		RegisterPropertyHelper(@TMENUITEMBITMAP_R,@TMENUITEMBITMAP_W,'Bitmap');
+		RegisterPropertyHelper(@TMENUITEMCAPTION_R,@TMENUITEMCAPTION_W,'Caption');
+		RegisterPropertyHelper(@TMENUITEMCHECKED_R,@TMENUITEMCHECKED_W,'Checked');
+		RegisterPropertyHelper(@TMENUITEMSUBMENUIMAGES_R,@TMENUITEMSUBMENUIMAGES_W,'SubMenuImages');
+		RegisterPropertyHelper(@TMENUITEMDEFAULT_R,@TMENUITEMDEFAULT_W,'Default');
+		RegisterPropertyHelper(@TMENUITEMENABLED_R,@TMENUITEMENABLED_W,'Enabled');
+		RegisterPropertyHelper(@TMENUITEMGROUPINDEX_R,@TMENUITEMGROUPINDEX_W,'GroupIndex');
+		RegisterPropertyHelper(@TMENUITEMHELPCONTEXT_R,@TMENUITEMHELPCONTEXT_W,'HelpContext');
+		RegisterPropertyHelper(@TMENUITEMHINT_R,@TMENUITEMHINT_W,'Hint');
+		RegisterPropertyHelper(@TMENUITEMIMAGEINDEX_R,@TMENUITEMIMAGEINDEX_W,'ImageIndex');
+		RegisterPropertyHelper(@TMENUITEMRADIOITEM_R,@TMENUITEMRADIOITEM_W,'RadioItem');
+		RegisterPropertyHelper(@TMENUITEMSHORTCUT_R,@TMENUITEMSHORTCUT_W,'ShortCut');
+		RegisterPropertyHelper(@TMENUITEMVISIBLE_R,@TMENUITEMVISIBLE_W,'Visible');
+		RegisterEventPropertyHelper(@TMENUITEMONCLICK_R,@TMENUITEMONCLICK_W,'OnClick');
 	end;
 end;
 

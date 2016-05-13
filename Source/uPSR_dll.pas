@@ -301,8 +301,8 @@ begin
   if AddDllProcImport then
     Caller.AddSpecialProcImport('dll', @ProcessDllImport, nil);
   if RegisterUnloadDLL then
-    Caller.RegisterFunctionName('UNLOADDLL', UnloadProc, nil, nil);
-  Caller.RegisterFunctionName('DLLGETLASTERROR', GetLastErrorProc, nil, nil);
+    Caller.RegisterFunctionName('UnloadDll', UnloadProc, nil, nil);
+  Caller.RegisterFunctionName('DllGetLastError', GetLastErrorProc, nil, nil);
 end;
 
 end.

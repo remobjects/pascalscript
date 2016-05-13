@@ -30,8 +30,8 @@ begin
     cl.AddDelphiFunction('procedure OleCheck(Result: HResult);');
     cl.AddDelphiFunction('function StringToGUID(const S: string): TGUID;');
     cl.AddDelphiFunction('function CreateComObject(const ClassID: TGUID): IUnknown;');
-    cl.AddDelphiFunction('function CreateOleObject(const ClassName: String): IDispatch;');
-    cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: String): IDispatch;');
+    cl.AddDelphiFunction('function CreateOleObject(const ClassName: string): IDispatch;');
+    cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: string): IDispatch;');
     {$ENDIF}
 {$ELSE}
   cl.AddTypeS('HResult', 'LongInt');
@@ -45,8 +45,8 @@ begin
   cl.AddDelphiFunction('function CreateComObject(const ClassID: TGUID): IUnknown;');
 {$ENDIF}
 {$ENDIF}
-  cl.AddDelphiFunction('function CreateOleObject(const ClassName: String): IDispatch;');
-  cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: String): IDispatch;');
+  cl.AddDelphiFunction('function CreateOleObject(const ClassName: string): IDispatch;');
+  cl.AddDelphiFunction('function GetActiveOleObject(const ClassName: string): IDispatch;');
 {$ENDIF}  
 end;
 

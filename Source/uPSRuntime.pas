@@ -9342,87 +9342,87 @@ begin
   RegisterFunctionName('!NOTIFICATIONVARIANTSET', NVarProc, Pointer(0), nil);
   RegisterFunctionName('!NOTIFICATIONVARIANTGET', NVarProc, Pointer(1), nil);
 
-  RegisterFunctionName('INTTOSTR', DefProc, Pointer(0), nil);
-  RegisterFunctionName('STRTOINT', DefProc, Pointer(1), nil);
-  RegisterFunctionName('STRTOINTDEF', DefProc, Pointer(2), nil);
-  RegisterFunctionName('POS', DefProc, Pointer(3), nil);
-  RegisterFunctionName('COPY', DefProc, Pointer(4), nil);
-  RegisterFunctionName('DELETE', DefProc, Pointer(5), nil);
-  RegisterFunctionName('INSERT', DefProc, Pointer(6), nil);
+  RegisterFunctionName('IntToStr', DefProc, Pointer(0), nil);
+  RegisterFunctionName('StrToInt', DefProc, Pointer(1), nil);
+  RegisterFunctionName('StrToIntDef', DefProc, Pointer(2), nil);
+  RegisterFunctionName('Pos', DefProc, Pointer(3), nil);
+  RegisterFunctionName('Copy', DefProc, Pointer(4), nil);
+  RegisterFunctionName('Delete', DefProc, Pointer(5), nil);
+  RegisterFunctionName('Insert', DefProc, Pointer(6), nil);
 
-  RegisterFunctionName('STRGET', DefProc, Pointer(7), nil);
-  RegisterFunctionName('STRSET', DefProc, Pointer(8), nil);
-  RegisterFunctionName('UPPERCASE', DefProc, Pointer(10), nil);
-  RegisterFunctionName('LOWERCASE', DefProc, Pointer(11), nil);
-  RegisterFunctionName('TRIM', DefProc, Pointer(12), nil);
+  RegisterFunctionName('StrGet', DefProc, Pointer(7), nil);
+  RegisterFunctionName('StrSet', DefProc, Pointer(8), nil);
+  RegisterFunctionName('UpperCase', DefProc, Pointer(10), nil);
+  RegisterFunctionName('LowerCase', DefProc, Pointer(11), nil);
+  RegisterFunctionName('Trim', DefProc, Pointer(12), nil);
 
-  RegisterFunctionName('LENGTH',Length_,nil,nil);
-  RegisterFunctionName('SETLENGTH',SetLength_,nil,nil);
-  RegisterFunctionName('LOW',Low_,nil,nil);
-  RegisterFunctionName('HIGH',High_,nil,nil);
-  RegisterFunctionName('DEC',Dec_,nil,nil);
-  RegisterFunctionName('INC',Inc_,nil,nil);
-  RegisterFunctionName('INCLUDE',Include_,nil,nil);
-  RegisterFunctionName('EXCLUDE',Exclude_,nil,nil);
+  RegisterFunctionName('Length',Length_,nil,nil);
+  RegisterFunctionName('SetLength',SetLength_,nil,nil);
+  RegisterFunctionName('Low',Low_,nil,nil);
+  RegisterFunctionName('High',High_,nil,nil);
+  RegisterFunctionName('Dec',Dec_,nil,nil);
+  RegisterFunctionName('Inc',Inc_,nil,nil);
+  RegisterFunctionName('Include',Include_,nil,nil);
+  RegisterFunctionName('Exclude',Exclude_,nil,nil);
 
-  RegisterFunctionName('SIN', DefProc, Pointer(15), nil);
-  RegisterFunctionName('COS', DefProc, Pointer(16), nil);
-  RegisterFunctionName('SQRT', DefProc, Pointer(17), nil);
-  RegisterFunctionName('ROUND', DefProc, Pointer(18), nil);
-  RegisterFunctionName('TRUNC', DefProc, Pointer(19), nil);
-  RegisterFunctionName('INT', DefProc, Pointer(20), nil);
-  RegisterFunctionName('PI', DefProc, Pointer(21), nil);
-  RegisterFunctionName('ABS', DefProc, Pointer(22), nil);
-  RegisterFunctionName('STRTOFLOAT', DefProc, Pointer(23), nil);
-  RegisterFunctionName('FLOATTOSTR', DefProc, Pointer(24), nil);
-  RegisterFunctionName('PADL', DefProc, Pointer(25), nil);
-  RegisterFunctionName('PADR', DefProc, Pointer(26), nil);
-  RegisterFunctionName('PADZ', DefProc, Pointer(27), nil);
-  RegisterFunctionName('REPLICATE', DefProc, Pointer(28), nil);
-  RegisterFunctionName('STRINGOFCHAR', DefProc, Pointer(28), nil);
+  RegisterFunctionName('Sin', DefProc, Pointer(15), nil);
+  RegisterFunctionName('Cos', DefProc, Pointer(16), nil);
+  RegisterFunctionName('Sqrt', DefProc, Pointer(17), nil);
+  RegisterFunctionName('Round', DefProc, Pointer(18), nil);
+  RegisterFunctionName('Trunc', DefProc, Pointer(19), nil);
+  RegisterFunctionName('Int', DefProc, Pointer(20), nil);
+  RegisterFunctionName('Pi', DefProc, Pointer(21), nil);
+  RegisterFunctionName('Abs', DefProc, Pointer(22), nil);
+  RegisterFunctionName('StrToFloat', DefProc, Pointer(23), nil);
+  RegisterFunctionName('FloatToStr', DefProc, Pointer(24), nil);
+  RegisterFunctionName('PadL', DefProc, Pointer(25), nil);
+  RegisterFunctionName('PadR', DefProc, Pointer(26), nil);
+  RegisterFunctionName('PadZ', DefProc, Pointer(27), nil);
+  RegisterFunctionName('Replicate', DefProc, Pointer(28), nil);
+  RegisterFunctionName('StringOfChar', DefProc, Pointer(28), nil);
   RegisterFunctionName('!ASSIGNED', DefProc, Pointer(29), nil);
 
-  RegisterDelphiFunction(@Unassigned, 'UNASSIGNED', cdRegister);
-  RegisterDelphiFunction(@VarIsEmpty, 'VARISEMPTY', cdRegister);
+  RegisterDelphiFunction(@Unassigned, 'Unassigned', cdRegister);
+  RegisterDelphiFunction(@VarIsEmpty, 'VarIsEmpty', cdRegister);
   {$IFDEF DELPHI7UP}
-  RegisterDelphiFunction(@VarIsClear, 'VARISCLEAR', cdRegister);
+  RegisterDelphiFunction(@VarIsClear, 'VarIsClear', cdRegister);
   {$ENDIF}
-  RegisterDelphiFunction(@Null, 'NULL', cdRegister);
-  RegisterDelphiFunction(@VarIsNull, 'VARISNULL', cdRegister);
-  RegisterDelphiFunction(@VarType, 'VARTYPE', cdRegister);
+  RegisterDelphiFunction(@Null, 'Null', cdRegister);
+  RegisterDelphiFunction(@VarIsNull, 'VarIsNull', cdRegister);
+  RegisterDelphiFunction(@VarType, 'VarType', cdRegister);
   {$IFNDEF PS_NOIDISPATCH}
-  RegisterDelphiFunction(@IDispatchInvoke, 'IDISPATCHINVOKE', cdregister);
+  RegisterDelphiFunction(@IDispatchInvoke, 'IdispatchInvoke', cdregister);
   {$ENDIF}
 
 
-  RegisterFunctionName('GETARRAYLENGTH', GetArrayLength, nil, nil);
-  RegisterFunctionName('SETARRAYLENGTH', SetArrayLength, nil, nil);
+  RegisterFunctionName('GetArrayLength', GetArrayLength, nil, nil);
+  RegisterFunctionName('SetArrayLength', SetArrayLength, nil, nil);
 
-  RegisterFunctionName('RAISELASTEXCEPTION', DefPRoc, Pointer(30), nil);
-  RegisterFunctionName('RAISEEXCEPTION', DefPRoc, Pointer(31), nil);
-  RegisterFunctionName('EXCEPTIONTYPE', DefPRoc, Pointer(32), nil);
-  RegisterFunctionName('EXCEPTIONPARAM', DefPRoc, Pointer(33), nil);
-  RegisterFunctionName('EXCEPTIONPROC', DefPRoc, Pointer(34), nil);
-  RegisterFunctionName('EXCEPTIONPOS', DefPRoc, Pointer(35), nil);
-  RegisterFunctionName('EXCEPTIONTOSTRING', DefProc, Pointer(36), nil);
-  RegisterFunctionName('ANSIUPPERCASE', DefProc, Pointer(37), nil);
-  RegisterFunctionName('ANSILOWERCASE', DefProc, Pointer(38), nil);
+  RegisterFunctionName('RaiseLastException', DefPRoc, Pointer(30), nil);
+  RegisterFunctionName('RaiseException', DefPRoc, Pointer(31), nil);
+  RegisterFunctionName('ExceptionType', DefPRoc, Pointer(32), nil);
+  RegisterFunctionName('ExceptionParam', DefPRoc, Pointer(33), nil);
+  RegisterFunctionName('ExceptionProc', DefPRoc, Pointer(34), nil);
+  RegisterFunctionName('ExceptionPos', DefPRoc, Pointer(35), nil);
+  RegisterFunctionName('ExceptionToString', DefProc, Pointer(36), nil);
+  RegisterFunctionName('AnsiUpperCase', DefProc, Pointer(37), nil);
+  RegisterFunctionName('AnsiLowerCase', DefProc, Pointer(38), nil);
 
   {$IFNDEF PS_NOINT64}
-  RegisterFunctionName('STRTOINT64', DefProc, Pointer(39), nil);
-  RegisterFunctionName('INT64TOSTR', DefProc, Pointer(40), nil);
-  RegisterFunctionName('STRTOINT64DEF', DefProc, Pointer(41), nil);
+  RegisterFunctionName('StrToInt64', DefProc, Pointer(39), nil);
+  RegisterFunctionName('Int64ToStr', DefProc, Pointer(40), nil);
+  RegisterFunctionName('StrToInt64Def', DefProc, Pointer(41), nil);
   {$ENDIF}
-  RegisterFunctionName('SIZEOF', DefProc, Pointer(42), nil);
+  RegisterFunctionName('SizeOf', DefProc, Pointer(42), nil);
 
   {$IFNDEF PS_NOWIDESTRING}
-  RegisterFunctionName('WSTRGET', DefProc, Pointer(43), nil);
-  RegisterFunctionName('WSTRSET', DefProc, Pointer(44), nil);
+  RegisterFunctionName('WStrGet', DefProc, Pointer(43), nil);
+  RegisterFunctionName('WStrSet', DefProc, Pointer(44), nil);
 
   {$ENDIF}
   {$IFNDEF DELPHI6UP}
-  RegisterDelphiFunction(@_VarArrayGet, 'VARARRAYGET', cdRegister);
-  RegisterDelphiFunction(@_VarArraySet, 'VARARRAYSET', cdRegister);
+  RegisterDelphiFunction(@_VarArrayGet, 'VarArrayGet', cdRegister);
+  RegisterDelphiFunction(@_VarArraySet, 'VarArraySet', cdRegister);
   {$ENDIF}
   RegisterInterfaceLibraryRuntime(Self);
 end;

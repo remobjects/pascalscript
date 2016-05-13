@@ -28,51 +28,51 @@ implementation
 
 procedure SIRegisterTControl(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TComponent'), 'TCONTROL') do
+  with Cl.AddClassN(cl.FindClass('TComponent'), 'TControl') do
   begin
     RegisterMethod('constructor Create(AOwner: TComponent);');
     RegisterMethod('procedure BringToFront;');
     RegisterMethod('procedure Hide;');
-    RegisterMethod('procedure Invalidate;virtual;');
-    RegisterMethod('procedure refresh;');
-    RegisterMethod('procedure Repaint;virtual;');
+    RegisterMethod('procedure Invalidate; virtual;');
+    RegisterMethod('procedure Refresh;');
+    RegisterMethod('procedure Repaint; virtual;');
     RegisterMethod('procedure SendToBack;');
     RegisterMethod('procedure Show;');
-    RegisterMethod('procedure Update;virtual;');
-    RegisterMethod('procedure SetBounds(x,y,w,h: Integer);virtual;');
+    RegisterMethod('procedure Update; virtual;');
+    RegisterMethod('procedure SetBounds(X,Y,w,h: Integer); virtual;');
     RegisterProperty('Left', 'Integer', iptRW);
     RegisterProperty('Top', 'Integer', iptRW);
     RegisterProperty('Width', 'Integer', iptRW);
     RegisterProperty('Height', 'Integer', iptRW);
-    RegisterProperty('Hint', 'String', iptRW);
+    RegisterProperty('Hint', 'string', iptRW);
     RegisterProperty('Align', 'TAlign', iptRW);
-    RegisterProperty('ClientHeight', 'Longint', iptRW);
-    RegisterProperty('ClientWidth', 'Longint', iptRW);
+    RegisterProperty('ClientHeight', 'LongInt', iptRW);
+    RegisterProperty('ClientWidth', 'LongInt', iptRW);
     RegisterProperty('ShowHint', 'Boolean', iptRW);
     RegisterProperty('Visible', 'Boolean', iptRW);
-    RegisterProperty('ENABLED', 'BOOLEAN', iptrw);
-    RegisterProperty('CURSOR', 'TCURSOR', iptrw);
+    RegisterProperty('Enabled', 'Boolean', iptrw);
+    RegisterProperty('Cursor', 'TCursor', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterMethod('function Dragging: Boolean;');
     RegisterMethod('function HasParent: Boolean');
-    RegisterMethod('procedure BEGINDRAG(IMMEDIATE:BOOLEAN)');
-    RegisterMethod('function CLIENTTOSCREEN(POINT:TPOINT):TPOINT');
-    RegisterMethod('procedure ENDDRAG(DROP:BOOLEAN)');
+    RegisterMethod('procedure BeginDrag(Immediate: Boolean)');
+    RegisterMethod('function ClientToScreen(Point: TPoint): TPoint');
+    RegisterMethod('procedure EndDrag(Drop: Boolean)');
     {$IFNDEF CLX}
-    RegisterMethod('function GETTEXTBUF(BUFFER:PCHAR;BUFSIZE:INTEGER):INTEGER');
-    RegisterMethod('function GETTEXTLEN:INTEGER');
-    RegisterMethod('procedure SETTEXTBUF(BUFFER:PCHAR)');
-    RegisterMethod('function PERFORM(MSG:CARDINAL;WPARAM,LPARAM:LONGINT):LONGINT');
+    RegisterMethod('function GetTextBuf(Buffer: PChar; BufSize: Integer): Integer');
+    RegisterMethod('function GetTextLen: Integer');
+    RegisterMethod('procedure SetTextBuf(Buffer: PChar)');
+    RegisterMethod('function Perform(Msg: Cardinal; WPARAM,LPARAM: LongInt): LongInt');
     {$ENDIF}
-    RegisterMethod('function SCREENTOCLIENT(POINT:TPOINT):TPOINT');
+    RegisterMethod('function ScreenToClient(Point: TPoint): TPoint');
     {$ENDIF}
   end;
 end;
 
 procedure SIRegisterTWinControl(Cl: TPSPascalCompiler); // requires TControl
 begin
-  with Cl.AddClassN(cl.FindClass('TControl'), 'TWINCONTROL') do
+  with Cl.AddClassN(cl.FindClass('TControl'), 'TWinControl') do
   begin
 
     with Cl.FindClass('TControl') do
@@ -81,15 +81,15 @@ begin
     end;
 
     {$IFNDEF CLX}
-    RegisterProperty('Handle', 'Longint', iptR);
+    RegisterProperty('Handle', 'LongInt', iptR);
     {$ENDIF}
     RegisterProperty('Showing', 'Boolean', iptR);
     RegisterProperty('TabOrder', 'Integer', iptRW);
     RegisterProperty('TabStop', 'Boolean', iptRW);
-    RegisterMethod('function CANFOCUS:BOOLEAN');
-    RegisterMethod('function FOCUSED:BOOLEAN');
-    RegisterProperty('CONTROLS', 'TCONTROL INTEGER', iptr);
-    RegisterProperty('CONTROLCOUNT', 'INTEGER', iptr);
+    RegisterMethod('function CanFocus: Boolean');
+    RegisterMethod('function Focused: Boolean');
+    RegisterProperty('Controls', 'TControl Integer', iptr);
+    RegisterProperty('ControlCount', 'Integer', iptr);
 
     {$IFNDEF PS_MINIVCL}
     RegisterMethod('function HandleAllocated: Boolean;');
@@ -102,26 +102,26 @@ begin
     RegisterMethod('procedure ScrollBy(DeltaX, DeltaY: Integer);');
     RegisterMethod('procedure SetFocus; virtual;');
     {$IFNDEF CLX}
-    RegisterMethod('procedure PAINTTO(DC:Longint;X,Y:INTEGER)');
+    RegisterMethod('procedure PaintTo(DC: LongInt; X,Y: Integer)');
     {$ENDIF}
 
-    RegisterMethod('function CONTAINSCONTROL(CONTROL:TCONTROL):BOOLEAN');
-    RegisterMethod('procedure DISABLEALIGN');
-    RegisterMethod('procedure UPDATECONTROLSTATE');
+    RegisterMethod('function ContainsControl(Control: TControl): Boolean');
+    RegisterMethod('procedure DisableAlign');
+    RegisterMethod('procedure UpdateControlState');
 
-    RegisterProperty('BRUSH', 'TBRUSH', iptr);
-    RegisterProperty('HELPCONTEXT', 'LONGINT', iptrw);
+    RegisterProperty('Brush', 'TBrush', iptr);
+    RegisterProperty('HelpContext', 'LongInt', iptrw);
     {$ENDIF}
   end;
 end;
 procedure SIRegisterTGraphicControl(cl: TPSPascalCompiler); // requires TControl
 begin
-  Cl.AddClassN(cl.FindClass('TControl'), 'TGRAPHICCONTROL');
+  Cl.AddClassN(cl.FindClass('TControl'), 'TGraphicControl');
 end;
 
 procedure SIRegisterTCustomControl(cl: TPSPascalCompiler); // requires TWinControl
 begin
-  Cl.AddClassN(cl.FindClass('TWinControl'), 'TCUSTOMCONTROL');
+  Cl.AddClassN(cl.FindClass('TWinControl'), 'TCustomControl');
 end;
 
 procedure SIRegister_Controls_TypesAndConsts(Cl: TPSPascalCompiler);
@@ -142,8 +142,8 @@ begin
   cl.AddTypeS('TKeyEvent', 'procedure (Sender: TObject; var Key: Word; Shift: TShiftState);');
   cl.AddTypeS('TKeyPressEvent', 'procedure(Sender: TObject; var Key: Char);');
   cl.AddTypeS('TDragOverEvent', 'procedure(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean)');
-  cl.AddTypeS('TDragDropEvent', 'procedure(Sender, Source: TObject;X, Y: Integer)');
-  cl.AddTypeS('HWND', 'Longint');
+  cl.AddTypeS('TDragDropEvent', 'procedure(Sender, Source: TObject; X, Y: Integer)');
+  cl.AddTypeS('HWND', 'LongInt');
 
   cl.AddTypeS('TEndDragEvent', 'procedure(Sender, Target: TObject; X, Y: Integer)');
 
@@ -153,7 +153,7 @@ begin
   cl.addTypeS('TAnchors','set of TAnchorKind');
   cl.AddTypeS('TModalResult', 'Integer');
   cl.AddTypeS('TCursor', 'Integer');
-  cl.AddTypeS('TPoint', 'record x,y: Longint; end;');
+  cl.AddTypeS('TPoint', 'record X,Y: LongInt; end;');
 
   cl.AddConstantN('mrNone', 'Integer').Value.ts32 := 0;
   cl.AddConstantN('mrOk', 'Integer').Value.ts32 := 1;
@@ -200,17 +200,17 @@ begin
   begin
 {$IFNDEF PS_MINIVCL}
 {$IFDEF DELPHI4UP}
-    RegisterMethod('Procedure Assign( Source : TDragObject)');
+    RegisterMethod('procedure Assign(Source: TDragObject)');
 {$ENDIF}
 {$IFNDEF FPC}
-    RegisterMethod('Function GetName : String');
-    RegisterMethod('Function Instance : Longint');
+    RegisterMethod('function GetName: string');
+    RegisterMethod('function Instance: LongInt');
 {$ENDIF}
-    RegisterMethod('Procedure HideDragImage');
-    RegisterMethod('Procedure ShowDragImage');
+    RegisterMethod('procedure HideDragImage');
+    RegisterMethod('procedure ShowDragImage');
 {$IFDEF DELPHI4UP}
     RegisterProperty('Cancelling', 'Boolean', iptrw);
-    RegisterProperty('DragHandle', 'Longint', iptrw);
+    RegisterProperty('DragHandle', 'LongInt', iptrw);
     RegisterProperty('DragPos', 'TPoint', iptrw);
     RegisterProperty('DragTargetPos', 'TPoint', iptrw);
     RegisterProperty('MouseDeltaX', 'Double', iptr);

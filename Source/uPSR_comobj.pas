@@ -99,8 +99,8 @@ begin
     cl.RegisterDelphiFunction(@OleCheck, 'OleCheck', cdRegister);
     cl.RegisterDelphiFunction(@StringToGUID, 'StringToGUID', cdRegister);
     cl.RegisterDelphiFunction(@CreateComObject, 'CreateComObject', cdRegister);
-    cl.RegisterDelphiFunction(@CreateOleObject, 'CREATEOLEOBJECT', cdRegister);
-    cl.RegisterDelphiFunction(@GetActiveOleObject, 'GETACTIVEOLEOBJECT', cdRegister);
+    cl.RegisterDelphiFunction(@CreateOleObject, 'CreateOleObject', cdRegister);
+    cl.RegisterDelphiFunction(@GetActiveOleObject, 'GetActiveOleObject', cdRegister);
     {$ENDIF}
 {$ELSE}
   cl.RegisterDelphiFunction(@OleCheck, 'OleCheck', cdRegister);
@@ -110,8 +110,8 @@ begin
   cl.RegisterDelphiFunction(@CreateComObject, 'CreateComObject', cdRegister);
 {$ENDIF}
 {$ENDIF}
-  cl.RegisterDelphiFunction(@CreateOleObject, 'CREATEOLEOBJECT', cdRegister);
-  cl.RegisterDelphiFunction(@GetActiveOleObject, 'GETACTIVEOLEOBJECT', cdRegister);
+  cl.RegisterDelphiFunction(@CreateOleObject, 'CreateOleObject', cdRegister);
+  cl.RegisterDelphiFunction(@GetActiveOleObject, 'GetActiveOleObject', cdRegister);
 {$ENDIF}  
 end;
 

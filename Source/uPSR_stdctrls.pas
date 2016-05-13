@@ -52,7 +52,7 @@ begin
   begin
     {$IFNDEF PS_MINIVCL}
 {$IFNDEF CLX}
-    RegisterPropertyHelper(@TCUSTOMLABELCANVAS_R, nil, 'CANVAS');
+    RegisterPropertyHelper(@TCUSTOMLABELCANVAS_R, nil, 'Canvas');
 {$ENDIF}
     {$ENDIF}
   end;
@@ -78,22 +78,22 @@ procedure RIRegisterTCUSTOMEDIT(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCUSTOMEDIT) do
   begin
-    RegisterMethod(@TCUSTOMEDIT.CLEAR, 'CLEAR');
-    RegisterMethod(@TCUSTOMEDIT.CLEARSELECTION, 'CLEARSELECTION');
-    RegisterMethod(@TCUSTOMEDIT.SELECTALL, 'SELECTALL');
-    RegisterPropertyHelper(@TCUSTOMEDITMODIFIED_R, @TCUSTOMEDITMODIFIED_W, 'MODIFIED');
-    RegisterPropertyHelper(@TCUSTOMEDITSELLENGTH_R, @TCUSTOMEDITSELLENGTH_W, 'SELLENGTH');
-    RegisterPropertyHelper(@TCUSTOMEDITSELSTART_R, @TCUSTOMEDITSELSTART_W, 'SELSTART');
-    RegisterPropertyHelper(@TCUSTOMEDITSELTEXT_R, @TCUSTOMEDITSELTEXT_W, 'SELTEXT');
-    RegisterPropertyHelper(@TCUSTOMEDITTEXT_R, @TCUSTOMEDITTEXT_W, 'TEXT');
+    RegisterMethod(@TCUSTOMEDIT.CLEAR, 'Clear');
+    RegisterMethod(@TCUSTOMEDIT.CLEARSELECTION, 'ClearSelection');
+    RegisterMethod(@TCUSTOMEDIT.SELECTALL, 'SelectAll');
+    RegisterPropertyHelper(@TCUSTOMEDITMODIFIED_R, @TCUSTOMEDITMODIFIED_W, 'Modified');
+    RegisterPropertyHelper(@TCUSTOMEDITSELLENGTH_R, @TCUSTOMEDITSELLENGTH_W, 'SelLength');
+    RegisterPropertyHelper(@TCUSTOMEDITSELSTART_R, @TCUSTOMEDITSELSTART_W, 'SelStart');
+    RegisterPropertyHelper(@TCUSTOMEDITSELTEXT_R, @TCUSTOMEDITSELTEXT_W, 'SelText');
+    RegisterPropertyHelper(@TCUSTOMEDITTEXT_R, @TCUSTOMEDITTEXT_W, 'Text');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TCUSTOMEDIT.COPYTOCLIPBOARD, 'COPYTOCLIPBOARD');
-    RegisterMethod(@TCUSTOMEDIT.CUTTOCLIPBOARD, 'CUTTOCLIPBOARD');
-		RegisterMethod(@TCUSTOMEDIT.PASTEFROMCLIPBOARD, 'PASTEFROMCLIPBOARD');
+    RegisterMethod(@TCUSTOMEDIT.COPYTOCLIPBOARD, 'CopyToClipboard');
+    RegisterMethod(@TCUSTOMEDIT.CUTTOCLIPBOARD, 'CutToClipboard');
+		RegisterMethod(@TCUSTOMEDIT.PASTEFROMCLIPBOARD, 'PasteFromClipboard');
 		{$IFNDEF FPC}
-		RegisterMethod(@TCUSTOMEDIT.GETSELTEXTBUF, 'GETSELTEXTBUF');
-    RegisterMethod(@TCUSTOMEDIT.SETSELTEXTBUF, 'SETSELTEXTBUF');
+		RegisterMethod(@TCUSTOMEDIT.GETSELTEXTBUF, 'GetSelTextBuf');
+    RegisterMethod(@TCUSTOMEDIT.SETSELTEXTBUF, 'SetSelTextBuf');
 		{$ENDIF}{FPC}
     {$ENDIF}
   end;
@@ -114,7 +114,7 @@ begin
   with Cl.Add(TCUSTOMMEMO) do
   begin
     {$IFNDEF CLX}
-    RegisterPropertyHelper(@TCUSTOMMEMOLINES_R, @TCUSTOMMEMOLINES_W, 'LINES');
+    RegisterPropertyHelper(@TCUSTOMMEMOLINES_R, @TCUSTOMMEMOLINES_W, 'Lines');
     {$ENDIF}
   end;
 end;
@@ -125,7 +125,7 @@ begin
   with Cl.Add(TMEMO) do
   begin
     {$IFDEF CLX}
-    RegisterPropertyHelper(@TCUSTOMMEMOLINES_R, @TCUSTOMMEMOLINES_W, 'LINES');
+    RegisterPropertyHelper(@TCUSTOMMEMOLINES_R, @TCUSTOMMEMOLINES_W, 'Lines');
     {$ENDIF}
   end;
 end;
@@ -150,17 +150,17 @@ procedure RIRegisterTCUSTOMCOMBOBOX(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCUSTOMCOMBOBOX) do
   begin
-    RegisterPropertyHelper(@TCUSTOMCOMBOBOXDROPPEDDOWN_R, @TCUSTOMCOMBOBOXDROPPEDDOWN_W, 'DROPPEDDOWN');
-    RegisterPropertyHelper(@TCUSTOMCOMBOBOXITEMS_R, @TCUSTOMCOMBOBOXITEMS_W, 'ITEMS');
-    RegisterPropertyHelper(@TCUSTOMCOMBOBOXITEMINDEX_R, @TCUSTOMCOMBOBOXITEMINDEX_W, 'ITEMINDEX');
+    RegisterPropertyHelper(@TCUSTOMCOMBOBOXDROPPEDDOWN_R, @TCUSTOMCOMBOBOXDROPPEDDOWN_W, 'DroppedDown');
+    RegisterPropertyHelper(@TCUSTOMCOMBOBOXITEMS_R, @TCUSTOMCOMBOBOXITEMS_W, 'Items');
+    RegisterPropertyHelper(@TCUSTOMCOMBOBOXITEMINDEX_R, @TCUSTOMCOMBOBOXITEMINDEX_W, 'ItemIndex');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TCUSTOMCOMBOBOX.CLEAR, 'CLEAR');
-    RegisterMethod(@TCUSTOMCOMBOBOX.SELECTALL, 'SELECTALL');
-    RegisterPropertyHelper(@TCUSTOMCOMBOBOXCANVAS_R, nil, 'CANVAS');
-    RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELLENGTH_R, @TCUSTOMCOMBOBOXSELLENGTH_W, 'SELLENGTH');
-    RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELSTART_R, @TCUSTOMCOMBOBOXSELSTART_W, 'SELSTART');
-    RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELTEXT_R, @TCUSTOMCOMBOBOXSELTEXT_W, 'SELTEXT');
+    RegisterMethod(@TCUSTOMCOMBOBOX.CLEAR, 'Clear');
+    RegisterMethod(@TCUSTOMCOMBOBOX.SELECTALL, 'SelectAll');
+    RegisterPropertyHelper(@TCUSTOMCOMBOBOXCANVAS_R, nil, 'Canvas');
+    RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELLENGTH_R, @TCUSTOMCOMBOBOXSELLENGTH_W, 'SelLength');
+    RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELSTART_R, @TCUSTOMCOMBOBOXSELSTART_W, 'SelStart');
+    RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELTEXT_R, @TCUSTOMCOMBOBOXSELTEXT_W, 'SelText');
     {$ENDIF}
   end;
 end;
@@ -223,17 +223,17 @@ procedure RIRegisterTCUSTOMLISTBOX(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCUSTOMLISTBOX) do
   begin
-    RegisterPropertyHelper(@TCUSTOMLISTBOXITEMS_R, @TCUSTOMLISTBOXITEMS_W, 'ITEMS');
-    RegisterPropertyHelper(@TCUSTOMLISTBOXITEMINDEX_R, @TCUSTOMLISTBOXITEMINDEX_W, 'ITEMINDEX');
-    RegisterPropertyHelper(@TCUSTOMLISTBOXSELCOUNT_R, nil, 'SELCOUNT');
-    RegisterPropertyHelper(@TCUSTOMLISTBOXSELECTED_R, @TCUSTOMLISTBOXSELECTED_W, 'SELECTED');
+    RegisterPropertyHelper(@TCUSTOMLISTBOXITEMS_R, @TCUSTOMLISTBOXITEMS_W, 'Items');
+    RegisterPropertyHelper(@TCUSTOMLISTBOXITEMINDEX_R, @TCUSTOMLISTBOXITEMINDEX_W, 'ItemIndex');
+    RegisterPropertyHelper(@TCUSTOMLISTBOXSELCOUNT_R, nil, 'SelCount');
+    RegisterPropertyHelper(@TCUSTOMLISTBOXSELECTED_R, @TCUSTOMLISTBOXSELECTED_W, 'Selected');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TCUSTOMLISTBOX.CLEAR, 'CLEAR');
-    RegisterMethod(@TCUSTOMLISTBOX.ITEMATPOS, 'ITEMATPOS');
-    RegisterMethod(@TCUSTOMLISTBOX.ITEMRECT, 'ITEMRECT');
-    RegisterPropertyHelper(@TCUSTOMLISTBOXCANVAS_R, nil, 'CANVAS');
-    RegisterPropertyHelper(@TCUSTOMLISTBOXTOPINDEX_R, @TCUSTOMLISTBOXTOPINDEX_W, 'TOPINDEX');
+    RegisterMethod(@TCUSTOMLISTBOX.CLEAR, 'Clear');
+    RegisterMethod(@TCUSTOMLISTBOX.ITEMATPOS, 'ItemAtPos');
+    RegisterMethod(@TCUSTOMLISTBOX.ITEMRECT, 'ItemRect');
+    RegisterPropertyHelper(@TCUSTOMLISTBOXCANVAS_R, nil, 'Canvas');
+    RegisterPropertyHelper(@TCUSTOMLISTBOXTOPINDEX_R, @TCUSTOMLISTBOXTOPINDEX_W, 'TopIndex');
     {$ENDIF}
   end;
 end;
@@ -249,7 +249,7 @@ procedure RIRegisterTSCROLLBAR(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSCROLLBAR) do
   begin
-    RegisterMethod(@TSCROLLBAR.SETPARAMS, 'SETPARAMS');
+    RegisterMethod(@TSCROLLBAR.SETPARAMS, 'SetParams');
   end;
 end;
 

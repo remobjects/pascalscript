@@ -44,38 +44,38 @@ implementation
 
 procedure SIRegisterTCUSTOMGROUPBOX(Cl: TPSPascalCompiler);
 begin
-  Cl.AddClassN(cl.FindClass('TCUSTOMCONTROL'), 'TCUSTOMGROUPBOX');
+  Cl.AddClassN(cl.FindClass('TCustomControl'), 'TCustomGroupBox');
 end;
 
 
 procedure SIRegisterTGROUPBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMGROUPBOX'), 'TGROUPBOX') do
+  with Cl.AddClassN(cl.FindClass('TCustomGroupBox'), 'TGroupBox') do
   begin
-    RegisterProperty('CAPTION', 'String', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
+    RegisterProperty('Caption', 'string', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -86,11 +86,11 @@ end;
 
 procedure SIRegisterTCUSTOMLABEL(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TGRAPHICCONTROL'), 'TCUSTOMLABEL') do
+  with Cl.AddClassN(cl.FindClass('TGraphicControl'), 'TCustomLabel') do
   begin
     {$IFNDEF PS_MINIVCL}
 {$IFNDEF CLX}
-    RegisterProperty('CANVAS', 'TCANVAS', iptr);
+    RegisterProperty('Canvas', 'TCanvas', iptr);
 {$ENDIF}
     {$ENDIF}
   end;
@@ -99,32 +99,32 @@ end;
 
 procedure SIRegisterTLABEL(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMLABEL'), 'TLABEL') do
+  with Cl.AddClassN(cl.FindClass('TCustomLabel'), 'TLabel') do
   begin
-    RegisterProperty('ALIGNMENT', 'TAlignment', iptrw);
-    RegisterProperty('AUTOSIZE', 'Boolean', iptrw);
-    RegisterProperty('CAPTION', 'String', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('FOCUSCONTROL', 'TWinControl', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('LAYOUT', 'TTextLayout', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('SHOWACCELCHAR', 'Boolean', iptrw);
-    RegisterProperty('TRANSPARENT', 'Boolean', iptrw);
-    RegisterProperty('WORDWRAP', 'Boolean', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('Alignment', 'TAlignment', iptrw);
+    RegisterProperty('AutoSize', 'Boolean', iptrw);
+    RegisterProperty('Caption', 'string', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('FocusControl', 'TWinControl', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('Layout', 'TTextLayout', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('ShowAccelChar', 'Boolean', iptrw);
+    RegisterProperty('Transparent', 'Boolean', iptrw);
+    RegisterProperty('WordWrap', 'Boolean', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
   end;
 end;
 
@@ -136,23 +136,23 @@ end;
 
 procedure SIRegisterTCUSTOMEDIT(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TWINCONTROL'), 'TCUSTOMEDIT') do
+  with Cl.AddClassN(cl.FindClass('TWinControl'), 'TCustomEdit') do
   begin
-    RegisterMethod('procedure CLEAR');
-    RegisterMethod('procedure CLEARSELECTION');
-    RegisterMethod('procedure SELECTALL');
-    RegisterProperty('MODIFIED', 'BOOLEAN', iptrw);
-    RegisterProperty('SELLENGTH', 'INTEGER', iptrw);
-    RegisterProperty('SELSTART', 'INTEGER', iptrw);
-    RegisterProperty('SELTEXT', 'String', iptrw);
-    RegisterProperty('TEXT', 'String', iptrw);
+    RegisterMethod('procedure Clear');
+    RegisterMethod('procedure ClearSelection');
+    RegisterMethod('procedure SelectAll');
+    RegisterProperty('Modified', 'Boolean', iptrw);
+    RegisterProperty('SelLength', 'Integer', iptrw);
+    RegisterProperty('SelStart', 'Integer', iptrw);
+    RegisterProperty('SelText', 'string', iptrw);
+    RegisterProperty('Text', 'string', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod('procedure COPYTOCLIPBOARD');
-    RegisterMethod('procedure CUTTOCLIPBOARD');
-    RegisterMethod('procedure PASTEFROMCLIPBOARD');
-    RegisterMethod('function GETSELTEXTBUF(BUFFER:PCHAR;BUFSIZE:INTEGER):INTEGER');
-    RegisterMethod('procedure SETSELTEXTBUF(BUFFER:PCHAR)');
+    RegisterMethod('procedure CopyToClipboard');
+    RegisterMethod('procedure CutToClipboard');
+    RegisterMethod('procedure PasteFromClipboard');
+    RegisterMethod('function GetSelTextBuf(Buffer: PChar; BufSize: Integer): Integer');
+    RegisterMethod('procedure SetSelTextBuf(Buffer: PChar)');
     {$ENDIF}
   end;
 end;
@@ -162,45 +162,45 @@ end;
 
 procedure SIRegisterTEDIT(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMEDIT'), 'TEDIT') do
+  with Cl.AddClassN(cl.FindClass('TCustomEdit'), 'TEdit') do
   begin
-    RegisterProperty('AUTOSELECT', 'Boolean', iptrw);
-    RegisterProperty('AUTOSIZE', 'Boolean', iptrw);
-    RegisterProperty('BORDERSTYLE', 'TBorderStyle', iptrw);
-    RegisterProperty('CHARCASE', 'TEditCharCase', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('HIDESELECTION', 'Boolean', iptrw);
-    RegisterProperty('MAXLENGTH', 'Integer', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('PASSWORDCHAR', 'Char', iptrw);
-    RegisterProperty('READONLY', 'Boolean', iptrw);
-    RegisterProperty('TEXT', 'String', iptrw);
-    RegisterProperty('ONCHANGE', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
+    RegisterProperty('AutoSelect', 'Boolean', iptrw);
+    RegisterProperty('AutoSize', 'Boolean', iptrw);
+    RegisterProperty('BorderStyle', 'TBorderStyle', iptrw);
+    RegisterProperty('CharCase', 'TEditCharCase', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('HideSelection', 'Boolean', iptrw);
+    RegisterProperty('MaxLength', 'Integer', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('PasswordChar', 'Char', iptrw);
+    RegisterProperty('ReadOnly', 'Boolean', iptrw);
+    RegisterProperty('Text', 'string', iptrw);
+    RegisterProperty('OnChange', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('OEMCONVERT', 'Boolean', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('OEMConvert', 'Boolean', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -210,10 +210,10 @@ end;
 
 procedure SIRegisterTCUSTOMMEMO(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMEDIT'), 'TCUSTOMMEMO') do
+  with Cl.AddClassN(cl.FindClass('TCustomEdit'), 'TCustomMemo') do
   begin
     {$IFNDEF CLX}
-    RegisterProperty('LINES', 'TSTRINGS', iptrw);
+    RegisterProperty('Lines', 'TStrings', iptrw);
     {$ENDIF}
   end;
 end;
@@ -221,48 +221,48 @@ end;
 
 procedure SIRegisterTMEMO(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMMEMO'), 'TMEMO') do
+  with Cl.AddClassN(cl.FindClass('TCustomMemo'), 'TMemo') do
   begin
     {$IFDEF CLX}
-    RegisterProperty('LINES', 'TSTRINGS', iptrw);
+    RegisterProperty('Lines', 'TStrings', iptrw);
     {$ENDIF}
-    RegisterProperty('ALIGNMENT', 'TAlignment', iptrw);
-    RegisterProperty('BORDERSTYLE', 'TBorderStyle', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('HIDESELECTION', 'Boolean', iptrw);
-    RegisterProperty('MAXLENGTH', 'Integer', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('READONLY', 'Boolean', iptrw);
-    RegisterProperty('SCROLLBARS', 'TScrollStyle', iptrw);
-    RegisterProperty('WANTRETURNS', 'Boolean', iptrw);
-    RegisterProperty('WANTTABS', 'Boolean', iptrw);
-    RegisterProperty('WORDWRAP', 'Boolean', iptrw);
-    RegisterProperty('ONCHANGE', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
+    RegisterProperty('Alignment', 'TAlignment', iptrw);
+    RegisterProperty('BorderStyle', 'TBorderStyle', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('HideSelection', 'Boolean', iptrw);
+    RegisterProperty('MaxLength', 'Integer', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('ReadOnly', 'Boolean', iptrw);
+    RegisterProperty('ScrollBars', 'TScrollStyle', iptrw);
+    RegisterProperty('WantReturns', 'Boolean', iptrw);
+    RegisterProperty('WantTabs', 'Boolean', iptrw);
+    RegisterProperty('WordWrap', 'Boolean', iptrw);
+    RegisterProperty('OnChange', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('OEMCONVERT', 'Boolean', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('OEMConvert', 'Boolean', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -273,19 +273,19 @@ end;
 
 procedure SIRegisterTCUSTOMCOMBOBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TWINCONTROL'), 'TCUSTOMCOMBOBOX') do
+  with Cl.AddClassN(cl.FindClass('TWinControl'), 'TCustomComboBox') do
   begin
-    RegisterProperty('DROPPEDDOWN', 'BOOLEAN', iptrw);
-    RegisterProperty('ITEMS', 'TSTRINGS', iptrw);
-    RegisterProperty('ITEMINDEX', 'INTEGER', iptrw);
+    RegisterProperty('DroppedDown', 'Boolean', iptrw);
+    RegisterProperty('Items', 'TStrings', iptrw);
+    RegisterProperty('ItemIndex', 'Integer', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod('procedure CLEAR');
-    RegisterMethod('procedure SELECTALL');
-    RegisterProperty('CANVAS', 'TCANVAS', iptr);
-    RegisterProperty('SELLENGTH', 'INTEGER', iptrw);
-    RegisterProperty('SELSTART', 'INTEGER', iptrw);
-    RegisterProperty('SELTEXT', 'String', iptrw);
+    RegisterMethod('procedure Clear');
+    RegisterMethod('procedure SelectAll');
+    RegisterProperty('Canvas', 'TCanvas', iptr);
+    RegisterProperty('SelLength', 'Integer', iptrw);
+    RegisterProperty('SelStart', 'Integer', iptrw);
+    RegisterProperty('SelText', 'string', iptrw);
     {$ENDIF}
   end;
 end;
@@ -293,41 +293,41 @@ end;
 
 procedure SIRegisterTCOMBOBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMCOMBOBOX'), 'TCOMBOBOX') do
+  with Cl.AddClassN(cl.FindClass('TCustomComboBox'), 'TComboBox') do
   begin
-    RegisterProperty('STYLE', 'TComboBoxStyle', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('DROPDOWNCOUNT', 'Integer', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('MAXLENGTH', 'Integer', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('SORTED', 'Boolean', iptrw);
-    RegisterProperty('TEXT', 'String', iptrw);
-    RegisterProperty('ONCHANGE', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDROPDOWN', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
+    RegisterProperty('Style', 'TComboBoxStyle', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('DropDownCount', 'Integer', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('MaxLength', 'Integer', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('Sorted', 'Boolean', iptrw);
+    RegisterProperty('Text', 'string', iptrw);
+    RegisterProperty('OnChange', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDropDown', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('ITEMHEIGHT', 'Integer', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONDRAWITEM', 'TDrawItemEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONMEASUREITEM', 'TMeasureItemEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('ItemHeight', 'Integer', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnDrawItem', 'TDrawItemEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnMeasureItem', 'TMeasureItemEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -336,7 +336,7 @@ end;
 
 procedure SIRegisterTBUTTONCONTROL(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TWINCONTROL'), 'TBUTTONCONTROL') do
+  with Cl.AddClassN(cl.FindClass('TWinControl'), 'TButtonControl') do
   begin
   end;
 end;
@@ -345,33 +345,33 @@ end;
 
 procedure SIRegisterTBUTTON(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TBUTTONCONTROL'),  'TBUTTON') do
+  with Cl.AddClassN(cl.FindClass('TButtonControl'),  'TButton') do
   begin
-    RegisterProperty('CANCEL', 'BOOLEAN', iptrw);
-    RegisterProperty('CAPTION', 'String', iptrw);
-    RegisterProperty('DEFAULT', 'BOOLEAN', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('MODALRESULT', 'LONGINT', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
+    RegisterProperty('Cancel', 'Boolean', iptrw);
+    RegisterProperty('Caption', 'string', iptrw);
+    RegisterProperty('Default', 'Boolean', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('ModalResult', 'LongInt', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -380,7 +380,7 @@ end;
 
 procedure SIRegisterTCUSTOMCHECKBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TBUTTONCONTROL'), 'TCUSTOMCHECKBOX') do
+  with Cl.AddClassN(cl.FindClass('TButtonControl'), 'TCustomCheckBox') do
   begin
   end;
 end;
@@ -389,38 +389,38 @@ end;
 
 procedure SIRegisterTCHECKBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMCHECKBOX'), 'TCHECKBOX') do
+  with Cl.AddClassN(cl.FindClass('TCustomCheckBox'), 'TCheckBox') do
   begin
-    RegisterProperty('ALIGNMENT', 'TAlignment', iptrw);
-    RegisterProperty('ALLOWGRAYED', 'Boolean', iptrw);
-    RegisterProperty('CAPTION', 'String', iptrw);
-    RegisterProperty('CHECKED', 'Boolean', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('STATE', 'TCheckBoxState', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
+    RegisterProperty('Alignment', 'TAlignment', iptrw);
+    RegisterProperty('AllowGrayed', 'Boolean', iptrw);
+    RegisterProperty('Caption', 'string', iptrw);
+    RegisterProperty('Checked', 'Boolean', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('State', 'TCheckBoxState', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -431,37 +431,37 @@ end;
 
 procedure SIRegisterTRADIOBUTTON(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TBUTTONCONTROL'), 'TRADIOBUTTON') do
+  with Cl.AddClassN(cl.FindClass('TButtonControl'), 'TRadioButton') do
   begin
-    RegisterProperty('ALIGNMENT', 'TALIGNMENT', iptrw);
-    RegisterProperty('CAPTION', 'String', iptrw);
-    RegisterProperty('CHECKED', 'BOOLEAN', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
+    RegisterProperty('Alignment', 'TAlignment', iptrw);
+    RegisterProperty('Caption', 'string', iptrw);
+    RegisterProperty('Checked', 'Boolean', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -470,19 +470,19 @@ end;
 
 procedure SIRegisterTCUSTOMLISTBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TWINCONTROL'), 'TCUSTOMLISTBOX') do
+  with Cl.AddClassN(cl.FindClass('TWinControl'), 'TCustomListBox') do
   begin
-    RegisterProperty('ITEMS', 'TSTRINGS', iptrw);
-    RegisterProperty('ITEMINDEX', 'INTEGER', iptrw);
-    RegisterProperty('SELCOUNT', 'INTEGER', iptr);
-    RegisterProperty('SELECTED', 'BOOLEAN INTEGER', iptrw);
+    RegisterProperty('Items', 'TStrings', iptrw);
+    RegisterProperty('ItemIndex', 'Integer', iptrw);
+    RegisterProperty('SelCount', 'Integer', iptr);
+    RegisterProperty('Selected', 'Boolean Integer', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod('procedure CLEAR');
-    RegisterMethod('function ITEMATPOS(POS:TPOINT;EXISTING:BOOLEAN):INTEGER');
-    RegisterMethod('function ITEMRECT(INDEX:INTEGER):TRECT');
-    RegisterProperty('CANVAS', 'TCANVAS', iptr);
-    RegisterProperty('TOPINDEX', 'INTEGER', iptrw);
+    RegisterMethod('procedure Clear');
+    RegisterMethod('function ItemAtPos(Pos: TPoint; Existing: Boolean): Integer');
+    RegisterMethod('function ItemRect(Index: Integer): TRect');
+    RegisterProperty('Canvas', 'TCanvas', iptr);
+    RegisterProperty('TopIndex', 'Integer', iptrw);
     {$ENDIF}
   end;
 end;
@@ -491,45 +491,45 @@ end;
 
 procedure SIRegisterTLISTBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCUSTOMLISTBOX'), 'TLISTBOX') do
+  with Cl.AddClassN(cl.FindClass('TCustomListBox'), 'TListBox') do
   begin
-    RegisterProperty('BORDERSTYLE', 'TBorderStyle', iptrw);
-    RegisterProperty('COLOR', 'TColor', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('MULTISELECT', 'Boolean', iptrw);
-    RegisterProperty('PARENTCOLOR', 'Boolean', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('SORTED', 'Boolean', iptrw);
-    RegisterProperty('STYLE', 'TListBoxStyle', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
+    RegisterProperty('BorderStyle', 'TBorderStyle', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('MultiSelect', 'Boolean', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('Sorted', 'Boolean', iptrw);
+    RegisterProperty('Style', 'TListBoxStyle', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterProperty('COLUMNS', 'Integer', iptrw);
+    RegisterProperty('Columns', 'Integer', iptrw);
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('EXTENDEDSELECT', 'Boolean', iptrw);
-    RegisterProperty('INTEGRALHEIGHT', 'Boolean', iptrw);
-    RegisterProperty('ITEMHEIGHT', 'Integer', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('TABWIDTH', 'Integer', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONDRAWITEM', 'TDrawItemEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONMEASUREITEM', 'TMeasureItemEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('ExtendedSelect', 'Boolean', iptrw);
+    RegisterProperty('IntegralHeight', 'Boolean', iptrw);
+    RegisterProperty('ItemHeight', 'Integer', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('TabWidth', 'Integer', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnDrawItem', 'TDrawItemEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnMeasureItem', 'TMeasureItemEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -541,34 +541,34 @@ end;
 
 procedure SIRegisterTSCROLLBAR(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TWINCONTROL'), 'TSCROLLBAR') do
+  with Cl.AddClassN(cl.FindClass('TWinControl'), 'TScrollBar') do
   begin
-    RegisterProperty('KIND', 'TSCROLLBARKIND', iptrw);
-    RegisterProperty('MAX', 'INTEGER', iptrw);
-    RegisterProperty('MIN', 'INTEGER', iptrw);
-    RegisterProperty('POSITION', 'INTEGER', iptrw);
-    RegisterProperty('ONCHANGE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONENTER', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONEXIT', 'TNotifyEvent', iptrw);
+    RegisterProperty('Kind', 'TScrollBarKind', iptrw);
+    RegisterProperty('Max', 'Integer', iptrw);
+    RegisterProperty('Min', 'Integer', iptrw);
+    RegisterProperty('Position', 'Integer', iptrw);
+    RegisterProperty('OnChange', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod('procedure SETPARAMS(APOSITION,AMIN,AMAX:INTEGER)');
+    RegisterMethod('procedure SetParams(APosition,AMin,AMax: Integer)');
     RegisterProperty('CTL3D', 'Boolean', iptrw);
-    RegisterProperty('DRAGCURSOR', 'Longint', iptrw);
-    RegisterProperty('DRAGMODE', 'TDragMode', iptrw);
-    RegisterProperty('LARGECHANGE', 'TSCROLLBARINC', iptrw);
-    RegisterProperty('PARENTCTL3D', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('POPUPMENU', 'TPopupMenu', iptrw);
-    RegisterProperty('SMALLCHANGE', 'TSCROLLBARINC', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDragDropEvent', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDragOverEvent', iptrw);
-    RegisterProperty('ONENDDRAG', 'TEndDragEvent', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKeyEvent', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKeyPressEvent', iptrw);
-    RegisterProperty('ONKEYUP', 'TKeyEvent', iptrw);
-    RegisterProperty('ONSCROLL', 'TSCROLLEVENT', iptrw);
-    RegisterProperty('ONSTARTDRAG', 'TStartDragEvent', iptrw);
+    RegisterProperty('DragCursor', 'LongInt', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('LargeChange', 'TScrollBarInc', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('SmallChange', 'TScrollBarInc', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
+    RegisterProperty('OnScroll', 'TScrollEvent', iptrw);
+    RegisterProperty('OnStartDrag', 'TStartDragEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -585,12 +585,12 @@ begin
   cl.AddTypeS('TCheckBoxState', '(cbUnchecked, cbChecked, cbGrayed)');
   cl.AddTypeS('TListBoxStyle', '(lbStandard, lbOwnerDrawFixed, lbOwnerDrawVariable)');
   cl.AddTypeS('TScrollCode', '(scLineUp, scLineDown, scPageUp, scPageDown, scPosition, scTrack, scTop, scBottom, scEndScroll)');
-  cl.AddTypeS('TScrollEvent', 'procedure(Sender: TObject; ScrollCode: TScrollCode;var ScrollPos: Integer)');
+  cl.AddTypeS('TScrollEvent', 'procedure(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer)');
 
-  Cl.addTypeS('TEOwnerDrawState', '(odSelected, odGrayed, odDisabled, odChecked,'
-    +' odFocused, odDefault, odHotLight, odInactive, odNoAccel, odNoFocusRect,'
-    +' odReserved1, odReserved2, odComboBoxEdit)');
-  cl.AddTypeS('TTextLayout', '( tlTop, tlCenter, tlBottom )');
+  Cl.addTypeS('TEOwnerDrawState', '(odSelected, odGrayed, odDisabled, odChecked, odFocused, odDefault, odHotLight, odInactive, odNoAccel, odNoFocusRect, odReserved1, odReserved2, odComboBoxEdit)');
+
+
+  cl.AddTypeS('TTextLayout', '(tlTop, tlCenter, tlBottom)');
   cl.AddTypeS('TOwnerDrawState', 'set of TEOwnerDrawState');
 end;
 

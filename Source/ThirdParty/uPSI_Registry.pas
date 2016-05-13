@@ -37,8 +37,8 @@ begin
   //with RegClassS(CL,'TCustomIniFile', 'TRegistryIniFile') do
   with CL.AddClassN(CL.FindClass('TCustomIniFile'),'TRegistryIniFile') do
   begin
-    RegisterMethod('Constructor Create( const FileName : string);');
-    RegisterMethod('Constructor CreateA( const FileName : string; AAccess : LongWord);');
+    RegisterMethod('constructor Create(const FileName: string);');
+    RegisterMethod('constructor CreateA(const FileName: string; AAccess: LongWord);');
     RegisterProperty('RegIniFile', 'TRegIniFile', iptr);
   end;
 end;
@@ -49,19 +49,19 @@ begin
   //with RegClassS(CL,'TRegistry', 'TRegIniFile') do
   with CL.AddClassN(CL.FindClass('TRegistry'),'TRegIniFile') do
   begin
-    RegisterMethod('Constructor Create( const FileName : string);');
-    RegisterMethod('Constructor CreateA( const FileName : string; AAccess : LongWord);');
-    RegisterMethod('Function ReadString( const Section, Ident, Default : string) : string');
-    RegisterMethod('Function ReadInteger( const Section, Ident : string; Default : Longint) : Longint');
-    RegisterMethod('Procedure WriteInteger( const Section, Ident : string; Value : Longint)');
-    RegisterMethod('Procedure WriteString( const Section, Ident, Value : String)');
-    RegisterMethod('Function ReadBool( const Section, Ident : string; Default : Boolean) : Boolean');
-    RegisterMethod('Procedure WriteBool( const Section, Ident : string; Value : Boolean)');
-    RegisterMethod('Procedure ReadSection( const Section : string; Strings : TStrings)');
-    RegisterMethod('Procedure ReadSections( Strings : TStrings)');
-    RegisterMethod('Procedure ReadSectionValues( const Section : string; Strings : TStrings)');
-    RegisterMethod('Procedure EraseSection( const Section : string)');
-    RegisterMethod('Procedure DeleteKey( const Section, Ident : String)');
+    RegisterMethod('constructor Create(const FileName: string);');
+    RegisterMethod('constructor CreateA(const FileName: string; AAccess: LongWord);');
+    RegisterMethod('function ReadString(const Section, Ident, Default: string): string');
+    RegisterMethod('function ReadInteger(const Section, Ident: string; Default: LongInt): LongInt');
+    RegisterMethod('procedure WriteInteger(const Section, Ident: string; Value: LongInt)');
+    RegisterMethod('procedure WriteString(const Section, Ident, Value: string)');
+    RegisterMethod('function ReadBool(const Section, Ident: string; Default: Boolean): Boolean');
+    RegisterMethod('procedure WriteBool(const Section, Ident: string; Value: Boolean)');
+    RegisterMethod('procedure ReadSection(const Section: string; Strings: TStrings)');
+    RegisterMethod('procedure ReadSections(Strings: TStrings)');
+    RegisterMethod('procedure ReadSectionValues(const Section: string; Strings: TStrings)');
+    RegisterMethod('procedure EraseSection(const Section: string)');
+    RegisterMethod('procedure DeleteKey(const Section, Ident: string)');
     RegisterProperty('FileName', 'string', iptr);
   end;
 end;
@@ -72,48 +72,48 @@ begin
   //with RegClassS(CL,'TObject', 'TRegistry') do
   with CL.AddClassN(CL.FindClass('TObject'),'TRegistry') do
   begin
-    RegisterMethod('Constructor Create;');
-    RegisterMethod('Constructor CreateA( AAccess : LongWord);');
-    RegisterMethod('Procedure CloseKey');
-    RegisterMethod('Function CreateKey( const Key : string) : Boolean');
-    RegisterMethod('Function DeleteKey( const Key : string) : Boolean');
-    RegisterMethod('Function DeleteValue( const Name : string) : Boolean');
-    RegisterMethod('Function GetDataInfo( const ValueName : string; var Value : TRegDataInfo) : Boolean');
-    RegisterMethod('Function GetDataSize( const ValueName : string) : Integer');
-    RegisterMethod('Function GetDataType( const ValueName : string) : TRegDataType');
-    RegisterMethod('Function GetKeyInfo( var Value : TRegKeyInfo) : Boolean');
-    RegisterMethod('Procedure GetKeyNames( Strings : TStrings)');
-    RegisterMethod('Procedure GetValueNames( Strings : TStrings)');
-    RegisterMethod('Function HasSubKeys : Boolean');
-    RegisterMethod('Function KeyExists( const Key : string) : Boolean');
-    RegisterMethod('Function LoadKey( const Key, FileName : string) : Boolean');
-    RegisterMethod('Procedure MoveKey( const OldName, NewName : string; Delete : Boolean)');
-    RegisterMethod('Function OpenKey( const Key : string; CanCreate : Boolean) : Boolean');
-    RegisterMethod('Function OpenKeyReadOnly( const Key : String) : Boolean');
-    RegisterMethod('Function ReadCurrency( const Name : string) : Currency');
-    RegisterMethod('Function ReadBool( const Name : string) : Boolean');
-    RegisterMethod('Function ReadDate( const Name : string) : TDateTime');
-    RegisterMethod('Function ReadDateTime( const Name : string) : TDateTime');
-    RegisterMethod('Function ReadFloat( const Name : string) : Double');
-    RegisterMethod('Function ReadInteger( const Name : string) : Integer');
-    RegisterMethod('Function ReadString( const Name : string) : string');
-    RegisterMethod('Function ReadTime( const Name : string) : TDateTime');
-    RegisterMethod('Function RegistryConnect( const UNCName : string) : Boolean');
-    RegisterMethod('Procedure RenameValue( const OldName, NewName : string)');
-    RegisterMethod('Function ReplaceKey( const Key, FileName, BackUpFileName : string) : Boolean');
-    RegisterMethod('Function RestoreKey( const Key, FileName : string) : Boolean');
-    RegisterMethod('Function SaveKey( const Key, FileName : string) : Boolean');
-    RegisterMethod('Function UnLoadKey( const Key : string) : Boolean');
-    RegisterMethod('Function ValueExists( const Name : string) : Boolean');
-    RegisterMethod('Procedure WriteCurrency( const Name : string; Value : Currency)');
-    RegisterMethod('Procedure WriteBool( const Name : string; Value : Boolean)');
-    RegisterMethod('Procedure WriteDate( const Name : string; Value : TDateTime)');
-    RegisterMethod('Procedure WriteDateTime( const Name : string; Value : TDateTime)');
-    RegisterMethod('Procedure WriteFloat( const Name : string; Value : Double)');
-    RegisterMethod('Procedure WriteInteger( const Name : string; Value : Integer)');
-    RegisterMethod('Procedure WriteString( const Name, Value : string)');
-    RegisterMethod('Procedure WriteExpandString( const Name, Value : string)');
-    RegisterMethod('Procedure WriteTime( const Name : string; Value : TDateTime)');
+    RegisterMethod('constructor Create;');
+    RegisterMethod('constructor CreateA(AAccess: LongWord);');
+    RegisterMethod('procedure CloseKey');
+    RegisterMethod('function CreateKey(const Key: string): Boolean');
+    RegisterMethod('function DeleteKey(const Key: string): Boolean');
+    RegisterMethod('function DeleteValue(const Name: string): Boolean');
+    RegisterMethod('function GetDataInfo(const ValueName: string; var Value: TRegDataInfo): Boolean');
+    RegisterMethod('function GetDataSize(const ValueName: string): Integer');
+    RegisterMethod('function GetDataType(const ValueName: string): TRegDataType');
+    RegisterMethod('function GetKeyInfo(var Value: TRegKeyInfo): Boolean');
+    RegisterMethod('procedure GetKeyNames(Strings: TStrings)');
+    RegisterMethod('procedure GetValueNames(Strings: TStrings)');
+    RegisterMethod('function HasSubKeys: Boolean');
+    RegisterMethod('function KeyExists(const Key: string): Boolean');
+    RegisterMethod('function LoadKey(const Key, FileName: string): Boolean');
+    RegisterMethod('procedure MoveKey(const OldName, NewName: string; Delete: Boolean)');
+    RegisterMethod('function OpenKey(const Key: string; CanCreate: Boolean): Boolean');
+    RegisterMethod('function OpenKeyReadOnly(const Key: string): Boolean');
+    RegisterMethod('function ReadCurrency(const Name: string): Currency');
+    RegisterMethod('function ReadBool(const Name: string): Boolean');
+    RegisterMethod('function ReadDate(const Name: string): TDateTime');
+    RegisterMethod('function ReadDateTime(const Name: string): TDateTime');
+    RegisterMethod('function ReadFloat(const Name: string): Double');
+    RegisterMethod('function ReadInteger(const Name: string): Integer');
+    RegisterMethod('function ReadString(const Name: string): string');
+    RegisterMethod('function ReadTime(const Name: string): TDateTime');
+    RegisterMethod('function RegistryConnect(const UNCName: string): Boolean');
+    RegisterMethod('procedure RenameValue(const OldName, NewName: string)');
+    RegisterMethod('function ReplaceKey(const Key, FileName, BackUpFileName: string): Boolean');
+    RegisterMethod('function RestoreKey(const Key, FileName: string): Boolean');
+    RegisterMethod('function SaveKey(const Key, FileName: string): Boolean');
+    RegisterMethod('function UnLoadKey(const Key: string): Boolean');
+    RegisterMethod('function ValueExists(const Name: string): Boolean');
+    RegisterMethod('procedure WriteCurrency(const Name: string; Value: Currency)');
+    RegisterMethod('procedure WriteBool(const Name: string; Value: Boolean)');
+    RegisterMethod('procedure WriteDate(const Name: string; Value: TDateTime)');
+    RegisterMethod('procedure WriteDateTime(const Name: string; Value: TDateTime)');
+    RegisterMethod('procedure WriteFloat(const Name: string; Value: Double)');
+    RegisterMethod('procedure WriteInteger(const Name: string; Value: Integer)');
+    RegisterMethod('procedure WriteString(const Name, Value: string)');
+    RegisterMethod('procedure WriteExpandString(const Name, Value: string)');
+    RegisterMethod('procedure WriteTime(const Name: string; Value: TDateTime)');
     RegisterProperty('CurrentKey', 'HKEY', iptr);
     RegisterProperty('CurrentPath', 'string', iptr);
     RegisterProperty('LazyWrite', 'Boolean', iptrw);
@@ -125,7 +125,7 @@ end;
 (*----------------------------------------------------------------------------*)
 procedure SIRegister_Registry(CL: TPSPascalCompiler);
 begin
-  CL.AddClassN(CL.FindClass('TOBJECT'),'ERegistryException');
+  CL.AddClassN(CL.FindClass('TObject'),'ERegistryException');
   SIRegister_TRegistry(CL);
   SIRegister_TRegIniFile(CL);
   SIRegister_TRegistryIniFile(CL);
@@ -300,11 +300,11 @@ begin
   //with RegClassS(CL,'TCustomIniFile', 'TMemIniFile') do
   with CL.AddClassN(CL.FindClass('TCustomIniFile'),'TMemIniFile') do
   begin
-    RegisterMethod('Constructor Create( const FileName : string)');
-    RegisterMethod('Procedure Clear');
-    RegisterMethod('Procedure GetStrings( List : TStrings)');
-    RegisterMethod('Procedure Rename( const FileName : string; Reload : Boolean)');
-    RegisterMethod('Procedure SetStrings( List : TStrings)');
+    RegisterMethod('constructor Create(const FileName: string)');
+    RegisterMethod('procedure Clear');
+    RegisterMethod('procedure GetStrings(List: TStrings)');
+    RegisterMethod('procedure Rename(const FileName: string; Reload: Boolean)');
+    RegisterMethod('procedure SetStrings(List: TStrings)');
   end;
 end;
 
@@ -315,14 +315,14 @@ begin
   //with RegClassS(CL,'TCustomIniFile', 'TIniFile') do
   with CL.AddClassN(CL.FindClass('TCustomIniFile'),'TIniFile') do
   begin
-    RegisterMethod('Function ReadString( const Section, Ident, Default : string) : string');
-    RegisterMethod('Procedure WriteString( const Section, Ident, Value : String)');
-    RegisterMethod('Procedure ReadSection( const Section : string; Strings : TStrings)');
-    RegisterMethod('Procedure ReadSections( Strings : TStrings)');
-    RegisterMethod('Procedure ReadSectionValues( const Section : string; Strings : TStrings)');
-    RegisterMethod('Procedure EraseSection( const Section : string)');
-    RegisterMethod('Procedure DeleteKey( const Section, Ident : String)');
-    RegisterMethod('Procedure UpdateFile');
+    RegisterMethod('function ReadString(const Section, Ident, Default: string): string');
+    RegisterMethod('procedure WriteString(const Section, Ident, Value: string)');
+    RegisterMethod('procedure ReadSection(const Section: string; Strings: TStrings)');
+    RegisterMethod('procedure ReadSections(Strings: TStrings)');
+    RegisterMethod('procedure ReadSectionValues(const Section: string; Strings: TStrings)');
+    RegisterMethod('procedure EraseSection(const Section: string)');
+    RegisterMethod('procedure DeleteKey(const Section, Ident: string)');
+    RegisterMethod('procedure UpdateFile');
   end;
 end;
 
@@ -332,29 +332,29 @@ begin
   //with RegClassS(CL,'TObject', 'TCustomIniFile') do
   with CL.AddClassN(CL.FindClass('TObject'),'TCustomIniFile') do
   begin
-    RegisterMethod('Constructor Create( const FileName : string)');
-    RegisterMethod('Function SectionExists( const Section : string) : Boolean');
-//    RegisterMethod('Function ReadString( const Section, Ident, Default : string) : string');
-//    RegisterMethod('Procedure WriteString( const Section, Ident, Value : String)');
-    RegisterMethod('Function ReadInteger( const Section, Ident : string; Default : Longint) : Longint');
-    RegisterMethod('Procedure WriteInteger( const Section, Ident : string; Value : Longint)');
-    RegisterMethod('Function ReadBool( const Section, Ident : string; Default : Boolean) : Boolean');
-    RegisterMethod('Procedure WriteBool( const Section, Ident : string; Value : Boolean)');
-    RegisterMethod('Function ReadDate( const Section, Name : string; Default : TDateTime) : TDateTime');
-    RegisterMethod('Function ReadDateTime( const Section, Name : string; Default : TDateTime) : TDateTime');
-    RegisterMethod('Function ReadFloat( const Section, Name : string; Default : Double) : Double');
-    RegisterMethod('Function ReadTime( const Section, Name : string; Default : TDateTime) : TDateTime');
-    RegisterMethod('Procedure WriteDate( const Section, Name : string; Value : TDateTime)');
-    RegisterMethod('Procedure WriteDateTime( const Section, Name : string; Value : TDateTime)');
-    RegisterMethod('Procedure WriteFloat( const Section, Name : string; Value : Double)');
-    RegisterMethod('Procedure WriteTime( const Section, Name : string; Value : TDateTime)');
-//    RegisterMethod('Procedure ReadSection( const Section : string; Strings : TStrings)');
-//    RegisterMethod('Procedure ReadSections( Strings : TStrings)');
-//    RegisterMethod('Procedure ReadSectionValues( const Section : string; Strings : TStrings)');
-//    RegisterMethod('Procedure EraseSection( const Section : string)');
-//    RegisterMethod('Procedure DeleteKey( const Section, Ident : String)');
-//    RegisterMethod('Procedure UpdateFile');
-    RegisterMethod('Function ValueExists( const Section, Ident : string) : Boolean');
+    RegisterMethod('constructor Create(const FileName: string)');
+    RegisterMethod('function SectionExists(const Section: string): Boolean');
+//    RegisterMethod('function ReadString(const Section, Ident, Default: string): string');
+//    RegisterMethod('procedure WriteString(const Section, Ident, Value: string)');
+    RegisterMethod('function ReadInteger(const Section, Ident: string; Default: LongInt): LongInt');
+    RegisterMethod('procedure WriteInteger(const Section, Ident: string; Value: LongInt)');
+    RegisterMethod('function ReadBool(const Section, Ident: string; Default: Boolean): Boolean');
+    RegisterMethod('procedure WriteBool(const Section, Ident: string; Value: Boolean)');
+    RegisterMethod('function ReadDate(const Section, Name: string; Default: TDateTime): TDateTime');
+    RegisterMethod('function ReadDateTime(const Section, Name: string; Default: TDateTime): TDateTime');
+    RegisterMethod('function ReadFloat(const Section, Name: string; Default: Double): Double');
+    RegisterMethod('function ReadTime(const Section, Name: string; Default: TDateTime): TDateTime');
+    RegisterMethod('procedure WriteDate(const Section, Name: string; Value: TDateTime)');
+    RegisterMethod('procedure WriteDateTime(const Section, Name: string; Value: TDateTime)');
+    RegisterMethod('procedure WriteFloat(const Section, Name: string; Value: Double)');
+    RegisterMethod('procedure WriteTime(const Section, Name: string; Value: TDateTime)');
+//    RegisterMethod('procedure ReadSection(const Section: string; Strings: TStrings)');
+//    RegisterMethod('procedure ReadSections(Strings: TStrings)');
+//    RegisterMethod('procedure ReadSectionValues(const Section: string; Strings: TStrings)');
+//    RegisterMethod('procedure EraseSection(const Section: string)');
+//    RegisterMethod('procedure DeleteKey(const Section, Ident: string)');
+//    RegisterMethod('procedure UpdateFile');
+    RegisterMethod('function ValueExists(const Section, Ident: string): Boolean');
     RegisterProperty('FileName', 'string', iptr);
   end;
 end;

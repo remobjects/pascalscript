@@ -25,8 +25,8 @@ procedure RIRegisterTCONTROLSCROLLBAR(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCONTROLSCROLLBAR) do
   begin
-    RegisterPropertyHelper(@TCONTROLSCROLLBARKIND_R, nil, 'KIND');
-    RegisterPropertyHelper(@TCONTROLSCROLLBARSCROLLPOS_R, nil, 'SCROLLPOS');
+    RegisterPropertyHelper(@TCONTROLSCROLLBARKIND_R, nil, 'Kind');
+    RegisterPropertyHelper(@TCONTROLSCROLLBARSCROLLPOS_R, nil, 'ScrollPos');
   end;
 end;
 
@@ -35,7 +35,7 @@ procedure RIRegisterTSCROLLINGWINCONTROL(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSCROLLINGWINCONTROL) do
   begin
-    RegisterMethod(@TSCROLLINGWINCONTROL.SCROLLINVIEW, 'SCROLLINVIEW');
+    RegisterMethod(@TSCROLLINGWINCONTROL.SCROLLINVIEW, 'ScrollInView');
   end;
 end;
 {$ENDIF}
@@ -75,43 +75,43 @@ begin
   with Cl.Add(TFORM) do
   begin
     {$IFDEF DELPHI4UP}
-    RegisterVirtualConstructor(@TFORM.CREATENEW, 'CREATENEW');
+    RegisterVirtualConstructor(@TFORM.CREATENEW, 'CreateNew');
     {$ELSE}
-    RegisterConstructor(@TFORM.CREATENEW, 'CREATENEW');
+    RegisterConstructor(@TFORM.CREATENEW, 'CreateNew');
     {$ENDIF}
-    RegisterMethod(@TFORM.CLOSE, 'CLOSE');
-    RegisterMethod(@TFORM.HIDE, 'HIDE');
-    RegisterMethod(@TFORM.SHOW, 'SHOW');
-    RegisterMethod(@TFORM.SHOWMODAL, 'SHOWMODAL');
-    RegisterMethod(@TFORM.RELEASE, 'RELEASE');
-    RegisterPropertyHelper(@TFORMACTIVE_R, nil, 'ACTIVE');
+    RegisterMethod(@TFORM.CLOSE, 'Close');
+    RegisterMethod(@TFORM.HIDE, 'Hide');
+    RegisterMethod(@TFORM.SHOW, 'Show');
+    RegisterMethod(@TFORM.SHOWMODAL, 'ShowModal');
+    RegisterMethod(@TFORM.RELEASE, 'Release');
+    RegisterPropertyHelper(@TFORMACTIVE_R, nil, 'Active');
 
     {$IFNDEF PS_MINIVCL}
  {$IFNDEF FPC}
 {$IFNDEF CLX} 
-    RegisterMethod(@TFORM.ARRANGEICONS, 'ARRANGEICONS');
-    RegisterMethod(@TFORM.GETFORMIMAGE, 'GETFORMIMAGE');
-    RegisterMethod(@TFORM.PRINT, 'PRINT');
-    RegisterMethod(@TFORM.SENDCANCELMODE, 'SENDCANCELMODE');
-    RegisterPropertyHelper(@TFORMACTIVEOLECONTROL_R, @TFORMACTIVEOLECONTROL_W, 'ACTIVEOLECONTROL');
-    RegisterPropertyHelper(@TFORMCLIENTHANDLE_R, nil, 'CLIENTHANDLE');
-    RegisterPropertyHelper(@TFORMTILEMODE_R, @TFORMTILEMODE_W, 'TILEMODE');
+    RegisterMethod(@TFORM.ARRANGEICONS, 'ArrangeIcons');
+    RegisterMethod(@TFORM.GETFORMIMAGE, 'GetFormImage');
+    RegisterMethod(@TFORM.PRINT, 'Print');
+    RegisterMethod(@TFORM.SENDCANCELMODE, 'SendCancelMode');
+    RegisterPropertyHelper(@TFORMACTIVEOLECONTROL_R, @TFORMACTIVEOLECONTROL_W, 'ActiveOleControl');
+    RegisterPropertyHelper(@TFORMCLIENTHANDLE_R, nil, 'ClientHandle');
+    RegisterPropertyHelper(@TFORMTILEMODE_R, @TFORMTILEMODE_W, 'TileMode');
 {$ENDIF}{CLX}
-    RegisterMethod(@TFORM.CASCADE, 'CASCADE');
-    RegisterMethod(@TFORM.NEXT, 'NEXT');
-    RegisterMethod(@TFORM.PREVIOUS, 'PREVIOUS');
-    RegisterMethod(@TFORM.TILE, 'TILE');
-    RegisterPropertyHelper(@TFORMACTIVEMDICHILD_R, nil, 'ACTIVEMDICHILD');
-    RegisterPropertyHelper(@TFORMDROPTARGET_R, @TFORMDROPTARGET_W, 'DROPTARGET');
-    RegisterPropertyHelper(@TFORMMDICHILDCOUNT_R, nil, 'MDICHILDCOUNT');
-    RegisterPropertyHelper(@TFORMMDICHILDREN_R, nil, 'MDICHILDREN');
+    RegisterMethod(@TFORM.CASCADE, 'Cascade');
+    RegisterMethod(@TFORM.NEXT, 'Next');
+    RegisterMethod(@TFORM.PREVIOUS, 'Previous');
+    RegisterMethod(@TFORM.TILE, 'Tile');
+    RegisterPropertyHelper(@TFORMACTIVEMDICHILD_R, nil, 'ActiveMDIChild');
+    RegisterPropertyHelper(@TFORMDROPTARGET_R, @TFORMDROPTARGET_W, 'DropTarget');
+    RegisterPropertyHelper(@TFORMMDICHILDCOUNT_R, nil, 'MDIChildCount');
+    RegisterPropertyHelper(@TFORMMDICHILDREN_R, nil, 'MDIChildren');
  {$ENDIF}{FPC}
-    RegisterMethod(@TFORM.CLOSEQUERY, 'CLOSEQUERY');
-    RegisterMethod(@TFORM.DEFOCUSCONTROL, 'DEFOCUSCONTROL');
-    RegisterMethod(@TFORM.FOCUSCONTROL, 'FOCUSCONTROL');
-    RegisterMethod(@TFORM.SETFOCUSEDCONTROL, 'SETFOCUSEDCONTROL');
-    RegisterPropertyHelper(@TFORMCANVAS_R, nil, 'CANVAS');
-    RegisterPropertyHelper(@TFORMMODALRESULT_R, @TFORMMODALRESULT_W, 'MODALRESULT');
+    RegisterMethod(@TFORM.CLOSEQUERY, 'CloseQuery');
+    RegisterMethod(@TFORM.DEFOCUSCONTROL, 'DefocusControl');
+    RegisterMethod(@TFORM.FOCUSCONTROL, 'FocusControl');
+    RegisterMethod(@TFORM.SETFOCUSEDCONTROL, 'SetFocusedControl');
+    RegisterPropertyHelper(@TFORMCANVAS_R, nil, 'Canvas');
+    RegisterPropertyHelper(@TFORMMODALRESULT_R, @TFORMMODALRESULT_W, 'ModalResult');
     {$ENDIF}{PS_MINIVCL}
   end;
 end;
@@ -178,63 +178,63 @@ begin
   with Cl.Add(TAPPLICATION) do
   begin
  {$IFNDEF FPC}
-    RegisterMethod(@TAPPLICATION.MINIMIZE, 'MINIMIZE');
-    RegisterMethod(@TAPPLICATION.RESTORE, 'RESTORE');
-    RegisterPropertyHelper(@TAPPLICATIONACTIVE_R, nil, 'ACTIVE');
-    RegisterPropertyHelper(@TAPPLICATIONONACTIVATE_R, @TAPPLICATIONONACTIVATE_W, 'ONACTIVATE');
-    RegisterPropertyHelper(@TAPPLICATIONONDEACTIVATE_R, @TAPPLICATIONONDEACTIVATE_W, 'ONDEACTIVATE');
-    RegisterPropertyHelper(@TAPPLICATIONONMINIMIZE_R, @TAPPLICATIONONMINIMIZE_W, 'ONMINIMIZE');
-    RegisterPropertyHelper(@TAPPLICATIONONRESTORE_R, @TAPPLICATIONONRESTORE_W, 'ONRESTORE');
-    RegisterPropertyHelper(@TAPPLICATIONDIALOGHANDLE_R, @TAPPLICATIONDIALOGHANDLE_W, 'DIALOGHANDLE');
-    RegisterMethod(@TAPPLICATION.CREATEHANDLE, 'CREATEHANDLE');
-    RegisterMethod(@TAPPLICATION.NORMALIZETOPMOSTS, 'NORMALIZETOPMOSTS');
-    RegisterMethod(@TAPPLICATION.RESTORETOPMOSTS, 'RESTORETOPMOSTS');
+    RegisterMethod(@TAPPLICATION.MINIMIZE, 'Minimize');
+    RegisterMethod(@TAPPLICATION.RESTORE, 'Restore');
+    RegisterPropertyHelper(@TAPPLICATIONACTIVE_R, nil, 'Active');
+    RegisterPropertyHelper(@TAPPLICATIONONACTIVATE_R, @TAPPLICATIONONACTIVATE_W, 'OnActivate');
+    RegisterPropertyHelper(@TAPPLICATIONONDEACTIVATE_R, @TAPPLICATIONONDEACTIVATE_W, 'OnDeactivate');
+    RegisterPropertyHelper(@TAPPLICATIONONMINIMIZE_R, @TAPPLICATIONONMINIMIZE_W, 'OnMinimize');
+    RegisterPropertyHelper(@TAPPLICATIONONRESTORE_R, @TAPPLICATIONONRESTORE_W, 'OnRestore');
+    RegisterPropertyHelper(@TAPPLICATIONDIALOGHANDLE_R, @TAPPLICATIONDIALOGHANDLE_W, 'DialogHandle');
+    RegisterMethod(@TAPPLICATION.CREATEHANDLE, 'CreateHandle');
+    RegisterMethod(@TAPPLICATION.NORMALIZETOPMOSTS, 'NormalizeTopMosts');
+    RegisterMethod(@TAPPLICATION.RESTORETOPMOSTS, 'RestoreTopMosts');
     {$IFNDEF CLX}
-    RegisterPropertyHelper(@TAPPLICATIONHANDLE_R, @TAPPLICATIONHANDLE_W, 'HANDLE');
-    RegisterPropertyHelper(@TAPPLICATIONUPDATEFORMATSETTINGS_R, @TAPPLICATIONUPDATEFORMATSETTINGS_W, 'UPDATEFORMATSETTINGS');
+    RegisterPropertyHelper(@TAPPLICATIONHANDLE_R, @TAPPLICATIONHANDLE_W, 'Handle');
+    RegisterPropertyHelper(@TAPPLICATIONUPDATEFORMATSETTINGS_R, @TAPPLICATIONUPDATEFORMATSETTINGS_W, 'UpdateFormatSettings');
     {$ENDIF}
  {$ENDIF}
-    RegisterMethod(@TAPPLICATION.BRINGTOFRONT, 'BRINGTOFRONT');
-    RegisterMethod(@TAPPLICATION.MESSAGEBOX, 'MESSAGEBOX');
-    RegisterMethod(@TAPPLICATION.PROCESSMESSAGES, 'PROCESSMESSAGES');
-    RegisterMethod(@TAPPLICATION.TERMINATE, 'TERMINATE');
-    RegisterPropertyHelper(@TAPPLICATIONEXENAME_R, nil, 'EXENAME');
-    RegisterPropertyHelper(@TAPPLICATIONHINT_R, @TAPPLICATIONHINT_W, 'HINT');
-    RegisterPropertyHelper(@TAPPLICATIONMAINFORM_R, nil, 'MAINFORM');
-    RegisterPropertyHelper(@TAPPLICATIONSHOWHINT_R, @TAPPLICATIONSHOWHINT_W, 'SHOWHINT');
-    RegisterPropertyHelper(@TAPPLICATIONSHOWMAINFORM_R, @TAPPLICATIONSHOWMAINFORM_W, 'SHOWMAINFORM');
-    RegisterPropertyHelper(@TAPPLICATIONTERMINATED_R, nil, 'TERMINATED');
-    RegisterPropertyHelper(@TAPPLICATIONTITLE_R, @TAPPLICATIONTITLE_W, 'TITLE');
-    RegisterPropertyHelper(@TAPPLICATIONONIDLE_R, @TAPPLICATIONONIDLE_W, 'ONIDLE');
-    RegisterPropertyHelper(@TAPPLICATIONONHINT_R, @TAPPLICATIONONHINT_W, 'ONHINT');
+    RegisterMethod(@TAPPLICATION.BRINGTOFRONT, 'BringToFront');
+    RegisterMethod(@TAPPLICATION.MESSAGEBOX, 'MessageBox');
+    RegisterMethod(@TAPPLICATION.PROCESSMESSAGES, 'ProcessMessages');
+    RegisterMethod(@TAPPLICATION.TERMINATE, 'Terminate');
+    RegisterPropertyHelper(@TAPPLICATIONEXENAME_R, nil, 'ExeName');
+    RegisterPropertyHelper(@TAPPLICATIONHINT_R, @TAPPLICATIONHINT_W, 'Hint');
+    RegisterPropertyHelper(@TAPPLICATIONMAINFORM_R, nil, 'MainForm');
+    RegisterPropertyHelper(@TAPPLICATIONSHOWHINT_R, @TAPPLICATIONSHOWHINT_W, 'ShowHint');
+    RegisterPropertyHelper(@TAPPLICATIONSHOWMAINFORM_R, @TAPPLICATIONSHOWMAINFORM_W, 'ShowMainForm');
+    RegisterPropertyHelper(@TAPPLICATIONTERMINATED_R, nil, 'Terminated');
+    RegisterPropertyHelper(@TAPPLICATIONTITLE_R, @TAPPLICATIONTITLE_W, 'Title');
+    RegisterPropertyHelper(@TAPPLICATIONONIDLE_R, @TAPPLICATIONONIDLE_W, 'OnIdle');
+    RegisterPropertyHelper(@TAPPLICATIONONHINT_R, @TAPPLICATIONONHINT_W, 'OnHint');
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TAPPLICATION.CONTROLDESTROYED, 'CONTROLDESTROYED');
-    RegisterMethod(@TAPPLICATION.CANCELHINT, 'CANCELHINT');
+    RegisterMethod(@TAPPLICATION.CONTROLDESTROYED, 'ControlDestroyed');
+    RegisterMethod(@TAPPLICATION.CANCELHINT, 'CancelHint');
     {$IFNDEF CLX}
     {$IFNDEF FPC}
-    RegisterMethod(@TAPPLICATION.HELPCOMMAND, 'HELPCOMMAND');
+    RegisterMethod(@TAPPLICATION.HELPCOMMAND, 'HelpCommand');
     {$ENDIF}
-    RegisterMethod(@TAPPLICATION.HELPCONTEXT, 'HELPCONTEXT');
+    RegisterMethod(@TAPPLICATION.HELPCONTEXT, 'HelpContext');
     {$IFNDEF FPC}
-    RegisterMethod(@TAPPLICATION.HELPJUMP, 'HELPJUMP');
+    RegisterMethod(@TAPPLICATION.HELPJUMP, 'HelpJump');
     {$ENDIF}
     {$ENDIF}
-//    RegisterMethod(@TAPPLICATION.HANDLEEXCEPTION, 'HANDLEEXCEPTION');
-//    RegisterMethod(@TAPPLICATION.HOOKMAINWINDOW, 'HOOKMAINWINDOW');
-//    RegisterMethod(@TAPPLICATION.UNHOOKMAINWINDOW, 'UNHOOKMAINWINDOW');
+//    RegisterMethod(@TAPPLICATION.HANDLEEXCEPTION, 'HandleException');
+//    RegisterMethod(@TAPPLICATION.HOOKMAINWINDOW, 'HookMainWindow');
+//    RegisterMethod(@TAPPLICATION.UNHOOKMAINWINDOW, 'UnhookMainWindow');
 
-    RegisterMethod(@TAPPLICATION.HANDLEMESSAGE, 'HANDLEMESSAGE');
-    RegisterMethod(@TAPPLICATION.HIDEHINT, 'HIDEHINT');
-    RegisterMethod(@TAPPLICATION.HINTMOUSEMESSAGE, 'HINTMOUSEMESSAGE');
-    RegisterMethod(@TAPPLICATION.INITIALIZE, 'INITIALIZE');
-    RegisterMethod(@TAPPLICATION.RUN, 'RUN');
-//    RegisterMethod(@TAPPLICATION.SHOWEXCEPTION, 'SHOWEXCEPTION');
-    RegisterPropertyHelper(@TAPPLICATIONHELPFILE_R, @TAPPLICATIONHELPFILE_W, 'HELPFILE');
-    RegisterPropertyHelper(@TAPPLICATIONHINTCOLOR_R, @TAPPLICATIONHINTCOLOR_W, 'HINTCOLOR');
-    RegisterPropertyHelper(@TAPPLICATIONHINTPAUSE_R, @TAPPLICATIONHINTPAUSE_W, 'HINTPAUSE');
-    RegisterPropertyHelper(@TAPPLICATIONHINTSHORTPAUSE_R, @TAPPLICATIONHINTSHORTPAUSE_W, 'HINTSHORTPAUSE');
-    RegisterPropertyHelper(@TAPPLICATIONHINTHIDEPAUSE_R, @TAPPLICATIONHINTHIDEPAUSE_W, 'HINTHIDEPAUSE');
-    RegisterPropertyHelper(@TAPPLICATIONONHELP_R, @TAPPLICATIONONHELP_W, 'ONHELP');
+    RegisterMethod(@TAPPLICATION.HANDLEMESSAGE, 'HandleMessage');
+    RegisterMethod(@TAPPLICATION.HIDEHINT, 'HideHint');
+    RegisterMethod(@TAPPLICATION.HINTMOUSEMESSAGE, 'HintMouseMessage');
+    RegisterMethod(@TAPPLICATION.INITIALIZE, 'Initialize');
+    RegisterMethod(@TAPPLICATION.RUN, 'Run');
+//    RegisterMethod(@TAPPLICATION.SHOWEXCEPTION, 'ShowException');
+    RegisterPropertyHelper(@TAPPLICATIONHELPFILE_R, @TAPPLICATIONHELPFILE_W, 'HelpFile');
+    RegisterPropertyHelper(@TAPPLICATIONHINTCOLOR_R, @TAPPLICATIONHINTCOLOR_W, 'HintColor');
+    RegisterPropertyHelper(@TAPPLICATIONHINTPAUSE_R, @TAPPLICATIONHINTPAUSE_W, 'HintPause');
+    RegisterPropertyHelper(@TAPPLICATIONHINTSHORTPAUSE_R, @TAPPLICATIONHINTSHORTPAUSE_W, 'HintShortPause');
+    RegisterPropertyHelper(@TAPPLICATIONHINTHIDEPAUSE_R, @TAPPLICATIONHINTHIDEPAUSE_W, 'HintHidePause');
+    RegisterPropertyHelper(@TAPPLICATIONONHELP_R, @TAPPLICATIONONHELP_W, 'OnHelp');
     {$ENDIF}
   end;
 end;

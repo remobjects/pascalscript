@@ -54,42 +54,42 @@ procedure RIRegisterTControl(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TControl) do
   begin
-    RegisterVirtualConstructor(@TControl.Create, 'CREATE');
-    RegisterMethod(@TControl.BRingToFront, 'BRINGTOFRONT');
-    RegisterMethod(@TControl.Hide, 'HIDE');
-    RegisterVirtualMethod(@TControl.Invalidate, 'INVALIDATE');
-    RegisterMethod(@TControl.Refresh, 'REFRESH');
-    RegisterVirtualMethod(@TControl.Repaint, 'REPAINT');
-    RegisterMethod(@TControl.SendToBack, 'SENDTOBACK');
-    RegisterMethod(@TControl.Show, 'SHOW');
-    RegisterVirtualMethod(@TControl.Update, 'UPDATE');
-    RegisterVirtualMethod(@TControl.SetBounds, 'SETBOUNDS');
+    RegisterVirtualConstructor(@TControl.Create, 'Create');
+    RegisterMethod(@TControl.BRingToFront, 'BringToFront');
+    RegisterMethod(@TControl.Hide, 'Hide');
+    RegisterVirtualMethod(@TControl.Invalidate, 'Invalidate');
+    RegisterMethod(@TControl.Refresh, 'Refresh');
+    RegisterVirtualMethod(@TControl.Repaint, 'Repaint');
+    RegisterMethod(@TControl.SendToBack, 'SendToBack');
+    RegisterMethod(@TControl.Show, 'Show');
+    RegisterVirtualMethod(@TControl.Update, 'Update');
+    RegisterVirtualMethod(@TControl.SetBounds, 'SetBounds');
 
-    RegisterPropertyHelper(@TControlShowHintR, @TControlShowHintW, 'SHOWHINT');
-    RegisterPropertyHelper(@TControlAlignR, @TControlAlignW, 'ALIGN');
-    RegisterPropertyHelper(@TControlClientHeightR, @TControlClientHeightW, 'CLIENTHEIGHT');
-    RegisterPropertyHelper(@TControlClientWidthR, @TControlClientWidthW, 'CLIENTWIDTH');
-    RegisterPropertyHelper(@TControlVisibleR, @TControlVisibleW, 'VISIBLE');
-    RegisterPropertyHelper(@TCONTROLENABLED_R, @TCONTROLENABLED_W, 'ENABLED');
+    RegisterPropertyHelper(@TControlShowHintR, @TControlShowHintW, 'ShowHint');
+    RegisterPropertyHelper(@TControlAlignR, @TControlAlignW, 'Align');
+    RegisterPropertyHelper(@TControlClientHeightR, @TControlClientHeightW, 'ClientHeight');
+    RegisterPropertyHelper(@TControlClientWidthR, @TControlClientWidthW, 'ClientWidth');
+    RegisterPropertyHelper(@TControlVisibleR, @TControlVisibleW, 'Visible');
+    RegisterPropertyHelper(@TCONTROLENABLED_R, @TCONTROLENABLED_W, 'Enabled');
 
-    RegisterPropertyHelper(@TControlParentR, @TControlParentW, 'PARENT');
+    RegisterPropertyHelper(@TControlParentR, @TControlParentW, 'Parent');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TControl.Dragging, 'DRAGGING');
-    RegisterMethod(@TControl.HasParent, 'HASPARENT');
-    RegisterMethod(@TCONTROL.CLIENTTOSCREEN, 'CLIENTTOSCREEN');
-    RegisterMethod(@TCONTROL.DRAGGING, 'DRAGGING');
+    RegisterMethod(@TControl.Dragging, 'Dragging');
+    RegisterMethod(@TControl.HasParent, 'HasParent');
+    RegisterMethod(@TCONTROL.CLIENTTOSCREEN, 'ClientToScreen');
+    RegisterMethod(@TCONTROL.DRAGGING, 'Dragging');
    {$IFNDEF FPC} 
-    RegisterMethod(@TCONTROL.BEGINDRAG, 'BEGINDRAG');
-    RegisterMethod(@TCONTROL.ENDDRAG, 'ENDDRAG');
+    RegisterMethod(@TCONTROL.BEGINDRAG, 'BeginDrag');
+    RegisterMethod(@TCONTROL.ENDDRAG, 'EndDrag');
    {$ENDIF}
     {$IFNDEF CLX}
-    RegisterMethod(@TCONTROL.GETTEXTBUF, 'GETTEXTBUF');
-    RegisterMethod(@TCONTROL.GETTEXTLEN, 'GETTEXTLEN');
-    RegisterMethod(@TCONTROL.PERFORM, 'PERFORM');
-    RegisterMethod(@TCONTROL.SETTEXTBUF, 'SETTEXTBUF');
+    RegisterMethod(@TCONTROL.GETTEXTBUF, 'GetTextBuf');
+    RegisterMethod(@TCONTROL.GETTEXTLEN, 'GetTextLen');
+    RegisterMethod(@TCONTROL.PERFORM, 'Perform');
+    RegisterMethod(@TCONTROL.SETTEXTBUF, 'SetTextBuf');
     {$ENDIF}
-    RegisterMethod(@TCONTROL.SCREENTOCLIENT, 'SCREENTOCLIENT');
+    RegisterMethod(@TCONTROL.SCREENTOCLIENT, 'ScreenToClient');
     {$ENDIF}
   end;
 end;
@@ -113,34 +113,34 @@ begin
   with Cl.Add(TWinControl) do
   begin
     {$IFNDEF CLX}
-    RegisterPropertyHelper(@TWinControlHandleR, nil, 'HANDLE');
+    RegisterPropertyHelper(@TWinControlHandleR, nil, 'Handle');
     {$ENDIF}
-    RegisterPropertyHelper(@TWinControlShowingR, nil, 'SHOWING');
-    RegisterPropertyHelper(@TWinControlTabOrderR, @TWinControlTabOrderW, 'TABORDER');
-    RegisterPropertyHelper(@TWinControlTabStopR, @TWinControlTabStopW, 'TABSTOP');
-    RegisterMethod(@TWINCONTROL.CANFOCUS, 'CANFOCUS');
-    RegisterMethod(@TWINCONTROL.FOCUSED, 'FOCUSED');
-    RegisterPropertyHelper(@TWINCONTROLCONTROLS_R, nil, 'CONTROLS');
-    RegisterPropertyHelper(@TWINCONTROLCONTROLCOUNT_R, nil, 'CONTROLCOUNT');
+    RegisterPropertyHelper(@TWinControlShowingR, nil, 'Showing');
+    RegisterPropertyHelper(@TWinControlTabOrderR, @TWinControlTabOrderW, 'TabOrder');
+    RegisterPropertyHelper(@TWinControlTabStopR, @TWinControlTabStopW, 'TabStop');
+    RegisterMethod(@TWINCONTROL.CANFOCUS, 'CanFocus');
+    RegisterMethod(@TWINCONTROL.FOCUSED, 'Focused');
+    RegisterPropertyHelper(@TWINCONTROLCONTROLS_R, nil, 'Controls');
+    RegisterPropertyHelper(@TWINCONTROLCONTROLCOUNT_R, nil, 'ControlCount');
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TWinControl.HandleAllocated, 'HANDLEALLOCATED');
-    RegisterMethod(@TWinControl.HandleNeeded, 'HANDLENEEDED');
-    RegisterMethod(@TWinControl.EnableAlign, 'ENABLEALIGN');
-		RegisterMethod(@TWinControl.RemoveControl, 'REMOVECONTROL');
+    RegisterMethod(@TWinControl.HandleAllocated, 'HandleAllocated');
+    RegisterMethod(@TWinControl.HandleNeeded, 'HandleNeeded');
+    RegisterMethod(@TWinControl.EnableAlign, 'EnableAlign');
+		RegisterMethod(@TWinControl.RemoveControl, 'RemoveControl');
 		{$IFNDEF FPC}
-		RegisterMethod(@TWinControl.InsertControl, 'INSERTCONTROL');
-		RegisterMethod(@TWinControl.ScaleBy, 'SCALEBY');
-		RegisterMethod(@TWinControl.ScrollBy, 'SCROLLBY');
+		RegisterMethod(@TWinControl.InsertControl, 'InsertControl');
+		RegisterMethod(@TWinControl.ScaleBy, 'ScaleBy');
+		RegisterMethod(@TWinControl.ScrollBy, 'ScrollBy');
 		{$IFNDEF CLX}
-		 RegisterMethod(@TWINCONTROL.PAINTTO, 'PAINTTO');
+		 RegisterMethod(@TWINCONTROL.PAINTTO, 'PaintTo');
 		{$ENDIF}
 		{$ENDIF}{FPC}
-		RegisterMethod(@TWinControl.Realign, 'REALIGN');
-		RegisterVirtualMethod(@TWinControl.SetFocus, 'SETFOCUS');
-		RegisterMethod(@TWINCONTROL.CONTAINSCONTROL, 'CONTAINSCONTROL');
-		RegisterMethod(@TWINCONTROL.DISABLEALIGN, 'DISABLEALIGN');
-		RegisterMethod(@TWINCONTROL.UPDATECONTROLSTATE, 'UPDATECONTROLSTATE');
-    RegisterPropertyHelper(@TWINCONTROLBRUSH_R, nil, 'BRUSH');
+		RegisterMethod(@TWinControl.Realign, 'Realign');
+		RegisterVirtualMethod(@TWinControl.SetFocus, 'SetFocus');
+		RegisterMethod(@TWINCONTROL.CONTAINSCONTROL, 'ContainsControl');
+		RegisterMethod(@TWINCONTROL.DISABLEALIGN, 'DisableAlign');
+		RegisterMethod(@TWINCONTROL.UPDATECONTROLSTATE, 'UpdateControlState');
+    RegisterPropertyHelper(@TWINCONTROLBRUSH_R, nil, 'Brush');
     {$ENDIF}
   end;
 end;

@@ -1,0 +1,43 @@
+package DataAbstract_Scripting_D24;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'RemObjects Data Abstract - Scripting Integration Library'}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  RemObjects_Core_D24,
+  DataAbstract_Server_D24,
+  PascalScript_Core_D24;
+
+contains
+  uDAPascalScript in 'uDAPascalScript.pas',
+  uDAPSScriptingProvider in 'uDAPSScriptingProvider.pas',
+  DataAbstract_Scripting_Reg in 'DataAbstract_Scripting_Reg.pas';
+
+end.

@@ -115,7 +115,7 @@ asm
   mov r9, [rax+24]
 
 
-  mov rax, [rbp-8]
+  mov RAX, [rbp-8]
 
   // weird thing on windows, it needs 32 bytes in the CALLEE side to do whatever in
   sub RSP, 32
@@ -130,16 +130,19 @@ asm
 
   mov rax, [rbp-32] //registers
 
-  bt [rax+72], 8
-  jnc @g5
-  cvtss2sd xmm1,xmm0
-  movd [rsi],xmm1
+  bt [rax+72], 8                 // if atype.basetype  <> btSingle
+  jnc @g5                        //
+  cvtss2sd xmm1,xmm0             // convert single to double  into xmm1
+  mov rdx,[rbp-24]               // @_xmm0  ;rbp -24
+  movsd qword ptr [rdx], xmm1    // save  xmm1 to param _xmm0
+  jmp @g5e                       // exit if atype.basetype  = btSingle
 
-  @g5:
-    mov rdx,[rbp-24]
-    movsd qword ptr [rdx], xmm0
+  @g5:                           //else "if atype.basetype  = btSingle"
+    mov rdx,[rbp-24]             // @_xmm0  ;rbp -24
+    movsd qword ptr [rdx], xmm0  // save  xmm1 to param _xmm0
 
   @g5e:
+
 
   leave
   ret
@@ -219,7 +222,7 @@ asm
   cvtsd2ss xmm0,[rdx]
   jmp @skipxmm0re
   @skipxmm0:
-  movd xmm0,[rdx]
+  movq xmm0,[rdx]            // move quadword to xmm0 from _XMM0
   @skipxmm0re:
 
   // xmm1
@@ -228,7 +231,7 @@ asm
   cvtsd2ss xmm1,[rax+48]
   jmp @skipxmm1re
   @skipxmm1:
-  movd xmm1,[rax+48]
+  movq xmm1,[rax+48]         // move quadword to xmm1 from Registers._XMM1
   @skipxmm1re:
 
   // xmm2
@@ -237,7 +240,7 @@ asm
   cvtsd2ss xmm2,[rax+56]
   jmp @skipxmm2re
   @skipxmm2:
-  movd xmm2,[rax+56]
+  movq xmm2,[rax+56]         // move quadword to xmm2 from Registers._XMM2
   @skipxmm2re:
 
   // xmm3
@@ -246,7 +249,7 @@ asm
   cvtsd2ss xmm3,[rax+64]
   jmp @skipxmm3re
   @skipxmm3:
-  movd xmm3,[rax+64]
+  movq xmm3,[rax+64]         // move quadword to xmm3 from Registers._XMM3
   @skipxmm3re:
 
   // xmm4
@@ -255,7 +258,7 @@ asm
   cvtsd2ss xmm4,[rax+72]
   jmp @skipxmm4re
   @skipxmm4:
-  movd xmm4,[rax+72]
+  movq xmm4,[rax+72]         // move quadword to xmm4 from Registers._XMM4
   @skipxmm4re:
 
   // xmm5
@@ -264,7 +267,7 @@ asm
   cvtsd2ss xmm5,[rax+80]
   jmp @skipxmm5re
   @skipxmm5:
-  movd xmm5,[rax+80]
+  movq xmm5,[rax+80]         // move quadword to xmm5 from Registers._XMM5
   @skipxmm5re:
 
   // xmm6
@@ -273,15 +276,16 @@ asm
   cvtsd2ss xmm6,[rax+88]
   jmp @skipxmm6re
   @skipxmm6:
-  movd xmm6,[rax+88]
+  movq xmm6,[rax+88]         // move quadword to xmm6 from Registers._XMM6
   @skipxmm6re:
+
 // xmm7
   bt [rax+104], 7
   jnc @skipxmm7
   cvtsd2ss xmm7,[rax+96]
   jmp @skipxmm7re
   @skipxmm7:
-  movd xmm7,[rax+96]
+  movq xmm7,[rax+96]         // move quadword to xmm7 from Registers._XMM7
   @skipxmm7re:
 
 
@@ -303,20 +307,21 @@ asm
   // add RSP, 32 // undo the damage done earlier
 
   // copy result back
-  mov rsi, [rbp-16]
+  mov rsi, [rbp-16]          // _RAX parameter
   mov [rsi], RAX
-  mov rsi, [rbp-24]
+  mov rsi, [rbp-24]          // _XMM0 parameter
 
   // xmm0 res
-  mov rax, [rbp-32]
-  bt [rax+104], 8
-  jnc @skipres
-  cvtss2sd xmm1,xmm0
-  movd [rsi],xmm1
-  jmp @skipresre
+  mov rax, [rbp-32]          // Registers parameter
+  bt [rax+104], 8            // if atype.basetype  <> btSingle
+  jnc @skipres               // then goto skipres else begin
+  cvtss2sd xmm1,xmm0         // convert single to double  into xmm1
+  movq [rsi],xmm1            // move quadword to _XMM0
+  jmp @skipresre             // end
   @skipres:
-  movd [rsi],xmm0
+  movq [rsi],xmm0            // move quadword to _XMM0
   @skipresre:
+
 
   pop rdx
   pop r9   // xmm0

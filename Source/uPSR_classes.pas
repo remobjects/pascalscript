@@ -102,54 +102,54 @@ begin
   with Cl.Add(TStrings) do
   begin
 {$IFDEF DELPHI2005UP}
-    RegisterConstructor(@TStrings.CREATE, 'CREATE');
+    RegisterConstructor(@TStrings.CREATE, 'Create');
 {$ENDIF}
 
-    RegisterVirtualMethod(@TStrings.Add, 'ADD');
-    RegisterMethod(@TStrings.Append, 'APPEND');
-    RegisterVirtualMethod(@TStrings.AddStrings, 'ADDSTRINGS');
-    RegisterVirtualAbstractMethod(TStringList, @TStringList.Clear, 'CLEAR');
-    RegisterVirtualAbstractMethod(TStringList, @TStringList.Delete, 'DELETE');
-    RegisterVirtualMethod(@TStrings.IndexOf, 'INDEXOF');
-    RegisterVirtualAbstractMethod(TStringList, @TStringList.Insert, 'INSERT');
-    RegisterPropertyHelper(@TStringsCapacityR, @TStringsCapacityW, 'CAPACITY');
+    RegisterVirtualMethod(@TStrings.Add, 'Add');
+    RegisterMethod(@TStrings.Append, 'Append');
+    RegisterVirtualMethod(@TStrings.AddStrings, 'AddStrings');
+    RegisterVirtualAbstractMethod(TStringList, @TStringList.Clear, 'Clear');
+    RegisterVirtualAbstractMethod(TStringList, @TStringList.Delete, 'Delete');
+    RegisterVirtualMethod(@TStrings.IndexOf, 'IndexOf');
+    RegisterVirtualAbstractMethod(TStringList, @TStringList.Insert, 'Insert');
+    RegisterPropertyHelper(@TStringsCapacityR, @TStringsCapacityW, 'Capacity');
     RegisterPropertyHelper(@TStringsDelimiterR, @TStringsDelimiterW, 'DELIMITER');
 {$IFDEF DELPHI2006UP}
-    RegisterPropertyHelper(@TStringsStrictDelimiterR, @TStringsStrictDelimiterW, 'STRICTDELIMITER');
+    RegisterPropertyHelper(@TStringsStrictDelimiterR, @TStringsStrictDelimiterW, 'StrictDelimiter');
 {$ENDIF}
-    RegisterPropertyHelper(@TStringsDelimitedTextR, @TStringsDelimitedTextW, 'DELIMITEDTEXT');
-    RegisterPropertyHelper(@TStringsNameValueSeparatorR, @TStringsNameValueSeparatorW, 'NAMEVALUESEPARATOR');
-    RegisterPropertyHelper(@TStringsQuoteCharR, @TStringsQuoteCharW, 'QUOTECHAR');
-    RegisterPropertyHelper(@TStringsCountR, nil, 'COUNT');
-    RegisterPropertyHelper(@TStringsTextR, @TStringsTextW, 'TEXT');
-    RegisterPropertyHelper(@TStringsCommaTextR, @TStringsCommatextW, 'COMMATEXT');
+    RegisterPropertyHelper(@TStringsDelimitedTextR, @TStringsDelimitedTextW, 'DelimitedText');
+    RegisterPropertyHelper(@TStringsNameValueSeparatorR, @TStringsNameValueSeparatorW, 'NameValueSeparator');
+    RegisterPropertyHelper(@TStringsQuoteCharR, @TStringsQuoteCharW, 'QuoteChar');
+    RegisterPropertyHelper(@TStringsCountR, nil, 'Count');
+    RegisterPropertyHelper(@TStringsTextR, @TStringsTextW, 'Text');
+    RegisterPropertyHelper(@TStringsCommaTextR, @TStringsCommatextW, 'CommaText');
     if Streams then
     begin
-      RegisterVirtualMethod(@TStrings.LoadFromFile, 'LOADFROMFILE');
-      RegisterVirtualMethod(@TStrings.SaveToFile, 'SAVETOFILE');
+      RegisterVirtualMethod(@TStrings.LoadFromFile, 'LoadFromFile');
+      RegisterVirtualMethod(@TStrings.SaveToFile, 'SaveToFile');
     end;
-    RegisterPropertyHelper(@TStringsStringsR, @TStringsStringsW, 'STRINGS');
-    RegisterPropertyHelper(@TStringsObjectsR, @TStringsObjectsW, 'OBJECTS');
+    RegisterPropertyHelper(@TStringsStringsR, @TStringsStringsW, 'Strings');
+    RegisterPropertyHelper(@TStringsObjectsR, @TStringsObjectsW, 'Objects');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TStrings.BeginUpdate, 'BEGINUPDATE');
-    RegisterMethod(@TStrings.EndUpdate, 'ENDUPDATE');
-    RegisterMethod(@TStrings.Equals,  'EQUALS');
-    RegisterVirtualMethod(@TStrings.Exchange, 'EXCHANGE');
-    RegisterMethod(@TStrings.IndexOfName, 'INDEXOFNAME');
+    RegisterMethod(@TStrings.BeginUpdate, 'BeginUpdate');
+    RegisterMethod(@TStrings.EndUpdate, 'EndUpdate');
+    RegisterMethod(@TStrings.Equals,  'Equals');
+    RegisterVirtualMethod(@TStrings.Exchange, 'Exchange');
+    RegisterMethod(@TStrings.IndexOfName, 'IndexOfName');
     if Streams then
-      RegisterVirtualMethod(@TStrings.LoadFromStream, 'LOADFROMSTREAM');
-    RegisterVirtualMethod(@TStrings.Move, 'MOVE');
+      RegisterVirtualMethod(@TStrings.LoadFromStream, 'LoadFromStream');
+    RegisterVirtualMethod(@TStrings.Move, 'Move');
     if Streams then
-      RegisterVirtualMethod(@TStrings.SaveToStream, 'SAVETOSTREAM');
-    RegisterVirtualMethod(@TStrings.SetText, 'SETTEXT');
-    RegisterPropertyHelper(@TStringsNamesR, nil, 'NAMES');
-    RegisterPropertyHelper(@TStringsValuesR, @TStringsValuesW, 'VALUES');
-    RegisterPropertyHelper(@TStringsValueFromIndexR, @TStringsValueFromIndexW, 'VALUEFROMINDEX');
-    RegisterVirtualMethod(@TSTRINGS.ADDOBJECT, 'ADDOBJECT');
-    RegisterVirtualMethod(@TSTRINGS.GETTEXT, 'GETTEXT');
-    RegisterMethod(@TSTRINGS.INDEXOFOBJECT, 'INDEXOFOBJECT');
-    RegisterMethod(@TSTRINGS.INSERTOBJECT, 'INSERTOBJECT');
+      RegisterVirtualMethod(@TStrings.SaveToStream, 'SaveToStream');
+    RegisterVirtualMethod(@TStrings.SetText, 'SetText');
+    RegisterPropertyHelper(@TStringsNamesR, nil, 'Names');
+    RegisterPropertyHelper(@TStringsValuesR, @TStringsValuesW, 'Values');
+    RegisterPropertyHelper(@TStringsValueFromIndexR, @TStringsValueFromIndexW, 'ValueFromIndex');
+    RegisterVirtualMethod(@TSTRINGS.ADDOBJECT, 'AddObject');
+    RegisterVirtualMethod(@TSTRINGS.GETTEXT, 'GetText');
+    RegisterMethod(@TSTRINGS.INDEXOFOBJECT, 'IndexOfObject');
+    RegisterMethod(@TSTRINGS.INSERTOBJECT, 'InsertObject');
     {$ENDIF}
   end;
 end;
@@ -173,15 +173,15 @@ begin
   with Cl.Add(TSTRINGLIST) do
   begin
 {$IFDEF DELPHI2005UP}
-    RegisterConstructor(@TStringList.CREATE, 'CREATE');
+    RegisterConstructor(@TStringList.CREATE, 'Create');
 {$ENDIF}
-    RegisterVirtualMethod(@TSTRINGLIST.FIND, 'FIND');
-    RegisterVirtualMethod(@TSTRINGLIST.SORT, 'SORT');
-    RegisterPropertyHelper(@TSTRINGLISTCASESENSITIVE_R, @TSTRINGLISTCASESENSITIVE_W, 'CASESENSITIVE');
-    RegisterPropertyHelper(@TSTRINGLISTDUPLICATES_R, @TSTRINGLISTDUPLICATES_W, 'DUPLICATES');
-    RegisterPropertyHelper(@TSTRINGLISTSORTED_R, @TSTRINGLISTSORTED_W, 'SORTED');
-    RegisterEventPropertyHelper(@TSTRINGLISTONCHANGE_R, @TSTRINGLISTONCHANGE_W, 'ONCHANGE');
-    RegisterEventPropertyHelper(@TSTRINGLISTONCHANGING_R, @TSTRINGLISTONCHANGING_W, 'ONCHANGING');
+    RegisterVirtualMethod(@TSTRINGLIST.FIND, 'Find');
+    RegisterVirtualMethod(@TSTRINGLIST.SORT, 'Sort');
+    RegisterPropertyHelper(@TSTRINGLISTCASESENSITIVE_R, @TSTRINGLISTCASESENSITIVE_W, 'CaseSensitive');
+    RegisterPropertyHelper(@TSTRINGLISTDUPLICATES_R, @TSTRINGLISTDUPLICATES_W, 'Duplicates');
+    RegisterPropertyHelper(@TSTRINGLISTSORTED_R, @TSTRINGLISTSORTED_W, 'Sorted');
+    RegisterEventPropertyHelper(@TSTRINGLISTONCHANGE_R, @TSTRINGLISTONCHANGE_W, 'OnChange');
+    RegisterEventPropertyHelper(@TSTRINGLISTONCHANGING_R, @TSTRINGLISTONCHANGING_W, 'OnChanging');
   end;
 end;
 
@@ -195,9 +195,9 @@ procedure RIRegisterTBITS(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TBITS) do
   begin
-    RegisterMethod(@TBITS.OPENBIT, 'OPENBIT');
-    RegisterPropertyHelper(@TBITSBITS_R, @TBITSBITS_W, 'BITS');
-    RegisterPropertyHelper(@TBITSSIZE_R, @TBITSSIZE_W, 'SIZE');
+    RegisterMethod(@TBITS.OPENBIT, 'OpenBit');
+    RegisterPropertyHelper(@TBITSBITS_R, @TBITSBITS_W, 'Bits');
+    RegisterPropertyHelper(@TBITSSIZE_R, @TBITSSIZE_W, 'Size');
   end;
 end;
 {$ENDIF}
@@ -213,20 +213,20 @@ procedure RIRegisterTSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTREAM) do
   begin
-    RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.READ, 'READ');
-    RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.WRITE, 'WRITE');
-    RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.SEEK, 'SEEK');
-    RegisterMethod(@TSTREAM.READBUFFER, 'READBUFFER');
-    RegisterMethod(@TSTREAM.WRITEBUFFER, 'WRITEBUFFER');
+    RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.READ, 'Read');
+    RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.WRITE, 'Write');
+    RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.SEEK, 'Seek');
+    RegisterMethod(@TSTREAM.READBUFFER, 'ReadBuffer');
+    RegisterMethod(@TSTREAM.WRITEBUFFER, 'WriteBuffer');
     {$IFDEF DELPHI4UP}
     {$IFNDEF PS_NOINT64}
-    RegisterMethod(@TSTREAM.COPYFROM, 'COPYFROM');
+    RegisterMethod(@TSTREAM.COPYFROM, 'CopyFrom');
     {$ENDIF}
     {$ELSE}
-    RegisterMethod(@TSTREAM.COPYFROM, 'COPYFROM');
+    RegisterMethod(@TSTREAM.COPYFROM, 'CopyFrom');
     {$ENDIF}
-    RegisterPropertyHelper(@TSTREAMPOSITION_R, @TSTREAMPOSITION_W, 'POSITION');
-    RegisterPropertyHelper(@TSTREAMSIZE_R, {$IFDEF DELPHI3UP}@TSTREAMSIZE_W, {$ELSE}nil, {$ENDIF}'SIZE');
+    RegisterPropertyHelper(@TSTREAMPOSITION_R, @TSTREAMPOSITION_W, 'Position');
+    RegisterPropertyHelper(@TSTREAMSIZE_R, {$IFDEF DELPHI3UP}@TSTREAMSIZE_W, {$ELSE}nil, {$ENDIF}'Size');
   end;
 end;
 
@@ -236,8 +236,8 @@ procedure RIRegisterTHANDLESTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(THANDLESTREAM) do
   begin
-    RegisterConstructor(@THANDLESTREAM.CREATE, 'CREATE');
-    RegisterPropertyHelper(@THANDLESTREAMHANDLE_R, nil, 'HANDLE');
+    RegisterConstructor(@THANDLESTREAM.CREATE, 'Create');
+    RegisterPropertyHelper(@THANDLESTREAMHANDLE_R, nil, 'Handle');
   end;
 end;
 
@@ -254,9 +254,9 @@ begin
   with Cl.Add(TFILESTREAM) do
   begin
     {$IFDEF FPC}
-    RegisterConstructor(@TFileStreamCreate, 'CREATE');
+    RegisterConstructor(@TFileStreamCreate, 'Create');
     {$ELSE}
-    RegisterConstructor(@TFILESTREAM.CREATE, 'CREATE');
+    RegisterConstructor(@TFILESTREAM.CREATE, 'Create');
     {$ENDIF}
   end;
 end;
@@ -265,7 +265,7 @@ procedure RIRegisterTSTRINGSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGSTREAM) do
   begin
-    RegisterConstructor(@TSTRINGSTREAM.CREATE, 'CREATE');
+    RegisterConstructor(@TSTRINGSTREAM.CREATE, 'Create');
   end;
 end;
 
@@ -274,8 +274,8 @@ procedure RIRegisterTCUSTOMMEMORYSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCUSTOMMEMORYSTREAM) do
   begin
-    RegisterMethod(@TCUSTOMMEMORYSTREAM.SAVETOSTREAM, 'SAVETOSTREAM');
-    RegisterMethod(@TCUSTOMMEMORYSTREAM.SAVETOFILE, 'SAVETOFILE');
+    RegisterMethod(@TCUSTOMMEMORYSTREAM.SAVETOSTREAM, 'SaveToStream');
+    RegisterMethod(@TCUSTOMMEMORYSTREAM.SAVETOFILE, 'SaveToFile');
   end;
 end;
 
@@ -283,10 +283,10 @@ procedure RIRegisterTMEMORYSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TMEMORYSTREAM) do
   begin
-    RegisterMethod(@TMEMORYSTREAM.CLEAR, 'CLEAR');
-    RegisterMethod(@TMEMORYSTREAM.LOADFROMSTREAM, 'LOADFROMSTREAM');
-    RegisterMethod(@TMEMORYSTREAM.LOADFROMFILE, 'LOADFROMFILE');
-    RegisterMethod(@TMEMORYSTREAM.SETSIZE, 'SETSIZE');
+    RegisterMethod(@TMEMORYSTREAM.CLEAR, 'Clear');
+    RegisterMethod(@TMEMORYSTREAM.LOADFROMSTREAM, 'LoadFromStream');
+    RegisterMethod(@TMEMORYSTREAM.LOADFROMFILE, 'LoadFromFile');
+    RegisterMethod(@TMEMORYSTREAM.SETSIZE, 'SetSize');
   end;
 end;
 
@@ -294,8 +294,8 @@ procedure RIRegisterTRESOURCESTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TRESOURCESTREAM) do
   begin
-    RegisterConstructor(@TRESOURCESTREAM.CREATE, 'CREATE');
-    RegisterConstructor(@TRESOURCESTREAM.CREATEFROMID, 'CREATEFROMID');
+    RegisterConstructor(@TRESOURCESTREAM.CREATE, 'Create');
+    RegisterConstructor(@TRESOURCESTREAM.CREATEFROMID, 'CreateFromID');
   end;
 end;
 
@@ -306,21 +306,21 @@ procedure RIRegisterTPARSER(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TPARSER) do
   begin
-    RegisterConstructor(@TPARSER.CREATE, 'CREATE');
-    RegisterMethod(@TPARSER.CHECKTOKEN, 'CHECKTOKEN');
-    RegisterMethod(@TPARSER.CHECKTOKENSYMBOL, 'CHECKTOKENSYMBOL');
-    RegisterMethod(@TPARSER.ERROR, 'ERROR');
-    RegisterMethod(@TPARSER.ERRORSTR, 'ERRORSTR');
-    RegisterMethod(@TPARSER.HEXTOBINARY, 'HEXTOBINARY');
-    RegisterMethod(@TPARSER.NEXTTOKEN, 'NEXTTOKEN');
-    RegisterMethod(@TPARSER.SOURCEPOS, 'SOURCEPOS');
-    RegisterMethod(@TPARSER.TOKENCOMPONENTIDENT, 'TOKENCOMPONENTIDENT');
-    RegisterMethod(@TPARSER.TOKENFLOAT, 'TOKENFLOAT');
-    RegisterMethod(@TPARSER.TOKENINT, 'TOKENINT');
-    RegisterMethod(@TPARSER.TOKENSTRING, 'TOKENSTRING');
-    RegisterMethod(@TPARSER.TOKENSYMBOLIS, 'TOKENSYMBOLIS');
-    RegisterPropertyHelper(@TPARSERSOURCELINE_R, nil, 'SOURCELINE');
-    RegisterPropertyHelper(@TPARSERTOKEN_R, nil, 'TOKEN');
+    RegisterConstructor(@TPARSER.CREATE, 'Create');
+    RegisterMethod(@TPARSER.CHECKTOKEN, 'CheckToken');
+    RegisterMethod(@TPARSER.CHECKTOKENSYMBOL, 'CheckTokenSymbol');
+    RegisterMethod(@TPARSER.ERROR, 'Error');
+    RegisterMethod(@TPARSER.ERRORSTR, 'ErrorStr');
+    RegisterMethod(@TPARSER.HEXTOBINARY, 'HexToBinary');
+    RegisterMethod(@TPARSER.NEXTTOKEN, 'NextToken');
+    RegisterMethod(@TPARSER.SOURCEPOS, 'SourcePos');
+    RegisterMethod(@TPARSER.TOKENCOMPONENTIDENT, 'TokenComponentIdent');
+    RegisterMethod(@TPARSER.TOKENFLOAT, 'TokenFloat');
+    RegisterMethod(@TPARSER.TOKENINT, 'TokenInt');
+    RegisterMethod(@TPARSER.TOKENSTRING, 'TokenString');
+    RegisterMethod(@TPARSER.TOKENSYMBOLIS, 'TokenSymbolIs');
+    RegisterPropertyHelper(@TPARSERSOURCELINE_R, nil, 'SourceLine');
+    RegisterPropertyHelper(@TPARSERTOKEN_R, nil, 'Token');
   end;
 end;
 
@@ -370,7 +370,7 @@ procedure RIRegisterTOWNEDCOLLECTION(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TOWNEDCOLLECTION) do
   begin
-  RegisterConstructor(@TOWNEDCOLLECTION.CREATE, 'CREATE');
+  RegisterConstructor(@TOWNEDCOLLECTION.CREATE, 'Create');
   end;
 end;
 {$ENDIF}
@@ -379,18 +379,18 @@ procedure RIRegisterTCOLLECTION(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TCOLLECTION) do
   begin
-  RegisterConstructor(@TCOLLECTION.CREATE, 'CREATE');
-{$IFDEF DELPHI6UP}  {$IFNDEF FPC} RegisterMethod(@TCOLLECTION.OWNER, 'OWNER'); {$ENDIF} {$ENDIF} // no owner in FPC
-  RegisterMethod(@TCOLLECTION.ADD, 'ADD');
-  RegisterVirtualMethod(@TCOLLECTION.BEGINUPDATE, 'BEGINUPDATE');
-  RegisterMethod(@TCOLLECTION.CLEAR, 'CLEAR');
-{$IFDEF DELPHI5UP}  RegisterMethod(@TCOLLECTION.DELETE, 'DELETE'); {$ENDIF}
-  RegisterVirtualMethod(@TCOLLECTION.ENDUPDATE, 'ENDUPDATE');
-{$IFDEF DELPHI3UP}  RegisterMethod(@TCOLLECTION.FINDITEMID, 'FINDITEMID'); {$ENDIF}
-{$IFDEF DELPHI3UP}  RegisterMethod(@TCOLLECTION.INSERT, 'INSERT'); {$ENDIF}
-  RegisterPropertyHelper(@TCOLLECTIONCOUNT_R,nil,'COUNT');
-{$IFDEF DELPHI3UP}  RegisterPropertyHelper(@TCOLLECTIONITEMCLASS_R,nil,'ITEMCLASS'); {$ENDIF}
-  RegisterPropertyHelper(@TCOLLECTIONITEMS_R,@TCOLLECTIONITEMS_W,'ITEMS');
+  RegisterConstructor(@TCOLLECTION.CREATE, 'Create');
+{$IFDEF DELPHI6UP}  {$IFNDEF FPC} RegisterMethod(@TCOLLECTION.OWNER, 'Owner'); {$ENDIF} {$ENDIF} // no owner in FPC
+  RegisterMethod(@TCOLLECTION.ADD, 'Add');
+  RegisterVirtualMethod(@TCOLLECTION.BEGINUPDATE, 'BeginUpdate');
+  RegisterMethod(@TCOLLECTION.CLEAR, 'Clear');
+{$IFDEF DELPHI5UP}  RegisterMethod(@TCOLLECTION.DELETE, 'Delete'); {$ENDIF}
+  RegisterVirtualMethod(@TCOLLECTION.ENDUPDATE, 'EndUpdate');
+{$IFDEF DELPHI3UP}  RegisterMethod(@TCOLLECTION.FINDITEMID, 'FindItemID'); {$ENDIF}
+{$IFDEF DELPHI3UP}  RegisterMethod(@TCOLLECTION.INSERT, 'Insert'); {$ENDIF}
+  RegisterPropertyHelper(@TCOLLECTIONCOUNT_R,nil,'Count');
+{$IFDEF DELPHI3UP}  RegisterPropertyHelper(@TCOLLECTIONITEMCLASS_R,nil,'ItemClass'); {$ENDIF}
+  RegisterPropertyHelper(@TCOLLECTIONITEMS_R,@TCOLLECTIONITEMS_W,'Items');
   end;
 end;
 
@@ -398,11 +398,11 @@ procedure RIRegisterTCOLLECTIONITEM(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TCOLLECTIONITEM) do
   begin
-  RegisterVirtualConstructor(@TCOLLECTIONITEM.CREATE, 'CREATE');
-  RegisterPropertyHelper(@TCOLLECTIONITEMCOLLECTION_R,@TCOLLECTIONITEMCOLLECTION_W,'COLLECTION');
+  RegisterVirtualConstructor(@TCOLLECTIONITEM.CREATE, 'Create');
+  RegisterPropertyHelper(@TCOLLECTIONITEMCOLLECTION_R,@TCOLLECTIONITEMCOLLECTION_W,'Collection');
 {$IFDEF DELPHI3UP}  RegisterPropertyHelper(@TCOLLECTIONITEMID_R,nil,'ID'); {$ENDIF}
-  RegisterPropertyHelper(@TCOLLECTIONITEMINDEX_R,@TCOLLECTIONITEMINDEX_W,'INDEX');
-{$IFDEF DELPHI3UP}  RegisterPropertyHelper(@TCOLLECTIONITEMDISPLAYNAME_R,@TCOLLECTIONITEMDISPLAYNAME_W,'DISPLAYNAME'); {$ENDIF}
+  RegisterPropertyHelper(@TCOLLECTIONITEMINDEX_R,@TCOLLECTIONITEMINDEX_W,'Index');
+{$IFDEF DELPHI3UP}  RegisterPropertyHelper(@TCOLLECTIONITEMDISPLAYNAME_R,@TCOLLECTIONITEMDISPLAYNAME_W,'DisplayName'); {$ENDIF}
   end;
 end;
 {$ENDIF}

@@ -40,12 +40,12 @@ procedure RIRegisterTFont(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TFont) do
   begin
-    RegisterConstructor(@TFont.Create, 'CREATE');
+    RegisterConstructor(@TFont.Create, 'Create');
 {$IFNDEF CLX}
-    RegisterPropertyHelper(@TFontHandleR, @TFontHandleW, 'HANDLE');
+    RegisterPropertyHelper(@TFontHandleR, @TFontHandleW, 'Handle');
 {$ENDIF}
-    RegisterPropertyHelper(@TFontPixelsPerInchR, @TFontPixelsPerInchW, 'PIXELSPERINCH');
-    RegisterPropertyHelper(@TFontStyleR, @TFontStyleW, 'STYLE');
+    RegisterPropertyHelper(@TFontPixelsPerInchR, @TFontPixelsPerInchW, 'PixelsPerInch');
+    RegisterPropertyHelper(@TFontStyleR, @TFontStyleW, 'Style');
   end;
 end;
 {$IFNDEF CLX}
@@ -70,37 +70,37 @@ begin
   with Cl.Add(TCanvas) do
   begin
 {$IFDEF FPC}
-    RegisterMethod(@TCanvasArc, 'ARC');
-    RegisterMethod(@TCanvasChord, 'CHORD');
-    RegisterMethod(@TCanvasRectangle, 'RECTANGLE');
-    RegisterMethod(@TCanvasRoundRect, 'ROUNDRECT');
-    RegisterMethod(@TCanvasEllipse, 'ELLIPSE');
-    RegisterMethod(@TCanvasFillRect, 'FILLRECT');
-    RegisterMethod(@TCanvasFloodFill, 'FLOODFILL');
+    RegisterMethod(@TCanvasArc, 'Arc');
+    RegisterMethod(@TCanvasChord, 'Chord');
+    RegisterMethod(@TCanvasRectangle, 'Rectangle');
+    RegisterMethod(@TCanvasRoundRect, 'RoundRect');
+    RegisterMethod(@TCanvasEllipse, 'Ellipse');
+    RegisterMethod(@TCanvasFillRect, 'FillRect');
+    RegisterMethod(@TCanvasFloodFill, 'FloodFill');
 {$ELSE}  
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Arc, 'ARC');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Chord, 'CHORD');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Rectangle, 'RECTANGLE');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}RoundRect, 'ROUNDRECT');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Ellipse, 'ELLIPSE');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FillRect, 'FILLRECT');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Arc, 'Arc');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Chord, 'Chord');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Rectangle, 'Rectangle');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}RoundRect, 'RoundRect');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Ellipse, 'Ellipse');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FillRect, 'FillRect');
 {$IFNDEF CLX}
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FloodFill, 'FLOODFILL');
+    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FloodFill, 'FloodFill');
 {$ENDIF}
 {$ENDIF}
-    RegisterMethod(@TCanvas.Draw, 'DRAW');
+    RegisterMethod(@TCanvas.Draw, 'Draw');
 
-    RegisterMethod(@TCanvas.Lineto, 'LINETO');
-    RegisterMethod(@TCanvas.Moveto, 'MOVETO');
-    RegisterMethod(@TCanvas.Pie, 'PIE');
-    RegisterMethod(@TCanvas.Refresh, 'REFRESH');
-    RegisterMethod(@TCanvas.TextHeight, 'TEXTHEIGHT');
-    RegisterMethod(@TCanvas.TextOut, 'TEXTOUT');
-    RegisterMethod(@TCanvas.TextWidth, 'TEXTWIDTH');
+    RegisterMethod(@TCanvas.Lineto, 'LineTo');
+    RegisterMethod(@TCanvas.Moveto, 'MoveTo');
+    RegisterMethod(@TCanvas.Pie, 'Pie');
+    RegisterMethod(@TCanvas.Refresh, 'Refresh');
+    RegisterMethod(@TCanvas.TextHeight, 'TextHeight');
+    RegisterMethod(@TCanvas.TextOut, 'TextOut');
+    RegisterMethod(@TCanvas.TextWidth, 'TextWidth');
 {$IFNDEF CLX}
-    RegisterPropertyHelper(@TCanvasHandleR, @TCanvasHandleW, 'HANDLE');
+    RegisterPropertyHelper(@TCanvasHandleR, @TCanvasHandleW, 'Handle');
 {$ENDIF}
-    RegisterPropertyHelper(@TCanvasPixelsR, @TCanvasPixelsW, 'PIXELS');
+    RegisterPropertyHelper(@TCanvasPixelsR, @TCanvasPixelsW, 'Pixels');
   end;
 end;
 
@@ -113,7 +113,7 @@ procedure RIRegisterTGRAPHICSOBJECT(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TGRAPHICSOBJECT) do
   begin
-    RegisterPropertyHelper(@TGRAPHICSOBJECTONCHANGE_R, @TGRAPHICSOBJECTONCHANGE_W, 'ONCHANGE');
+    RegisterPropertyHelper(@TGRAPHICSOBJECTONCHANGE_R, @TGRAPHICSOBJECTONCHANGE_W, 'OnChange');
   end;
 end;
 
@@ -121,7 +121,7 @@ procedure RIRegisterTPEN(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TPEN) do
   begin
-    RegisterConstructor(@TPEN.CREATE, 'CREATE');
+    RegisterConstructor(@TPEN.CREATE, 'Create');
   end;
 end;
 
@@ -129,7 +129,7 @@ procedure RIRegisterTBRUSH(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TBRUSH) do
   begin
-    RegisterConstructor(@TBRUSH.CREATE, 'CREATE');
+    RegisterConstructor(@TBRUSH.CREATE, 'Create');
   end;
 end;
 

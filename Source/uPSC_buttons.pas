@@ -23,39 +23,39 @@ implementation
 
 procedure SIRegisterTSPEEDBUTTON(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TGRAPHICCONTROL'), 'TSPEEDBUTTON') do
+  with Cl.AddClassN(cl.FindClass('TGraphicControl'), 'TSpeedButton') do
   begin
-    RegisterProperty('ALLOWALLUP', 'BOOLEAN', iptrw);
-    RegisterProperty('GROUPINDEX', 'INTEGER', iptrw);
-    RegisterProperty('DOWN', 'BOOLEAN', iptrw);
-    RegisterProperty('CAPTION', 'String', iptrw);
-    RegisterProperty('FONT', 'TFont', iptrw);
-    RegisterProperty('GLYPH', 'TBITMAP', iptrw);
-    RegisterProperty('LAYOUT', 'TBUTTONLAYOUT', iptrw);
-    RegisterProperty('MARGIN', 'INTEGER', iptrw);
-    RegisterProperty('NUMGLYPHS', 'BYTE', iptrw);
-    RegisterProperty('PARENTFONT', 'Boolean', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'Boolean', iptrw);
-    RegisterProperty('SPACING', 'INTEGER', iptrw);
-    RegisterProperty('ONCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNotifyEvent', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMouseEvent', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMouseMoveEvent', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMouseEvent', iptrw);
+    RegisterProperty('AllowAllUp', 'Boolean', iptrw);
+    RegisterProperty('GroupIndex', 'Integer', iptrw);
+    RegisterProperty('Down', 'Boolean', iptrw);
+    RegisterProperty('Caption', 'string', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('Glyph', 'TBitmap', iptrw);
+    RegisterProperty('Layout', 'TButtonLayout', iptrw);
+    RegisterProperty('Margin', 'Integer', iptrw);
+    RegisterProperty('NumGlyphs', 'Byte', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('Spacing', 'Integer', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
   end;
 end;
 
 procedure SIRegisterTBITBTN(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TBUTTON'), 'TBITBTN') do
+  with Cl.AddClassN(cl.FindClass('TButton'), 'TBitBtn') do
   begin
-    RegisterProperty('GLYPH', 'TBITMAP', iptrw);
-    RegisterProperty('KIND', 'TBITBTNKIND', iptrw);
-    RegisterProperty('LAYOUT', 'TBUTTONLAYOUT', iptrw);
-    RegisterProperty('MARGIN', 'INTEGER', iptrw);
-    RegisterProperty('NUMGLYPHS', 'BYTE', iptrw);
-    RegisterProperty('STYLE', 'TBUTTONSTYLE', iptrw);
-    RegisterProperty('SPACING', 'INTEGER', iptrw);
+    RegisterProperty('Glyph', 'TBitmap', iptrw);
+    RegisterProperty('Kind', 'TBitBtnKind', iptrw);
+    RegisterProperty('Layout', 'TButtonLayout', iptrw);
+    RegisterProperty('Margin', 'Integer', iptrw);
+    RegisterProperty('NumGlyphs', 'Byte', iptrw);
+    RegisterProperty('Style', 'TButtonStyle', iptrw);
+    RegisterProperty('Spacing', 'Integer', iptrw);
   end;
 end;
 

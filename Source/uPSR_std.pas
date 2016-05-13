@@ -21,8 +21,8 @@ procedure RIRegisterTObject(CL: TPSRuntimeClassImporter);
 begin
   with cl.Add(TObject) do
   begin
-    RegisterConstructor(@TObject.Create, 'CREATE');
-    RegisterMethod(@TObject.Free, 'FREE');
+    RegisterConstructor(@TObject.Create, 'Create');
+    RegisterMethod(@TObject.Free, 'Free');
   end;
 end;
 
@@ -30,7 +30,7 @@ procedure RIRegisterTPersistent(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TPersistent) do
   begin
-    RegisterVirtualMethod(@TPersistent.Assign, 'ASSIGN');
+    RegisterVirtualMethod(@TPersistent.Assign, 'Assign');
   end;
 end;
 
@@ -50,16 +50,16 @@ procedure RIRegisterTComponent(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TComponent) do
   begin
-    RegisterMethod(@TComponent.FindComponent, 'FINDCOMPONENT');
-    RegisterVirtualConstructor(@TComponent.Create, 'CREATE');
-    RegisterPropertyHelper(@TComponentOwnerR, nil, 'OWNER');
+    RegisterMethod(@TComponent.FindComponent, 'FindComponent');
+    RegisterVirtualConstructor(@TComponent.Create, 'Create');
+    RegisterPropertyHelper(@TComponentOwnerR, nil, 'Owner');
 
-    RegisterMethod(@TCOMPONENT.DESTROYCOMPONENTS, 'DESTROYCOMPONENTS');
-    RegisterPropertyHelper(@TCOMPONENTCOMPONENTS_R, nil, 'COMPONENTS');
-    RegisterPropertyHelper(@TCOMPONENTCOMPONENTCOUNT_R, nil, 'COMPONENTCOUNT');
-    RegisterPropertyHelper(@TCOMPONENTCOMPONENTINDEX_R, @TCOMPONENTCOMPONENTINDEX_W, 'COMPONENTINDEX');
-    RegisterPropertyHelper(@TCOMPONENTCOMPONENTSTATE_R, nil, 'COMPONENTSTATE');
-    RegisterPropertyHelper(@TCOMPONENTDESIGNINFO_R, @TCOMPONENTDESIGNINFO_W, 'DESIGNINFO');
+    RegisterMethod(@TCOMPONENT.DESTROYCOMPONENTS, 'DestroyComponents');
+    RegisterPropertyHelper(@TCOMPONENTCOMPONENTS_R, nil, 'Components');
+    RegisterPropertyHelper(@TCOMPONENTCOMPONENTCOUNT_R, nil, 'ComponentCount');
+    RegisterPropertyHelper(@TCOMPONENTCOMPONENTINDEX_R, @TCOMPONENTCOMPONENTINDEX_W, 'ComponentIndex');
+    RegisterPropertyHelper(@TCOMPONENTCOMPONENTSTATE_R, nil, 'ComponentState');
+    RegisterPropertyHelper(@TCOMPONENTDESIGNINFO_R, @TCOMPONENTDESIGNINFO_W, 'DesignInfo');
   end;
 end;
 

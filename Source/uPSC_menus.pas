@@ -16,19 +16,19 @@ implementation
 
 procedure SIRegisterTMENUITEMSTACK(CL: TPSPascalCompiler);
 begin
-	With cl.AddClassN(Cl.FindClass('TSTACK'),'TMENUITEMSTACK') do
+	With cl.AddClassN(Cl.FindClass('TStack'),'TMenuItemStack') do
 	begin
-	  RegisterMethod('Procedure CLEARITEM( AITEM : TMENUITEM)');
+	  RegisterMethod('procedure ClearItem(AItem: TMenuItem)');
 	end;
 end;
 
 procedure SIRegisterTPOPUPLIST(CL: TPSPascalCompiler);
 begin
-	With cl.AddClassN(Cl.FindClass('TLIST'),'TPOPUPLIST') do
+	With cl.AddClassN(Cl.FindClass('TList'),'TPopupList') do
 	begin
-		RegisterProperty('WINDOW', 'HWND', iptr);
-		RegisterMethod('Procedure ADD( POPUP : TPOPUPMENU)');
-		RegisterMethod('Procedure REMOVE( POPUP : TPOPUPMENU)');
+		RegisterProperty('Window', 'HWND', iptr);
+		RegisterMethod('procedure Add(Popup: TPopupMenu)');
+		RegisterMethod('procedure Remove(Popup: TPopupMenu)');
 	end;
 end;
 
@@ -36,178 +36,178 @@ procedure SIRegisterTPOPUPMENU(CL: TPSPascalCompiler);
 var
 	cc: TPSCompileTimeClass;
 begin
-	With cl.AddClassN(Cl.FindClass('TMENU'),'TPOPUPMENU') do
+	With cl.AddClassN(Cl.FindClass('TMenu'),'TPopupMenu') do
 	begin
 		cc := Cl.FindClass('TLabel');
 		if cc <> nil then
-			RegisterProperty('POPUPMENU', 'TPOPUPMENU', iptRW);
+			RegisterProperty('PopupMenu', 'TPopupMenu', iptRW);
 		with Cl.FindClass('TForm') do
 		begin
-			RegisterProperty('POPUPMENU', 'TPOPUPMENU', iptRW);
+			RegisterProperty('PopupMenu', 'TPopupMenu', iptRW);
 		end;
-	RegisterMethod('Constructor CREATE( AOWNER : TCOMPONENT)');
-	RegisterMethod('Procedure POPUP( X, Y : INTEGER)');
-	RegisterProperty('POPUPCOMPONENT', 'TCOMPONENT', iptrw);
-	RegisterProperty('ALIGNMENT', 'TPOPUPALIGNMENT', iptrw);
-	RegisterProperty('AUTOPOPUP', 'BOOLEAN', iptrw);
-	RegisterProperty('HELPCONTEXT', 'THELPCONTEXT', iptrw);
-    RegisterProperty('MENUANIMATION', 'TMENUANIMATION', iptrw);
-    RegisterProperty('TRACKBUTTON', 'TTRACKBUTTON', iptrw);
-    RegisterProperty('ONPOPUP', 'TNOTIFYEVENT', iptrw);
+	RegisterMethod('constructor Create(AOwner: TComponent)');
+	RegisterMethod('procedure Popup(X, Y: Integer)');
+	RegisterProperty('PopupComponent', 'TComponent', iptrw);
+	RegisterProperty('Alignment', 'TPopupAlignment', iptrw);
+	RegisterProperty('AutoPopup', 'Boolean', iptrw);
+	RegisterProperty('HelpContext', 'THelpContext', iptrw);
+    RegisterProperty('MenuAnimation', 'TMenuAnimation', iptrw);
+    RegisterProperty('TrackButton', 'TTrackButton', iptrw);
+    RegisterProperty('OnPopup', 'TNotifyEvent', iptrw);
   end;
 end;
 
 procedure SIRegisterTMAINMENU(CL: TPSPascalCompiler);
 begin
-  With cl.AddClassN(Cl.FindClass('TMENU'),'TMAINMENU') do
+  With cl.AddClassN(Cl.FindClass('TMenu'),'TMainMenu') do
   begin
-    RegisterMethod('Procedure MERGE( MENU : TMAINMENU)');
-    RegisterMethod('Procedure UNMERGE( MENU : TMAINMENU)');
-    RegisterMethod('Procedure POPULATEOLE2MENU( SHAREDMENU : HMENU; GROUPS : array of INTEGER; var WIDTHS : array of LONGINT)');
-    RegisterMethod('Procedure GETOLE2ACCELERATORTABLE( var ACCELTABLE : HACCEL; var ACCELCOUNT : INTEGER; GROUPS : array of INTEGER)');
-    RegisterMethod('Procedure SETOLE2MENUHANDLE( HANDLE : HMENU)');
-    RegisterProperty('AUTOMERGE', 'BOOLEAN', iptrw);
+    RegisterMethod('procedure Merge(Menu: TMainMenu)');
+    RegisterMethod('procedure Unmerge(Menu: TMainMenu)');
+    RegisterMethod('procedure PopulateOle2Menu(SharedMenu: HMENU; Groups: array of Integer; var Widths: array of LongInt)');
+    RegisterMethod('procedure GetOle2AcceleratorTable(var AccelTable: HACCEL; var AccelCount: Integer; Groups: array of Integer)');
+    RegisterMethod('procedure SetOle2MenuHandle(Handle: HMENU)');
+    RegisterProperty('AutoMerge', 'Boolean', iptrw);
   end;
 end;
 
 procedure SIRegisterTMENU(CL: TPSPascalCompiler);
 begin
-  With cl.AddClassN(Cl.FindClass('TCOMPONENT'),'TMENU') do
+  With cl.AddClassN(Cl.FindClass('TComponent'),'TMenu') do
   begin
-    RegisterMethod('Constructor CREATE( AOWNER : TCOMPONENT)');
-    RegisterMethod('Function DISPATCHCOMMAND( ACOMMAND : WORD) : BOOLEAN');
-    RegisterMethod('Function DISPATCHPOPUP( AHANDLE : HMENU) : BOOLEAN');
-    RegisterMethod('Function FINDITEM( VALUE : INTEGER; KIND : TFINDITEMKIND) : TMENUITEM');
-    RegisterMethod('Function GETHELPCONTEXT( VALUE : INTEGER; BYCOMMAND : BOOLEAN) : THELPCONTEXT');
-    RegisterProperty('IMAGES', 'TCUSTOMIMAGELIST', iptrw);
-    RegisterMethod('Function ISRIGHTTOLEFT : BOOLEAN');
-    RegisterMethod('Procedure PARENTBIDIMODECHANGED( ACONTROL : TOBJECT)');
-    RegisterMethod('Procedure PROCESSMENUCHAR( var MESSAGE : TWMMENUCHAR)');
-    RegisterProperty('AUTOHOTKEYS', 'TMENUAUTOFLAG', iptrw);
-    RegisterProperty('AUTOLINEREDUCTION', 'TMENUAUTOFLAG', iptrw);
-    RegisterProperty('BIDIMODE', 'TBIDIMODE', iptrw);
-    RegisterProperty('HANDLE', 'HMENU', iptr);
-    RegisterProperty('OWNERDRAW', 'BOOLEAN', iptrw);
-    RegisterProperty('PARENTBIDIMODE', 'BOOLEAN', iptrw);
-    RegisterProperty('WINDOWHANDLE', 'HWND', iptrw);
-    RegisterProperty('ITEMS', 'TMENUITEM', iptr);
+    RegisterMethod('constructor Create(AOwner: TComponent)');
+    RegisterMethod('function DispatchCommand(ACommand: Word): Boolean');
+    RegisterMethod('function DispatchPopup(AHandle: HMENU): Boolean');
+    RegisterMethod('function FindItem(Value: Integer; Kind: TFindItemKind): TMenuItem');
+    RegisterMethod('function GetHelpContext(Value: Integer; ByCommand: Boolean): THelpContext');
+    RegisterProperty('Images', 'TCustomImageList', iptrw);
+    RegisterMethod('function IsRightToLeft: Boolean');
+    RegisterMethod('procedure ParentBiDiModeChanged(AControl: TObject)');
+    RegisterMethod('procedure ProcessMenuChar(var Message: TWMMenuChar)');
+    RegisterProperty('AutoHotkeys', 'TMenuAutoFlag', iptrw);
+    RegisterProperty('AutoLineReduction', 'TMenuAutoFlag', iptrw);
+    RegisterProperty('BiDiMode', 'TBiDiMode', iptrw);
+    RegisterProperty('Handle', 'HMENU', iptr);
+    RegisterProperty('OwnerDraw', 'Boolean', iptrw);
+    RegisterProperty('ParentBiDiMode', 'Boolean', iptrw);
+    RegisterProperty('WindowHandle', 'HWND', iptrw);
+    RegisterProperty('Items', 'TMenuItem', iptr);
   end;
 end;
 
 procedure SIRegisterTMENUITEM(CL: TPSPascalCompiler);
 begin
-  With cl.AddClassN(Cl.FindClass('TCOMPONENT'),'TMENUITEM') do
+  With cl.AddClassN(Cl.FindClass('TComponent'),'TMenuItem') do
   begin
-    RegisterMethod('Constructor CREATE( AOWNER : TCOMPONENT)');
-    RegisterMethod('Procedure INITIATEACTION');
-    RegisterMethod('Procedure INSERT( INDEX : INTEGER; ITEM : TMENUITEM)');
-    RegisterMethod('Procedure DELETE( INDEX : INTEGER)');
-    RegisterMethod('Procedure CLEAR');
-    RegisterMethod('Procedure CLICK');
-    RegisterMethod('Function FIND( ACAPTION : String) : TMENUITEM');
-    RegisterMethod('Function INDEXOF( ITEM : TMENUITEM) : INTEGER');
-    RegisterMethod('Function ISLINE : BOOLEAN');
-    RegisterMethod('Function GETIMAGELIST : TCUSTOMIMAGELIST');
-    RegisterMethod('Function GETPARENTCOMPONENT : TCOMPONENT');
-    RegisterMethod('Function GETPARENTMENU : TMENU');
-    RegisterMethod('Function HASPARENT : BOOLEAN');
-    RegisterMethod('Function NEWTOPLINE : INTEGER');
-    RegisterMethod('Function NEWBOTTOMLINE : INTEGER');
-    RegisterMethod('Function INSERTNEWLINEBEFORE( AITEM : TMENUITEM) : INTEGER');
-    RegisterMethod('Function INSERTNEWLINEAFTER( AITEM : TMENUITEM) : INTEGER');
-    RegisterMethod('Procedure ADD( ITEM : TMENUITEM)');
-    RegisterMethod('Procedure REMOVE( ITEM : TMENUITEM)');
-    RegisterMethod('Function RETHINKHOTKEYS : BOOLEAN');
-    RegisterMethod('Function RETHINKLINES : BOOLEAN');
-    RegisterProperty('COMMAND', 'WORD', iptr);
-    RegisterProperty('HANDLE', 'HMENU', iptr);
-    RegisterProperty('COUNT', 'INTEGER', iptr);
-    RegisterProperty('ITEMS', 'TMENUITEM INTEGER', iptr);
-    RegisterProperty('MENUINDEX', 'INTEGER', iptrw);
-    RegisterProperty('PARENT', 'TMENUITEM', iptr);
+    RegisterMethod('constructor Create(AOwner: TComponent)');
+    RegisterMethod('procedure InitiateAction');
+    RegisterMethod('procedure Insert(Index: Integer; Item: TMenuItem)');
+    RegisterMethod('procedure Delete(Index: Integer)');
+    RegisterMethod('procedure Clear');
+    RegisterMethod('procedure Click');
+    RegisterMethod('function Find(ACaption: string): TMenuItem');
+    RegisterMethod('function IndexOf(Item: TMenuItem): Integer');
+    RegisterMethod('function IsLine: Boolean');
+    RegisterMethod('function GetImageList: TCustomImageList');
+    RegisterMethod('function GetParentComponent: TComponent');
+    RegisterMethod('function GetParentMenu: TMenu');
+    RegisterMethod('function HasParent: Boolean');
+    RegisterMethod('function NewTopLine: Integer');
+    RegisterMethod('function NewBottomLine: Integer');
+    RegisterMethod('function InsertNewLineBefore(AItem: TMenuItem): Integer');
+    RegisterMethod('function InsertNewLineAfter(AItem: TMenuItem): Integer');
+    RegisterMethod('procedure Add(Item: TMenuItem)');
+    RegisterMethod('procedure Remove(Item: TMenuItem)');
+    RegisterMethod('function RethinkHotkeys: Boolean');
+    RegisterMethod('function RethinkLines: Boolean');
+    RegisterProperty('Command', 'Word', iptr);
+    RegisterProperty('Handle', 'HMENU', iptr);
+    RegisterProperty('Count', 'Integer', iptr);
+    RegisterProperty('Items', 'TMenuItem Integer', iptr);
+    RegisterProperty('MenuIndex', 'Integer', iptrw);
+    RegisterProperty('Parent', 'TMenuItem', iptr);
     {$IFDEF DELPHI5UP}
-    RegisterProperty('ACTION', 'TBASICACTION', iptrw);
+    RegisterProperty('Action', 'TBasicAction', iptrw);
     {$ENDIF}
-    RegisterProperty('AUTOHOTKEYS', 'TMENUITEMAUTOFLAG', iptrw);
-    RegisterProperty('AUTOLINEREDUCTION', 'TMENUITEMAUTOFLAG', iptrw);
-    RegisterProperty('BITMAP', 'TBITMAP', iptrw);
-    RegisterProperty('CAPTION', 'String', iptrw);
-    RegisterProperty('CHECKED', 'BOOLEAN', iptrw);
-    RegisterProperty('SUBMENUIMAGES', 'TCUSTOMIMAGELIST', iptrw);
-    RegisterProperty('DEFAULT', 'BOOLEAN', iptrw);
-    RegisterProperty('ENABLED', 'BOOLEAN', iptrw);
-    RegisterProperty('GROUPINDEX', 'BYTE', iptrw);
-    RegisterProperty('HELPCONTEXT', 'THELPCONTEXT', iptrw);
-    RegisterProperty('HINT', 'String', iptrw);
-    RegisterProperty('IMAGEINDEX', 'TIMAGEINDEX', iptrw);
-    RegisterProperty('RADIOITEM', 'BOOLEAN', iptrw);
-    RegisterProperty('SHORTCUT', 'TSHORTCUT', iptrw);
-    RegisterProperty('VISIBLE', 'BOOLEAN', iptrw);
-    RegisterProperty('ONCLICK', 'TNOTIFYEVENT', iptrw);
-   {$IFNDEF FPC} RegisterProperty('ONDRAWITEM', 'TMENUDRAWITEMEVENT', iptrw);
-    RegisterProperty('ONADVANCEDDRAWITEM', 'TADVANCEDMENUDRAWITEMEVENT', iptrw);
-    RegisterProperty('ONMEASUREITEM', 'TMENUMEASUREITEMEVENT', iptrw);{$ENDIF}
+    RegisterProperty('AutoHotkeys', 'TMenuItemAutoFlag', iptrw);
+    RegisterProperty('AutoLineReduction', 'TMenuItemAutoFlag', iptrw);
+    RegisterProperty('Bitmap', 'TBitmap', iptrw);
+    RegisterProperty('Caption', 'string', iptrw);
+    RegisterProperty('Checked', 'Boolean', iptrw);
+    RegisterProperty('SubMenuImages', 'TCustomImageList', iptrw);
+    RegisterProperty('Default', 'Boolean', iptrw);
+    RegisterProperty('Enabled', 'Boolean', iptrw);
+    RegisterProperty('GroupIndex', 'Byte', iptrw);
+    RegisterProperty('HelpContext', 'THelpContext', iptrw);
+    RegisterProperty('Hint', 'string', iptrw);
+    RegisterProperty('ImageIndex', 'TImageIndex', iptrw);
+    RegisterProperty('RadioItem', 'Boolean', iptrw);
+    RegisterProperty('ShortCut', 'TShortCut', iptrw);
+    RegisterProperty('Visible', 'Boolean', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+   {$IFNDEF FPC} RegisterProperty('OnDrawItem', 'TMenuDrawItemEvent', iptrw);
+    RegisterProperty('OnAdvancedDrawItem', 'TAdvancedMenuDrawItemEvent', iptrw);
+    RegisterProperty('OnMeasureItem', 'TMenuMeasureItemEvent', iptrw);{$ENDIF}
   end;
 end;
 
 procedure SIRegister_Menus(Cl: TPSPascalCompiler);
 begin
-  Cl.AddTypeS('HMenu', 'Cardinal');
+  Cl.AddTypeS('HMENU', 'Cardinal');
   Cl.AddTypeS('HACCEL', 'Cardinal');
 
-  cl.addClassN(cl.FindClass('EXCEPTION'),'EMENUERROR');
-  Cl.addTypeS('TMENUBREAK', '( MBNONE, MBBREAK, MBBARBREAK )');
+  cl.addClassN(cl.FindClass('Exception'),'EMenuError');
+  Cl.addTypeS('TMenuBreak', '(mbNone, mbBreak, mbBarBreak)');
 {$IFNDEF FPC}
-  Cl.addTypeS('TMENUDRAWITEMEVENT', 'Procedure ( SENDER : TOBJECT; ACANVAS : TC'
-   +'ANVAS; ARECT : TRECT; SELECTED : BOOLEAN)');
-  Cl.addTypeS('TADVANCEDMENUDRAWITEMEVENT', 'Procedure ( SENDER : TOBJECT; ACAN'
-   +'VAS : TCANVAS; ARECT : TRECT; STATE : TOWNERDRAWSTATE)');
-  Cl.addTypeS('TMENUMEASUREITEMEVENT', 'Procedure ( SENDER : TOBJECT; ACANVAS :'
-   +' TCANVAS; var WIDTH, HEIGHT : INTEGER)');
+  Cl.addTypeS('TMenuDrawItemEvent', 'procedure (Sender: TObject; ACanvas: TCanvas; ARect: TRect; Selected: Boolean)');
+
+  Cl.addTypeS('TAdvancedMenuDrawItemEvent', 'procedure (Sender: TObject; ACanvas: TCanvas; ARect: TRect; State: TOwnerDrawState)');
+
+  Cl.addTypeS('TMenuMeasureItemEvent', 'procedure (Sender: TObject; ACanvas: TCanvas; var Width, Height: Integer)');
+
 {$ENDIF}
-  Cl.addTypeS('TMENUITEMAUTOFLAG', '( MAAUTOMATIC, MAMANUAL, MAPARENT )');
-  Cl.AddTypeS('TMenuAutoFlag', 'TMENUITEMAUTOFLAG');
-  Cl.addTypeS('TSHORTCUT', 'WORD');
-  cl.addClassN(cl.FindClass('TACTIONLINK'),'TMENUACTIONLINK');
+  Cl.addTypeS('TMenuItemAutoFlag', '(maAutomatic, maManual, maParent)');
+  Cl.AddTypeS('TMenuAutoFlag', 'TMenuItemAutoFlag');
+  Cl.addTypeS('TShortCut', 'Word');
+  cl.addClassN(cl.FindClass('TActionLink'),'TMenuActionLink');
   SIRegisterTMENUITEM(Cl);
-  Cl.addTypeS('TMENUCHANGEEVENT', 'Procedure ( SENDER : TOBJECT; SOURCE : TMENU'
-   +'ITEM; REBUILD : BOOLEAN)');
-  Cl.addTypeS('TFINDITEMKIND', '( FKCOMMAND, FKHANDLE, FKSHORTCUT )');
+  Cl.addTypeS('TMenuChangeEvent', 'procedure (Sender: TObject; Source: TMenuItem; Rebuild: Boolean)');
+
+  Cl.addTypeS('TFindItemKind', '(fkCommand, fkHandle, fkShortCut)');
   SIRegisterTMENU(Cl);
   SIRegisterTMAINMENU(Cl);
-  Cl.addTypeS('TPOPUPALIGNMENT', '( PALEFT, PARIGHT, PACENTER )');
-  Cl.addTypeS('TTRACKBUTTON', '( TBRIGHTBUTTON, TBLEFTBUTTON )');
-  Cl.addTypeS('TMENUANIMATIONS', '( MALEFTTORIGHT, MARIGHTTOLEFT, MATOPTOBOTTOM'
-   +', MABOTTOMTOTOP, MANONE )');
-  Cl.addTypeS('TMENUANIMATION', 'set of TMENUANIMATIONS');
+  Cl.addTypeS('TPopupAlignment', '(paLeft, paRight, paCenter)');
+  Cl.addTypeS('TTrackButton', '(tbRightButton, tbLeftButton)');
+  Cl.addTypeS('TMenuAnimations', '(maLeftToRight, maRightToLeft, maTopToBottom, maBottomToTop, maNone)');
+
+  Cl.addTypeS('TMenuAnimation', 'set of TMenuAnimations');
   SIRegisterTPOPUPMENU(Cl);
   SIRegisterTPOPUPLIST(Cl);
   SIRegisterTMENUITEMSTACK(Cl);
-  Cl.addTypeS('TCMENUITEM', 'TMENUITEM');
+  Cl.addTypeS('TCMenuItem', 'TMenuItem');
 {$IFNDEF FPC}
 //TODO: it should work,but somehow TShiftState is not defined
-  Cl.AddDelphiFunction('Function SHORTCUT( KEY : WORD; SHIFT : TSHIFTSTATE) : T'
-   +'SHORTCUT');
-  Cl.AddDelphiFunction('Procedure SHORTCUTTOKEY( SHORTCUT : TSHORTCUT; var KEY '
- +': WORD; var SHIFT : TSHIFTSTATE)');
+  Cl.AddDelphiFunction('function ShortCut(Key: Word; Shift: TShiftState): TShortCut');
+
+  Cl.AddDelphiFunction('procedure ShortCutToKey(ShortCut: TShortCut; var Key: Word; var Shift: TShiftState)');
+
 {$ENDIF}
-  Cl.AddDelphiFunction('Function SHORTCUTTOTEXT( SHORTCUT : TSHORTCUT) : String'
-   +'');
-  Cl.AddDelphiFunction('Function TEXTTOSHORTCUT( TEXT : String) : TSHORTCUT');
-  Cl.AddDelphiFunction('Function NEWMENU( OWNER : TCOMPONENT; const ANAME : STR'
-   +'ING; ITEMS : array of TMenuItem) : TMAINMENU');
-  Cl.AddDelphiFunction('Function NEWPOPUPMENU( OWNER : TCOMPONENT; const ANAME '
-   +': String; ALIGNMENT : TPOPUPALIGNMENT; AUTOPOPUP : BOOLEAN; const ITEMS : array of '
-   +'TCMENUITEM) : TPOPUPMENU');
-  Cl.AddDelphiFunction('Function NEWSUBMENU( const ACAPTION : String; HCTX : WO'
-   +'RD; const ANAME : String; ITEMS : array of TMenuItem; AENABLED : BOOLEAN) : TMENUITEM');
-  Cl.AddDelphiFunction('Function NEWITEM( const ACAPTION : String; ASHORTCUT : '
-   +'TSHORTCUT; ACHECKED, AENABLED : BOOLEAN; AONCLICK : TNOTIFYEVENT; HCTX : W'
-   +'ORD; const ANAME : String) : TMENUITEM');
-  Cl.AddDelphiFunction('Function NEWLINE : TMENUITEM');
+  Cl.AddDelphiFunction('function ShortCutToText(ShortCut: TShortCut): string');
+
+  Cl.AddDelphiFunction('function TextToShortCut(Text: string): TShortCut');
+  Cl.AddDelphiFunction('function NewMenu(Owner: TComponent; const AName: string; Items: array of TMenuItem): TMainMenu');
+
+  Cl.AddDelphiFunction('function NewPopupMenu(Owner: TComponent; const AName: string; Alignment: TPopupAlignment; AutoPopup: Boolean; const Items: array of TCMenuItem): TPopupMenu');
+
+
+  Cl.AddDelphiFunction('function NewSubMenu(const ACaption: string; HCTX: Word; const AName: string; Items: array of TMenuItem; AEnabled: Boolean): TMenuItem');
+
+  Cl.AddDelphiFunction('function NewItem(const ACaption: string; AShortCut: TShortCut; Achecked, AEnabled: Boolean; AOnClick: TNotifyEvent; HCTX: Word; const AName: string): TMenuItem');
+
+
+  Cl.AddDelphiFunction('function NewLine: TMenuItem');
 {$IFNDEF FPC}
-  Cl.AddDelphiFunction('Procedure DRAWMENUITEM( MENUITEM : TMENUITEM; ACANVAS :'
-   +' TCANVAS; ARECT : TRECT; STATE : TOWNERDRAWSTATE)');
+  Cl.AddDelphiFunction('procedure DrawMenuItem(MenuItem: TMenuItem; ACanvas: TCanvas; ARect: TRect; State: TOwnerDrawState)');
+
 {$ENDIF}
 end;
 

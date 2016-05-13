@@ -298,7 +298,7 @@ Procedure TPSScriptExtension.GetCodeProps;
         If (tci = nil) or  existsItem(tci.OrgName) then continue;
         if tci is TPSDelphiClassItemConstructor then begin
           Getdecl(tci.decl, T, V);
-          If Show then addListItem('Constructor',tci.OrgName, v);
+          If Show then addListItem('constructor',tci.OrgName, v);
         end else
         if tci is TPSDelphiClassItemMethod then begin
           If Show then begin
@@ -342,7 +342,7 @@ Procedure TPSScriptExtension.GetCodeProps;
         for n := 0 to (xr as TPSRecordType).RecValCount-1 do begin
           xri := (xr as TPSRecordType).RecVal(n);
           If Show then begin
-            addListItem('Var',xri.FieldOrgName,xri.aType.OriginalName)
+            addListItem('var',xri.FieldOrgName,xri.aType.OriginalName)
           end else
           If (xri.aType <> nil) and (xri.FieldName = Zoek) then
             result := getTypeDef(xri.aType, aZoek);
@@ -376,7 +376,7 @@ Procedure TPSScriptExtension.GetCodeProps;
         for h := 0 to ip.ProcVars.Count-1 do begin
           ipv := PIFPSProcVar(ip.ProcVars[h]);
           If aVarName = '' then begin
-            addListItem('Var',ipv.OrgName, ': '+ipv.AType.OriginalName);
+            addListItem('var',ipv.OrgName, ': '+ipv.AType.OriginalName);
           end else
           If (ipv.NameHash = HH) and (ipv.Name = aVarName) then begin
             result := getTypeDef(ipv.aType, aZoek);
@@ -386,7 +386,7 @@ Procedure TPSScriptExtension.GetCodeProps;
         for h := 0 to ip.Decl.ParamCount-1 do begin
           ipp := TPSParameterDecl(ip.Decl.Params[h]);
           If aVarName = '' then begin
-            addListItem('Var',ipp.OrgName, ': '+ipp.aType.OriginalName);
+            addListItem('var',ipp.OrgName, ': '+ipp.aType.OriginalName);
           end else
           If {(ipp.Hash = HH) and} (ipp.Name = aVarName) then begin
             result := getTypeDef(ipp.aType, aZoek);
@@ -472,11 +472,11 @@ begin
       addListItem('Type',Comp.GetType(n).OriginalName);
     end;
     for n := 0 to Comp.GetVarCount-1 do begin
-      addListItem('Var',Comp.GetVar(n).OrgName, ': '+Comp.Getvar(n).aType.OriginalName);
+      addListItem('var',Comp.GetVar(n).OrgName, ': '+Comp.Getvar(n).aType.OriginalName);
     end;
     with TMyPascalCompiler(Comp) do begin
       for n := 0 to FConstants.Count-1 do begin
-        addListItem('Const', TPSConstant(FConstants[n]).OrgName );
+        addListItem('const', TPSConstant(FConstants[n]).OrgName );
       end;
       for n := 0 to FRegProcs.Count-1 do begin
         xr := FRegProcs[n];

@@ -44,7 +44,7 @@ begin
   //with RegClassS(CL,'TCommonDialog', 'TFindDialog') do
   with CL.AddClassN(CL.FindClass('TCommonDialog'),'TFindDialog') do
   begin
-    RegisterMethod('Procedure CloseDialog');
+    RegisterMethod('procedure CloseDialog');
     RegisterProperty('Left', 'Integer', iptrw);
     RegisterProperty('Position', 'TPoint', iptrw);
     RegisterProperty('Top', 'Integer', iptrw);
@@ -147,8 +147,8 @@ begin
   //with RegClassS(CL,'TComponent', 'TCommonDialog') do
   with CL.AddClassN(CL.FindClass('TComponent'),'TCommonDialog') do
   begin
-    RegisterProperty('Handle', 'HWnd', iptr);
-    RegisterProperty('Ctl3D', 'Boolean', iptrw);
+    RegisterProperty('Handle', 'HWND', iptr);
+    RegisterProperty('CTL3D', 'Boolean', iptrw);
     RegisterProperty('HelpContext', 'THelpContext', iptrw);
     RegisterProperty('OnClose', 'TNotifyEvent', iptrw);
     RegisterProperty('OnShow', 'TNotifyEvent', iptrw);
@@ -160,58 +160,58 @@ procedure SIRegister_Dialogs(CL: TPSPascalCompiler);
 begin
  CL.AddConstantN('MaxCustomColors','LongInt').SetInt( 16);
   SIRegister_TCommonDialog(CL);
-  CL.AddTypeS('TOpenOption', '( ofReadOnly, ofOverwritePrompt, ofHideReadOnly, '
-   +'ofNoChangeDir, ofShowHelp, ofNoValidate, ofAllowMultiSelect, ofExtensionDi'
-   +'fferent, ofPathMustExist, ofFileMustExist, ofCreatePrompt, ofShareAware, o'
-   +'fNoReadOnlyReturn, ofNoTestFileCreate, ofNoNetworkButton, ofNoLongNames, o'
-   +'fOldStyleDialog, ofNoDereferenceLinks, ofEnableIncludeNotify, ofEnableSizi'
-   +'ng )');
+  CL.AddTypeS('TOpenOption', '(ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofNoChangeDir, ofShowHelp, ofNoValidate, ofAllowMultiSelect, ofExtensionDifferent, ofPathMustExist, ofFileMustExist, ofCreatePrompt, ofShareAware, ofNoReadOnlyReturn, ofNoTestFileCreate, ofNoNetworkButton, ofNoLongNames, ofOldStyleDialog, ofNoDereferenceLinks, ofEnableIncludeNotify, ofEnableSizing)');
+
+
+
+
+
   CL.AddTypeS('TOpenOptions', 'set of TOpenOption');
-  CL.AddTypeS('TFileEditStyle', '( fsEdit, fsComboBox )');
-  CL.AddTypeS('TIncludeItemEvent', 'Procedure ( const OFN : TOFNotifyEx; var In'
-   +'clude : Boolean)');
+  CL.AddTypeS('TFileEditStyle', '(fsEdit, fsComboBox)');
+  CL.AddTypeS('TIncludeItemEvent', 'procedure (const OFN: TOFNotifyEx; var Include: Boolean)');
+
   SIRegister_TOpenDialog(CL);
   SIRegister_TSaveDialog(CL);
-  CL.AddTypeS('TColorDialogOption', '( cdFullOpen, cdPreventFullOpen, cdShowHel'
-   +'p, cdSolidColor, cdAnyColor )');
+  CL.AddTypeS('TColorDialogOption', '(cdFullOpen, cdPreventFullOpen, cdShowHelp, cdSolidColor, cdAnyColor)');
+
   CL.AddTypeS('TColorDialogOptions', 'set of TColorDialogOption');
   SIRegister_TColorDialog(CL);
-  CL.AddTypeS('TFontDialogOption', '( fdAnsiOnly, fdTrueTypeOnly, fdEffects, fd'
-   +'FixedPitchOnly, fdForceFontExist, fdNoFaceSel, fdNoOEMFonts, fdNoSimulatio'
-   +'ns, fdNoSizeSel, fdNoStyleSel, fdNoVectorFonts, fdShowHelp, fdWysiwyg, fdL'
-   +'imitSize, fdScalableOnly, fdApplyButton )');
+  CL.AddTypeS('TFontDialogOption', '(fdAnsiOnly, fdTrueTypeOnly, fdEffects, fdFixedPitchOnly, fdForceFontExist, fdNoFaceSel, fdNoOEMFonts, fdNoSimulations, fdNoSizeSel, fdNoStyleSel, fdNoVectorFonts, fdShowHelp, fdWysiwyg, fdLimitSize, fdScalableOnly, fdApplyButton)');
+
+
+
   CL.AddTypeS('TFontDialogOptions', 'set of TFontDialogOption');
-  CL.AddTypeS('TFontDialogDevice', '( fdScreen, fdPrinter, fdBoth )');
-  CL.AddTypeS('TFDApplyEvent', 'Procedure ( Sender : TObject; Wnd : HWND)');
+  CL.AddTypeS('TFontDialogDevice', '(fdScreen, fdPrinter, fdBoth)');
+  CL.AddTypeS('TFDApplyEvent', 'procedure (Sender: TObject; Wnd: HWND)');
   SIRegister_TFontDialog(CL);
   SIRegister_TPrinterSetupDialog(CL);
-  CL.AddTypeS('TPrintRange', '( prAllPages, prSelection, prPageNums )');
-  CL.AddTypeS('TPrintDialogOption', '( poPrintToFile, poPageNums, poSelection, '
-   +'poWarning, poHelp, poDisablePrintToFile )');
+  CL.AddTypeS('TPrintRange', '(prAllPages, prSelection, prPageNums)');
+  CL.AddTypeS('TPrintDialogOption', '(poPrintToFile, poPageNums, poSelection, poWarning, poHelp, poDisablePrintToFile)');
+
   CL.AddTypeS('TPrintDialogOptions', 'set of TPrintDialogOption');
   SIRegister_TPrintDialog(CL);
-  CL.AddTypeS('TFindOption', '( frDown, frFindNext, frHideMatchCase, frHideWhol'
-   +'eWord, frHideUpDown, frMatchCase, frDisableMatchCase, frDisableUpDown, frD'
-   +'isableWholeWord, frReplace, frReplaceAll, frWholeWord, frShowHelp )');
+  CL.AddTypeS('TFindOption', '(frDown, frFindNext, frHideMatchCase, frHideWholeWord, frHideUpDown, frMatchCase, frDisableMatchCase, frDisableUpDown, frDisableWholeWord, frReplace, frReplaceAll, frWholeWord, frShowHelp)');
+
+
   CL.AddTypeS('TFindOptions', 'set of TFindOption');
   SIRegister_TFindDialog(CL);
   SIRegister_TReplaceDialog(CL);
-  CL.AddTypeS('TMsgDlgType', '( mtWarning, mtError, mtInformation, mtConfirmati'
-   +'on, mtCustom )');
-  CL.AddTypeS('TMsgDlgBtn', '( mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, m'
-   +'bIgnore, mbAll, mbNoToAll, mbYesToAll, mbHelp )');
+  CL.AddTypeS('TMsgDlgType', '(mtWarning, mtError, mtInformation, mtConfirmation, mtCustom)');
+
+  CL.AddTypeS('TMsgDlgBtn', '(mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, mbIgnore, mbAll, mbNoToAll, mbYesToAll, mbHelp)');
+
   CL.AddTypeS('TMsgDlgButtons', 'set of TMsgDlgBtn');
  CL.AddConstantN('mbYesNoCancel','LongInt').Value.ts32 := ord(mbYes) or ord(mbNo) or ord(mbCancel);
  CL.AddConstantN('mbOKCancel','LongInt').Value.ts32 := ord(mbOK) or ord(mbCancel);
  CL.AddConstantN('mbAbortRetryIgnore','LongInt').Value.ts32 := ord(mbAbort) or ord(mbRetry) or ord(mbIgnore);
- CL.AddDelphiFunction('Function CreateMessageDialog( const Msg : string; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons) : TForm');
- CL.AddDelphiFunction('Function MessageDlg( const Msg : string; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; HelpCtx : Longint) : Integer');
- CL.AddDelphiFunction('Function MessageDlgPos( const Msg : string; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; HelpCtx : Longint; X, Y : Integer) : Integer');
- CL.AddDelphiFunction('Function MessageDlgPosHelp( const Msg : string; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; HelpCtx : Longint; X, Y : Integer; const HelpFileName : string) : Integer');
- CL.AddDelphiFunction('Procedure ShowMessage( const Msg : string)');
- CL.AddDelphiFunction('Procedure ShowMessagePos( const Msg : string; X, Y : Integer)');
- CL.AddDelphiFunction('Function InputBox( const ACaption, APrompt, ADefault : string) : string');
- CL.AddDelphiFunction('Function InputQuery( const ACaption, APrompt : string; var Value : string) : Boolean');
+ CL.AddDelphiFunction('function CreateMessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): TForm');
+ CL.AddDelphiFunction('function MessageDlg(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; HelpCtx: LongInt): Integer');
+ CL.AddDelphiFunction('function MessageDlgPos(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; HelpCtx: LongInt; X, Y: Integer): Integer');
+ CL.AddDelphiFunction('function MessageDlgPosHelp(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; HelpCtx: LongInt; X, Y: Integer; const HelpFileName: string): Integer');
+ CL.AddDelphiFunction('procedure ShowMessage(const Msg: string)');
+ CL.AddDelphiFunction('procedure ShowMessagePos(const Msg: string; X, Y: Integer)');
+ CL.AddDelphiFunction('function InputBox(const ACaption, APrompt, ADefault: string): string');
+ CL.AddDelphiFunction('function InputQuery(const ACaption, APrompt: string; var Value: string): Boolean');
 end;
 
 (* === run-time registration functions === *)
@@ -682,7 +682,7 @@ begin
   with CL.Add(TCommonDialog) do
   begin
     RegisterPropertyHelper(@TCommonDialogHandle_R,nil,'Handle');
-    RegisterPropertyHelper(@TCommonDialogCtl3D_R,@TCommonDialogCtl3D_W,'Ctl3D');
+    RegisterPropertyHelper(@TCommonDialogCtl3D_R,@TCommonDialogCtl3D_W,'CTL3D');
     RegisterPropertyHelper(@TCommonDialogHelpContext_R,@TCommonDialogHelpContext_W,'HelpContext');
     RegisterPropertyHelper(@TCommonDialogOnClose_R,@TCommonDialogOnClose_W,'OnClose');
     RegisterPropertyHelper(@TCommonDialogOnShow_R,@TCommonDialogOnShow_W,'OnShow');

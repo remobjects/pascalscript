@@ -42,21 +42,21 @@ procedure SIRegisterTComponent(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TPersistent'), 'TComponent') do
   begin
-    RegisterMethod('function FindComponent(AName: String): TComponent;');
+    RegisterMethod('function FindComponent(AName: string): TComponent;');
     RegisterMethod('constructor Create(AOwner: TComponent); virtual;');
 
     RegisterProperty('Owner', 'TComponent', iptRW);
     RegisterMethod('procedure DestroyComponents');
     RegisterMethod('procedure Destroying');
-    RegisterMethod('procedure FreeNotification(AComponent:TComponent)');
-    RegisterMethod('procedure InsertComponent(AComponent:TComponent)');
-    RegisterMethod('procedure RemoveComponent(AComponent:TComponent)');
+    RegisterMethod('procedure FreeNotification(AComponent: TComponent)');
+    RegisterMethod('procedure InsertComponent(AComponent: TComponent)');
+    RegisterMethod('procedure RemoveComponent(AComponent: TComponent)');
     RegisterProperty('Components', 'TComponent Integer', iptr);
     RegisterProperty('ComponentCount', 'Integer', iptr);
     RegisterProperty('ComponentIndex', 'Integer', iptrw);
     RegisterProperty('ComponentState', 'Byte', iptr);
-    RegisterProperty('Designinfo', 'LongInt', iptrw);
-    RegisterProperty('Name', 'String', iptrw);
+    RegisterProperty('DesignInfo', 'LongInt', iptrw);
+    RegisterProperty('Name', 'string', iptrw);
     RegisterProperty('Tag', 'LongInt', iptrw);
   end;
 end;

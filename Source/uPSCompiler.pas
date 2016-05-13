@@ -2123,18 +2123,18 @@ begin
               exit;
             end;
             case VCType.BaseType of
-              btU8: VCType := FindAndAddType(Owner, '!OPENARRAYOFU8', 'array of byte');
+              btU8: VCType := FindAndAddType(Owner, '!OPENARRAYOFU8', 'array of Byte');
               btS8: VCType := FindAndAddType(Owner, '!OPENARRAYOFS8', 'array of ShortInt');
               btU16: VCType := FindAndAddType(Owner, '!OPENARRAYOFU16', 'array of SmallInt');
               btS16: VCType := FindAndAddType(Owner, '!OPENARRAYOFS16', 'array of Word');
               btU32: VCType := FindAndAddType(Owner, '!OPENARRAYOFU32', 'array of Cardinal');
-              btS32: VCType := FindAndAddType(Owner, '!OPENARRAYOFS32', 'array of Longint');
+              btS32: VCType := FindAndAddType(Owner, '!OPENARRAYOFS32', 'array of LongInt');
               btSingle: VCType := FindAndAddType(Owner, '!OPENARRAYOFSINGLE', 'array of Single');
               btDouble: VCType := FindAndAddType(Owner, '!OPENARRAYOFDOUBLE', 'array of Double');
               btExtended: VCType := FindAndAddType(Owner, '!OPENARRAYOFEXTENDED', 'array of Extended');
-              btString: VCType := FindAndAddType(Owner, '!OPENARRAYOFSTRING', 'array of String');
+              btString: VCType := FindAndAddType(Owner, '!OPENARRAYOFSTRING', 'array of string');
               btPChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFPCHAR', {$IFDEF PS_PANSICHAR}'array of PAnsiChar'{$ELSE}'array of PChar'{$ENDIF});
-              btNotificationVariant, btVariant: VCType := FindAndAddType(Owner, '!OPENARRAYOFVARIANT', 'array of variant');
+              btNotificationVariant, btVariant: VCType := FindAndAddType(Owner, '!OPENARRAYOFVARIANT', 'array of Variant');
             {$IFNDEF PS_NOINT64}btS64:  VCType := FindAndAddType(Owner, '!OPENARRAYOFS64', 'array of Int64');{$ENDIF}
               btChar: VCType := FindAndAddType(Owner, '!OPENARRAYOFCHAR', 'array of Char');
             {$IFNDEF PS_NOWIDESTRING}
@@ -6156,9 +6156,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         exit;
       end;
       if TPSType(FarrType).BaseType = btVariant then
-        FArrType := at2ut(FindAndAddType(self, '!OPENARRAYOFVARIANT', 'array of variant'));
+        FArrType := at2ut(FindAndAddType(self, '!OPENARRAYOFVARIANT', 'array of Variant'));
       if TPSType(FarrType).BaseType <> btArray then 
-        FArrType := at2ut(FindAndAddType(self, '!OPENARRAYOFVARIANT', 'array of variant'));
+        FArrType := at2ut(FindAndAddType(self, '!OPENARRAYOFVARIANT', 'array of Variant'));
 
       tmpp := AllocStackReg(FArrType);
       tmpc := AllocStackReg(FindBaseType(bts32));
@@ -6170,7 +6170,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       BlockWriteByte(BlockInfo, CM_PV);
       WriteOutrec(tmpp, False);
       BlockWriteByte(BlockInfo, CM_C);
-      BlockWriteLong(BlockInfo, FindProc('SETARRAYLENGTH'));
+      BlockWriteLong(BlockInfo, FindProc('SetArrayLength'));
       BlockWriteByte(BlockInfo, CM_PO);
       tmpc.Free;
       rr := TPSSubNumber.Create;
@@ -6532,14 +6532,14 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 exit;
               end;
               {$IFDEF PS_HAVEVARIANT}if (u.BaseType = btVariant) then
-                l := FindProc('VARARRAYSET') else
+                l := FindProc('VarArraySet') else
               {$ENDIF}
               {$IFNDEF PS_NOWIDESTRING}
               if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
-                l := FindProc('WSTRSET')
+                l := FindProc('WStrSet')
               else
               {$ENDIF}
-                l := FindProc('STRSET');
+                l := FindProc('StrSet');
               if l = -1 then
               begin
                 MakeError('', ecUnknownIdentifier, 'StrSet');
@@ -6604,14 +6604,14 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
 {$ENDIF}
             end else begin
               {$IFDEF PS_HAVEVARIANT}if (u.BaseType = btVariant) then
-                l := FindProc('VARARRAYGET') else
+                l := FindProc('VarArrayGet') else
               {$ENDIF}
               {$IFNDEF PS_NOWIDESTRING}
               if (u.BaseType = btWideString) or (u.BaseType = btUnicodeString) then
-                l := FindProc('WSTRGET')
+                l := FindProc('WStrGet')
               else
               {$ENDIF}
-              l := FindProc('STRGET');
+              l := FindProc('StrGet');
               if l = -1 then
               begin
                 MakeError('', ecUnknownIdentifier, 'StrGet');
@@ -11778,7 +11778,7 @@ var
     FParser.Next;
     {$IFNDEF PS_USESSUPPORT}
     FUses := TIfStringList.Create;
-    FUses.Add('SYSTEM');
+    FUses.Add('System');
     {$ENDIF}
     repeat
       if FParser.CurrTokenID <> CSTI_Identifier then
@@ -11926,7 +11926,7 @@ begin
     {$IFDEF PS_USESSUPPORT}
     OldFileName:=fModule;
     fModule:='System';
-    FUses.Add('SYSTEM');
+    FUses.Add('System');
     {$ENDIF}
     {$IFNDEF PS_NOSTANDARDTYPES}
     DefineStandardTypes;
@@ -12345,14 +12345,14 @@ begin
   AddType('AnsiString', btString);
   {$IFNDEF PS_NOWIDESTRING}
     {$IFDEF DELPHI2009UP}
-    AddType('String', btUnicodeString);
+    AddType('string', btUnicodeString);
     AddType('NativeString', btUnicodeString);
     {$ELSE}
-    AddType('String', btString);
+    AddType('string', btString);
     AddType('NativeString', btString);
     {$ENDIF}
   {$ELSE}
-  AddType('String', btString);
+  AddType('string', btString);
   AddType('NativeString', btString);
   {$ENDIF}
   FAnyString := AddType('AnyString', btString);
@@ -12362,8 +12362,8 @@ begin
   AddType('LongInt', btS32);
   at2ut(AddType('___Pointer', btPointer));
   AddType('LongWord', btU32);
-  AddTypeCopyN('Integer', 'LONGINT');
-  AddTypeCopyN('Cardinal', 'LONGWORD');
+  AddTypeCopyN('Integer', 'LongInt');
+  AddTypeCopyN('Cardinal', 'LongWord');
   AddType('tbtString', btString);
   {$IFNDEF PS_NOINT64}
   AddType('Int64', btS64);
@@ -12376,14 +12376,14 @@ begin
   AddType('Variant', btVariant);
   AddType('!NotificationVariant', btNotificationVariant);
   for i := FTypes.Count -1 downto 0 do AT2UT(FTypes[i]);
-  TPSArrayType(AddType('TVariantArray', btArray)).ArrayTypeNo := FindType('VARIANT');
+  TPSArrayType(AddType('TVariantArray', btArray)).ArrayTypeNo := FindType('Variant');
 
-  with AddFunction('function Assigned(I: Longint): Boolean;') do
+  with AddFunction('function Assigned(I: LongInt): Boolean;') do
   begin
     Name := '!ASSIGNED';
   end;
 
-  with AddFunction('procedure _T(Name: tbtString; v: Variant);') do
+  with AddFunction('procedure _T(Name: tbtString; V: Variant);') do
   begin
     Name := '!NOTIFICATIONVARIANTSET';
   end;
@@ -12997,17 +12997,17 @@ begin
     -UPSRuntime.TPSExec.RegisterStandardProcs
   }
   {$IFNDEF PS_NOINT64}
-  AddFunction('function IntToStr(i: Int64): String;');
+  AddFunction('function IntToStr(I: Int64): string;');
   {$ELSE}
-  AddFunction('function IntTostr(i: Integer): String;');
+  AddFunction('function IntToStr(I: Integer): string;');
   {$ENDIF}
-  AddFunction('function StrToInt(s: String): Longint;');
-  AddFunction('function StrToIntDef(s: String; def: Longint): Longint;');
-  AddFunction('function Copy(s: AnyString; iFrom, iCount: Longint): AnyString;');
-  AddFunction('function Pos(SubStr, S: AnyString): Longint;');
-  AddFunction('procedure Delete(var s: AnyString; ifrom, icount: Longint);');
-  AddFunction('procedure Insert(s: AnyString; var s2: AnyString; iPos: Longint);');
-  AddFunction('function GetArrayLength: integer;').Decl.AddParam.OrgName := 'arr';
+  AddFunction('function StrToInt(S: string): LongInt;');
+  AddFunction('function StrToIntDef(S: string; def: LongInt): LongInt;');
+  AddFunction('function Copy(S: AnyString; iFrom, iCount: LongInt): AnyString;');
+  AddFunction('function Pos(SubStr, S: AnyString): LongInt;');
+  AddFunction('procedure Delete(var S: AnyString; iFrom, iCount: LongInt);');
+  AddFunction('procedure Insert(S: AnyString; var s2: AnyString; iPos: LongInt);');
+  AddFunction('function GetArrayLength: Integer;').Decl.AddParam.OrgName := 'Arr';
   p := AddFunction('procedure SetArrayLength;');
   with P.Decl.AddParam do
   begin
@@ -13019,21 +13019,21 @@ begin
     OrgName := 'count';
     aType := FindBaseType(btS32);
   end;
-  AddFunction('Function StrGet(var S : String; I : Integer) : Char;');
-  AddFunction('Function StrGet2(S : String; I : Integer) : Char;');
-  AddFunction('procedure StrSet(c : Char; I : Integer; var s : String);');
+  AddFunction('function StrGet(var S: string; I: Integer): Char;');
+  AddFunction('function StrGet2(S: string; I: Integer): Char;');
+  AddFunction('procedure StrSet(C: Char; I: Integer; var S: string);');
   {$IFNDEF PS_NOWIDESTRING}
-  AddFunction('Function WStrGet(var S : AnyString; I : Integer) : WideChar;');
-  AddFunction('procedure WStrSet(c : AnyString; I : Integer; var s : AnyString);');
+  AddFunction('function WStrGet(var S: AnyString; I: Integer): WideChar;');
+  AddFunction('procedure WStrSet(C: AnyString; I: Integer; var S: AnyString);');
   {$ENDIF}
-  AddDelphiFunction('Function VarArrayGet(var S : Variant; I : Integer) : Variant;');
-  AddDelphiFunction('procedure VarArraySet(c : Variant; I : Integer; var s : Variant);');
-  AddFunction('Function AnsiUppercase(s : String) : String;');
-  AddFunction('Function AnsiLowercase(s : String) : String;');
-  AddFunction('Function Uppercase(s : AnyString) : AnyString;');
-  AddFunction('Function Lowercase(s : AnyString) : AnyString;');
-  AddFunction('Function Trim(s : AnyString) : AnyString;');
-  AddFunction('function Length: Integer;').Decl.AddParam.OrgName:='s';
+  AddDelphiFunction('function VarArrayGet(var S: Variant; I: Integer): Variant;');
+  AddDelphiFunction('procedure VarArraySet(C: Variant; I: Integer; var S: Variant);');
+  AddFunction('function AnsiUpperCase(S: string): string;');
+  AddFunction('function AnsiLowerCase(S: string): string;');
+  AddFunction('function UpperCase(S: AnyString): AnyString;');
+  AddFunction('function LowerCase(S: AnyString): AnyString;');
+  AddFunction('function Trim(S: AnyString): AnyString;');
+  AddFunction('function Length: Integer;').Decl.AddParam.OrgName := 'S';
   with AddFunction('procedure SetLength;').Decl do
   begin
     with AddParam do
@@ -13048,11 +13048,11 @@ begin
     end;
   end;
   {$IFNDEF PS_NOINT64}
-  AddFunction('function Low: Int64;').Decl.AddParam.OrgName:='x';
-  AddFunction('function High: Int64;').Decl.AddParam.OrgName:='x';
+  AddFunction('function Low: Int64;').Decl.AddParam.OrgName := 'X';
+  AddFunction('function High: Int64;').Decl.AddParam.OrgName := 'X';
   {$ELSE}
-  AddFunction('function Low: Integer;').Decl.AddParam.OrgName:='x';
-  AddFunction('function High: Integer;').Decl.AddParam.OrgName:='x';
+  AddFunction('function Low: Integer;').Decl.AddParam.OrgName := 'X';
+  AddFunction('function High: Integer;').Decl.AddParam.OrgName := 'X';
   {$ENDIF}
   with AddFunction('procedure Dec;').Decl do begin
     with AddParam do
@@ -13092,21 +13092,21 @@ begin
       Mode:=pmIn;
     end;
   end;
-  AddFunction('Function Sin(e : Extended) : Extended;');
-  AddFunction('Function Cos(e : Extended) : Extended;');
-  AddFunction('Function Sqrt(e : Extended) : Extended;');
-  AddFunction('Function Round(e : Extended) : Longint;');
-  AddFunction('Function Trunc(e : Extended) : Longint;');
-  AddFunction('Function Int(e : Extended) : Extended;');
-  AddFunction('Function Pi : Extended;');
-  AddFunction('Function Abs(e : Extended) : Extended;');
-  AddFunction('function StrToFloat(s: String): Extended;');
-  AddFunction('Function FloatToStr(e : Extended) : String;');
-  AddFunction('Function Padl(s : AnyString;I : longInt) : AnyString;');
-  AddFunction('Function Padr(s : AnyString;I : longInt) : AnyString;');
-  AddFunction('Function Padz(s : AnyString;I : longInt) : AnyString;');
-  AddFunction('Function Replicate(c : char;I : longInt) : String;');
-  AddFunction('Function StringOfChar(c : char;I : longInt) : String;');
+  AddFunction('function Sin(E: Extended): Extended;');
+  AddFunction('function Cos(E: Extended): Extended;');
+  AddFunction('function Sqrt(E: Extended): Extended;');
+  AddFunction('function Round(E: Extended): LongInt;');
+  AddFunction('function Trunc(E: Extended): LongInt;');
+  AddFunction('function Int(E: Extended): Extended;');
+  AddFunction('function Pi: Extended;');
+  AddFunction('function Abs(E: Extended): Extended;');
+  AddFunction('function StrToFloat(S: string): Extended;');
+  AddFunction('function FloatToStr(E: Extended): string;');
+  AddFunction('function PadL(S: AnyString; I: LongInt): AnyString;');
+  AddFunction('function PadR(S: AnyString; I: LongInt): AnyString;');
+  AddFunction('function PadZ(S: AnyString; I: LongInt): AnyString;');
+  AddFunction('function Replicate(C: Char; I: LongInt): string;');
+  AddFunction('function StringOfChar(C: Char; I: LongInt): string;');
   AddTypeS('TVarType', 'Word');
   AddConstantN('varEmpty', 'Word').Value.tu16 := varempty;
   AddConstantN('varNull', 'Word').Value.tu16 := varnull;
@@ -13154,19 +13154,19 @@ begin
     'erVersionError, ErDivideByZero, ErMathError,erCouldNotCallProc, erOutofRecordRange, '+
     'erOutOfMemory, erException, erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError)');
   AddFunction('procedure RaiseLastException;');
-  AddFunction('procedure RaiseException(Ex: TIFException; Param: String);');
+  AddFunction('procedure RaiseException(Ex: TIFException; Param: string);');
   AddFunction('function ExceptionType: TIFException;');
-  AddFunction('function ExceptionParam: String;');
+  AddFunction('function ExceptionParam: string;');
   AddFunction('function ExceptionProc: Cardinal;');
   AddFunction('function ExceptionPos: Cardinal;');
-  AddFunction('function ExceptionToString(er: TIFException; Param: String): String;');
+  AddFunction('function ExceptionToString(er: TIFException; Param: string): string;');
   {$IFNDEF PS_NOINT64}
-  AddFunction('function StrToInt64(s: String): int64;');
-  AddFunction('function Int64ToStr(i: Int64): String;');
-  AddFunction('function StrToInt64Def(s: String; def: int64): int64;');
+  AddFunction('function StrToInt64(S: string): Int64;');
+  AddFunction('function Int64ToStr(I: Int64): string;');
+  AddFunction('function StrToInt64Def(S: string; def: Int64): Int64;');
   {$ENDIF}
 
-  with AddFunction('function SizeOf: Longint;').Decl.AddParam do
+  with AddFunction('function SizeOf: LongInt;').Decl.AddParam do
   begin
     OrgName := 'Data';
   end;
@@ -13196,7 +13196,7 @@ begin
   begin
     ExportName := True;
   end;
-  AddDelphiFunction('function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: String; Par: array of variant): variant;');
+  AddDelphiFunction('function IdispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: string; Par: array of Variant): Variant;');
  {$ENDIF}
 {$ENDIF}
 end;
@@ -15692,13 +15692,13 @@ end;
 
 function TPSVariantType.GetDynInvokeParamType(Owner: TPSPascalCompiler) : TPSType;
 begin
-  Result := Owner.at2ut(FindAndAddType(owner, '!OPENARRAYOFVARIANT', 'array of variant'));
+  Result := Owner.at2ut(FindAndAddType(owner, '!OPENARRAYOFVARIANT', 'array of Variant'));
 end;
 
 function TPSVariantType.GetDynInvokeProcNo(Owner: TPSPascalCompiler; const Name: tbtString;
   Params: TPSParameters): Cardinal;
 begin
-  Result := Owner.FindProc('IDISPATCHINVOKE');
+  Result := Owner.FindProc('IdispatchInvoke');
 end;
 
 function TPSVariantType.GetDynIvokeResulType(

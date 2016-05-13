@@ -21,209 +21,209 @@ implementation
 
 procedure SIRegisterTCONTROLSCROLLBAR(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TPERSISTENT'), 'TCONTROLSCROLLBAR') do
+  with Cl.AddClassN(cl.FindClass('TPersistent'), 'TControlScrollBar') do
   begin
-    RegisterProperty('KIND', 'TSCROLLBARKIND', iptr);
-    RegisterProperty('SCROLLPOS', 'INTEGER', iptr);
-    RegisterProperty('MARGIN', 'WORD', iptrw);
-    RegisterProperty('INCREMENT', 'TSCROLLBARINC', iptrw);
-    RegisterProperty('RANGE', 'INTEGER', iptrw);
-    RegisterProperty('POSITION', 'INTEGER', iptrw);
-    RegisterProperty('TRACKING', 'BOOLEAN', iptrw);
-    RegisterProperty('VISIBLE', 'BOOLEAN', iptrw);
+    RegisterProperty('Kind', 'TScrollBarKind', iptr);
+    RegisterProperty('ScrollPos', 'Integer', iptr);
+    RegisterProperty('Margin', 'Word', iptrw);
+    RegisterProperty('Increment', 'TScrollBarInc', iptrw);
+    RegisterProperty('Range', 'Integer', iptrw);
+    RegisterProperty('Position', 'Integer', iptrw);
+    RegisterProperty('Tracking', 'Boolean', iptrw);
+    RegisterProperty('Visible', 'Boolean', iptrw);
   end;
 end;
 
 procedure SIRegisterTSCROLLINGWINCONTROL(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TWINCONTROL'), 'TSCROLLINGWINCONTROL') do
+  with Cl.AddClassN(cl.FindClass('TWinControl'), 'TScrollingWinControl') do
   begin
-    RegisterMethod('procedure SCROLLINVIEW(ACONTROL:TCONTROL)');
-    RegisterProperty('HORZSCROLLBAR', 'TCONTROLSCROLLBAR', iptrw);
-    RegisterProperty('VERTSCROLLBAR', 'TCONTROLSCROLLBAR', iptrw);
+    RegisterMethod('procedure ScrollInView(AControl: TControl)');
+    RegisterProperty('HorzScrollBar', 'TControlScrollBar', iptrw);
+    RegisterProperty('VertScrollBar', 'TControlScrollBar', iptrw);
   end;
 end;
 
 procedure SIRegisterTSCROLLBOX(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TSCROLLINGWINCONTROL'), 'TSCROLLBOX') do
+  with Cl.AddClassN(cl.FindClass('TScrollingWinControl'), 'TScrollBox') do
   begin
-    RegisterProperty('BORDERSTYLE', 'TBORDERSTYLE', iptrw);
-    RegisterProperty('COLOR', 'TCOLOR', iptrw);
-    RegisterProperty('FONT', 'TFONT', iptrw);                    
-    RegisterProperty('AUTOSCROLL', 'BOOLEAN', iptrw);
-    RegisterProperty('PARENTCOLOR', 'BOOLEAN', iptrw);
-    RegisterProperty('PARENTFONT', 'BOOLEAN', iptrw);
-    RegisterProperty('ONCLICK', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONENTER', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONEXIT', 'TNOTIFYEVENT', iptrw);
+    RegisterProperty('BorderStyle', 'TBorderStyle', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('AutoScroll', 'Boolean', iptrw);
+    RegisterProperty('ParentColor', 'Boolean', iptrw);
+    RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterProperty('ONRESIZE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('DRAGCURSOR', 'TCURSOR', iptrw);
-    RegisterProperty('DRAGMODE', 'TDRAGMODE', iptrw);
-    RegisterProperty('PARENTSHOWHINT', 'BOOLEAN', iptrw);
-    RegisterProperty('POPUPMENU', 'TPOPUPMENU', iptrw);
-    RegisterProperty('CTL3D', 'BOOLEAN', iptrw);
-    RegisterProperty('PARENTCTL3D', 'BOOLEAN', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDRAGDROPEVENT', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDRAGOVEREVENT', iptrw);
-    RegisterProperty('ONENDDRAG', 'TENDDRAGEVENT', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMOUSEEVENT', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMOUSEMOVEEVENT', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMOUSEEVENT', iptrw);
+    RegisterProperty('OnResize', 'TNotifyEvent', iptrw);
+    RegisterProperty('DragCursor', 'TCursor', iptrw);
+    RegisterProperty('DragMode', 'TDragMode', iptrw);
+    RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('CTL3D', 'Boolean', iptrw);
+    RegisterProperty('ParentCtl3D', 'Boolean', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnEndDrag', 'TEndDragEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
     {$ENDIF}
   end;
 end;
 
 procedure SIRegisterTFORM(Cl: TPSPascalCompiler);
 begin
- with Cl.AddClassN(cl.FindClass('TSCROLLINGWINCONTROL'), 'TFORM') do
+ with Cl.AddClassN(cl.FindClass('TScrollingWinControl'), 'TForm') do
   begin
     {$IFDEF DELPHI4UP}
-    RegisterMethod('constructor CREATENEW(AOWNER:TCOMPONENT; Dummy: Integer)');
+    RegisterMethod('constructor CreateNew(AOwner: TComponent; Dummy: Integer)');
     {$ELSE}
-    RegisterMethod('constructor CREATENEW(AOWNER:TCOMPONENT)');
+    RegisterMethod('constructor CreateNew(AOwner: TComponent)');
     {$ENDIF}
-    RegisterMethod('procedure CLOSE');
-    RegisterMethod('procedure HIDE');
-    RegisterMethod('procedure SHOW');
-    RegisterMethod('function SHOWMODAL:INTEGER');
-    RegisterMethod('procedure RELEASE');
-    RegisterProperty('ACTIVE', 'BOOLEAN', iptr);
-    RegisterProperty('ACTIVECONTROL', 'TWINCONTROL', iptrw);
-    RegisterProperty('BORDERICONS', 'TBorderIcons', iptrw);
-    RegisterProperty('BORDERSTYLE', 'TFORMBORDERSTYLE', iptrw);
-    RegisterProperty('CAPTION', 'NativeString', iptrw);
-    RegisterProperty('AUTOSCROLL', 'BOOLEAN', iptrw);
-    RegisterProperty('COLOR', 'TCOLOR', iptrw);
-    RegisterProperty('FONT', 'TFONT', iptrw);
-    RegisterProperty('FORMSTYLE', 'TFORMSTYLE', iptrw);
-    RegisterProperty('KEYPREVIEW', 'BOOLEAN', iptrw);
-    RegisterProperty('POSITION', 'TPOSITION', iptrw);
-    RegisterProperty('ONACTIVATE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONCLICK', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONDBLCLICK', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONCLOSE', 'TCLOSEEVENT', iptrw);
-    RegisterProperty('ONCLOSEQUERY', 'TCLOSEQUERYEVENT', iptrw);
-    RegisterProperty('ONCREATE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONDESTROY', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONDEACTIVATE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONHIDE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONKEYDOWN', 'TKEYEVENT', iptrw);
-    RegisterProperty('ONKEYPRESS', 'TKEYPRESSEVENT', iptrw);
-    RegisterProperty('ONKEYUP', 'TKEYEVENT', iptrw);
-    RegisterProperty('ONRESIZE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONSHOW', 'TNOTIFYEVENT', iptrw);
+    RegisterMethod('procedure Close');
+    RegisterMethod('procedure Hide');
+    RegisterMethod('procedure Show');
+    RegisterMethod('function ShowModal: Integer');
+    RegisterMethod('procedure Release');
+    RegisterProperty('Active', 'Boolean', iptr);
+    RegisterProperty('ActiveControl', 'TWinControl', iptrw);
+    RegisterProperty('BorderIcons', 'TBorderIcons', iptrw);
+    RegisterProperty('BorderStyle', 'TFormBorderStyle', iptrw);
+    RegisterProperty('Caption', 'NativeString', iptrw);
+    RegisterProperty('AutoScroll', 'Boolean', iptrw);
+    RegisterProperty('Color', 'TColor', iptrw);
+    RegisterProperty('Font', 'TFont', iptrw);
+    RegisterProperty('FormStyle', 'TFormStyle', iptrw);
+    RegisterProperty('KeyPreview', 'Boolean', iptrw);
+    RegisterProperty('Position', 'TPosition', iptrw);
+    RegisterProperty('OnActivate', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDblClick', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnClose', 'TCloseEvent', iptrw);
+    RegisterProperty('OnCloseQuery', 'TCloseQueryEvent', iptrw);
+    RegisterProperty('OnCreate', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDestroy', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDeactivate', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnHide', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnKeyDown', 'TKeyEvent', iptrw);
+    RegisterProperty('OnKeyPress', 'TKeyPressEvent', iptrw);
+    RegisterProperty('OnKeyUp', 'TKeyEvent', iptrw);
+    RegisterProperty('OnResize', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnShow', 'TNotifyEvent', iptrw);
 
 
     {$IFNDEF PS_MINIVCL}
     {$IFNDEF CLX}
-    RegisterMethod('procedure ARRANGEICONS');
-//    RegisterMethod('function GETFORMIMAGE:TBITMAP');
-    RegisterMethod('procedure PRINT');
-    RegisterMethod('procedure SENDCANCELMODE(SENDER:TCONTROL)');
-    RegisterProperty('ACTIVEOLECONTROL', 'TWINCONTROL', iptrw);
-    RegisterProperty('OLEFORMOBJECT', 'TOLEFORMOBJECT', iptrw);
-    RegisterProperty('CLIENTHANDLE', 'LONGINT', iptr);
-    RegisterProperty('TILEMODE', 'TTILEMODE', iptrw);
+    RegisterMethod('procedure ArrangeIcons');
+//    RegisterMethod('function GetFormImage: TBitmap');
+    RegisterMethod('procedure Print');
+    RegisterMethod('procedure SendCancelMode(Sender: TControl)');
+    RegisterProperty('ActiveOleControl', 'TWinControl', iptrw);
+    RegisterProperty('OleFormObject', 'TOLEFormObject', iptrw);
+    RegisterProperty('ClientHandle', 'LongInt', iptr);
+    RegisterProperty('TileMode', 'TTileMode', iptrw);
     {$ENDIF}
-    RegisterMethod('procedure CASCADE');
-    RegisterMethod('function CLOSEQUERY:BOOLEAN');
-    RegisterMethod('procedure DEFOCUSCONTROL(CONTROL:TWINCONTROL;REMOVING:BOOLEAN)');
-    RegisterMethod('procedure FOCUSCONTROL(CONTROL:TWINCONTROL)');
-    RegisterMethod('procedure NEXT');
-    RegisterMethod('procedure PREVIOUS');
-    RegisterMethod('function SETFOCUSEDCONTROL(CONTROL:TWINCONTROL):BOOLEAN');
-    RegisterMethod('procedure TILE');
-    RegisterProperty('ACTIVEMDICHILD', 'TFORM', iptr);
-    RegisterProperty('CANVAS', 'TCANVAS', iptr);
-    RegisterProperty('DROPTARGET', 'BOOLEAN', iptrw);
-    RegisterProperty('MODALRESULT', 'Longint', iptrw);
-    RegisterProperty('MDICHILDCOUNT', 'INTEGER', iptr);
-    RegisterProperty('MDICHILDREN', 'TFORM INTEGER', iptr);
-    RegisterProperty('ICON', 'TICON', iptrw);
-    RegisterProperty('MENU', 'TMAINMENU', iptrw);
-    RegisterProperty('OBJECTMENUITEM', 'TMENUITEM', iptrw);
-    RegisterProperty('PIXELSPERINCH', 'INTEGER', iptrw);
-    RegisterProperty('PRINTSCALE', 'TPRINTSCALE', iptrw);
-    RegisterProperty('SCALED', 'BOOLEAN', iptrw);
-    RegisterProperty('WINDOWSTATE', 'TWINDOWSTATE', iptrw);
-    RegisterProperty('WINDOWMENU', 'TMENUITEM', iptrw);
-    RegisterProperty('CTL3D', 'BOOLEAN', iptrw);
-    RegisterProperty('POPUPMENU', 'TPOPUPMENU', iptrw);
-    RegisterProperty('ONDRAGDROP', 'TDRAGDROPEVENT', iptrw);
-    RegisterProperty('ONDRAGOVER', 'TDRAGOVEREVENT', iptrw);
-    RegisterProperty('ONMOUSEDOWN', 'TMOUSEEVENT', iptrw);
-    RegisterProperty('ONMOUSEMOVE', 'TMOUSEMOVEEVENT', iptrw);
-    RegisterProperty('ONMOUSEUP', 'TMOUSEEVENT', iptrw);
-    RegisterProperty('ONPAINT', 'TNOTIFYEVENT', iptrw);
+    RegisterMethod('procedure Cascade');
+    RegisterMethod('function CloseQuery: Boolean');
+    RegisterMethod('procedure DefocusControl(Control: TWinControl; Removing: Boolean)');
+    RegisterMethod('procedure FocusControl(Control: TWinControl)');
+    RegisterMethod('procedure Next');
+    RegisterMethod('procedure Previous');
+    RegisterMethod('function SetFocusedControl(Control: TWinControl): Boolean');
+    RegisterMethod('procedure Tile');
+    RegisterProperty('ActiveMDIChild', 'TForm', iptr);
+    RegisterProperty('Canvas', 'TCanvas', iptr);
+    RegisterProperty('DropTarget', 'Boolean', iptrw);
+    RegisterProperty('ModalResult', 'LongInt', iptrw);
+    RegisterProperty('MDIChildCount', 'Integer', iptr);
+    RegisterProperty('MDIChildren', 'TForm Integer', iptr);
+    RegisterProperty('Icon', 'TIcon', iptrw);
+    RegisterProperty('Menu', 'TMainMenu', iptrw);
+    RegisterProperty('ObjectMenuItem', 'TMenuItem', iptrw);
+    RegisterProperty('PixelsPerInch', 'Integer', iptrw);
+    RegisterProperty('PrintScale', 'TPrintScale', iptrw);
+    RegisterProperty('Scaled', 'Boolean', iptrw);
+    RegisterProperty('WindowState', 'TWindowState', iptrw);
+    RegisterProperty('WindowMenu', 'TMenuItem', iptrw);
+    RegisterProperty('CTL3D', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
+    RegisterProperty('OnDragDrop', 'TDragDropEvent', iptrw);
+    RegisterProperty('OnDragOver', 'TDragOverEvent', iptrw);
+    RegisterProperty('OnMouseDown', 'TMouseEvent', iptrw);
+    RegisterProperty('OnMouseMove', 'TMouseMoveEvent', iptrw);
+    RegisterProperty('OnMouseUp', 'TMouseEvent', iptrw);
+    RegisterProperty('OnPaint', 'TNotifyEvent', iptrw);
     {$ENDIF}
   end;
 end;
 
 procedure SIRegisterTAPPLICATION(Cl: TPSPascalCompiler);
 begin
-  with Cl.AddClassN(cl.FindClass('TCOMPONENT'), 'TAPPLICATION') do
+  with Cl.AddClassN(cl.FindClass('TComponent'), 'TApplication') do
   begin
-    RegisterMethod('procedure BRINGTOFRONT');
+    RegisterMethod('procedure BringToFront');
 {$IFDEF PS_PANSICHAR}
-    RegisterMethod('function MESSAGEBOX(TEXT,CAPTION:PANSICHAR;FLAGS:WORD):INTEGER');
+    RegisterMethod('function MessageBox(Text,Caption: PAnsiChar; Flags: Word): Integer');
 {$ELSE}
-    RegisterMethod('function MESSAGEBOX(TEXT,CAPTION:PCHAR;FLAGS:WORD):INTEGER');
+    RegisterMethod('function MessageBox(Text,Caption: PChar; Flags: Word): Integer');
 {$ENDIF}
-    RegisterMethod('procedure MINIMIZE');
-    RegisterMethod('procedure PROCESSMESSAGES');
-    RegisterMethod('procedure RESTORE');
-    RegisterMethod('procedure TERMINATE');
-    RegisterProperty('ACTIVE', 'BOOLEAN', iptr);
-    RegisterProperty('EXENAME', 'NativeString', iptr);
+    RegisterMethod('procedure Minimize');
+    RegisterMethod('procedure ProcessMessages');
+    RegisterMethod('procedure Restore');
+    RegisterMethod('procedure Terminate');
+    RegisterProperty('Active', 'Boolean', iptr);
+    RegisterProperty('ExeName', 'NativeString', iptr);
     {$IFNDEF CLX}
-    RegisterProperty('HANDLE', 'LONGINT', iptrw);
-    RegisterProperty('UPDATEFORMATSETTINGS', 'BOOLEAN', iptrw);
+    RegisterProperty('Handle', 'LongInt', iptrw);
+    RegisterProperty('UpdateFormatSettings', 'Boolean', iptrw);
     {$ENDIF}
-    RegisterProperty('HINT', 'NativeString', iptrw);
-    RegisterProperty('MAINFORM', 'TFORM', iptr);
-    RegisterProperty('SHOWHINT', 'BOOLEAN', iptrw);
-    RegisterProperty('SHOWMAINFORM', 'BOOLEAN', iptrw);
-    RegisterProperty('TERMINATED', 'BOOLEAN', iptr);
-    RegisterProperty('TITLE', 'NativeString', iptrw);
-    RegisterProperty('ONACTIVATE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONDEACTIVATE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONIDLE', 'TIDLEEVENT', iptrw);
-    RegisterProperty('ONHINT', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONMINIMIZE', 'TNOTIFYEVENT', iptrw);
-    RegisterProperty('ONRESTORE', 'TNOTIFYEVENT', iptrw);
+    RegisterProperty('Hint', 'NativeString', iptrw);
+    RegisterProperty('MainForm', 'TForm', iptr);
+    RegisterProperty('ShowHint', 'Boolean', iptrw);
+    RegisterProperty('ShowMainForm', 'Boolean', iptrw);
+    RegisterProperty('Terminated', 'Boolean', iptr);
+    RegisterProperty('Title', 'NativeString', iptrw);
+    RegisterProperty('OnActivate', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnDeactivate', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnIdle', 'TIdleEvent', iptrw);
+    RegisterProperty('OnHint', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnMinimize', 'TNotifyEvent', iptrw);
+    RegisterProperty('OnRestore', 'TNotifyEvent', iptrw);
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod('procedure CONTROLDESTROYED(CONTROL:TCONTROL)');
-    RegisterMethod('procedure CANCELHINT');
-    RegisterMethod('procedure HANDLEEXCEPTION(SENDER:TOBJECT)');
-    RegisterMethod('procedure HANDLEMESSAGE');
-    RegisterMethod('procedure HIDEHINT');
-//    RegisterMethod('procedure HINTMOUSEMESSAGE(CONTROL:TCONTROL;var MESSAGE:TMESSAGE)');
-    RegisterMethod('procedure INITIALIZE');
-    RegisterMethod('procedure NORMALIZETOPMOSTS');
-    RegisterMethod('procedure RESTORETOPMOSTS');
-    RegisterMethod('procedure RUN');
-//    RegisterMethod('procedure SHOWEXCEPTION(E:EXCEPTION)');
+    RegisterMethod('procedure ControlDestroyed(Control: TControl)');
+    RegisterMethod('procedure CancelHint');
+    RegisterMethod('procedure HandleException(Sender: TObject)');
+    RegisterMethod('procedure HandleMessage');
+    RegisterMethod('procedure HideHint');
+//    RegisterMethod('procedure HintMouseMessage(Control: TControl; var Message: TMessage)');
+    RegisterMethod('procedure Initialize');
+    RegisterMethod('procedure NormalizeTopMosts');
+    RegisterMethod('procedure RestoreTopMosts');
+    RegisterMethod('procedure Run');
+//    RegisterMethod('procedure ShowException(E: Exception)');
     {$IFNDEF CLX}
-    RegisterMethod('function HELPCOMMAND(COMMAND:INTEGER;DATA:LONGINT):BOOLEAN');
-    RegisterMethod('function HELPCONTEXT(CONTEXT:THELPCONTEXT):BOOLEAN');
-    RegisterMethod('function HELPJUMP(JUMPID:NativeString):BOOLEAN');
-    RegisterProperty('DIALOGHANDLE', 'LONGINT', iptrw);
-    RegisterMethod('procedure CREATEHANDLE');
-//    RegisterMethod('procedure HOOKMAINWINDOW(HOOK:TWINDOWHOOK)');
-//    RegisterMethod('procedure UNHOOKMAINWINDOW(HOOK:TWINDOWHOOK)');
+    RegisterMethod('function HelpCommand(Command: Integer; Data: LongInt): Boolean');
+    RegisterMethod('function HelpContext(Context: THelpContext): Boolean');
+    RegisterMethod('function HelpJump(JumpID: NativeString): Boolean');
+    RegisterProperty('DialogHandle', 'LongInt', iptrw);
+    RegisterMethod('procedure CreateHandle');
+//    RegisterMethod('procedure HookMainWindow(Hook: TWindowHook)');
+//    RegisterMethod('procedure UnhookMainWindow(Hook: TWindowHook)');
     {$ENDIF}
-    RegisterProperty('HELPFILE', 'NativeString', iptrw);
-    RegisterProperty('HINTCOLOR', 'TCOLOR', iptrw);
-    RegisterProperty('HINTPAUSE', 'INTEGER', iptrw);
-    RegisterProperty('HINTSHORTPAUSE', 'INTEGER', iptrw);
-    RegisterProperty('HINTHIDEPAUSE', 'INTEGER', iptrw);
-    RegisterProperty('ICON', 'TICON', iptrw);
-    RegisterProperty('ONHELP', 'THELPEVENT', iptrw);
+    RegisterProperty('HelpFile', 'NativeString', iptrw);
+    RegisterProperty('HintColor', 'TColor', iptrw);
+    RegisterProperty('HintPause', 'Integer', iptrw);
+    RegisterProperty('HintShortPause', 'Integer', iptrw);
+    RegisterProperty('HintHidePause', 'Integer', iptrw);
+    RegisterProperty('Icon', 'TIcon', iptrw);
+    RegisterProperty('OnHelp', 'THelpEvent', iptrw);
     {$ENDIF}
   end;
 end;
@@ -244,7 +244,7 @@ begin
   cl.AddTypeS('TCloseQueryEvent' ,'procedure(Sender: TObject; var CanClose: Boolean)');
   cl.AddTypeS('TBorderIcon' ,'(biSystemMenu, biMinimize, biMaximize, biHelp)');
   cl.AddTypeS('TBorderIcons', 'set of TBorderIcon');
-  cl.AddTypeS('THELPCONTEXT', 'Longint');
+  cl.AddTypeS('THelpContext', 'LongInt');
 end;
 
 procedure SIRegister_Forms(Cl: TPSPascalCompiler);

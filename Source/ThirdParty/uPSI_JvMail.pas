@@ -44,18 +44,18 @@ begin
   //with RegClassS(CL,'TJvComponent', 'TJvMail') do
   with CL.AddClassN(CL.FindClass('TComponent'),'TJvMail') do
   begin
-    RegisterMethod('Function Address( const Caption : string; EditFields : Integer) : Boolean');
-    RegisterMethod('Procedure Clear');
-    RegisterMethod('Function ErrorCheck( Res : DWORD) : DWORD');
-    RegisterMethod('Function FindFirstMail : Boolean');
-    RegisterMethod('Function FindNextMail : Boolean');
-    RegisterMethod('Procedure FreeSimpleMapi');
-    RegisterMethod('Procedure LogOff');
-    RegisterMethod('Procedure LogOn');
-    RegisterMethod('Procedure ReadMail');
-    RegisterMethod('Function ResolveName( const Name : string) : string');
-    RegisterMethod('Function SaveMail( const MessageID : string) : string');
-    RegisterMethod('Procedure SendMail( ShowDialog : Boolean)');
+    RegisterMethod('function Address(const Caption: string; EditFields: Integer): Boolean');
+    RegisterMethod('procedure Clear');
+    RegisterMethod('function ErrorCheck(Res: DWORD): DWORD');
+    RegisterMethod('function FindFirstMail: Boolean');
+    RegisterMethod('function FindNextMail: Boolean');
+    RegisterMethod('procedure FreeSimpleMapi');
+    RegisterMethod('procedure LogOff');
+    RegisterMethod('procedure LogOn');
+    RegisterMethod('procedure ReadMail');
+    RegisterMethod('function ResolveName(const Name: string): string');
+    RegisterMethod('function SaveMail(const MessageID: string): string');
+    RegisterMethod('procedure SendMail(ShowDialog: Boolean)');
     RegisterProperty('ReadedMail', 'TJvMailReadedData', iptr);
     RegisterProperty('SeedMessageID', 'string', iptrw);
     RegisterProperty('SessionHandle', 'THandle', iptr);
@@ -81,9 +81,9 @@ begin
   //with RegClassS(CL,'TCollection', 'TJvMailRecipients') do
   with CL.AddClassN(CL.FindClass('TCollection'),'TJvMailRecipients') do
   begin
-    RegisterMethod('Constructor Create( AOwner : TJvMail; ARecipientClass : DWORD)');
-    RegisterMethod('Function Add : TJvMailRecipient');
-    RegisterMethod('Function AddRecipient( const Address : string; const Name : string) : Integer');
+    RegisterMethod('constructor Create(AOwner: TJvMail; ARecipientClass: DWORD)');
+    RegisterMethod('function Add: TJvMailRecipient');
+    RegisterMethod('function AddRecipient(const Address: string; const Name: string): Integer');
     RegisterProperty('Items', 'TJvMailRecipient Integer', iptrw);
     SetDefaultPropery('Items');
     RegisterProperty('RecipientClass', 'DWORD', iptr);
@@ -106,16 +106,16 @@ end;
 (*----------------------------------------------------------------------------*)
 procedure SIRegister_JvMail(CL: TPSPascalCompiler);
 begin
-  CL.AddClassN(CL.FindClass('TOBJECT'),'TJvMail');
+  CL.AddClassN(CL.FindClass('TObject'),'TJvMail');
   SIRegister_TJvMailRecipient(CL);
   SIRegister_TJvMailRecipients(CL);
-  CL.AddTypeS('TJvMailLogonOption', '( loLogonUI, loNewSession )');
-  CL.AddTypeS('TJvMailReadOption', '( roUnreadOnly, roFifo, roPeek, roHeaderOnl'
-   +'y, roAttachments )');
+  CL.AddTypeS('TJvMailLogonOption', '(loLogonUI, loNewSession)');
+  CL.AddTypeS('TJvMailReadOption', '(roUnreadOnly, roFifo, roPeek, roHeaderOnly, roAttachments)');
+
   CL.AddTypeS('TJvMailLogonOptions', 'set of TJvMailLogonOption');
   CL.AddTypeS('TJvMailReadOptions', 'set of TJvMailReadOption');
-  CL.AddTypeS('TJvMailReadedData', 'record RecipientAddress : string; Recipient'
-   +'Name : string; ConversationID : string; DateReceived : TDateTime; end');
+  CL.AddTypeS('TJvMailReadedData', 'record RecipientAddress: string; RecipientName: string; ConversationID: string; DateReceived: TDateTime; end');
+
   SIRegister_TJvMail(CL);
 end;
 

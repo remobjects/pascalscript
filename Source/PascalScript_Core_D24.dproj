@@ -5,7 +5,7 @@
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-        <ProjectVersion>18.0</ProjectVersion>
+        <ProjectVersion>18.1</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <AppType>Package</AppType>

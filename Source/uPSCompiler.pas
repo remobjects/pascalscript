@@ -8231,7 +8231,13 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             if ((t1.BaseType = btVariant) or (t1.BaseType = btNotificationVariant)) and (
               ((t2.BaseType = btVariant) or (t2.BaseType = btNotificationVariant)) or
               (isIntRealType(t2.BaseType))) then
-              Result := t1
+            begin
+              Result := t1;
+{$IFDEF PS_DELPHIDIV}
+              if Cmd = otDiv then
+                result := FindBaseType(btExtended);
+{$ENDIF}
+            end
             else if ((t1.BaseType = btSet) and (t2.BaseType = btSet)) and (t1 = t2) and ((cmd = otSub) or (cmd = otMul))  then
               Result := t1
             else if (t1.basetype = btSet) and (t2.Name = 'TVARIANTARRAY') and ((cmd = otSub) or (cmd = otMul)) then
@@ -8242,7 +8248,13 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             if ((t2.BaseType = btVariant) or (t2.BaseType = btNotificationVariant)) and (
               ((t1.BaseType = btVariant) or (t1.BaseType = btNotificationVariant)) or
               (isIntRealType(t1.BaseType))) then
-              Result := t2
+            begin
+              Result := t2;
+{$IFDEF PS_DELPHIDIV}
+              if Cmd = otDiv then
+                result := FindBaseType(btExtended);
+{$ENDIF}
+            end
             else if IsIntType(t1.BaseType) and IsIntType(t2.BaseType) then begin
               Result := t1;
 {$IFDEF PS_DELPHIDIV}

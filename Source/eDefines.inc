@@ -993,7 +993,7 @@
 {$ENDIF}
 
 { defines for Delphi XE11 (Delphi 10.2 Tokyo) }
-{$IFDEF VER310}
+{$IFDEF VER320}
   {$DEFINE VER140UP}
   {$DEFINE DELPHI}
 

@@ -1084,44 +1084,44 @@
 {$ENDIF}
 
 {$IFNDEF FPC}
+  {$IFNDEF DelphiXE11UP}
+    { Kylix 1.0 thru 3.0 }
+    {$IFDEF LINUX}
 
-  { Kylix 1.0 thru 3.0 }
-  {$IFDEF LINUX}
+      {$DEFINE VER140UP}
 
-    {$DEFINE VER140UP}
+      { Any Kylix }
+      {$DEFINE 32BIT}
+      {$DEFINE LINUX32}
+      {$DEFINE KYLIX_32BIT}
+      {$DEFINE KYLIX}
+      {$DEFINE KYLIX1UP}
 
-    { Any Kylix }
-    {$DEFINE 32BIT}
-    {$DEFINE LINUX32}
-    {$DEFINE KYLIX_32BIT}
-    {$DEFINE KYLIX}
-    {$DEFINE KYLIX1UP}
+      {$IFDEF CONDITIONALEXPRESSIONS}
+        {$IF Declared(CompilerVersion)}
 
-    {$IFDEF CONDITIONALEXPRESSIONS}
-      {$IF Declared(CompilerVersion)}
+           { Kylix 2.0 }
+           {$IF Declared(RTLVersion) and (RTLVersion = 14.1)}
+             {$DEFINE KYLIX2}
+             {$DEFINE KYLIX1UP}
+             {$DEFINE KYLIX2UP}
+           {$IFEND}
 
-         { Kylix 2.0 }
-         {$IF Declared(RTLVersion) and (RTLVersion = 14.1)}
-           {$DEFINE KYLIX2}
-           {$DEFINE KYLIX1UP}
-           {$DEFINE KYLIX2UP}
-         {$IFEND}
+           { Kylix 3.0 - Delphi portion }
+           {$IF Declared(RTLVersion) and (RTLVersion = 14.5)}
+             {$DEFINE KYLIX3}
+             {$DEFINE KYLIX1UP}
+             {$DEFINE KYLIX2UP}
+             {$DEFINE KYLIX3UP}
+           {$IFEND}
 
-         { Kylix 3.0 - Delphi portion }
-         {$IF Declared(RTLVersion) and (RTLVersion = 14.5)}
-           {$DEFINE KYLIX3}
-           {$DEFINE KYLIX1UP}
-           {$DEFINE KYLIX2UP}
-           {$DEFINE KYLIX3UP}
-         {$IFEND}
-
-      { Kylix 1.0 }
-      {$ELSE}
-        {$DEFINE KYLIX1}
-      {$IFEND}
-    {$ENDIF CONDITIONALEXPRESSIONS}
-
-  {$ENDIF LINUX}
+        { Kylix 1.0 }
+        {$ELSE}
+          {$DEFINE KYLIX1}
+        {$IFEND}
+      {$ENDIF CONDITIONALEXPRESSIONS}
+    {$ENDIF LINUX}
+  {$ENDIF DelphiXE11UP}
 {$ENDIF}
 
 { CPU }
@@ -1133,6 +1133,7 @@
     {$ENDIF}
   {$ENDIF}
   {$IFDEF LINUX}
+    {$DEFINE FPC_LINUX}
     {$IFDEF CPU32}
       {$DEFINE LINUX32}
     {$ENDIF}
@@ -1141,6 +1142,7 @@
     {$ENDIF}
   {$ENDIF}
   {$IFDEF DARWIN}
+    {$DEFINE FPC_OSX}
     {$IFDEF CPU32}
       {$DEFINE DARWIN32}
     {$ENDIF}
@@ -1172,20 +1174,36 @@
   {$DEFINE DELPHI_or_MSWINDOWS}
 {$ENDIF}
 
-{$IFDEF MACOS}
-  {$DEFINE DELPHI_OSX}
-  {$IFDEF CPUX64}
-    {$DEFINE DELPHI_OSX64}
-  {$ELSE}
-    {$DEFINE DELPHI_OSX32}
+{$IFDEF DELPHI}
+  {$IFDEF MACOS}
+    {$DEFINE DELPHI_OSX}
+    {$IFDEF CPUX64}
+      {$DEFINE DELPHI_OSX64}
+    {$ELSE}
+      {$DEFINE DELPHI_OSX32}
+    {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF ANDROID}
+    {$DEFINE DELPHI_ANDROID}
+    {$IFDEF CPUX64}
+      {$DEFINE DELPHI_ANDROID64}
+    {$ELSE}
+      {$DEFINE DELPHI_ANDROID32}
+    {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF LINUX}
+    {$DEFINE DELPHI_LINUX}
+    {$IFDEF LINUX32}
+      {$DEFINE DELPHI_LINUX32}
+    {$ENDIF}
+    {$IFDEF LINUX64}
+      {$DEFINE DELPHI_LINUX64}
+    {$ENDIF}
   {$ENDIF}
 {$ENDIF}
 
-{$IFDEF ANDROID}
-  {$DEFINE DELPHI_ANDROID}
-  {$IFDEF CPUX64}
-    {$DEFINE DELPHI_ANDROID64}
-  {$ELSE}
-    {$DEFINE DELPHI_ANDROID32}
-  {$ENDIF}
-{$ENDIF}
+
+
+

@@ -171,11 +171,7 @@ begin
 {$IFDEF PS_PANSICHAR}
     RegisterMethod('function MessageBox(Text,Caption: PAnsiChar; Flags: Word): Integer');
 {$ELSE}
-{$IFDEF UNICODE}
-    RegisterMethod('function MessageBox(Text,Caption: string; Flags: Word): Integer');
-  {$ELSE}
     RegisterMethod('function MessageBox(Text,Caption: PChar; Flags: Word): Integer');
-  {$ENDIF}
 {$ENDIF}
     RegisterMethod('procedure Minimize');
     RegisterMethod('procedure ProcessMessages');

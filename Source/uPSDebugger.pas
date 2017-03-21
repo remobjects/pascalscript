@@ -1,4 +1,3 @@
-
 unit uPSDebugger;
 {$I PascalScript.inc}
 interface
@@ -62,6 +61,7 @@ type
     destructor Destroy; override;
   end;
   TPSDebugExec = class;
+  TPSDebugExecClass = class of TPSDebugExec;
   
   TOnSourceLine = procedure (Sender: TPSDebugExec; const Name: tbtstring; Position, Row, Col: Cardinal);
   
@@ -137,7 +137,8 @@ type
 procedure TPSCustomDebugExec.Clear;
 begin
   inherited Clear;
-  if FGlobalVarNames <> nil then ClearDebug;
+  if FGlobalVarNames <> nil then
+    ClearDebug;
 end;
 
 procedure TPSCustomDebugExec.ClearDebug;

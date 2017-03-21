@@ -1,0 +1,9 @@
+begin 
+
+//writeln('GO:');
+
+format('%s; %s',['2','2']); 
+
+//writeln('OK.');
+
+end.

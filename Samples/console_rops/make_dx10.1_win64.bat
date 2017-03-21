@@ -1,0 +1,1 @@
+@call make_prj.cmd 24w64 console_rops.dpr

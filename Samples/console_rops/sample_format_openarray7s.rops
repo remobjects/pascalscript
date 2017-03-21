@@ -1,0 +1,9 @@
+var s: string; i: integer;
+begin
+  for i := 0 to 64 do 
+  begin
+    s := test_openArray7s(['p1,xxxxxxxxx','p2,yyyyyyyyy','p3,zzzzzzzzzzzz',
+      'p4,kkkkkkkkkk','p5,lllllllllllll','p6,mmmmmm','p7,nnnnnnnnnn.'+inttostr(i){}]);
+  end;
+  writeln(s);
+end.

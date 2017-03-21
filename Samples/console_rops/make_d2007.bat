@@ -1,0 +1,1 @@
+@call make_prj.cmd 11 console_rops.dpr

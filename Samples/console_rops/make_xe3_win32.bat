@@ -1,0 +1,1 @@
+@call make_prj.cmd 17w32 console_rops.dpr

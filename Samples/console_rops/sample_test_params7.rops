@@ -1,0 +1,9 @@
+//#rps - Remobjects Pascal Script
+program sample_test_params;
+var
+  s: string;
+begin
+  s := test_params7({p1:Integer}17, {p2: stiring}'s:ok17', {p3: AnsiString}'a:ok17', 
+    {b4:Boolean}True, {d5:Double}17.17, {ca6:AnsiChar}'a', {cw7:WideChar}'w');
+  writeln('test_params: "'+s+'"');
+end.

@@ -1777,13 +1777,13 @@ begin
       begin
         Pointer(p^) := nil;
         Pointer(Pointer(IPointer(p)+PointerSize)^) := nil;
-        Pointer(Pointer(IPointer(p)+(2*PointerSize))^) := nil;
+        LongBool(Pointer(IPointer(p)+(2*PointerSize))^) := False;
       end;
     btProcPtr:
       begin
         Longint(p^) := 0;
         Pointer(Pointer(IPointer(p)+PointerSize)^) := nil;
-        Pointer(Pointer(IPointer(p)+(2*PointerSize))^) := nil;
+        Cardinal(Pointer(IPointer(p)+(2*PointerSize))^) := 0;
       end;
     btCurrency: tbtCurrency(P^) := 0;
     btDouble{$IFNDEF PS_NOINT64}, bts64{$ENDIF}: {$IFNDEF PS_NOINT64}tbtS64(P^) := 0{$ELSE}tbtdouble(p^) := 0 {$ENDIF};
@@ -8827,7 +8827,7 @@ begin
     8: // StrSet
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -3], True);
-        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then 
+        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then
         begin
           Result := False;
           exit;
@@ -8874,7 +8874,7 @@ begin
       else if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
         Stack.SetWideString(-1, SysUtils.Trim(Stack.GetWideString(-2))) // Trim
       else
-{$ENDIF}      
+{$ENDIF}
         Stack.SetAnsiString(-1, AnsiString(SysUtils.Trim(String(Stack.GetAnsiString(-2)))));// Trim
     13: Stack.SetInt(-1, Length(Stack.GetAnsiString(-2))); // Length
     14: // SetLength
@@ -11341,7 +11341,7 @@ begin
  end;
  pp := fExceptionStack[fExceptionStack.Count-1];
  result := pp.ExceptionObject;
-end; 
+end;
 
 { TPSRuntimeClass }
 

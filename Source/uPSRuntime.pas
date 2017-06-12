@@ -11579,7 +11579,7 @@ end;
 
 {$ifdef CPUX64}
 
-{$DEFINE empty_methods_handler}
+{.$DEFINE empty_methods_handler}
 {$ENDIF}
 
 {$ifdef fpc}
@@ -11598,6 +11598,22 @@ end;
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
 
 procedure MyAllMethodsHandler;
+{$ifdef CPUX64}
+//  On entry:
+//  RCX = Self pointer
+//  RDX, R8, R9 = param1 .. param3
+//  STACK = param4... paramcount
+asm
+  PUSH  R9
+  MOV   R9,R8     // R9:=_ECX
+  MOV   R8,RDX    // R8:=_EDX
+  MOV   RDX, RSP  // RDX:=Stack
+  SUB   RSP, 20h
+  CALL MyAllMethodsHandler2
+  ADD   RSP, 20h  //Restore stack
+  POP   R9
+end;
+{$else}
 //  On entry:
 //     EAX = Self pointer
 //     EDX, ECX = param1 and param2
@@ -11616,6 +11632,7 @@ asm
   mov [esp], edx
   mov eax, ecx
 end;
+{$endif}
 
 function ResultAsRegister(b: TPSTypeRec): Boolean;
 begin

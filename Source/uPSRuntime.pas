@@ -1711,9 +1711,9 @@ begin
     {$ENDIF}{$IFNDEF PS_NOINTERFACES}btInterface, {$ENDIF}
     btclass, btPChar, btString: FrealSize := PointerSize;
     btSingle, bts32, btU32: FRealSize := 4;
-    btProcPtr: FRealSize := 2 * sizeof(Pointer) + sizeof(Cardinal);
+    btProcPtr: FRealSize := 3 * sizeof(Pointer);
     btCurrency: FrealSize := Sizeof(Currency);
-    btPointer: FRealSize := 2 * sizeof(Pointer) + sizeof(LongBool); // ptr, type, freewhendone
+    btPointer: FRealSize := 3 * sizeof(Pointer); // ptr, type, freewhendone
     btDouble{$IFNDEF PS_NOINT64}, bts64{$ENDIF}: FrealSize := 8;
     btExtended: FrealSize := SizeOf(Extended);
     btReturnAddress: FrealSize := Sizeof(TBTReturnAddress);
@@ -3942,8 +3942,8 @@ begin
         for i := 0 to Len -1 do
         begin
           tbtU32(Dest^) := tbtU32(Src^);
-          Dest := Pointer(IPointer(Dest) + 4);
-          Src := Pointer(IPointer(Src) + 4);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
           Pointer(Dest^) := Pointer(Src^);
           Dest := Pointer(IPointer(Dest) + PointerSize);
           Src := Pointer(IPointer(Src) + PointerSize);
@@ -4112,9 +4112,9 @@ begin
               Pointer(Dest^) := Pointer(Src^);
               Dest := Pointer(IPointer(Dest) + PointerSize);
               Src := Pointer(IPointer(Src) + PointerSize);
-              LongBool(Dest^) := false;
-              Dest := Pointer(IPointer(Dest) + sizeof(LongBool));
-              Src := Pointer(IPointer(Src) + sizeof(LongBool));
+              Pointer(Dest^) := nil;
+              Dest := Pointer(IPointer(Dest) + PointerSize);
+              Src := Pointer(IPointer(Src) + PointerSize);
             end;
           end else begin
             for i := 0 to Len -1 do
@@ -4145,8 +4145,8 @@ begin
                 Pointer(Pointer(IPointer(Dest) + PointerSize)^) := nil;
                 Pointer(Pointer(IPointer(Dest) + PointerSize2)^) := nil;
               end;
-              Dest := Pointer(IPointer(Dest) + PointerSize*2+sizeof(LongBool));
-              Src := Pointer(IPointer(Src) + PointerSize*2+sizeof(LongBool));
+              Dest := Pointer(IPointer(Dest) + PointerSize*3);
+              Src := Pointer(IPointer(Src) + PointerSize*3);
             end;
           end;
         end;
@@ -8827,7 +8827,7 @@ begin
     8: // StrSet
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -3], True);
-        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then 
+        if (temp.Dta = nil) or not (temp.aType.BaseType in [btString, btUnicodeString]) then
         begin
           Result := False;
           exit;
@@ -8874,7 +8874,7 @@ begin
       else if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
         Stack.SetWideString(-1, SysUtils.Trim(Stack.GetWideString(-2))) // Trim
       else
-{$ENDIF}      
+{$ENDIF}
         Stack.SetAnsiString(-1, AnsiString(SysUtils.Trim(String(Stack.GetAnsiString(-2)))));// Trim
     13: Stack.SetInt(-1, Length(Stack.GetAnsiString(-2))); // Length
     14: // SetLength
@@ -9688,7 +9688,7 @@ begin
 {$ENDIF}
       end;
     end;
-    datap := Pointer(IPointer(datap)+ (2*sizeof(Pointer)+sizeof(Longbool)));
+    datap := Pointer(IPointer(datap)+ (3*sizeof(Pointer)));
     p := PansiChar(p) + Result^.ElementSize;
   end;
 end;
@@ -9804,7 +9804,7 @@ begin
 {$ENDIF}
 {$ENDIF}
       end;
-      datap := Pointer(IPointer(datap)+ (2*sizeof(Pointer)+sizeof(LongBool)));
+      datap := Pointer(IPointer(datap)+ (3*sizeof(Pointer)));
       p := Pointer(IPointer(p) + Cardinal(v^.ElementSize));
     end;
     FreeMem(v.Data, v.ElementSize * v.ItemCount);
@@ -11341,7 +11341,7 @@ begin
  end;
  pp := fExceptionStack[fExceptionStack.Count-1];
  result := pp.ExceptionObject;
-end; 
+end;
 
 { TPSRuntimeClass }
 
@@ -11579,7 +11579,7 @@ end;
 
 {$ifdef CPUX64}
 
-{$DEFINE empty_methods_handler}
+{.$DEFINE empty_methods_handler}
 {$ENDIF}
 
 {$ifdef fpc}
@@ -11598,6 +11598,22 @@ end;
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
 
 procedure MyAllMethodsHandler;
+{$ifdef CPUX64}
+//  On entry:
+//  RCX = Self pointer
+//  RDX, R8, R9 = param1 .. param3
+//  STACK = param4... paramcount
+asm
+  PUSH  R9
+  MOV   R9,R8     // R9:=_ECX
+  MOV   R8,RDX    // R8:=_EDX
+  MOV   RDX, RSP  // RDX:=Stack
+  SUB   RSP, 20h
+  CALL MyAllMethodsHandler2
+  ADD   RSP, 20h  //Restore stack
+  POP   R9
+end;
+{$else}
 //  On entry:
 //     EAX = Self pointer
 //     EDX, ECX = param1 and param2
@@ -11616,6 +11632,7 @@ asm
   mov [esp], edx
   mov eax, ecx
 end;
+{$endif}
 
 function ResultAsRegister(b: TPSTypeRec): Boolean;
 begin
@@ -12721,7 +12738,7 @@ end;
 
 procedure TPSTypeRec_ProcPtr.CalcSize;
 begin
-  FRealSize := 2 * sizeof(Pointer) + Sizeof(Cardinal);
+  FRealSize := 3 * sizeof(Pointer);
 end;
 
 end.

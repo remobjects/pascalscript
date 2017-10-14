@@ -4,15 +4,17 @@ unit CompilerTestFunctions;
 interface
 
 uses Classes,
-     TestFramework,
-     { Project Units }
-     ifps3,
-     ifpscomp,
-     ifps3utl,
-     IFPS3CompExec,
-     CompilerTestBase;
+     //TestFramework,
+     //{ Project Units }
+     //ifps3,
+     //ifpscomp,
+     //ifps3utl,
+     //IFPS3CompExec,
+     CompilerTestBase, uPSComponent, testregistry;
 
 type
+
+    { TCompilerTestFunctions }
 
     TCompilerTestFunctions = class(TCompilerTestBase)
     private
@@ -21,8 +23,8 @@ type
       procedure AssertI(s1, s2: Longint);
       procedure AssertE(s1, s2: extended);
     protected
-        procedure OnCompile(Sender: TIFPS3CompExec); override;
-        procedure OnExecute(Sender: TIFPS3CompExec); override;
+        procedure OnCompile(Sender: TPSScript); override;
+        procedure OnExecute(Sender: TPSScript); override;
     published
         procedure CallProcedure;
         procedure CallMethod;
@@ -39,20 +41,21 @@ type
 
 implementation
 
-uses StrUtils, SysUtils, Math, Dialogs,
-    { Project Units }
-    ifpiir_std,
-    ifpii_std,
-    ifpiir_stdctrls,
-    ifpii_stdctrls,
-    ifpiir_forms,
-    ifpii_forms,
-    ifpii_graphics,
-    ifpii_controls,
-    ifpii_classes,
-    ifpiir_graphics,
-    ifpiir_controls,
-    ifpiir_classes;
+uses StrUtils, SysUtils, Math, Dialogs;
+//,
+//    { Project Units }
+//    ifpiir_std,
+//    ifpii_std,
+//    ifpiir_stdctrls,
+//    ifpii_stdctrls,
+//    ifpiir_forms,
+//    ifpii_forms,
+//    ifpii_graphics,
+//    ifpii_controls,
+//    ifpii_classes,
+//    ifpiir_graphics,
+//    ifpiir_controls,
+//    ifpiir_classes;
 
 
 { TFunctionsTest }
@@ -93,7 +96,7 @@ begin
     Result := s + '+Wide2Wide';
 end;
 
-procedure TCompilerTestFunctions.OnCompile(Sender: TIFPS3CompExec);
+procedure TCompilerTestFunctions.OnCompile(Sender: TPSScript);
 begin
     inherited;
     Sender.AddMethod(Self, @TCompilerTestFunctions.AssertS, 'procedure AssertS(s1, s2: string);');
@@ -111,7 +114,7 @@ begin
     //Sender.AddRegisteredVariable('aWideString', 'WideString');
 end;
 
-procedure TCompilerTestFunctions.OnExecute(Sender: TIFPS3CompExec);
+procedure TCompilerTestFunctions.OnExecute(Sender: TPSScript);
 begin
     inherited;
     //Sender.SetVarToInstance('aWideString', aWideString);
@@ -183,7 +186,7 @@ begin
     raise Exception.Create('AssertE: '+floattostr(s1)+' '+floattostr(s2));
 end;
 
-procedure TCompilerTestFunctions.AssertI(s1, s2: Integer);
+procedure TCompilerTestFunctions.AssertI(s1, s2: Longint);
 begin
   if s1 <> s2 then
     raise Exception.Create('AssertI: '+inttostr(s1)+' '+inttostr(s2));
@@ -196,8 +199,6 @@ begin
 end;
 
 initialization
-  RegisterTests('Functions Tests',
-                [ TCompilerTestFunctions.Suite
-                ]);
+  RegisterTests([ TCompilerTestFunctions ]);
 
 end.

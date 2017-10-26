@@ -1,0 +1,4 @@
+//#rps - Remobjects Pascal Script
+begin
+  writeln('Hello script :)');
+end.

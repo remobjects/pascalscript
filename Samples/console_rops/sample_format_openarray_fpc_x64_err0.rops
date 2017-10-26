@@ -1,0 +1,4 @@
+//#rps - Remobjects Pascal Script
+begin
+  format('%s; %s',['2','2']); //FPC: AV
+end.

@@ -1,0 +1,8 @@
+//#rps - Remobjects Pascal Script
+program sample_exception;
+
+{$i rops_inc\sample_include.inc}
+
+begin
+  println('Hello include!');
+end.

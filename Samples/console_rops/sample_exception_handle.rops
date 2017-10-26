@@ -1,0 +1,36 @@
+//#rps - Remobjects Pascal Script
+program sample_exception;
+
+{$i rops_inc\sample_include.inc}
+
+var
+  S: string;
+begin
+  writeln('Start:');
+  writeln('');
+
+
+  writeln('script handle exception:');
+  try
+    make_error('demo exception');
+  except
+    S := '  Exception(script): '+ExceptionText;
+    dbg(S);     // # OutputDebugString
+    println(S);
+  end;
+  writeln('script handle exception.');
+
+
+  writeln('unhandled exception:');
+  try
+    RaiseExceptionMessage('demo exception "unhandled"');
+  except
+      println('  raise ...');
+      raise; // emulate raise unhandled exception
+  end;
+  writeln('unhandled exception.');
+
+
+  writeln('');
+  writeln('Done!');
+end.

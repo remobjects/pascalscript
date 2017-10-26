@@ -1,6 +1,15 @@
 
 unit CompilerTestFunctions;
 
+{$IFDEF fpc}
+  {$IFnDEF cpu86}         // Has MyAllMethodsHandler
+    {$define empty_methods_handler}
+  {$ENDIF}
+{$ENDIF}
+
+{$IFnDEF empty_methods_handler}
+{$ENDIF}
+
 interface
 
 uses Classes,
@@ -28,7 +37,9 @@ type
     published
         procedure CallProcedure;
         procedure CallMethod;
+{$IFnDEF empty_methods_handler}
         procedure CallScriptFunctionAsMethod;
+{$ENDIF}
         procedure WideStringFunctions;
         procedure CheckConsts;
     end;
@@ -154,6 +165,7 @@ begin
     CheckEquals('Test+hello', vResultS, last_script);
 end;
 
+{$IFnDEF empty_methods_handler}
 type
   TTestMethod = function (s: string): string of object;
 
@@ -166,6 +178,7 @@ begin
   Check(@Meth <> nil, 'Unable to find function');
   CheckEquals('Test Results: INDATA', Meth('INDATA'));
 end;
+{$ENDIF}
 
 
 procedure TCompilerTestFunctions.CheckConsts;

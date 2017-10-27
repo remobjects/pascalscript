@@ -666,7 +666,7 @@ begin
   FillChar(Registers, Sizeof(REgisters), 0);
     _RAX := 0;
     RegUsage := 0;
-    {$IFDEF FPC} // FIX FOR FPC constructor calls
+    {$IF DEFINED (fpc) and (fpc_version >= 3)} // FIX FOR FPC constructor calls
     if IsConstructor then begin
       if not GetPtr(rp(Params[0])) then exit; // this goes first
       DisposePPSVariantIFC(Params[0]);

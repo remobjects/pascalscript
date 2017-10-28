@@ -10261,7 +10261,7 @@ begin
   // the VMT class pointer in EDX so they are effectively swaped
   // using register calling convention
   {$IFDEF CPU64}
-  PPSVariantU32(IntVal).Data := Int64(FSelf);
+  PPSVariantS64(IntVal).Data := Int64(FSelf);
   {$ELSE}
   PPSVariantU32(IntVal).Data := Cardinal(FSelf);
   {$ENDIF}

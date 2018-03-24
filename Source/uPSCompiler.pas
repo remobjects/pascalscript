@@ -2631,7 +2631,7 @@ begin
     {$IFNDEF PS_NOWIDESTRING}
     btunicodestring: tbtunicodestring(dest^.tunistring) := tbtunicodestring(src^.tunistring);
     btwidestring: tbtwidestring(dest^.twidestring) := tbtwidestring(src^.twidestring);
-    btwidechar: Dest^.tchar := src^.tchar;
+    btwidechar: Dest^.twidechar := src^.twidechar;
     {$ENDIF}
   end;
 end;

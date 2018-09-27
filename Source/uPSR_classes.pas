@@ -261,11 +261,24 @@ begin
   end;
 end;
 
+{$IFDEF UNICODE}
+  {$IFNDEF FPC}
+    {$DEFINE STRINGSTREAMFIX}
+  {$ENDIF}
+{$ENDIF}
+
+{$IFDEF STRINGSTREAMFIX}
+function TStringStreamCreateString(AHidden1: Pointer; AHidden2: Byte; const AString: string): TStringStream;
+begin
+  Result := TStringStream.Create(AString);
+end;
+{$ENDIF}
+
 procedure RIRegisterTSTRINGSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGSTREAM) do
   begin
-    RegisterConstructor(@TSTRINGSTREAM.CREATE, 'Create');
+    RegisterConstructor({$IFDEF STRINGSTREAMFIX}@TStringStreamCreateString{$ELSE}@TSTRINGSTREAM.CREATE{$ENDIF}, 'Create');
   end;
 end;
 

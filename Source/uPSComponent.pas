@@ -356,6 +356,7 @@ type
     procedure ClearBreakPoints;
 
     function GetVarContents(const Name: tbtstring): tbtstring;
+	function GetVarValue(const Name: tbtstring): Pointer;	
   published
 
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
@@ -1310,6 +1311,58 @@ begin
     Result := RPS_UnknownIdentifier
   else
     Result := PSVariantToString(NewTPSVariantIFC(pv, False), s);
+end;
+
+function TPSScriptDebugger.GetVarValue(const Name: tbtstring): Pointer;
+var
+  i: Longint;
+  pv: PIFVariant;
+  s1, s: tbtstring;
+begin
+  s := Uppercase(Name);
+  if pos('.', s) > 0 then
+  begin
+    s1 := copy(s,1,pos('.', s) -1);
+    delete(s,1,pos('.', Name));
+  end else begin
+    s1 := s;
+    s := '';
+  end;
+  pv := nil;
+  for i := 0 to Exec.CurrentProcVars.Count -1 do
+  begin
+    if Uppercase(Exec.CurrentProcVars[i]) =  s1 then
+    begin
+      pv := Exec.GetProcVar(i);
+      break;
+    end;
+  end;
+  if pv = nil then
+  begin
+    for i := 0 to Exec.CurrentProcParams.Count -1 do
+    begin
+      if Uppercase(Exec.CurrentProcParams[i]) =  s1 then
+      begin
+        pv := Exec.GetProcParam(i);
+        break;
+      end;
+    end;
+  end;
+  if pv = nil then
+  begin
+    for i := 0 to Exec.GlobalVarNames.Count -1 do
+    begin
+      if Uppercase(Exec.GlobalVarNames[i]) =  s1 then
+      begin
+        pv := Exec.GetGlobalVar(i);
+        break;
+      end;
+    end;
+  end;
+  if pv = nil then
+    Result := nil
+  else
+    Result := NewTPSVariantIFC(pv, False).Dta;
 end;
 
 function TPSScriptDebugger.HasBreakPoint(const Fn: tbtstring; Line: Integer): Boolean;

@@ -920,6 +920,7 @@ type
   TPSPascalCompiler = class
   protected
     FAnyString: TPSType;
+    FAnyMethod: TPSType;
     FUnitName: tbtString;
     FID: Pointer;
     FOnExportCheck: TPSOnExportCheck;
@@ -12396,6 +12397,7 @@ begin
   AddType('NativeString', btString);
   {$ENDIF}
   FAnyString := AddType('AnyString', btString);
+  FAnyMethod := AddTypeS('AnyMethod', 'procedure');
   AddType('ShortInt', btS8);
   AddType('Word', btU16);
   AddType('SmallInt', btS16);
@@ -13465,6 +13467,11 @@ var
 begin
   if p.BaseType <> btProcPtr then begin
     Result := False;
+    Exit;
+  end;
+
+  if p = FAnyMethod then begin
+    Result := True;
     Exit;
   end;
 

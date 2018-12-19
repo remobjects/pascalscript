@@ -898,7 +898,9 @@ type
   TPSUnOperatorType = (otNot, otMinus, otCast);
 
   TPSOnUseVariable = procedure (Sender: TPSPascalCompiler; VarType: TPSVariableType; VarNo: Longint; ProcNo, Position: Cardinal; const PropData: tbtString);
-
+  
+  TPSOnUseRegProc = procedure (Sender: TPSPascalCompiler; Position: Cardinal; const Name: tbtString);
+  
   TPSOnUses = function(Sender: TPSPascalCompiler; const Name: tbtString): Boolean;
 
   TPSOnExportCheck = function(Sender: TPSPascalCompiler; Proc: TPSInternalProcedure; const ProcDecl: tbtString): Boolean;
@@ -946,6 +948,7 @@ type
     FDebugOutput: tbtString;
     FOnExternalProc: TPSOnExternalProc;
     FOnUseVariable: TPSOnUseVariable;
+    FOnUseRegProc: TPSOnUseRegProc;
     FOnBeforeOutput: TPSOnNotify;
     FOnBeforeCleanup: TPSOnNotify;
     FOnWriteLine: TPSOnWriteLineEvent;
@@ -1179,6 +1182,8 @@ type
     property OnExternalProc: TPSOnExternalProc read FOnExternalProc write FOnExternalProc;
 	
     property OnUseVariable: TPSOnUseVariable read FOnUseVariable write FOnUseVariable;
+
+    property OnUseRegProc: TPSOnUseRegProc read FOnUseRegProc write FOnUseRegProc;
 
     property OnBeforeOutput: TPSOnNotify read FOnBeforeOutput write FOnBeforeOutput;
 
@@ -2312,6 +2317,8 @@ begin
       x := TPSExternalProcedure.Create;
       TPSExternalProcedure(x).RegProc := xr;
       FProcs.Add(x);
+      if @FOnUseRegProc <> nil then
+        FOnUseRegProc(Self, FParser.CurrTokenPos, Name);
       Result := FProcs.Count - 1;
       exit;
     end;

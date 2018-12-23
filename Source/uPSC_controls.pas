@@ -192,6 +192,9 @@ begin
 {$IFDEF DELPHI4UP}
   cl.AddConstantN('crSizeAll', 'Integer').Value.ts32 := -22;
 {$ENDIF}
+{$IFDEF DELPHI2009UP}
+  cl.AddTypeS('TBevelKind', '(bkNone, bkTile, bkSoft, bkFlat)');
+{$ENDIF}
 end;
 
 procedure SIRegisterTDragObject(cl: TPSPascalCompiler);

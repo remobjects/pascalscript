@@ -150,6 +150,9 @@ begin
     RegisterProperty('Alignment', 'TAlignment', iptrw);
     RegisterProperty('BevelInner', 'TPanelBevel', iptrw);
     RegisterProperty('BevelOuter', 'TPanelBevel', iptrw);
+    {$IFDEF DELPHI2009UP}
+    RegisterProperty('BevelKind', 'TBevelKind', iptrw);
+    {$ENDIF}
     RegisterProperty('BevelWidth', 'TBevelWidth', iptrw);
     RegisterProperty('BorderWidth', 'TBorderWidth', iptrw);
     RegisterProperty('BorderStyle', 'TBorderStyle', iptrw);

@@ -50,6 +50,7 @@ begin
   begin
     {$IFDEF DELPHI4UP}
     RegisterProperty('Anchors', 'TAnchors', iptrw);
+    RegisterProperty('Constraints', 'TSizeConstraints', iptrw);
     {$ENDIF}
     RegisterProperty('BorderStyle', 'TBorderStyle', iptrw);
     RegisterProperty('Color', 'TColor', iptrw);
@@ -98,6 +99,7 @@ begin
     RegisterProperty('ActiveControl', 'TWinControl', iptrw);
     {$IFDEF DELPHI4UP}
     RegisterProperty('Anchors', 'TAnchors', iptrw);
+    RegisterProperty('Constraints', 'TSizeConstraints', iptrw);
     {$ENDIF}
     RegisterProperty('BorderIcons', 'TBorderIcons', iptrw);
     RegisterProperty('BorderStyle', 'TFormBorderStyle', iptrw);

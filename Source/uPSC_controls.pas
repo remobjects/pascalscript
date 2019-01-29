@@ -20,6 +20,9 @@ procedure SIRegisterTWinControl(Cl: TPSPascalCompiler);
 procedure SIRegisterTGraphicControl(cl: TPSPascalCompiler); 
 procedure SIRegisterTCustomControl(cl: TPSPascalCompiler); 
 procedure SIRegisterTDragObject(cl: TPSPascalCompiler);
+{$IFDEF DELPHI4UP}
+procedure SIRegisterTSizeConstraints(cl: TPSPascalCompiler);
+{$ENDIF}
 
 procedure SIRegister_Controls(Cl: TPSPascalCompiler);
 
@@ -226,10 +229,27 @@ begin
   Cl.AddTypeS('TStartDragEvent', 'procedure (Sender: TObject; var DragObject: TDragObject)');
 end;
 
+{$IFDEF DELPHI4UP}
+procedure SIRegisterTSizeConstraints(cl: TPSPascalCompiler);
+begin
+  cl.AddTypeS('TConstraintSize', 'Integer');
+  with CL.AddClassN(CL.FindClass('TPersistent'),'TSizeConstraints') do
+  begin
+    RegisterProperty('MaxHeight', 'TConstraintSize', iptrw);
+    RegisterProperty('MaxWidth', 'TConstraintSize', iptrw);
+    RegisterProperty('MinHeight', 'TConstraintSize', iptrw);
+    RegisterProperty('MinWidth', 'TConstraintSize', iptrw);
+  end;
+end;
+{$ENDIF}
+
 procedure SIRegister_Controls(Cl: TPSPascalCompiler);
 begin
   SIRegister_Controls_TypesAndConsts(cl);
   SIRegisterTDragObject(cl);
+{$IFDEF DELPHI4UP}
+  SIRegisterTSizeConstraints(cl);
+{$ENDIF}
   SIRegisterTControl(Cl);
   SIRegisterTWinControl(Cl);
   SIRegisterTGraphicControl(cl);

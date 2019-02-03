@@ -2464,7 +2464,9 @@ begin
   Parser := TPSPascalParser.Create;
   Parser.SetText(Header);
   Decl := TPSParametersDecl.Create;
+{$IFNDEF DELPHI_TOKYO_UP}
   x := nil;
+{$ENDIF}
   try
     if Parser.CurrTokenId = CSTII_Function then
       IsFunction := True
@@ -13558,7 +13560,9 @@ var
 
 begin
   pDecl := TPSParametersDecl.Create;
+{$IFNDEF DELPHI_TOKYO_UP}
   p := nil;
+{$ENDIF}
   try
     if not ParseMethod(Self, '', Decl, DOrgName, pDecl, FT) then
       Raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterFunction, [Decl]);

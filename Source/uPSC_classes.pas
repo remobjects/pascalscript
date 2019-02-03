@@ -137,7 +137,7 @@ begin
     IsAbstract := True;
     RegisterMethod('function Read(Buffer: string; Count: LongInt): LongInt');
     RegisterMethod('function Write(Buffer: string; Count: LongInt): LongInt');
-    {$IFDEF DELPHI_RIO_UP}
+    {$IFDEF DELPHI_TOKYO_UP}
     {$IFNDEF PS_NOINT64}
     RegisterMethod('function Seek(Offset: Int64; Origin: Word): Int64');
     {$ENDIF}

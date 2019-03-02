@@ -944,6 +944,9 @@ var
   {$IFNDEF WINDOWS}
   RegUsageFloat: Byte;
   {$ENDIF}
+{$IFDEF FPC}
+  IsConstructor,IsVirtualCons: Boolean;
+{$ENDIF}
   RegUsage: Byte;
   CallData: TPSList;
   I: Integer;
@@ -1090,9 +1093,6 @@ var
     end;
     PMethodCallData=^TMethodCallData;
   function GetPtr(fVar: PPSVariantIFC): Boolean;
-  // [#velter#]: https://github.com/remobjects/pascalscript/pull/107
-  //             https://github.com/velter/pascalscript/commit/44cefba3328bd9cc041e11715d217c97c97199e7
-  //             https://github.com/remobjects/pascalscript/pull/107/files#diff-0
   var
     varPtr: Pointer;
     p: Pointer;
@@ -1106,7 +1106,7 @@ var
             if Copy(fVar.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
               p := CreateOpenArray(True, Self, fVar);
               if p = nil then exit;
-              if CallData = nil then // [#velter#]
+              if CallData = nil then
                 CallData := TPSList.Create;
               CallData.Add(p);
               StoreReg(IPointer(POpenArray(p)^.Data));
@@ -1124,7 +1124,7 @@ var
         btRecord,
         btInterface,
         btClass,
-        {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
+        {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar,{$ENDIF} btU8, btS8, btU16,
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
         {$IFNDEF PS_NOINT64}, bts64{$ENDIF}: begin
             Varptr := fVar.Dta;
@@ -1150,7 +1150,7 @@ var
             if Copy(fVar.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
               p := CreateOpenArray(False, Self, fVar);
               if p =nil then exit;
-              if CallData = nil then // [#velter#]
+              if CallData = nil then
                 CallData := TPSList.Create;
               CallData.Add(p);
               StoreReg(IPointer(POpenArray(p)^.Data));
@@ -1206,24 +1206,13 @@ var
             StoreReg(IPointer(fVar.dta^));
           end;
         btProcPtr: begin
-            // [#velter#]:
-            {
-            GetMem(p, PointerSize2);
-            TMethod(p^) := MKMethod(Self, Longint(fVar.Dta^));
-            StoreStack(p^, Pointersize2);
-            FreeMem(p);
-            }
-            //GetMem(p, sizeof(TMethodCallData));
             p := New(PMethodCallData);
             TMethodCallData(p^).AType:=255;
             if CallData = nil then
               CallData := TPSList.Create;
             CallData.Add(p);
-            TMethodCallData(p^).Data.Code:=nil;
-            //TMethodCallData(p^).Data.Data:=nil;
             TMethodCallData(p^).Data := MKMethod(Self, Longint(fVar.Dta^)); // It requires the implementation of "Handled"
             StoreReg(IPointer(@TMethodCallData(p^).Data));
-            // [#velter#].
           end;
         btS64: begin
             StoreReg(IPointer(int64(fVar.dta^)));
@@ -1234,12 +1223,23 @@ var
   end; // function GetPtr
 
 begin // function TPSExec.InnerfuseCall
-  // TODO: FPC: OpenArray fail (AV). Sample script: "begin format('%s; %s',['2','2']); end."
+  {$IFDEF FPC}
+  if (Integer(CallingConv) and 128) <> 0 then begin
+    IsVirtualCons := true;
+    CAllingConv := TPSCallingConvention(Integer(CallingConv) and not 128);
+  end else
+    IsVirtualCons:= false;
+  if (Integer(CallingConv) and 64) <> 0 then begin
+    IsConstructor := true;
+    CAllingConv := TPSCallingConvention(Integer(CallingConv) and not 64);
+  end else
+    IsConstructor := false;
+  {$ENDIF}
   InnerfuseCall := False;
   if Address = nil then
     exit; // need address
   SetLength(Stack, 0);
-  CallData := nil; // [#velter#]
+  CallData := nil;
   res := rp(res);
   if res <> nil then
     res.VarParam := true;
@@ -1257,6 +1257,15 @@ begin // function TPSExec.InnerfuseCall
     FillChar(Registers, Sizeof(Registers), 0);
     _RAX := 0;
     RegUsage := 0;
+    {$warnings off}
+    {$IF DEFINED (fpc) and (fpc_version >= 3)} // FIX FOR FPC constructor calls
+    {$warnings on}
+    if IsConstructor then begin
+      if not GetPtr(rp(Params[0])) then exit; // this goes first
+      DisposePPSVariantIFC(Params[0]);
+      Params.Delete(0);
+    end;
+    {$ENDIF}
     if assigned(_Self) then begin
       StoreReg(IPointer(_Self));
     end;
@@ -1274,10 +1283,7 @@ begin // function TPSExec.InnerfuseCall
         btString,
         {.$ENDIF}
         {$ENDIF x64_string_result_as_varparameter}
-        {$IFNDEF FPC}
-        btArray,
-        {$ENDIF}
-        btInterface, btVariant, btStaticArray:
+        btInterface, btArray, btVariant, btStaticArray:
           GetPtr(res);
         btRecord,
         btSet:
@@ -1289,8 +1295,8 @@ begin // function TPSExec.InnerfuseCall
     end;
     {$ENDIF PS_RESBEFOREPARAMETERS}
     for I := 0 to Params.Count - 1 do begin
-     if not GetPtr(rp(Params[I])) then
-       Exit;
+      if not GetPtr(rp(Params[I])) then
+        Exit;
     end;
     if assigned(res) then begin
       {$IFNDEF PS_RESBEFOREPARAMETERS}
@@ -1342,7 +1348,7 @@ begin // function TPSExec.InnerfuseCall
           tbtdouble(res.Dta^) := _XMM0;
         btExtended:
           tbtextended(res.Dta^) := _XMM0;
-        btchar,btU8, btS8:
+        btChar, btU8, btS8:
           tbtu8(res.dta^) := _RAX;
 
         {$IFNDEF PS_NOWIDESTRING}
@@ -1352,7 +1358,7 @@ begin // function TPSExec.InnerfuseCall
 
         btClass :
           IPointer(res.dta^) := _RAX;
-        btu32,bts32:
+        btu32, bts32:
           tbtu32(res.dta^) := _RAX;
         btPChar:
           pansichar(res.dta^) := Pansichar(_RAX);
@@ -1403,9 +1409,8 @@ begin // function TPSExec.InnerfuseCall
           0: begin
             DestroyOpenArray(Self, Pointer(pp));
           end;
-          255: begin // [#velter#]: https://github.com/velter/pascalscript/commit/1c598a1406390e2e762368b07a185ecb187182a7
-            //FreeMem(Pointer(pp), sizeof(TMethodCallData)); // release TMethodCallData
-            Dispose(PMethodCallData(pp));
+          255: begin
+            Dispose(PMethodCallData(pp)); // release TMethodCallData
           end;
         end;
       end;

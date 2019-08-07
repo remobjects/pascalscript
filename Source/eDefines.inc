@@ -1293,3 +1293,10 @@
 {$IFDEF NEXTGEN_or_DELPHILINUX}
   {$DEFINE FPC_SAFECALL_BUG}          // nextgen&linux compiler causes bug with safecall declarations
 {$ENDIF}
+
+{$IFDEF DELPHI2005UP}
+  {$DEFINE INLINE_SUPPORT}
+{$ENDIF}
+{$IFDEF FPC}
+  {$DEFINE INLINE_SUPPORT}
+{$ENDIF}

@@ -4,7 +4,14 @@ unit uPSPreProcessor;
 
 interface
 uses
-  Classes, SysUtils, uPSCompiler, uPSUtils;
+  Classes, SysUtils,
+  {$IFDEF NEXTGEN}
+  System.ByteStrings,
+  {$ENDIF}
+  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}
+  AnsiStrings,
+  {$ENDIF}
+  uPSCompiler, uPSUtils;
 
 
 
@@ -632,14 +639,14 @@ begin
             if FDefineState.DoWrite then
             begin
               if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
-              FCurrentDefines.Add(Uppercase(S));
+              FCurrentDefines.Add(String({$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}AnsiStrings.{$ENDIF}Uppercase(S)));
             end;
           end else if (Name = 'UNDEF') then
           begin
             if FDefineState.DoWrite then
             begin
               if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
-              i := FCurrentDefines.IndexOf(Uppercase(s));
+              i := FCurrentDefines.IndexOf(String({$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}AnsiStrings.{$ENDIF}Uppercase(S)));
               if i <> -1 then
                 FCurrentDefines.Delete(i);
             end;
@@ -647,13 +654,13 @@ begin
           begin
             if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
             //JeromeWelsh - nesting fix
-            ADoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) >= 0) and FDefineState.DoWrite;
+            ADoWrite := (FCurrentDefines.IndexOf(String({$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}AnsiStrings.{$ENDIF}Uppercase(S))) >= 0) and FDefineState.DoWrite;
             FDefineState.Add.DoWrite := ADoWrite;
           end else if (Name = 'IFNDEF') then
           begin
             if pos(' ', s) <> 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
             //JeromeWelsh - nesting fix
-            ADoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) < 0) and FDefineState.DoWrite;
+            ADoWrite := (FCurrentDefines.IndexOf(String({$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}AnsiStrings.{$ENDIF}Uppercase(s))) < 0) and FDefineState.DoWrite;
             FDefineState.Add.DoWrite := ADoWrite;
           end else if (Name = 'ENDIF') then
           begin

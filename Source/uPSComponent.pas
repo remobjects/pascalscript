@@ -4,7 +4,9 @@ interface
 
 uses
   SysUtils, Classes, uPSRuntime, uPSDebugger, uPSUtils,
-  uPSCompiler, uPSC_dll, uPSR_dll, uPSPreProcessor;
+  uPSCompiler,
+  {$IF DEFINED (MSWINDOWS) OR Defined (UNIX)}uPSC_dll, uPSR_dll,{$ENDIF}
+  uPSPreProcessor;
 
 const
   {alias to @link(ifps3.cdRegister)}
@@ -86,7 +88,9 @@ type
   TPSVerifyProc = procedure (Sender: TPSScript; Proc: TPSInternalProcedure; const Decl: tbtstring; var Error: Boolean) of object;
   
   TPSEvent = procedure (Sender: TPSScript) of object;
-  
+
+  TPSExecuteEvent = function (Sender: TPSScript) : Boolean of object;
+
   TPSOnCompImportEvent = procedure (Sender: TObject; x: TPSPascalCompiler) of object;
 
   TPSOnExecImportEvent = procedure (Sender: TObject; se: TPSExec; x: TPSRuntimeClassImporter) of object;
@@ -112,7 +116,8 @@ type
     FScript: TStrings;
     FOnLine: TNotifyEvent;
     FUseDebugInfo: Boolean;
-    FOnAfterExecute, FOnCompile, FOnExecute: TPSEvent;
+    FOnAfterExecute, FOnCompile: TPSEvent;
+    FOnExecute : TPSExecuteEvent;
     FOnCompImport: TPSOnCompImportEvent;
     FOnExecImport: TPSOnExecImportEvent;
     RI: TPSRuntimeClassImporter;
@@ -158,7 +163,7 @@ type
     function  DoVerifyProc (Sender: TPSScript; Proc: TPSInternalProcedure; const Decl: tbtstring): Boolean; virtual;
 
     procedure DoOnExecImport (RunTimeImporter: TPSRuntimeClassImporter); virtual;
-    procedure DoOnExecute (RunTimeImporter: TPSRuntimeClassImporter); virtual;
+    function DoOnExecute  : Boolean; virtual;
     procedure DoAfterExecute; virtual;
     function  DoOnGetNotificationVariant (const Name: tbtstring): Variant; virtual;
     procedure DoOnSetNotificationVariant (const Name: tbtstring; V: Variant); virtual;
@@ -190,7 +195,7 @@ type
 
     destructor Destroy; override;
 
-    function Compile: Boolean; virtual;
+    function Compile(FinalCleaning : Boolean = True): Boolean; virtual;
 
     function Execute: Boolean; virtual;
 
@@ -267,7 +272,7 @@ type
 
     property OnCompile: TPSEvent read FOnCompile write FOnCompile;
 
-    property OnExecute: TPSEvent read FOnExecute write FOnExecute;
+    property OnExecute: TPSExecuteEvent read FOnExecute write FOnExecute;
     
     property OnAfterExecute: TPSEvent read FOnAfterExecute write FOnAfterExecute;
     
@@ -356,7 +361,8 @@ type
     procedure ClearBreakPoints;
 
     function GetVarContents(const Name: tbtstring): tbtstring;
-	function GetVarValue(const Name: tbtstring): Pointer;	
+
+	  function GetVarValue(const Name: tbtstring): Pointer;
   published
 
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
@@ -549,7 +555,7 @@ begin
   end;
 end;
 
-function TPSScript.Compile: Boolean;
+function TPSScript.Compile(FinalCleaning : Boolean = True): Boolean;
 var
   i: Longint;
   dta: tbtstring;
@@ -595,10 +601,10 @@ begin
     FComp.OnTranslateLineInfo := CompTranslateLineInfo;
     Fpp.OnProcessDirective := callObjectOnProcessDirective;
     Fpp.OnProcessUnknowDirective := callObjectOnProcessUnknowDirective;
-    Fpp.MainFile := FScript.Text;
+    Fpp.MainFile := TbtString(FScript.Text);
     Fpp.MainFileName := FMainFileName;
     Fpp.PreProcess(FMainFileName, dta);
-    if FComp.Compile(dta) then
+    if FComp.Compile(dta,FinalCleaning) then
     begin
       FCanAdd := False;
       if (not SuppressLoadData) and (not LoadExec) then
@@ -611,7 +617,7 @@ begin
   end else
   begin
     FComp.OnTranslateLineInfo := nil;
-    if FComp.Compile(FScript.Text) then
+    if FComp.Compile(TbtString(FScript.Text),FinalCleaning) then
     begin
       FCanAdd := False;
       if not LoadExec then
@@ -673,7 +679,8 @@ begin
   if SuppressLoadData then
     LoadExec;
 
-  DoOnExecute (RI);
+  If not DoOnExecute  then
+    Exit(True);
 
   FExec.DebugEnabled := FUseDebugInfo;
   Result := FExec.RunScript and (FExec.ExceptionCode = erNoError) ;
@@ -827,7 +834,7 @@ begin
       TPSPluginItem(FPlugins.Items[i]).Plugin.ExecOnUses(Self);
   end;
   if not FExec.LoadData(Data) then
-    raise Exception.Create(GetExecErrorString);
+    raise InternalScriptException.Create(String(GetExecErrorString));
 end;
 
 function TPSScript.SetVarToInstance(const VarName: tbtstring; cl: TObject): Boolean;
@@ -918,7 +925,7 @@ begin
   if (FExec.Status = isRunning) or (Fexec.Status = isPaused) then
     FExec.Stop
   else
-    raise Exception.Create(RPS_NotRunning);
+    raise InternalScriptException.Create(RPS_NotRunning);
 end;
 
 function TPSScript.GetProcMethod(const ProcName: tbtstring): TMethod;
@@ -980,7 +987,7 @@ begin
   if SuppressLoadData then
     LoadExec;
 
-  DoOnExecute (RI);
+  DoOnExecute;
 
   FExec.DebugEnabled := FUseDebugInfo;
 
@@ -1097,10 +1104,11 @@ begin
     OnCompile(Self);
 end;
 
-procedure TPSScript.DoOnExecute;
+function TPSScript.DoOnExecute : Boolean;
 begin
+  Result := True;
   If Assigned (OnExecute) then
-    OnExecute (Self);
+    Result := OnExecute (Self);
 end;
 
 procedure TPSScript.DoAfterExecute;
@@ -1147,12 +1155,15 @@ end;
 
 procedure TPSDllPlugin.CompOnUses;
 begin
+  CompExec.Comp.OnExternalProc := nil;
+{$IF DEFINED (MSWINDOWS) OR Defined (UNIX)}
   CompExec.Comp.OnExternalProc := DllExternalProc;
+{$ENDIF}
 end;
 
 procedure TPSDllPlugin.ExecOnUses;
 begin
-  RegisterDLLRuntime(CompExec.Exec);
+{$IF DEFINED (MSWINDOWS) OR Defined (UNIX)}  RegisterDLLRuntime(CompExec.Exec);{$ENDIF}
 end;
 
 
@@ -1189,7 +1200,8 @@ begin
   if bi <> nil then
   begin
     if @dc.FOnBreakpoint <> nil then dc.FOnBreakpoint(dc, lFileName, Position, Row, Col);
-    dc.Pause;
+    if dc.FExec.Status = isRunning then
+      dc.Pause;
   end;
 end;
 
@@ -1267,11 +1279,11 @@ var
   pv: PIFVariant;
   s1, s: tbtstring;
 begin
-  s := Uppercase(Name);
-  if pos('.', s) > 0 then
+  s := TbtString(Uppercase(String(Name)));
+  if pos('.', String(s)) > 0 then
   begin
-    s1 := copy(s,1,pos('.', s) -1);
-    delete(s,1,pos('.', Name));
+    s1 := TbtString(copy(String(s),1,pos('.', String(s)) -1));
+    delete(s,1,pos('.', String(Name)));
   end else begin
     s1 := s;
     s := '';
@@ -1279,7 +1291,7 @@ begin
   pv := nil;
   for i := 0 to Exec.CurrentProcVars.Count -1 do
   begin
-    if Uppercase(Exec.CurrentProcVars[i]) =  s1 then
+    if Uppercase(String(Exec.CurrentProcVars[i])) =  String(s1) then
     begin
       pv := Exec.GetProcVar(i);
       break;
@@ -1289,7 +1301,7 @@ begin
   begin
     for i := 0 to Exec.CurrentProcParams.Count -1 do
     begin
-      if Uppercase(Exec.CurrentProcParams[i]) =  s1 then
+      if Uppercase(String(Exec.CurrentProcParams[i])) =  String(s1) then
       begin
         pv := Exec.GetProcParam(i);
         break;
@@ -1300,7 +1312,7 @@ begin
   begin
     for i := 0 to Exec.GlobalVarNames.Count -1 do
     begin
-      if Uppercase(Exec.GlobalVarNames[i]) =  s1 then
+      if Uppercase(String(Exec.GlobalVarNames[i])) =  String(s1) then
       begin
         pv := Exec.GetGlobalVar(i);
         break;
@@ -1308,7 +1320,7 @@ begin
     end;
   end;
   if pv = nil then
-    Result := RPS_UnknownIdentifier
+    Result := TbtString(RPS_UnknownIdentifier)
   else
     Result := PSVariantToString(NewTPSVariantIFC(pv, False), s);
 end;

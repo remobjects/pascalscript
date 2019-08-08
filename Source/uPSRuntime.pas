@@ -9,8 +9,12 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}{$IFDEF MACOS},uPSCMac{$ELSE}{$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF}{$ENDIF};
+  {$IFNDEF FPC}System.Rtti,{$ENDIF}
+  {$IFDEF NEXTGEN}System.ByteStrings,{$ENDIF}
+  SysUtils,uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
+  {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
 
+{$ZEROBASEDSTRINGS OFF}
 
 type
   TPSExec = class;
@@ -23,7 +27,8 @@ type
     erOutOfGlobalVarsRange, erOutOfProcRange, ErOutOfRange, erOutOfStackRange,
     ErTypeMismatch, erUnexpectedEof, erVersionError, ErDivideByZero, ErMathError,
     erCouldNotCallProc, erOutofRecordRange, erOutOfMemory, erException,
-    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError);
+    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError,
+    ErOutOfArrayRange);
 
   TPSStatus = (isNotLoaded, isLoaded, isRunning, isPaused);
 
@@ -588,7 +593,7 @@ type
 
   TPSOnSpecialProcImport = function (Sender: TPSExec; p: TPSExternalProcRec; Tag: Pointer): Boolean;
 
-  TPSOnException = procedure (Sender: TPSExec; ExError: TPSError; const ExParam: tbtstring; ExObject: TObject; ProcNo, Position: Cardinal);
+  TPSOnException = procedure (Sender: TPSExec; ExError: TPSError; const ExParam: tbtstring; var ExObject: TObject; ProcNo, Position: Cardinal);
 
   TPSExec = class(TObject)
   Private
@@ -897,8 +902,8 @@ function PSGetString(Src: Pointer; aType: TPSTypeRec): string;
 function PSGetAnsiString(Src: Pointer; aType: TPSTypeRec): tbtString;
 {$IFNDEF PS_NOWIDESTRING}
 function PSGetWideString(Src: Pointer; aType: TPSTypeRec): tbtWideString;
-function PSGetUnicodeString(Src: Pointer; aType: TPSTypeRec): tbtunicodestring;
 {$ENDIF}
+function PSGetUnicodeString(Src: Pointer; aType: TPSTypeRec): tbtunicodestring;
 
 procedure PSSetObject(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; Const val: TObject);
 procedure PSSetUInt(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: Cardinal);
@@ -912,8 +917,8 @@ procedure PSSetString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Va
 procedure PSSetAnsiString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtString);
 {$IFNDEF PS_NOWIDESTRING}
 procedure PSSetWideString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtWideString);
-procedure PSSetUnicodeString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtunicodestring);
 {$ENDIF}
+procedure PSSetUnicodeString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtunicodestring);
 
 procedure VNSetPointerTo(const Src: TPSVariantIFC; Data: Pointer; aType: TPSTypeRec);
 
@@ -1101,7 +1106,10 @@ function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtS
 
 implementation
 uses
-  TypInfo {$IFDEF DELPHI3UP}{$IFNDEF FPC}{$IFNDEF KYLIX} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}{$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF} {$IFDEF DELPHI_TOKYO_UP}, AnsiStrings{$ENDIF};
+  TypInfo {$IFDEF DELPHI3UP}
+  {$IFNDEF FPC}{$IFDEF MSWINDOWS} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}
+  {$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF}
+  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}, AnsiStrings{$ENDIF};
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -1124,7 +1132,7 @@ const
   RPS_NoMainProc = 'no Main Proc';
   RPS_OutOfGlobalVarsRange = 'Out of Global Vars range';
   RPS_OutOfProcRange = 'Out of Proc Range';
-  RPS_OutOfRange = 'Out Of Range';
+  RPS_OutOfRange = 'PS Internal error: Out Of Range.';
   RPS_OutOfStackRange = 'Out Of Stack Range';
   RPS_TypeMismatch = 'Type Mismatch';
   RPS_UnexpectedEof = 'Unexpected End Of File';
@@ -1539,7 +1547,7 @@ begin
       tkVariant: begin Result := '[Variant]'; exit; end;
 	  {$IFDEF DELPHI6UP}
 	  {$IFNDEF PS_NOWIDESTRING}
-      tkWString: begin Result := ''''+tbtString(GetWideStrProp(Instance, pp))+''''; exit; end;
+      tkWString: begin Result := ''''+tbtString({$IFDEF DELPHI_TOKYO_UP}GetStrProp{$ELSE}GetWideStrProp{$ENDIF}(Instance, pp))+''''; exit; end;
 	  {$IFDEF DELPHI2009UP}
       tkUString: begin Result := ''''+tbtString({$IFDEF DELPHI_TOKYO_UP}GetStrProp{$ELSE}GetUnicodeStrProp{$ENDIF}(Instance, pp))+''''; exit; end;
 	  {$ENDIF}
@@ -2532,8 +2540,6 @@ var
     Result := True;
   end;
 
-{$WARNINGS OFF}
-
   function LoadTypes: Boolean;
   var
     currf: TPSType;
@@ -2550,7 +2556,7 @@ var
       for l := 0 to Dta.FieldTypes.Count -1 do
       begin
         Dta.RealFieldOffsets.Add(Pointer(offs));
-        offs := offs + TPSTypeRec(Dta.FieldTypes[l]).RealSize;
+        offs := offs + Integer(TPSTypeRec(Dta.FieldTypes[l]).RealSize);
       end;
       Result := True;
     end;
@@ -2834,7 +2840,7 @@ var
         TPSExternalProcRec(Curr).Name := n;
         if (Rec.Flags and 3 = 3) then
         begin
-          if (not Read(L2, 4)) or (L2 > Length(s) - Pos) then
+          if (not Read(L2, 4)) or (L2 > Length(s) - Integer(Pos)) then
           begin
             Curr.Free;
             cmd_err(erUnexpectedEof);
@@ -2932,7 +2938,6 @@ var
       FProcs.Add(Curr);
     end;
   end;
-{$WARNINGS ON}
 
   function LoadVars: Boolean;
   var
@@ -3363,7 +3368,7 @@ begin
   begin
     atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
-    if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
+    if (src = nil) or (aType = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
     btU8: Result := tbtu8(src^);
@@ -3382,18 +3387,18 @@ begin
           if Length(VarToStr(Variant(Src^))) = 1 then
             Result := Ord(VarToStr(Variant(Src^))[1])
           else
-            raise Exception.Create(RPS_TypeMismatch);
+            raise InternalScriptException.Create(RPS_TypeMismatch);
 {$IFNDEF PS_NOWIDESTRING}
         varOleStr:
           if Length(VarToWideStr(Variant(Src^))) = 1 then
             Result := Ord(VarToWideStr(Variant(Src^))[1])
           else
-            raise Exception.Create(RPS_TypeMismatch);
+            raise InternalScriptException.Create(RPS_TypeMismatch);
 {$ENDIF}
        else
         Result := Variant(src^);
        end;
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
 
@@ -3403,7 +3408,7 @@ begin
   begin
     atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
-    if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
+    if (src = nil) or (aType = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
     btClass: Result := TObject(Src^);
@@ -3417,7 +3422,7 @@ begin
   begin
     atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
-    if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
+    if (src = nil) or (aType = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
     btClass: TObject(Src^) := Val;
@@ -3433,7 +3438,7 @@ begin
   begin
     atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
-    if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
+    if (src = nil) or (aType = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
     btU8: Result := tbtu8(src^);
@@ -3450,7 +3455,7 @@ begin
 {$IFDEF DELPHI6UP}
     btVariant:   Result := Variant(src^);
 {$ENDIF}
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
 {$ENDIF}
@@ -3461,7 +3466,7 @@ begin
   begin
     atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
-    if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
+    if (src = nil) or (aType = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
     btU8: Result := tbtu8(src^);
@@ -3476,7 +3481,7 @@ begin
     btExtended: Result := tbtextended(Src^);
     btCurrency: Result := tbtcurrency(Src^);
     btVariant:  Result := Variant(src^);
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
 
@@ -3501,7 +3506,7 @@ begin
     btExtended: Result := tbtextended(Src^);
     btCurrency: Result := tbtcurrency(Src^);
     btVariant:   Result := Variant(src^);
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
 
@@ -3525,10 +3530,19 @@ begin
     btChar: Result := Ord(tbtchar(Src^));
 {$IFNDEF PS_NOWIDESTRING}    btWideChar: Result := Ord(tbtwidechar(Src^));{$ENDIF}
     btVariant: Result := Variant(src^);
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
 
+function PSGetAnsiChar(Src: Pointer; aType: TPSTypeRec): tbtchar;
+var Res : tbtString;
+begin
+  Res := PSGetAnsiString(Src,aType);
+  if Length(Res) > 0 then
+    Result := Res[Low(Res)]
+  else
+    Exit(#0);
+end;
 
 function PSGetAnsiString(Src: Pointer; aType: TPSTypeRec): tbtString;
 begin
@@ -3536,7 +3550,7 @@ begin
   begin
     atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
-    if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
+    if (src = nil) or (aType = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
     btU8: Result := tbtchar(tbtu8(src^));
@@ -3548,7 +3562,7 @@ begin
     btUnicodeString: result := tbtString(tbtUnicodestring(src^));
     btWideString: Result := tbtString(tbtwidestring(src^));{$ENDIF}
     btVariant:  Result := tbtString(Variant(src^));
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
 {$IFNDEF PS_NOWIDESTRING}
@@ -3558,7 +3572,7 @@ begin
   begin
     atype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
     Src := Pointer(Src^);
-    if (src = nil) or (aType = nil) then raise Exception.Create(RPS_TypeMismatch);
+    if (src = nil) or (aType = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
   case aType.BaseType of
     btU8: Result := chr(tbtu8(src^));
@@ -3570,9 +3584,10 @@ begin
     btWideString: Result := tbtwidestring(src^);
     btVariant:   Result := Variant(src^);
     btUnicodeString: result := tbtUnicodeString(src^);
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
+{$ENDIF}
 
 function PSGetUnicodeString(Src: Pointer; aType: TPSTypeRec): tbtunicodestring;
 begin
@@ -3587,15 +3602,16 @@ begin
     btU16: Result := widechar(src^);
     btChar: Result := tbtunicodestring(tbtchar(Src^));
     btPchar: Result := tbtunicodestring(pansichar(src^));
+{$IFNDEF PS_NOWIDESTRING}
     btWideChar: Result := tbtwidechar(Src^);
-    btString: Result := tbtunicodestring(tbtstring(src^));
     btWideString: Result := tbtwidestring(src^);
+{$ENDIF}
+    btString: Result := tbtunicodestring(tbtstring(src^));
     btVariant:   Result := Variant(src^);
     btUnicodeString: result := tbtUnicodeString(src^);
-    else raise Exception.Create(RPS_TypeMismatch);
+    else raise InternalScriptException.Create(RPS_TypeMismatch);
   end;
 end;
-{$ENDIF}
 
 procedure PSSetUInt(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: Cardinal);
 begin
@@ -3828,6 +3844,7 @@ begin
     else ok := false;
   end;
 end;
+{$ENDIF}
 
 procedure PSSetUnicodeString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtunicodestring);
 begin
@@ -3840,7 +3857,9 @@ begin
   end;
   case aType.BaseType of
     btString: tbtstring(src^) := tbtString(val);
+    {$IFNDEF PS_NOWIDESTRING}
     btWideString: tbtwidestring(src^) := val;
+    {$ENDIF}
     btUnicodeString: tbtunicodestring(src^) := val;
     btVariant:
       begin
@@ -3853,7 +3872,6 @@ begin
     else ok := false;
   end;
 end;
-{$ENDIF}
 
 function PSGetString(Src: Pointer; aType: TPSTypeRec): string;
 begin
@@ -4362,7 +4380,7 @@ begin
           begin
             srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
-            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+            if (src = nil) or (srctype = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
           case srctype.BaseType of
             btu32:
@@ -4375,7 +4393,7 @@ begin
                 Pointer(Pointer(IPointer(Dest)+PointerSize)^) := Pointer(Pointer(IPointer(Src)+PointerSize)^);
                 Pointer(Pointer(IPointer(Dest)+PointerSize2)^) := Pointer(Pointer(IPointer(Src)+PointerSize2)^);
               end;
-            else raise Exception.Create(RPS_TypeMismatch);
+            else raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
         end;
       btU32:
@@ -4384,7 +4402,7 @@ begin
           begin
             srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
-            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+            if (src = nil) or (srctype = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
           case srctype.BaseType of
             btU8: tbtu32(Dest^) := tbtu8(src^);
@@ -4397,7 +4415,7 @@ begin
             btChar: tbtu32(Dest^) := Ord(tbtchar(Src^));
         {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtu32(Dest^) := Ord(tbtwidechar(Src^));{$ENDIF}
             btVariant: tbtu32(Dest^) := Variant(src^);
-            else raise Exception.Create(RPS_TypeMismatch);
+            else raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
         end;
       btS32:
@@ -4406,7 +4424,7 @@ begin
           begin
             srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
-            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+            if (src = nil) or (srctype = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
           case srctype.BaseType of
             btU8: tbts32(Dest^) := tbtu8(src^);
@@ -4422,7 +4440,7 @@ begin
             // nx change start - allow assignment of class
             btClass: tbtu32(Dest^) := tbtu32(src^);
             // nx change start
-            else raise Exception.Create(RPS_TypeMismatch);
+            else raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
         end;
       {$IFNDEF PS_NOINT64}
@@ -4434,7 +4452,7 @@ begin
           begin
             srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
-            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+            if (src = nil) or (srctype = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
           case srctype.BaseType of
             btU8: tbtsingle(Dest^) := tbtu8(src^);
@@ -4449,7 +4467,7 @@ begin
             btExtended: tbtsingle(Dest^) := tbtextended(Src^);
             btCurrency: tbtsingle(Dest^) := tbtcurrency(Src^);
             btVariant:  tbtsingle(Dest^) := Variant(src^);
-            else raise Exception.Create(RPS_TypeMismatch);
+            else raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
         end;
       btDouble:
@@ -4458,7 +4476,7 @@ begin
           begin
             srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
-            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+            if (src = nil) or (srctype = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
           case srctype.BaseType of
             btU8: tbtdouble(Dest^) := tbtu8(src^);
@@ -4473,7 +4491,7 @@ begin
             btExtended: tbtdouble(Dest^) := tbtextended(Src^);
             btCurrency: tbtdouble(Dest^) := tbtcurrency(Src^);
             btVariant:  tbtdouble(Dest^) := Variant(src^);
-            else raise Exception.Create(RPS_TypeMismatch);
+            else raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
 
         end;
@@ -4483,7 +4501,7 @@ begin
           begin
             srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
             Src := Pointer(Src^);
-            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+            if (src = nil) or (srctype = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
           case srctype.BaseType of
             btU8: tbtextended(Dest^) := tbtu8(src^);
@@ -4498,14 +4516,14 @@ begin
             btExtended: tbtextended(Dest^) := tbtextended(Src^);
             btCurrency: tbtextended(Dest^) := tbtcurrency(Src^);
             btVariant:  tbtextended(Dest^) := Variant(src^);
-            else raise Exception.Create(RPS_TypeMismatch);
+            else raise InternalScriptException.Create(RPS_TypeMismatch);
           end;
         end;
       btCurrency: tbtcurrency(Dest^) := PSGetCurrency(Src, srctype);
       btPChar: pansichar(dest^) := pansichar(PSGetAnsiString(Src, srctype));
       btString:
         tbtstring(dest^) := PSGetAnsiString(Src, srctype);
-      btChar: tbtchar(dest^) := tbtchar(PSGetUInt(Src, srctype));
+      btChar: tbtchar(dest^) := PSGetAnsiChar(Src, srctype);
       {$IFNDEF PS_NOWIDESTRING}
       btWideString: tbtwidestring(dest^) := PSGetWideString(Src, srctype);
       btUnicodeString: tbtUnicodeString(dest^) := PSGetUnicodeString(Src, srctype);
@@ -4765,7 +4783,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: b := tbts32(var1^) >= tbtu8(Var2^);
@@ -4781,7 +4799,7 @@ begin
                   btChar: b := tbts32(var1^) >= Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) >= Ord(tbtwidechar(Var2^));{$ENDIF}
                   btVariant: b := tbts32(var1^) >= Variant(Var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btSingle: b := tbtsingle(var1^) >= PSGetReal(Var2, var2type);
@@ -4841,7 +4859,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: b := tbts32(var1^) <= tbtu8(Var2^);
@@ -4857,7 +4875,7 @@ begin
                   btChar: b := tbts32(var1^) <= Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) <= Ord(tbtwidechar(Var2^));{$ENDIF}
                   btVariant: b := tbts32(var1^) <= Variant(Var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;            btSingle: b := tbtsingle(var1^) <= PSGetReal(Var2, var2type);
             btCurrency: b := tbtcurrency(var1^) <= PSGetCurrency(Var2, var2type);
@@ -4916,7 +4934,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: b := tbts32(var1^) > tbtu8(Var2^);
@@ -4932,7 +4950,7 @@ begin
                   btChar: b := tbts32(var1^) > Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) = Ord(tbtwidechar(Var2^));{$ENDIF}
                   btVariant: b := tbts32(var1^) > Variant(Var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;            btSingle: b := tbtsingle(var1^) > PSGetReal(Var2, var2type);
             btDouble: b := tbtdouble(var1^) > PSGetReal(Var2, var2type);
@@ -4984,7 +5002,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: b := tbts32(var1^) < tbtu8(Var2^);
@@ -5000,7 +5018,7 @@ begin
                   btChar: b := tbts32(var1^) < Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) < Ord(tbtwidechar(Var2^));{$ENDIF}
                   btVariant: b := tbts32(var1^) < Variant(Var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;            btSingle: b := tbtsingle(var1^) < PSGetReal(Var2, var2type);
             btDouble: b := tbtdouble(var1^) < PSGetReal(Var2, var2type);
@@ -5077,7 +5095,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: b := tbts32(var1^) <> tbtu8(Var2^);
@@ -5093,7 +5111,7 @@ begin
                   btChar: b := tbts32(var1^) <> Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) <> Ord(tbtwidechar(Var2^));{$ENDIF}
                   btVariant: b := tbts32(var1^) <> Variant(Var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;            btSingle: b := tbtsingle(var1^) <> PSGetReal(Var2, var2type);
             btDouble: b := tbtdouble(var1^) <> PSGetReal(Var2, var2type);
@@ -5187,7 +5205,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: b := tbts32(var1^) = tbtu8(Var2^);
@@ -5203,7 +5221,7 @@ begin
                   btChar: b := tbts32(var1^) = Ord(tbtchar(Var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) = Ord(tbtwidechar(Var2^));{$ENDIF}
                   btVariant: b := tbts32(var1^) = Variant(Var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;            btSingle: b := tbtsingle(var1^) = PSGetReal(Var2, var2type);
             btDouble: b := tbtdouble(var1^) = PSGetReal(Var2, var2type);
@@ -5386,7 +5404,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtU32(var1^) := tbtU32(var1^) + tbtu8(var2^);
@@ -5399,7 +5417,7 @@ begin
                   btChar: tbtU32(var1^) := tbtU32(var1^) +  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtU32(var1^) := tbtU32(var1^) + Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbtU32(var1^) := tbtU32(var1^) + Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btS32:
@@ -5408,7 +5426,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbts32(var1^) := tbts32(var1^) + tbtu8(var2^);
@@ -5421,7 +5439,7 @@ begin
                   btChar: tbts32(var1^) := tbts32(var1^) +  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbts32(var1^) := tbts32(var1^) + Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbts32(var1^) := tbts32(var1^) + Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
            {$IFNDEF PS_NOINT64}
@@ -5433,7 +5451,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtsingle(var1^) := tbtsingle(var1^) + tbtu8(var2^);
@@ -5448,7 +5466,7 @@ begin
                   btExtended: tbtsingle(var1^) := tbtsingle(var1^) + tbtextended(var2^);
                   btCurrency: tbtsingle(var1^) := tbtsingle(var1^) + tbtcurrency(var2^);
                   btVariant:  tbtsingle(var1^) := tbtsingle(var1^) +  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btDouble:
@@ -5457,7 +5475,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtdouble(var1^) := tbtdouble(var1^) + tbtu8(var2^);
@@ -5472,7 +5490,7 @@ begin
                   btExtended: tbtdouble(var1^) := tbtdouble(var1^) + tbtextended(var2^);
                   btCurrency: tbtdouble(var1^) := tbtdouble(var1^) + tbtcurrency(var2^);
                   btVariant:  tbtdouble(var1^) := tbtdouble(var1^) +  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btCurrency:
@@ -5481,7 +5499,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtu8(var2^);
@@ -5496,7 +5514,7 @@ begin
                   btExtended: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtextended(var2^);
                   btCurrency: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtcurrency(var2^);
                   btVariant:  tbtcurrency(var1^) := tbtcurrency(var1^) +  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btExtended:
@@ -5505,7 +5523,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtextended(var1^) := tbtextended(var1^) + tbtu8(var2^);
@@ -5520,7 +5538,7 @@ begin
                   btExtended: tbtextended(var1^) := tbtextended(var1^) + tbtextended(var2^);
                   btCurrency: tbtextended(var1^) := tbtextended(var1^) + tbtcurrency(var2^);
                   btVariant:  tbtextended(var1^) := tbtextended(var1^) +  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btPchar, btString: tbtstring(var1^) := tbtstring(var1^) + PSGetAnsiString(Var2, var2type);
@@ -5569,7 +5587,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtU32(var1^) := tbtU32(var1^) - tbtu8(var2^);
@@ -5582,7 +5600,7 @@ begin
                   btChar: tbtU32(var1^) := tbtU32(var1^) -  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtU32(var1^) := tbtU32(var1^) - Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbtU32(var1^) := tbtU32(var1^) - Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btS32:
@@ -5591,7 +5609,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbts32(var1^) := tbts32(var1^) - tbtu8(var2^);
@@ -5604,7 +5622,7 @@ begin
                   btChar: tbts32(var1^) := tbts32(var1^) -  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbts32(var1^) := tbts32(var1^) - Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbts32(var1^) := tbts32(var1^) - Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
            {$IFNDEF PS_NOINT64}
@@ -5616,7 +5634,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtsingle(var1^) := tbtsingle(var1^) - tbtu8(var2^);
@@ -5631,7 +5649,7 @@ begin
                   btExtended: tbtsingle(var1^) := tbtsingle(var1^) - tbtextended(var2^);
                   btCurrency: tbtsingle(var1^) := tbtsingle(var1^) - tbtcurrency(var2^);
                   btVariant:  tbtsingle(var1^) := tbtsingle(var1^) - Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btCurrency:
@@ -5640,7 +5658,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtu8(var2^);
@@ -5655,7 +5673,7 @@ begin
                   btExtended: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtextended(var2^);
                   btCurrency: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtcurrency(var2^);
                   btVariant:  tbtcurrency(var1^) := tbtcurrency(var1^) -  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btDouble:
@@ -5664,7 +5682,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtdouble(var1^) := tbtdouble(var1^) - tbtu8(var2^);
@@ -5679,7 +5697,7 @@ begin
                   btExtended: tbtdouble(var1^) := tbtdouble(var1^) - tbtextended(var2^);
                   btCurrency: tbtdouble(var1^) := tbtdouble(var1^) - tbtcurrency(var2^);
                   btVariant:  tbtdouble(var1^) := tbtdouble(var1^) -  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btExtended:
@@ -5688,7 +5706,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtextended(var1^) := tbtextended(var1^) - tbtu8(var2^);
@@ -5703,7 +5721,7 @@ begin
                   btExtended: tbtextended(var1^) := tbtextended(var1^) - tbtextended(var2^);
                   btCurrency: tbtextended(var1^) := tbtextended(var1^) - tbtcurrency(var2^);
                   btVariant:  tbtextended(var1^) := tbtextended(var1^) -  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btChar: tbtchar(var1^):= tbtchar(ord(tbtchar(var1^)) - PSGetUInt(Var2, var2type));
@@ -5747,7 +5765,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtU32(var1^) := tbtU32(var1^) * tbtu8(var2^);
@@ -5760,7 +5778,7 @@ begin
                   btChar: tbtU32(var1^) := tbtU32(var1^) *  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtU32(var1^) := tbtU32(var1^) * Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbtU32(var1^) := tbtU32(var1^) * Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btS32:
@@ -5769,7 +5787,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbts32(var1^) := tbts32(var1^) * tbtu8(var2^);
@@ -5782,7 +5800,7 @@ begin
                   btChar: tbts32(var1^) := tbts32(var1^) *  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbts32(var1^) := tbts32(var1^) * Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbts32(var1^) := tbts32(var1^) * Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
            {$IFNDEF PS_NOINT64}
@@ -5794,7 +5812,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtu8(var2^);
@@ -5809,7 +5827,7 @@ begin
                   btExtended: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtextended(var2^);
                   btCurrency: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtcurrency(var2^);
                   btVariant:  tbtcurrency(var1^) := tbtcurrency(var1^) *  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btSingle:
@@ -5818,7 +5836,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtsingle(var1^) := tbtsingle(var1^) *tbtu8(var2^);
@@ -5833,7 +5851,7 @@ begin
                   btExtended: tbtsingle(var1^) := tbtsingle(var1^) *tbtextended(var2^);
                   btCurrency: tbtsingle(var1^) := tbtsingle(var1^) *tbtcurrency(var2^);
                   btVariant:  tbtsingle(var1^) := tbtsingle(var1^) * Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btDouble:
@@ -5842,7 +5860,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtdouble(var1^) := tbtdouble(var1^) *tbtu8(var2^);
@@ -5857,7 +5875,7 @@ begin
                   btExtended: tbtdouble(var1^) := tbtdouble(var1^) *tbtextended(var2^);
                   btCurrency: tbtdouble(var1^) := tbtdouble(var1^) *tbtcurrency(var2^);
                   btVariant:  tbtdouble(var1^) := tbtdouble(var1^) * Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btExtended:
@@ -5866,7 +5884,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtextended(var1^) := tbtextended(var1^) *tbtu8(var2^);
@@ -5881,7 +5899,7 @@ begin
                   btExtended: tbtextended(var1^) := tbtextended(var1^) *tbtextended(var2^);
                   btCurrency: tbtextended(var1^) := tbtextended(var1^) *tbtcurrency(var2^);
                   btVariant:  tbtextended(var1^) := tbtextended(var1^) * Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btVariant:
@@ -5921,7 +5939,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtU32(var1^) := tbtU32(var1^) div tbtu8(var2^);
@@ -5934,7 +5952,7 @@ begin
                   btChar: tbtU32(var1^) := tbtU32(var1^) div  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtU32(var1^) := tbtU32(var1^) div Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbtU32(var1^) := tbtU32(var1^) div Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btS32:
@@ -5943,7 +5961,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbts32(var1^) := tbts32(var1^) div tbtu8(var2^);
@@ -5956,7 +5974,7 @@ begin
                   btChar: tbts32(var1^) := tbts32(var1^) div  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbts32(var1^) := tbts32(var1^) div Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbts32(var1^) := tbts32(var1^) div Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
            {$IFNDEF PS_NOINT64}
@@ -5968,7 +5986,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtsingle(var1^) := tbtsingle(var1^) / tbtu8(var2^);
@@ -5983,7 +6001,7 @@ begin
                   btExtended: tbtsingle(var1^) := tbtsingle(var1^) / tbtextended(var2^);
                   btCurrency: tbtsingle(var1^) := tbtsingle(var1^) / tbtcurrency(var2^);
                   btVariant:  tbtsingle(var1^) := tbtsingle(var1^) /  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btCurrency:
@@ -5992,7 +6010,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtcurrency(var1^) := tbtcurrency(var1^) / tbtu8(var2^);
@@ -6007,7 +6025,7 @@ begin
                   btExtended: tbtcurrency(var1^) := tbtcurrency(var1^) / tbtextended(var2^);
                   btCurrency: tbtcurrency(var1^) := tbtcurrency(var1^) / tbtcurrency(var2^);
                   btVariant:  tbtcurrency(var1^) := tbtcurrency(var1^) /  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btDouble:
@@ -6016,7 +6034,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtdouble(var1^) := tbtdouble(var1^) / tbtu8(var2^);
@@ -6031,7 +6049,7 @@ begin
                   btExtended: tbtdouble(var1^) := tbtdouble(var1^) / tbtextended(var2^);
                   btCurrency: tbtdouble(var1^) := tbtdouble(var1^) / tbtcurrency(var2^);
                   btVariant:  tbtdouble(var1^) := tbtdouble(var1^) /  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btExtended:
@@ -6040,7 +6058,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtextended(var1^) := tbtextended(var1^) / tbtu8(var2^);
@@ -6055,7 +6073,7 @@ begin
                   btExtended: tbtextended(var1^) := tbtextended(var1^) / tbtextended(var2^);
                   btCurrency: tbtextended(var1^) := tbtextended(var1^) / tbtcurrency(var2^);
                   btVariant:  tbtextended(var1^) := tbtextended(var1^) /  Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btVariant:
@@ -6093,7 +6111,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbtU32(var1^) := tbtU32(var1^) mod tbtu8(var2^);
@@ -6106,7 +6124,7 @@ begin
                   btChar: tbtU32(var1^) := tbtU32(var1^) mod  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtU32(var1^) := tbtU32(var1^) mod Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbtU32(var1^) := tbtU32(var1^) mod Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
             btS32:
@@ -6115,7 +6133,7 @@ begin
                 begin
                   var2type := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
                   var2 := Pointer(var2^);
-                  if (var2 = nil) or (var2type = nil) then raise Exception.Create(RPS_TypeMismatch);
+                  if (var2 = nil) or (var2type = nil) then raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
                 case var2type.BaseType of
                   btU8: tbts32(var1^) := tbts32(var1^) mod tbtu8(var2^);
@@ -6128,7 +6146,7 @@ begin
                   btChar: tbts32(var1^) := tbts32(var1^) mod  Ord(tbtchar(var2^));
               {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbts32(var1^) := tbts32(var1^) mod Ord(tbtwidechar(var2^));{$ENDIF}
                   btVariant: tbts32(var1^) := tbts32(var1^) mod Variant(var2^);
-                  else raise Exception.Create(RPS_TypeMismatch);
+                  else raise InternalScriptException.Create(RPS_TypeMismatch);
                 end;
               end;
            {$IFNDEF PS_NOINT64}
@@ -6764,7 +6782,9 @@ begin
             begin
               if Param >= Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
+                                [Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)),Param])));
                 Result := False;
                 exit;
               end;
@@ -6775,7 +6795,9 @@ begin
             begin
               if Param >= Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
+                                [Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size),Param])));
                 Result := False;
                 exit;
               end;
@@ -6916,7 +6938,9 @@ begin
             begin
               if Cardinal(Param) >= Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
+                                [Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)),Param])));
                 Result := False;
                 exit;
               end;
@@ -6927,7 +6951,9 @@ begin
             begin
               if Param >= Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
+                                [Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size),Param])));
                 Result := False;
                 exit;
               end;
@@ -7065,7 +7091,7 @@ var
   Proc: TPSInternalProcRec;
   i: Longint;
 begin
-  if ProcNo >= FProcs.Count then raise Exception.Create(RPS_UnknownProcedure);
+  if ProcNo >= FProcs.Count then raise InternalScriptException.Create(RPS_UnknownProcedure);
   Proc := GetProcNo(ProcNo) as TPSInternalProcRec;
   ParamList := TPSList.Create;
   try
@@ -7074,17 +7100,17 @@ begin
     i := High(Params);
     while s <> '' do
     begin
-      if i < 0 then raise Exception.Create(RPS_NotEnoughParameters);
+      if i < 0 then raise InternalScriptException.Create(RPS_NotEnoughParameters);
       ct := FTypes[StrToInt(copy(GRLW(s), 2, MaxInt))];
-      if ct = nil then raise Exception.Create(RPS_InvalidParameter);
+      if ct = nil then raise InternalScriptException.Create(RPS_InvalidParameter);
       pvar := CreateHeapVariant(ct);
       ParamList.Add(pvar);
 
-      if not VariantToPIFVariant(Self, Params[i], pvar) then raise Exception.Create(RPS_InvalidParameter);
+      if not VariantToPIFVariant(Self, Params[i], pvar) then raise InternalScriptException.Create(RPS_InvalidParameter);
 
       Dec(i);
     end;
-    if I > -1 then raise Exception.Create(RPS_TooManyParameters);
+    if I > -1 then raise InternalScriptException.Create(RPS_TooManyParameters);
     if res <> '-1' then
     begin
       pvar := CreateHeapVariant(FTypes[StrToInt(res)]);
@@ -7114,7 +7140,7 @@ var
   Proc: TPSInternalProcRec;
   i: Longint;
 begin
-  if ProcNo >= FProcs.Count then raise Exception.Create(RPS_UnknownProcedure);
+  if ProcNo >= FProcs.Count then raise InternalScriptException.Create(RPS_UnknownProcedure);
   Proc := GetProcNo(ProcNo) as TPSInternalProcRec;
   ParamList := TPSList.Create;
   try
@@ -7123,17 +7149,17 @@ begin
     i := High(Params);
     while s <> '' do
     begin
-      if i < 0 then raise Exception.Create(RPS_NotEnoughParameters);
+      if i < 0 then raise InternalScriptException.Create(RPS_NotEnoughParameters);
       ct := FTypes[StrToInt(copy(GRLW(s), 2, MaxInt))];
-      if ct = nil then raise Exception.Create(RPS_InvalidParameter);
+      if ct = nil then raise InternalScriptException.Create(RPS_InvalidParameter);
       pvar := CreateHeapVariant(ct);
       ParamList.Add(pvar);
 
-      if not VariantToPIFVariant(Self, Params[i], pvar) then raise Exception.Create(RPS_InvalidParameter);
+      if not VariantToPIFVariant(Self, Params[i], pvar) then raise InternalScriptException.Create(RPS_InvalidParameter);
 
       Dec(i);
     end;
-    if I > -1 then raise Exception.Create(RPS_TooManyParameters);
+    if I > -1 then raise InternalScriptException.Create(RPS_TooManyParameters);
     if res <> '-1' then
     begin
       pvar := CreateHeapVariant(FTypes[StrToInt(res)]);
@@ -7165,7 +7191,7 @@ var
 begin
   ProcNo := GetProc(ProcName);
   if ProcNo = InvalidVal then
-    raise Exception.Create(RPS_UnknownProcedure);
+    raise InternalScriptException.Create(RPS_UnknownProcedure);
   Result := RunProcP(Params, ProcNo);
 end;
 
@@ -8850,7 +8876,7 @@ begin
 {$ENDIF}
       if (Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString) or
         (Stack.GetItem(Stack.Count -2)^.FType.BaseType = btUnicodeString) then
-        Stack.SetWideString(-1, WideUpperCase(Stack.GetWideString(-2))) // Uppercase
+        Stack.SetWideString(-1, {$IFNDEF NEXTGEN}WideUpperCase{$ELSE}UpperCase{$ENDIF}(Stack.GetWideString(-2))) // Uppercase
       else
 {$ENDIF}
         Stack.SetAnsiString(-1, FastUppercase(Stack.GetAnsiString(-2))); // Uppercase
@@ -8863,7 +8889,7 @@ begin
 {$ENDIF}
       if (Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString) or
         (Stack.GetItem(Stack.Count -2)^.FType.BaseType = btUnicodeString) then
-        Stack.SetWideString(-1, WideLowerCase(Stack.GetWideString(-2))) // Uppercase
+        Stack.SetWideString(-1, {$IFNDEF NEXTGEN}WideLowerCase{$ELSE}LowerCase{$ENDIF}(Stack.GetWideString(-2))) // Uppercase
       else
 {$ENDIF}
         Stack.SetAnsiString(-1, FastLowercase(Stack.GetAnsiString(-2)));// LowerCase
@@ -9427,10 +9453,10 @@ begin
   RegisterInterfaceLibraryRuntime(Self);
 end;
 
-
 function ToString(p: PansiChar): tbtString;
 begin
-  SetString(Result, p, {$IFDEF DELPHI_TOKYO_UP}AnsiStrings.{$ENDIF}StrLen(p));
+  SetString(Result, p,
+  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND DEFINED (DELPHI_TOKYO_UP)}AnsiStrings.StrLen(p){$ELSE}Length(p){$ENDIF});
 end;
 
 function IntPIFVariantToVariant(Src: pointer; aType: TPSTypeRec; var Dest: Variant): Boolean;
@@ -9592,8 +9618,13 @@ begin
           tvarrec(p^).VVariant := cp;
         end;
         btchar: begin
+            {$IFDEF NEXTGEN}
+            tvarrec(p^).VType := vtWideChar;
+            tvarrec(p^).VWideChar := Char(tbtchar(cp^));
+            {$ELSE}
             tvarrec(p^).VType := vtChar;
-            tvarrec(p^).VChar := tbtChar(tbtchar(cp^));
+            tvarrec(p^).VChar := tbtchar(tbtchar(cp^));
+            {$ENDIF}
           end;
         btSingle:
           begin
@@ -9663,13 +9694,23 @@ begin
           end;
         {$ENDIF}
         btString: begin
+          {$IFDEF NEXTGEN}
+          tvarrec(p^).VType := vtUnicodeString;
+          String(TVarRec(p^).VUnicodeString) := String(tbtstring(cp^));
+          {$ELSE}
           tvarrec(p^).VType := vtAnsiString;
           tbtString(TVarRec(p^).VAnsiString) := tbtstring(cp^);
+          {$ENDIF}
         end;
         btPChar:
         begin
+          {$IFDEF NEXTGEN}
+          tvarrec(p^).VType := vtPWideChar;
+          TVarRec(p^).VPWideChar := pointer(cp^);
+          {$ELSE}
           tvarrec(p^).VType := vtPchar;
           TVarRec(p^).VPChar := pointer(cp^);
+          {$ENDIF}
         end;
         btClass:
         begin
@@ -9739,7 +9780,11 @@ begin
           end;
         btChar: begin
             if v^.VarParam then
-              tbtchar(cp^) := tbtChar(tvarrec(p^).VChar)
+              {$IFDEF NEXTGEN}
+              tbtchar(cp^) := tbtChar(Char(tvarrec(p^).VWideChar));
+              {$ELSE}
+              tbtchar(cp^) := tbtChar(tvarrec(p^).VChar);
+              {$ENDIF}
           end;
         btSingle: begin
           if v^.VarParam then
@@ -9782,13 +9827,18 @@ begin
           begin
           if v^.VarParam then
             tbtwidestring(cp^) := tbtwidestring(TVarRec(p^).VWideString);
-          finalize(widestring(TVarRec(p^).VWideString));
+          finalize(tbtwidestring(TVarRec(p^).VWideString));
           end;
         {$ENDIF}
         btString: begin
           if v^.VarParam then
+          {$IFDEF NEXTGEN}
+            tbtstring(cp^) := tbtstring(tbtunicodestring(TVarRec(p^).VUnicodeString));
+          finalize(tbtunicodestring(TVarRec(p^).VUnicodeString));
+          {$ELSE}
             tbtstring(cp^) := tbtstring(TVarRec(p^).VString);
           finalize(tbtString(TVarRec(p^).VAnsiString));
+          {$ENDIF}
         end;
         btClass: begin
           if v^.VarParam then
@@ -9799,7 +9849,9 @@ begin
         btInterface: begin
           if v^.VarParam then
             IUnknown(cp^) := IUnknown(TVarRec(p^).VInterface);
+          {$IFNDEF NEXTGEN}
           finalize(tbtString(TVarRec(p^).VAnsiString));
+          {$ENDIF}
         end;
 {$ENDIF}
 {$ENDIF}
@@ -9815,13 +9867,7 @@ end;
 
 {$ifndef FPC}
 {$IFDEF Delphi6UP}
-  {$IFDEF CPUX64}
-    {$include x64.inc}
-  {$ELSE}
-  {$include x86.inc}
-  {$ENDIF}
-{$ELSE}
-  {$include x86.inc}
+    {$include InvokeCall.inc}
 {$ENDIF}
 {$else}
 {$IFDEF Delphi6UP}
@@ -10163,7 +10209,8 @@ begin
     n := Stack[Stack.Count -2];
   if (n = nil) or (n^.FType.BaseType <> btClass)or (PPSVariantClass(n).Data = nil) then
   begin
-    Caller.CMD_Err(erNullPointerException);
+    raise InternalScriptException.Create('Class not created yet, pointer = nil!');
+//    Caller.CMD_Err(erNullPointerException);
     result := false;
     exit;
   end;
@@ -10290,7 +10337,7 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
-    Result := Caller.InnerfuseCall(FSelf, p.Ext1, {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 64){$ELSE}cc{$ENDIF}, MyList, v);
+    Result := Caller.InnerfuseCall(FSelf, p.Ext1, TPSCallingConvention(Integer(cc) or 64), MyList, v);
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);
@@ -10638,7 +10685,7 @@ begin
 	  {$IFDEF DELPHI6UP}
 {$IFNDEF PS_NOWIDESTRING}
 {$IFNDEF DELPHI2009UP}btUnicodeString,{$ENDIF}
-  btWideString: SetWideStrProp(TObject(FSelf), P.Ext1, tbtWidestring(n.dta^));
+  btWideString{$IFDEF NEXTGEN},{$ELSE}: SetWideStrProp(TObject(FSelf), P.Ext1, tbtWidestring(n.dta^));{$ENDIF}
 {$IFDEF DELPHI2009UP}
   btUnicodeString: {$IFDEF DELPHI_TOKYO_UP}SetStrProp{$ELSE}SetUnicodeStrProp{$ENDIF}(TObject(FSelf), P.Ext1, tbtUnicodestring(n.dta^));
 {$ENDIF}
@@ -10701,7 +10748,11 @@ begin
         {$ELSE}
         btUnicodeString,
         {$ENDIF}
-        btWideString: tbtWidestring(n.dta^) := GetWideStrProp(TObject(FSelf), P.Ext1);
+        btWideString: tbtWidestring(n.dta^) := {$IFNDEF NEXTGEN}
+                                               GetWideStrProp(TObject(FSelf), P.Ext1);
+                                               {$ELSE}
+                                               GetStrProp(TObject(FSelf), P.Ext1);
+                                               {$ENDIF}
 {$ENDIF}
 {$ENDIF}
       else
@@ -11582,10 +11633,10 @@ end;
 {.$DEFINE empty_methods_handler}
 {$ENDIF}
 
-{$ifdef fpc}
+{$if defined (fpc) or defined(NEXTGEN)}
   {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
     {$define empty_methods_handler}
-  {$ifend}
+  {$endif}
 {$endif}
 
 {$ifdef empty_methods_handler}
@@ -12047,7 +12098,7 @@ end;
 procedure TPSRuntimeAttribute.DeleteValue(i: Longint);
 begin
   if Cardinal(i) <> Cardinal(FValues.Count -1) then
-    raise Exception.Create(RPS_CanOnlySendLastItem);
+    raise InternalScriptException.Create(RPS_CanOnlySendLastItem);
   FValues.Pop;
 end;
 
@@ -12401,7 +12452,7 @@ begin
     PSSetUInt(@PPSVariantData(val).Data, val.FType, ok, 1)
   else
     PSSetUInt(@PPSVariantData(val).Data, val.FType, ok, 0);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 
 procedure TPSStack.SetCapacity(const Value: Longint);
@@ -12410,7 +12461,7 @@ var
   OOFS: IPointer;
   I: Longint;
 begin
-  if Value < FLength then raise Exception.Create(RPS_CapacityLength);
+  if Value < FLength then raise InternalScriptException.Create(RPS_CapacityLength);
   if Value = 0 then
   begin
     if FDataPtr <> nil then
@@ -12456,7 +12507,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetObject(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 
 procedure TPSStack.SetCurrency(ItemNo: Longint; const Data: Currency);
@@ -12470,7 +12521,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetCurrency(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 
 procedure TPSStack.SetInt(ItemNo: Longint; const Data: Longint);
@@ -12484,7 +12535,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetInt(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 
 {$IFNDEF PS_NOINT64}
@@ -12499,7 +12550,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetInt64(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 {$ENDIF}
 
@@ -12514,7 +12565,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetReal(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 
 procedure TPSStack.SetAnsiString(ItemNo: Longint; const Data: tbtString);
@@ -12528,7 +12579,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetAnsiString(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 
 procedure TPSStack.SetString(ItemNo: Longint; const Data: string);
@@ -12556,7 +12607,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetUInt(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 
 
@@ -12587,7 +12638,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetWideString(@PPSVariantData(val).Data, val.FType, ok, Data);
-  if not ok then raise Exception.Create(RPS_TypeMismatch);
+  if not ok then raise InternalScriptException.Create(RPS_TypeMismatch);
 end;
 {$ENDIF}
 
@@ -12618,9 +12669,9 @@ begin
    aName := StringToOleStr(Name);
    try
      if Self = nil then
-      raise Exception.Create(RPS_NILInterfaceException);
+      raise InternalScriptException.Create(RPS_NILInterfaceException);
      if Self.GetIDsOfNames(GUID_NULL, @aName, 1, LOCALE_SYSTEM_DEFAULT, @DispatchId) <> S_OK then
-      raise Exception.Create(RPS_UnknownMethod);
+      raise InternalScriptException.Create(RPS_UnknownMethod);
    finally
      SysFreeString(aName);
    end;
@@ -12740,6 +12791,8 @@ procedure TPSTypeRec_ProcPtr.CalcSize;
 begin
   FRealSize := 3 * sizeof(Pointer);
 end;
+
+{$ZEROBASEDSTRINGS OFF}
 
 end.
 

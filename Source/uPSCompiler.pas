@@ -153,7 +153,7 @@ type
       18: (twidestring: Pointer);
       20: (twidechar: tbtwidechar);
       {$ENDIF}
-      21: (ttype: TPSType);
+      21: (ttype: Pointer);
       22: (tunistring: Pointer);
   end;
 
@@ -1155,7 +1155,9 @@ type
 
     function MakeDecl(decl: TPSParametersDecl): tbtString;
 
-    function Compile(const s: tbtString): Boolean;
+    procedure FinishCleanup;
+
+    function Compile(const s: tbtString; FinalCleaning : Boolean = True): Boolean;
 
     function GetOutput(var s: tbtString): Boolean;
 	
@@ -1210,6 +1212,8 @@ type
     property AttributesOpenTokenID: TPSPasToken read FAttributesOpenTokenID write FAttributesOpenTokenID;
 
     property AttributesCloseTokenID: TPSPasToken read FAttributesCloseTokenID write FAttributesCloseTokenID;
+
+    property CurrUsedTypeNo: Cardinal read FCurrUsedTypeNo;
 
     {$WARNINGS OFF}
     property UnitName: tbtString read FUnitName;
@@ -1885,7 +1889,7 @@ var
 begin
   BlockWriteLong(BlockInfo, p^.FType.FinalTypeNo);
   case p.FType.BaseType of
-  btType: BlockWriteData(BlockInfo, p^.ttype.FinalTypeno, 4);
+  btType: BlockWriteData(BlockInfo, TPSType(p^.ttype).FinalTypeno, 4);
   {$IFNDEF PS_NOWIDESTRING}
   btWideString:
     begin
@@ -2153,8 +2157,8 @@ begin
             case VCType.BaseType of
               btU8: VCType := FindAndAddType(Owner, '!OPENARRAYOFU8', 'array of Byte');
               btS8: VCType := FindAndAddType(Owner, '!OPENARRAYOFS8', 'array of ShortInt');
-              btU16: VCType := FindAndAddType(Owner, '!OPENARRAYOFU16', 'array of SmallInt');
-              btS16: VCType := FindAndAddType(Owner, '!OPENARRAYOFS16', 'array of Word');
+              btU16: VCType := FindAndAddType(Owner, '!OPENARRAYOFU16', 'array of Word');
+              btS16: VCType := FindAndAddType(Owner, '!OPENARRAYOFS16', 'array of SmallInt');
               btU32: VCType := FindAndAddType(Owner, '!OPENARRAYOFU32', 'array of Cardinal');
               btS32: VCType := FindAndAddType(Owner, '!OPENARRAYOFS32', 'array of LongInt');
               btSingle: VCType := FindAndAddType(Owner, '!OPENARRAYOFSINGLE', 'array of Single');
@@ -4077,8 +4081,19 @@ begin
       p := TPSArrayType.Create;
       p.BaseType := btArray;
     end;
-    p.Name := FastUppercase(Name);
-    p.OriginalName := Name;
+    if Name <> '' then
+    begin
+      p.OriginalName := Name;
+      p.Name := FastUppercase(Name);
+    end
+    else
+    begin
+      if TypeNo.OriginalName = '' then
+        p.OriginalName := 'array of ' + TypeNo.Name
+      else
+        p.OriginalName := 'array of ' + TypeNo.OriginalName;
+      p.Name := FastUppercase(p.OriginalName);
+    end;
     {$IFDEF PS_USESSUPPORT}
     p.DeclareUnit:=fModule;
     {$ENDIF}
@@ -5216,9 +5231,12 @@ begin
       begin
         with MakeError('', ecVariableExpected, '') do
         begin
-          Row := Params[c].Val.Row;
-          Col := Params[c].Val.Col;
-          Pos := Params[c].Val.Pos;
+          if (Pos = 0) or (Params[c].Val.Pos > 0) then
+          begin
+            Row := Params[c].Val.Row;
+            Col := Params[c].Val.Col;
+            Pos := Params[c].Val.Pos;
+          end;
         end;
         result := false;
         exit;
@@ -8186,7 +8204,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
 
     function GetResultType(p1, P2: TPSValue; Cmd: TPSBinOperatorType): TPSType;
     var
-      pp, t1, t2: PIFPSType;
+      pp, t1, t2: TPSType;
     begin
       t1 := GetTypeNo(BlockInfo, p1);
       t2 := GetTypeNo(BlockInfo, P2);
@@ -11208,7 +11226,89 @@ end;
 type
   TCompilerState = (csStart, csProgram, csUnit, csUses, csInterface, csInterfaceUses, csImplementation);
 
-function TPSPascalCompiler.Compile(const s: tbtString): Boolean;
+procedure TPSPascalCompiler.FinishCleanup;
+var
+  I: Longint;
+  PT: TPSType;
+begin
+  {$IFDEF PS_USESSUPPORT}
+  if fInCompile>1 then
+  begin
+    dec(fInCompile);
+    exit;
+  end;
+  {$ENDIF}
+
+  if @FOnBeforeCleanup <> nil then
+    FOnBeforeCleanup(Self);        // no reason it actually read the result of this call
+  FGlobalBlock.Free;
+  FGlobalBlock := nil;
+
+  for I := 0 to FRegProcs.Count - 1 do
+    TObject(FRegProcs[I]).Free;
+  FRegProcs.Free;
+  for i := 0 to FConstants.Count -1 do
+  begin
+    TPSConstant(FConstants[I]).Free;
+  end;
+  Fconstants.Free;
+  for I := 0 to FVars.Count - 1 do
+  begin
+    TPSVar(FVars[I]).Free;
+  end;
+  FVars.Free;
+  FVars := nil;
+  for I := 0 to FProcs.Count - 1 do
+    TPSProcedure(FProcs[I]).Free;
+  FProcs.Free;
+  FProcs := nil;
+  //reverse free types: a custom type's attribute value type may point to a base type
+  for I := FTypes.Count - 1 downto 0 do
+  begin
+    PT := FTypes[I];
+    pt.Free;
+  end;
+  FTypes.Free;
+
+{$IFNDEF PS_NOINTERFACES}
+  for i := FInterfaces.Count -1 downto 0 do
+    TPSInterface(FInterfaces[i]).Free;
+  FInterfaces.Free;
+{$ENDIF}
+
+  for i := FClasses.Count -1 downto 0 do
+  begin
+    TPSCompileTimeClass(FClasses[I]).Free;
+  end;
+  FClasses.Free;
+  for i := FAttributeTypes.Count -1 downto 0 do
+  begin
+    TPSAttributeType(FAttributeTypes[i]).Free;
+  end;
+  FAttributeTypes.Free;
+  FAttributeTypes := nil;
+
+  {$IFDEF PS_USESSUPPORT}
+  for I := 0 to FUnitInits.Count - 1 do        //nvds
+  begin                                        //nvds
+    TPSBlockInfo(FUnitInits[I]).free;          //nvds
+  end;                                         //nvds
+  FUnitInits.Free;                             //nvds
+  FUnitInits := nil;                           //
+  for I := 0 to FUnitFinits.Count - 1 do       //nvds
+  begin                                        //nvds
+    TPSBlockInfo(FUnitFinits[I]).free;         //nvds
+  end;                                         //nvds
+  FUnitFinits.Free;                            //
+  FUnitFinits := nil;                          //
+
+  FreeAndNil(fUnits);
+  FreeAndNil(FUses);
+  fInCompile:=0;
+  {$ENDIF}
+end;
+
+function TPSPascalCompiler.Compile(const s: tbtString; FinalCleaning : Boolean = True): Boolean;
 var
   Position: TCompilerState;
   i: Longint;
@@ -11327,7 +11427,7 @@ var
     begin
       WriteLong(p^.FType.FinalTypeNo);
       case p.FType.BaseType of
-      btType: WriteLong(p^.ttype.FinalTypeNo);
+      btType: WriteLong(TPSType(p^.ttype).FinalTypeNo);
       {$IFNDEF PS_NOWIDESTRING}
       btWideString:
         begin
@@ -11985,14 +12085,14 @@ begin
       try
         if not OnUses(Self, 'SYSTEM') then
         begin
-          Cleanup;
+          FinishCleanup;
           exit;
         end;
       except
         on e: Exception do
         begin
           MakeError('', ecCustomError, tbtstring(e.Message));
-          Cleanup;
+          FinishCleanup;
           exit;
         end;
       end;
@@ -12023,7 +12123,7 @@ begin
     begin
       if FParserHadError then
       begin
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
       if FAllowNoEnd then
@@ -12031,7 +12131,7 @@ begin
       else
       begin
         MakeError('', ecUnexpectedEndOfFile, '');
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
     end;
@@ -12041,7 +12141,7 @@ begin
       if fInCompile>1 then
       begin
         MakeError('', ecNotAllowed, 'program');
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
       {$ENDIF}
@@ -12050,14 +12150,14 @@ begin
       if FParser.CurrTokenId <> CSTI_Identifier then
       begin
         MakeError('', ecIdentifierExpected, '');
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
       FParser.Next;
       if FParser.CurrTokenId <> CSTI_Semicolon then
       begin
         MakeError('', ecSemicolonExpected, '');
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
       FParser.Next;
@@ -12080,7 +12180,7 @@ begin
       if FParser.CurrTokenId <> CSTI_Identifier then
       begin
         MakeError('', ecIdentifierExpected, '');
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
       if fInCompile = 1 then
@@ -12089,7 +12189,7 @@ begin
       if FParser.CurrTokenId <> CSTI_Semicolon then
       begin
         MakeError('', ecSemicolonExpected, '');
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
       FParser.Next;
@@ -12101,7 +12201,7 @@ begin
         else Position := csUses;
       if not ProcessUses then
       begin
-         Cleanup;
+         FinishCleanup;
         exit;
       end;
     end else if (FParser.CurrTokenId = CSTII_Procedure) or
@@ -12111,14 +12211,14 @@ begin
       begin
         if not ProcessFunction(True, nil) then
         begin
-          Cleanup;
+          FinishCleanup;
           exit;
         end;
       end else begin
         Position := csUses;
         if not ProcessFunction(False, nil) then
         begin
-          Cleanup;
+          FinishCleanup;
           exit;
         end;
       end;
@@ -12130,7 +12230,7 @@ begin
         else Position := csUses;
       if not ProcessLabel(FGlobalBlock.Proc) then
       begin
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
     end
@@ -12141,7 +12241,7 @@ begin
         else Position := csUses;
       if not DoVarBlock(nil) then
       begin
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
     end
@@ -12152,7 +12252,7 @@ begin
         else Position := csUses;
       if not DoConstBlock then
       begin
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
     end
@@ -12163,7 +12263,7 @@ begin
         else Position := csUses;
       if not DoTypeBlock(FParser) then
       begin
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
     end
@@ -12190,7 +12290,7 @@ begin
         end
         else
         begin
-          Cleanup;
+          FinishCleanup;
           exit;
         end;
       end
@@ -12207,7 +12307,7 @@ begin
         end
         else
         begin
-          Cleanup;
+          FinishCleanup;
           exit;
         end;
       {$IFDEF PS_USESSUPPORT}
@@ -12232,8 +12332,8 @@ begin
       begin
         break;
       end else begin
-        Cleanup;
-        Result :=  False; //Cleanup;
+        FinishCleanup;
+        Result :=  False; //FinishCleanup;
         exit;
       end;
     end
@@ -12244,14 +12344,14 @@ begin
       if FParser.CurrTokenID <> CSTI_Period then
       begin
         MakeError('', ecPeriodExpected, '');
-        Cleanup;
+        FinishCleanup;
         exit;
       end;
       break;
     end else
     begin
       MakeError('', ecBeginExpected, '');
-      Cleanup;
+      FinishCleanup;
       exit;
     end;
   until False;
@@ -12263,7 +12363,7 @@ begin
   {$ENDIF}
     if not ProcessLabelForwards(FGlobalBlock.Proc) then
     begin
-      Cleanup;
+      FinishCleanup;
       exit;
     end;
     // NVDS: Do we need to check here also do a ProcessLabelForwards() for each Initialisation/finalization block?
@@ -12279,13 +12379,13 @@ begin
           FRow := TPSInternalProcedure(Proc).DeclareRow;
           FCol := TPSInternalProcedure(Proc).DeclareCol;
         end;
-        Cleanup;
+        FinishCleanup;
         Exit;
       end;
     end;
     if not CheckExports then
     begin
-      Cleanup;
+      FinishCleanup;
       exit;
     end;
     for i := 0 to FVars.Count -1 do
@@ -12302,7 +12402,8 @@ begin
     end;
 
     Result := MakeOutput;
-    Cleanup;
+    if FinalCleaning then
+      Cleanup;
   {$IFDEF PS_USESSUPPORT}
   end
   else
@@ -12334,6 +12435,8 @@ end;
 
 destructor TPSPascalCompiler.Destroy;
 begin
+  if Assigned(FGlobalBlock) then
+    FinishCleanup;
   Clear;
   FAutoFreeList.Free;
 
@@ -12423,6 +12526,7 @@ begin
   AddType('Double', btDouble);
   AddType('Extended', btExtended);
   AddType('Currency', btCurrency);
+  AddType('Real', btDouble);
   AddType({$IFDEF PS_PANSICHAR}'PAnsiChar'{$ELSE}'PChar'{$ENDIF}, btPChar);
   AddType('Variant', btVariant);
   AddType('!NotificationVariant', btNotificationVariant);
@@ -14395,11 +14499,15 @@ destructor TPSValueVar.Destroy;
 var
   i: Longint;
 begin
+  if not Assigned(FRecItems) then
+    Exit;
+
   for i := 0 to FRecItems.Count -1 do
   begin
     TPSSubItem(FRecItems[I]).Free;
   end;
   FRecItems.Free;
+  FRecItems := nil;
   inherited Destroy;
 end;
 
@@ -15012,7 +15120,12 @@ begin
         a := iptW;
         if p^[i]^.SetProc = nil then continue;
       end;
-      RegisterProperty(p^[i]^.Name, p^[i]^.PropType^.Name, a);
+      RegisterProperty({$IFNDEF NEXTGEN}
+                       p^[i]^.Name,p^[i]^.PropType^.Name,
+                       {$ELSE}
+                       tbtString(p^[i]^.NameFld.ToString),tbtString(p^[i]^.PropType^.NameFld.ToString),
+                       {$ENDIF}
+                        a);
     end;
   end;
   FreeMem(p);
@@ -15037,7 +15150,12 @@ begin
     a := iptW;
     if p^.SetProc = nil then begin result := False; exit; end;
   end;
-  RegisterProperty(p^.Name, p^.PropType^.Name, a);
+  RegisterProperty({$IFNDEF NEXTGEN}
+                   p^.Name,p^.PropType^.Name,
+                   {$ELSE}
+                   tbtString(p^.NameFld.ToString),tbtString(p^.PropType^.NameFld.ToString),
+                   {$ENDIF}
+                    a);
   Result := True;
 end;
 

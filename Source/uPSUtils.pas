@@ -3,7 +3,11 @@ unit uPSUtils;
 
 interface
 uses
-  Classes, SysUtils {$IFDEF VER130}, Windows {$ENDIF};
+  Classes, SysUtils
+  {$IFDEF NEXTGEN}, System.ByteStrings{$ENDIF}
+  {$IFDEF VER130}, Windows {$ENDIF};
+
+{$ZEROBASEDSTRINGS OFF}
 
 const
 
@@ -28,6 +32,9 @@ type
   TPSBaseType = Byte;
 
   TPSVariableType = (ivtGlobal, ivtParam, ivtVariable);
+
+  InternalScriptException = class(Exception)
+  end;
 
 const
 
@@ -307,14 +314,14 @@ type
 {$ENDIF}
 
   tbtchar = {$IFDEF DELPHI4UP}AnsiChar{$ELSE}CHAR{$ENDIF};
-{$IFNDEF PS_NOWIDESTRING}
 
-  tbtwidestring = widestring;
   tbtunicodestring = {$IFDEF DELPHI2009UP}UnicodeString{$ELSE}widestring{$ENDIF};
 
-  tbtwidechar = widechar;
+  tbtwidestring = {$IFDEF NEXTGEN}tbtunicodestring{$ELSE}widestring{$ENDIF};
+
+  tbtwidechar = {$IFDEF NEXTGEN}char{$ELSE}widechar{$ENDIF};
+
   tbtNativeString = {$IFDEF DELPHI2009UP}tbtUnicodeString{$ELSE}tbtString{$ENDIF};
-{$ENDIF}
 {$IFDEF FPC}
   IPointer = PtrUInt;
 {$ELSE}
@@ -1149,20 +1156,20 @@ procedure TPSPascalParser.Next;
 var
   Err: TPSParserErrorKind;
   FLastUpToken: TbtString;
-  function CheckReserved(Const S: ShortString; var CurrTokenId: TPSPasToken): Boolean;
+  function CheckReserved(Const S: TbtString; var CurrTokenId: TPSPasToken): Boolean;
   var
     L, H, I: LongInt;
-    J: tbtChar;
-    SName: ShortString;
+    J: SmallInt;
+    SName: TbtString;
   begin
     L := 0;
-    J := S[0];
+    J := Length(S);
     H := KEYWORD_COUNT-1;
     while L <= H do
     begin
       I := (L + H) shr 1;
       SName := LookupTable[i].Name;
-      if J = SName[0] then
+      if J = Length(SName) then
       begin
         if S = SName then
         begin
@@ -1726,6 +1733,7 @@ begin
   fUnitName := FastUpperCase(Value);
 end;
 
+{$ZEROBASEDSTRINGS ON}
 
 end.
 

@@ -52,7 +52,13 @@ type
     property CurrentProcParams: TIfStringList read GetCurrentProcParams;
     
     function GetGlobalVar(I: Cardinal): PIfVariant;
-	
+
+    function GetProcNo(Proc : TPSInternalProcRec) : Cardinal;
+
+    function GetCallStackCount: Cardinal;
+
+    function GetCallStack: tbtString;
+
     function GetProcVar(I: Cardinal): PIfVariant;
 	
     function GetProcParam(I: Cardinal): PIfVariant;
@@ -232,6 +238,83 @@ function TPSCustomDebugExec.GetGlobalVar(I: Cardinal): PIfVariant;
 begin
   Result := FGlobalVars[I];
 end;
+
+
+function TPSCustomDebugExec.GetProcNo(Proc : TPSInternalProcRec) : Cardinal;
+var
+  i: Longint;
+begin
+  for i := 0 to FProcs.Count -1 do
+  begin
+    if FProcs[i]=  Proc then
+    begin
+      Result := I;
+      Exit;
+    end;
+  end;
+  Result := Cardinal(-1);
+end;
+
+function TPSCustomDebugExec.GetCallStackCount: Cardinal;
+begin
+Result := FCurrStackBase;
+end;
+
+function TPSCustomDebugExec.GetCallStack: tbtString;
+var i, k : Integer;
+    DebugProc : PFunctionInfo;
+    Name : tbtString;
+  function ParseParams(ParamList : TIfStringList; StBase : Cardinal) : tbtString;
+  var l : Integer;
+  begin
+    Result := '';
+    if ParamList.Count > 0 then
+    for l := 0 to ParamList.Count do
+      if (ParamList.Items[l] = 'Result') or (ParamList.Items[l] = '') then
+        Continue
+      else
+        Result:=Result+ ParamList.Items[l]+':"'
+                +PSVariantToString(NewTPSVariantIFC(FStack[Cardinal(Longint(StBase) - Longint(l) - 1)], False),'')+'"; ';
+    Result := tbtString(String(Result).Remove(Length(Result)-2));
+  end;
+
+begin
+  Result := 'Call Stack:' + #13#10
+            + ProcNames[GetProcNo(FCurrProc)] + '('
+//            + FCurrProc.ExportName + '('
+            + ParseParams(GetCurrentProcParams,FCurrStackBase) + ')' + #13#10;
+
+  i := FCurrStackBase;
+
+  while i > 0 do
+  begin
+    DebugProc := nil;
+
+    for k := 0 to FDebugDataForProcs.Count -1 do
+      if PFunctionInfo(FDebugDataForProcs[k])^.Func = PPSVariantReturnAddress(FStack[i]).Addr.ProcNo then
+      begin
+        DebugProc := FDebugDataForProcs[k];
+        break;
+      end;
+    k := GetProcNo(PPSVariantReturnAddress(FStack[i]).Addr.ProcNo);
+    if k <= 0 then
+      if Assigned(PPSVariantReturnAddress(FStack[i]).Addr.ProcNo) then
+        Name := PPSVariantReturnAddress(FStack[i]).Addr.ProcNo.ExportName
+      else
+        Exit
+    else
+      Name := ProcNames[k];
+
+    i := PPSVariantReturnAddress(FStack[i]).Addr.StackBase;
+    if Assigned(DebugProc) then
+      Result := Result + Name
+                + '(' + ParseParams(DebugProc.FParamNames,i) + ')' + #13#10
+    else
+      Result := Result + Name
+                + '(???)' + #13#10;
+  end;
+end;
+
 
 function TPSCustomDebugExec.GetProcParam(I: Cardinal): PIfVariant;
 begin

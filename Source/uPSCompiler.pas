@@ -2153,8 +2153,8 @@ begin
             case VCType.BaseType of
               btU8: VCType := FindAndAddType(Owner, '!OPENARRAYOFU8', 'array of Byte');
               btS8: VCType := FindAndAddType(Owner, '!OPENARRAYOFS8', 'array of ShortInt');
-              btU16: VCType := FindAndAddType(Owner, '!OPENARRAYOFU16', 'array of SmallInt');
-              btS16: VCType := FindAndAddType(Owner, '!OPENARRAYOFS16', 'array of Word');
+              btU16: VCType := FindAndAddType(Owner, '!OPENARRAYOFU16', 'array of Word');
+              btS16: VCType := FindAndAddType(Owner, '!OPENARRAYOFS16', 'array of SmallInt');
               btU32: VCType := FindAndAddType(Owner, '!OPENARRAYOFU32', 'array of Cardinal');
               btS32: VCType := FindAndAddType(Owner, '!OPENARRAYOFS32', 'array of LongInt');
               btSingle: VCType := FindAndAddType(Owner, '!OPENARRAYOFSINGLE', 'array of Single');
@@ -4077,8 +4077,19 @@ begin
       p := TPSArrayType.Create;
       p.BaseType := btArray;
     end;
-    p.Name := FastUppercase(Name);
-    p.OriginalName := Name;
+    if Name <> '' then
+    begin
+      p.OriginalName := Name;
+      p.Name := FastUppercase(Name);
+    end
+    else
+    begin
+      if TypeNo.OriginalName = '' then
+        p.OriginalName := 'array of ' + TypeNo.Name
+      else
+        p.OriginalName := 'array of ' + TypeNo.OriginalName;
+      p.Name := FastUppercase(p.OriginalName);
+    end;
     {$IFDEF PS_USESSUPPORT}
     p.DeclareUnit:=fModule;
     {$ENDIF}

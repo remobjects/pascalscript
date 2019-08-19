@@ -9,7 +9,9 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}{$IFDEF MACOS},uPSCMac{$ELSE}{$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF}{$ENDIF};
+  {$IFNDEF FPC}System.Rtti,{$ENDIF}
+  SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
+  {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
 
 
 type
@@ -1101,7 +1103,10 @@ function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtS
 
 implementation
 uses
-  TypInfo {$IFDEF DELPHI3UP}{$IFNDEF FPC}{$IFNDEF KYLIX} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}{$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF} {$IFDEF DELPHI_TOKYO_UP}, AnsiStrings{$ENDIF};
+  TypInfo {$IFDEF DELPHI3UP}
+  {$IFNDEF FPC}{$IFDEF MSWINDOWS} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}
+  {$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF}
+  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}, AnsiStrings{$ENDIF};
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -9430,7 +9435,8 @@ end;
 
 function ToString(p: PansiChar): tbtString;
 begin
-  SetString(Result, p, {$IFDEF DELPHI_TOKYO_UP}AnsiStrings.{$ENDIF}StrLen(p));
+  SetString(Result, p,
+  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND DEFINED (DELPHI_TOKYO_UP)}AnsiStrings.StrLen(p){$ELSE}Length(p){$ENDIF});
 end;
 
 function IntPIFVariantToVariant(Src: pointer; aType: TPSTypeRec; var Dest: Variant): Boolean;
@@ -9814,15 +9820,15 @@ end;
 
 
 {$ifndef FPC}
-{$IFDEF Delphi6UP}
-  {$IFDEF CPUX64}
-    {$include x64.inc}
+  {$IFDEF Delphi6UP}
+    {$IFDEF AUTOREFCOUNT}
+      {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT at the moment!}
+    {$ELSE}
+      {$include InvokeCall.inc}
+    {$ENDIF}
   {$ELSE}
-  {$include x86.inc}
+    {$include x86.inc}
   {$ENDIF}
-{$ELSE}
-  {$include x86.inc}
-{$ENDIF}
 {$else}
 {$IFDEF Delphi6UP}
   {$if defined(cpu86)}
@@ -10375,7 +10381,7 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
-    Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 128){$ELSE}cc{$ENDIF}, MyList, v);
+    Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), TPSCallingConvention(Integer(cc) or 128), MyList, v);
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);

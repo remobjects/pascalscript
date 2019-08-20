@@ -9820,16 +9820,24 @@ end;
 
 
 {$ifndef FPC}
-  {$IFDEF Delphi6UP}
+  {$IFDEF DELPHI2010UP}
     {$IFDEF AUTOREFCOUNT}
       {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT at the moment!}
     {$ELSE}
       {$include InvokeCall.inc}
     {$ENDIF}
   {$ELSE}
-    {$include x86.inc}
+    {$IFDEF Delphi6UP}
+      {$IFDEF CPUX64}
+        {$include x64.inc}
+      {$ELSE}
+        {$include x86.inc}
+      {$ENDIF}
+    {$ELSE}
+      {$include x86.inc}
+    {$ENDIF}
   {$ENDIF}
-{$else}
+{$else}   //fpc includes left unchanged.
 {$IFDEF Delphi6UP}
   {$if defined(cpu86)}
     {$include x86.inc}
@@ -9843,7 +9851,7 @@ end;
     {$fatal Pascal Script is not supported for your architecture at the moment!}
   {$ifend}
 {$ELSE}
-{$include x86.inc}
+  {$include x86.inc}
 {$ENDIF}
 {$endif}
 

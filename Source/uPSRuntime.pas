@@ -511,6 +511,8 @@ type
     5: (PointerInList2: Pointer);
     6: (); {Property helper, like 3}
     7: (); {Property helper that will pass it's name}
+    8: (ProcPtr: TPSProcPtr; Ext1, Ext2: Pointer);
+    9: (ReadProcPtr, WriteProcPtr: TPSProcPtr; ExtRead1, ExtRead2, ExtWrite1, ExtWrite2: Pointer); {Property Helper}
   end;
 
 
@@ -1009,6 +1011,8 @@ type
 
     procedure RegisterMethod(ProcPtr: Pointer; const Name: tbtstring);
 
+    procedure RegisterMethodName(const Name: tbtstring; ProcPtr: TPSProcPtr; Ext1, Ext2: Pointer);
+
     procedure RegisterVirtualMethod(ProcPtr: Pointer; const Name: tbtstring);
 
     procedure RegisterVirtualAbstractMethod(ClassDef: TClass; ProcPtr: Pointer; const Name: tbtstring);
@@ -1016,6 +1020,12 @@ type
     procedure RegisterPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
 
     procedure RegisterPropertyHelperName(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
+
+    procedure RegisterPropertyNameHelper(const Name: tbtstring; ProcPtr: TPSProcPtr;
+    ExtRead1, ExtRead2, ExtWrite1, ExtWrite2: Pointer); overload;
+
+    procedure RegisterPropertyNameHelper(const Name: tbtstring; ProcReadPtr, ProcWritePtr: TPSProcPtr;
+    ExtRead1, ExtRead2, ExtWrite1, ExtWrite2: Pointer); overload;
 
     procedure RegisterEventPropertyHelper(ReadFunc, WriteFunc: Pointer; const Name: tbtstring);
 
@@ -11118,6 +11128,26 @@ begin
               if p.Ext2 = nil then begin result := false; exit; end;
             end;
           end;
+        8:
+          begin
+            p.ProcPtr := px^.ProcPtr;
+            p.Ext1 := px^.Ext1;
+            p.Ext2 := px^.Ext2;
+          end;
+        9:
+          begin
+            if IsRead then
+            begin
+              p.ProcPtr := px^.ReadProcPtr;
+              p.Ext1 := px^.ExtRead1;
+              p.Ext2 := px^.ExtRead2;
+            end else
+            begin
+              p.ProcPtr := px^.WriteProcPtr;
+              p.Ext1 := px^.ExtWrite1;
+              p.Ext2 := px^.ExtWrite2;
+            end;
+          end;
         else
          begin
            result := false;
@@ -11413,6 +11443,20 @@ begin
   FClassItems.Add(p);
 end;
 
+procedure TPSRuntimeClass.RegisterMethodName(const Name: tbtstring;
+  ProcPtr: TPSProcPtr; Ext1, Ext2: Pointer);
+var
+  P: PClassItem;
+begin
+  New(P);
+  p^.FName := FastUppercase(Name);
+  p^.FNameHash := MakeHash(p^.FName);
+  p^.b := 8;
+  p^.ProcPtr := ProcPtr;
+  p^.Ext1 := Ext1;
+  p^.Ext2 := Ext2;
+  FClassItems.Add(p);
+end;
 
 procedure TPSRuntimeClass.RegisterPropertyHelper(ReadFunc,
   WriteFunc: Pointer; const Name: tbtString);
@@ -11479,6 +11523,43 @@ begin
   p^.b := 7;
   p^.FReadFunc := ReadFunc;
   p^.FWriteFunc := WriteFunc;
+  FClassItems.Add(p);
+end;
+
+procedure TPSRuntimeClass.RegisterPropertyNameHelper(const Name: tbtstring;
+  ProcPtr: TPSProcPtr; ExtRead1, ExtRead2, ExtWrite1, ExtWrite2: Pointer);
+var
+  P: PClassItem;
+begin
+  New(P);
+  p^.FName := FastUppercase(Name);
+  p^.FNameHash := MakeHash(p^.FName);
+  p^.b := 9;
+  p^.ReadProcPtr := ProcPtr;
+  p^.WriteProcPtr := ProcPtr;
+  p^.ExtRead1 := ExtRead1;
+  p^.ExtRead2 := ExtRead2;
+  p^.ExtWrite1 := ExtWrite1;
+  p^.ExtWrite2 := ExtWrite2;
+  FClassItems.Add(p);
+end;
+
+procedure TPSRuntimeClass.RegisterPropertyNameHelper(const Name: tbtstring;
+  ProcReadPtr, ProcWritePtr: TPSProcPtr; ExtRead1, ExtRead2, ExtWrite1,
+  ExtWrite2: Pointer);
+var
+  P: PClassItem;
+begin
+  New(P);
+  p^.FName := FastUppercase(Name);
+  p^.FNameHash := MakeHash(p^.FName);
+  p^.b := 9;
+  p^.ReadProcPtr := ProcReadPtr;
+  p^.WriteProcPtr := ProcWritePtr;
+  p^.ExtRead1 := ExtRead1;
+  p^.ExtRead2 := ExtRead2;
+  p^.ExtWrite1 := ExtWrite1;
+  p^.ExtWrite2 := ExtWrite2;
   FClassItems.Add(p);
 end;
 

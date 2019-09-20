@@ -38,7 +38,7 @@ type
   {$ENDIF}
 {$ELSE !MSWINDOWS}
 
-  {$DEFINE X64CALL_ASM} { optional } // TODO: Check pas version (disable "X64CALL_ASM").
+  {.$DEFINE X64CALL_ASM} { optional } // TODO: Check pas version (disable "X64CALL_ASM").
 
 {$ENDIF !MSWINDOWS}
 

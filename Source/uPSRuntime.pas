@@ -9840,11 +9840,13 @@ end;
 
 
 {$ifndef FPC}
-  {$IFDEF DELPHI2010UP}
+  {$UNDEF _INVOKECALL_INC_}
+  {$IFDEF DELPHI23UP}    // DELPHI2010UP == DELPHI14UP
     {$IFDEF AUTOREFCOUNT}
       {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT at the moment!}
     {$ELSE}
       {$include InvokeCall.inc}
+      {$DEFINE _INVOKECALL_INC_}
     {$ENDIF}
   {$ELSE}
     {$IFDEF Delphi6UP}
@@ -10324,7 +10326,11 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
+    {$IFDEF _INVOKECALL_INC_}
     Result := Caller.InnerfuseCall(FSelf, p.Ext1, TPSCallingConvention(Integer(cc) or 64), MyList, v);
+    {$ELSE}
+    Result := Caller.InnerfuseCall(FSelf, p.Ext1, {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 64){$ELSE}cc{$ENDIF}, MyList, v);
+    {$ENDIF}
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);
@@ -10409,7 +10415,11 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
+    {$IFDEF _INVOKECALL_INC_}
     Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), TPSCallingConvention(Integer(cc) or 128), MyList, v);
+    {$ELSE}
+    Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 128){$ELSE}cc{$ENDIF}, MyList, v);
+    {$ENDIF}
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);

@@ -9841,7 +9841,7 @@ end;
 
 {$ifndef FPC}
   {$UNDEF _INVOKECALL_INC_}
-  {$IFDEF DELPHI23UP}    // DELPHI2010UP == DELPHI14UP
+  {$IFDEF _DELPHI23UP}    // DELPHI2010UP == DELPHI14UP
     {$IFDEF AUTOREFCOUNT}
       {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT at the moment!}
     {$ELSE}

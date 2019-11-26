@@ -57,7 +57,8 @@ begin
         btU32, btS32:                      Arg := TValue.From(pCardinal(fvar.dta)^);
         {$IFNDEF PS_NOINT64}bts64:{$ENDIF} Arg := TValue.From(pint64(fvar.dta)^);
         btSingle:                          Arg := TValue.From(PSingle(fvar.dta)^);
-        btDouble, btExtended:              Arg := TValue.From(PDouble(fvar.dta)^);
+        btDouble:                          Arg := TValue.From(PDouble(fvar.dta)^);
+        btExtended:                        Arg := TValue.From(PExtended(fvar.dta)^);
         btPChar:                           Arg := TValue.From(ppchar(fvar.dta)^);
         btChar:                            Arg := TValue.From(pchar(fvar.dta)^);
         btClass:                           Arg := TValue.From(TObject(fvar.dta^));
@@ -113,7 +114,8 @@ begin
       btU32, btS32:            pCardinal(res.dta)^ := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),False,IsConstr).AsInteger);
       {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   pInt64(res.dta)^ := Int64(Invoke(Address,Args,SysCalConv,TypeInfo(Int64),False,IsConstr).AsInt64);
       btSingle:                psingle(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Single),False,IsConstr).AsExtended);
-      btDouble, btExtended:    pdouble(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Double),False,IsConstr).AsExtended);
+      btDouble:                pdouble(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Double),False,IsConstr).AsExtended);
+      btExtended:              pextended(res.dta)^ := Extended(Invoke(Address,Args,SysCalConv,TypeInfo(Extended),False,IsConstr).AsExtended);
       btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsType<PChar>());
       btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsType<Char>());
       btSet:

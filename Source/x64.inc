@@ -202,34 +202,39 @@ type
     p21,p22,p23,p24,p25,p26,p27,p28,p29,p30,p31,p32,p33,p34,p35,p36,p37,p38,p39,p40,
     p41,p42,p43,p44,p45,p46,p47,p48,p49,p50,p51,p52,p53,p54,p55,p56,p57,p58,p59,p60,p61,p62,p63,p64,p65,p66: IPointer);
 
+  {$IFDEF FPC}
+    {$mode delphi}
+    {$ASMMODE INTEL}
+  {$ENDIF}
+
 procedure x64call({RCX}Address: Pointer;out {RDX}_RAX: IPointer;var {R8}_XMM0: Double; var {R9}R: TRegisters);
 
-  function get_rax: IPointer; assembler;
+  function get_rax: IPointer; assembler; {$ifdef FPC}nostackframe;{$endif}
   asm
     //-mov Result, rax // !Not necessarily!
   end;
-  function get_xmm0: Double; assembler;
+  function get_xmm0: Double; assembler; {$ifdef FPC}nostackframe;{$endif}
   asm
     movsd Result, xmm0
   end;
 
-  procedure set_rax(var _RAX: Double); assembler;
+  procedure set_rax(var _RAX: Double); assembler; {$ifdef FPC}nostackframe;{$endif}
   asm
     mov rax, _RAX
   end;
-  procedure set_xmm1; assembler;
+  procedure set_xmm1; assembler; {$ifdef FPC}nostackframe;{$endif}
   asm
     movsd xmm1, [rax]
   end;
-  procedure set_xmm2; assembler;
+  procedure set_xmm2; assembler; {$ifdef FPC}nostackframe;{$endif}
   asm
     movsd xmm2, [rax]
   end;
-  procedure set_xmm3; assembler;
+  procedure set_xmm3; assembler; {$ifdef FPC}nostackframe;{$endif}
   asm
     movsd xmm3, [rax]
   end;
-  procedure set_xmm0; assembler;
+  procedure set_xmm0; assembler; {$ifdef FPC}nostackframe;{$endif}
   asm
     movsd xmm0, [rax]
   end;

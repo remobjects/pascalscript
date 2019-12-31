@@ -30,7 +30,7 @@ type
     {$ENDIF}
 
     {$IFDEF FPC}
-      {$DEFINE X64CALL_ASM} { optional } // ! Not recomended : GPF on exception ! // TODO: need test ...
+      {.$DEFINE X64CALL_ASM} { optional } // ! Not recomended : GPF on exception ! // TODO: need test ...
     {$ENDIF}
 
   {$ELSE}

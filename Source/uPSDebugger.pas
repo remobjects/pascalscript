@@ -531,7 +531,8 @@ function TPSCustomDebugExec.GetCallStack(var Count: Cardinal): tbtString;
       else
         Result:= Result + ParamList.Items[I] + ': ' +
                  PSVariantToString(NewTPSVariantIFC(FStack[Cardinal(Longint(StackBase) - Longint(I) - 1)], False), '') + '; ';
- //   Result := tbtString(String(Result).Remove(Length(Result)-2));
+    if Result <> '' then
+      Result := tbtString(String(Result).Remove(Length(Result)-2));
   end;
 
 var

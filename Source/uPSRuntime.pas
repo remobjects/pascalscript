@@ -9839,15 +9839,21 @@ begin
 end;
 
 
-{$ifndef FPC}
+{$IFNDEF FPC}
   {$UNDEF _INVOKECALL_INC_}
-  {$IFDEF DELPHI23UP}    // DELPHI2010UP == DELPHI14UP
-    {$IFDEF AUTOREFCOUNT}
-      {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT at the moment!}
-    {$ELSE}
-      {$include InvokeCall.inc}
-      {$DEFINE _INVOKECALL_INC_}
-    {$ENDIF}
+  {$UNDEF USEINVOKECALL}
+
+  {$IFDEF DELPHI23UP}
+  {$IFNDEF AUTOREFCOUNT}
+  {$IFNDEF PS_USECLASSICINVOKE}
+    {$DEFINE USEINVOKECALL}
+  {$ENDIF}
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF USEINVOKECALL}
+    {$include InvokeCall.inc}
+    {$DEFINE _INVOKECALL_INC_}
   {$ELSE}
     {$IFDEF Delphi6UP}
       {$IFDEF CPUX64}
@@ -9859,23 +9865,23 @@ end;
       {$include x86.inc}
     {$ENDIF}
   {$ENDIF}
-{$else}   //fpc includes left unchanged.
-{$IFDEF Delphi6UP}
-  {$if defined(cpu86)}
-    {$include x86.inc}
-  {$elseif defined(cpupowerpc)}
-    {$include powerpc.inc}
-  {$elseif defined(cpuarm)}
-    {$include arm.inc}
-  {$elseif defined(CPUX86_64)}
-    {$include x64.inc}
-  {$else}
-    {$fatal Pascal Script is not supported for your architecture at the moment!}
-  {$ifend}
 {$ELSE}
-  {$include x86.inc}
+  {$IFDEF Delphi6UP}
+    {$if defined(cpu86)}
+      {$include x86.inc}
+    {$elseif defined(cpupowerpc)}
+      {$include powerpc.inc}
+    {$elseif defined(cpuarm)}
+      {$include arm.inc}
+    {$elseif defined(CPUX86_64)}
+      {$include x64.inc}
+    {$else}
+      {$fatal Pascal Script is not supported for your architecture at the moment!}
+    {$ifend}
+  {$ELSE}
+    {$include x86.inc}
+  {$ENDIF}
 {$ENDIF}
-{$endif}
 
 type
   PScriptMethodInfo = ^TScriptMethodInfo;

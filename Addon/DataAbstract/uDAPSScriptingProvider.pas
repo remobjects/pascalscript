@@ -118,7 +118,7 @@ var
 begin
   if Assigned(fDataTable) then begin
     for i := 0 to fDataTable.Fields.Count-1 do begin
-      fScript.AddRegisteredVariable({$IFDEF UNICODE}WideStringToAnsiString{$ENDIF}(fDataTable.Fields[i].Name), '!NOTIFICATIONVARIANT');
+      fScript.AddRegisteredVariable(fDataTable.Fields[i].Name, '!NOTIFICATIONVARIANT');
     end; { for }
   end;
 
@@ -135,12 +135,12 @@ end;}
 
 function TDAPSScriptingProvider.OnGetNotificationVariant(Sender: TPSScript; const Name: tbtstring): Variant;
 begin
-  result := fDataTable.Fields.FieldByName({$IFDEF UNICODE}AnsiStringToWideString{$ENDIF}(Name)).Value;
+  result := fDataTable.Fields.FieldByName(Name).Value;
 end;
 
 procedure TDAPSScriptingProvider.OnSetNotificationVariant(Sender: TPSScript; const Name: tbtstring; V: Variant);
 begin
-  fDataTable.Fields.FieldByName({$IFDEF UNICODE}AnsiStringToWideString{$ENDIF}(Name)).Value := V;
+  fDataTable.Fields.FieldByName(Name).Value := V;
 end;
 
 procedure TDAPSScriptingProvider.PrepareForBusinessProcessor(aBusinessProcessor: TDABusinessProcessor);
@@ -202,7 +202,7 @@ begin
   end;
 
   fDataTablePlugin.DataTable := aDataTable;
-  lMethod := TScriptMethod(fScript.GetProcMethod({$IFDEF UNICODE}WideStringToAnsiString{$ENDIF}(aMethod)));
+  lMethod := TScriptMethod(fScript.GetProcMethod(aMethod));
   if assigned(@lMethod) then
     lMethod();
 end;

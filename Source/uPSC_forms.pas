@@ -48,6 +48,10 @@ procedure SIRegisterTSCROLLBOX(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TScrollingWinControl'), 'TScrollBox') do
   begin
+    {$IFDEF DELPHI4UP}
+    RegisterProperty('Anchors', 'TAnchors', iptrw);
+    RegisterProperty('Constraints', 'TSizeConstraints', iptrw);
+    {$ENDIF}
     RegisterProperty('BorderStyle', 'TBorderStyle', iptrw);
     RegisterProperty('Color', 'TColor', iptrw);
     RegisterProperty('Font', 'TFont', iptrw);
@@ -93,6 +97,10 @@ begin
     RegisterMethod('procedure Release');
     RegisterProperty('Active', 'Boolean', iptr);
     RegisterProperty('ActiveControl', 'TWinControl', iptrw);
+    {$IFDEF DELPHI4UP}
+    RegisterProperty('Anchors', 'TAnchors', iptrw);
+    RegisterProperty('Constraints', 'TSizeConstraints', iptrw);
+    {$ENDIF}
     RegisterProperty('BorderIcons', 'TBorderIcons', iptrw);
     RegisterProperty('BorderStyle', 'TFormBorderStyle', iptrw);
     RegisterProperty('Caption', 'NativeString', iptrw);

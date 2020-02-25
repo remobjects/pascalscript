@@ -3,12 +3,12 @@ unit CompilerTestSimple;
 interface
 
 uses Classes,
-     TestFramework,
-     { Project Units }
-     ifps3,
-     ifpscomp,
-     IFPS3CompExec,
-     CompilerTestBase;
+     //TestFramework,
+     //{ Project Units }
+     //ifps3,
+     //ifpscomp,
+     //IFPS3CompExec,
+     CompilerTestBase, uPSCompiler, testregistry;
 
 type
     TCompilerTestSimple = class(TCompilerTestBase)
@@ -45,20 +45,21 @@ type
 
 implementation
 
-uses StrUtils, SysUtils, Math, Dialogs,
-    { Project Units }
-    ifpiir_std,
-    ifpii_std,
-    ifpiir_stdctrls,
-    ifpii_stdctrls,
-    ifpiir_forms,
-    ifpii_forms,
-    ifpii_graphics,
-    ifpii_controls,
-    ifpii_classes,
-    ifpiir_graphics,
-    ifpiir_controls,
-    ifpiir_classes;
+uses StrUtils, SysUtils, Math, Dialogs;
+//,
+//    { Project Units }
+//    ifpiir_std,
+//    ifpii_std,
+//    ifpiir_stdctrls,
+//    ifpii_stdctrls,
+//    ifpiir_forms,
+//    ifpii_forms,
+//    ifpii_graphics,
+//    ifpii_controls,
+//    ifpii_classes,
+//    ifpiir_graphics,
+//    ifpiir_controls,
+//    ifpiir_classes;
 
 { TCompilerTestSimple }
 
@@ -248,7 +249,7 @@ end;
 procedure TCompilerTestSimple.checkArrayProperties;
 begin
   CompileRun('var r: TStringList; begin r := TStringList.Create; r.Values[''test''] := ''data''; ResultS(r.text); r.Free;end.');
-  CheckEquals('test=data'#13#10, LastResult);
+  CheckEquals('test=data'+LineEnding, LastResult);
 end;
 
 procedure TCompilerTestSimple.VarDecl;
@@ -276,8 +277,6 @@ CompileRun('var s:string; i:integer; begin i := ord(''a''); s:=chr(i); '+
 end;
 
 initialization
-  RegisterTests('Basic Compiler Tests',
-                [ TCompilerTestSimple.Suite
-                ]);
+  RegisterTests([TCompilerTestSimple]);
 
 end.

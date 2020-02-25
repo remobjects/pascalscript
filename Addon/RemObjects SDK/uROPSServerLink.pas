@@ -275,24 +275,29 @@ type
   private
     FVar: TPSVariantIFC;
     FExec: TPSExec;
+    fAttr: TStringList;
   protected
     function GetTypeName: string;
     procedure SetTypeName(const s: string);
-    procedure Write(Serializer: TROSerializer; const Name: string);
-    procedure Read(Serializer: TROSerializer; const Name: string);
+    procedure Write(Serializer: TROSerializer; const Name: string; ArrayElementId : integer = -1);
+    procedure Read(Serializer: TROSerializer; const Name: string; ArrayElementId : integer = -1);
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
     function CanImplementType(const aName: string):boolean;
     procedure SetNull(b: Boolean);
     function IsNull: Boolean;
+    function GetAttributes: TStrings;
   public
     constructor Create(aVar: TPSVariantIfc; Exec: TPSExec);
+    destructor Destroy; override;
   end;
+
   TROArray = class(TROStructure, IROCustomStreamableType, IROCustomStreamableStruct, IROCustomStreamableArray)
   protected
     function GetCount: Longint;
-     procedure SetCount(l: Longint);
+    procedure SetCount(l: Longint);
+    function GetElementType: string;
   end;
 
 procedure WriteUserDefined(Exec: TPSExec; const Msg: IROMessage; const Name: string; const n: TPSVariantIfc);
@@ -1142,10 +1147,19 @@ end;
 { TROStructure }
 
 constructor TROStructure.Create(aVar: TPSVariantIfc; Exec: TPSExec);
+var
+  i: integer;
 begin
   inherited Create;
   FVar := aVar;
   FExec := Exec;
+  fAttr := TStringList.Create;
+end;
+
+destructor TROStructure.Destroy;
+begin
+  fAttr.Free;
+  inherited;
 end;
 
 function TROStructure.IsNull: Boolean;
@@ -1162,15 +1176,19 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-procedure TROStructure.Read(Serializer: TROSerializer;
-  const Name: string);
+procedure TROStructure.Read(Serializer: TROSerializer; const Name: string; ArrayElementId : integer = -1);
 begin
-  IntRead(FExec, Serializer, Name, FVar, -1);
+  IntRead(FExec, Serializer, Name, FVar, ArrayElementId);
 end;
 
 procedure TROStructure.SetNull(b: Boolean);
 begin
   // null not supported
+end;
+
+function TROStructure.GetAttributes: TStrings;
+begin
+  Result:= fAttr;
 end;
 
 function TROStructure.GetTypeName: string;
@@ -1184,9 +1202,9 @@ begin
 end;
 
 procedure TROStructure.Write(Serializer: TROSerializer;
-  const Name: string);
+  const Name: string; ArrayElementId : integer = -1);
 begin
-  IntWrite(FExec, Serializer, Name, FVar, -1);
+  IntWrite(FExec, Serializer, Name, FVar, ArrayElementId);
 end;
 
 
@@ -1222,6 +1240,11 @@ begin
 
   // we should have an array in pVar now so assume that's true
   Result := PSDynArrayGetLength(Pointer(fVar.Dta^), fvar.aType);
+end;
+
+function TROArray.GetElementType: string;
+begin
+  Result := '';
 end;
 
 procedure TROArray.SetCount(l: Integer);

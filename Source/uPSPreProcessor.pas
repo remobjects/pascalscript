@@ -280,7 +280,6 @@ begin
       Res.Pos := Pos;
       Res.Col := 1;
       Res.Row := 1;
-      LinePos := 0;
       for j := 0 to Item.LineOffsetCount -1 do
       begin
         if Pos >= Item.LineOffset[j] then
@@ -288,10 +287,10 @@ begin
           linepos := Item.LineOffset[j];
         end else
         begin
-          Res.Row := j; // j -1, but line counting starts at 1
-          Res.Col := pos - linepos + 1;
           Break;
         end;
+        Res.Row := j + 1; // line counting starts at 1
+        Res.Col := pos - linepos + 1;
       end;
       Result := True;
       exit;

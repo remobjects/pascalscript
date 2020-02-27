@@ -13253,7 +13253,7 @@ begin
   begin
     ExportName := True;
   end;
-  AddDelphiFunction('function IdispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: string; Par: array of Variant): Variant;');
+  AddDelphiFunction('function IdispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: AnsiString; Par: array of Variant): Variant;');
  {$ENDIF}
 {$ENDIF}
 end;

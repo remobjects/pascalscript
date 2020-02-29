@@ -213,7 +213,7 @@ const
 
   RPS_TooManyNestedInclude = 'Too many nested include files while processing ''%s'' from ''%s''';
   RPS_IncludeNotFound = 'Unable to find file ''%s'' used from ''%s''';
-  RPS_DefineTooManyParameters = 'Too many parameters at %d:%d';
+  RPS_DefineTooManyParameters = 'Too many parameters in ''%s'' at %d:%d';
   RPS_NoIfdefForEndif = 'No IFDEF for ENDIF in ''%s'' at %d:%d';
   RPS_NoIfdefForElse = 'No IFDEF for ELSE in ''%s'' at %d:%d';
   RPS_ElseTwice = 'Can''t use ELSE twice in ''%s'' at %d:%d';

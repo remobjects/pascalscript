@@ -63,7 +63,8 @@ begin
         btChar:                            Arg := TValue.From(pchar(fvar.dta)^);
         btClass:                           Arg := TValue.From(TObject(fvar.dta^));
         btRecord:                          Arg := TValue.From<Pointer>(fvar.dta); 
-        btStaticArray:                     Arg := TValue.From<Pointer>(fvar.dta); 
+        btVariant:                         Arg := TValue.From(PVariant(fvar.dta)^);
+        btStaticArray:                     Arg := TValue.From<Pointer>(fvar.dta);
         btArray:
           begin
              if Copy(fvar.aType.ExportName, 1, 10) = '!OPENARRAY' then
@@ -103,11 +104,11 @@ begin
   else begin
     case res.atype.basetype of
       { add result types here }
-      btString:                tbtstring(res.dta^) := tbtstring(Invoke(Address,Args,SysCalConv,TypeInfo(String),False,IsConstr).AsString)
+      btString:                tbtstring(res.dta^) := tbtstring(Invoke(Address,Args,SysCalConv,TypeInfo(String),True,IsConstr).AsString)
       ;
       {$IFNDEF PS_NOWIDESTRING}
-      btUnicodeString:         tbtunicodestring(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),False,IsConstr).AsString;
-      btWideString:            tbtWideString(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),False,IsConstr).AsString;
+      btUnicodeString:         tbtunicodestring(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),True,IsConstr).AsString;
+      btWideString:            tbtWideString(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),True,IsConstr).AsString;
       {$ENDIF}
       btU8, btS8:              pbyte(res.dta)^ := Byte(Invoke(Address,Args,SysCalConv,TypeInfo(Byte),False,IsConstr).AsInteger);
       btU16, btS16:            pword(res.dta)^ := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),False,IsConstr).AsInteger);
@@ -118,6 +119,7 @@ begin
       btExtended:              pextended(res.dta)^ := Extended(Invoke(Address,Args,SysCalConv,TypeInfo(Extended),False,IsConstr).AsExtended);
       btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsType<PChar>());
       btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsType<Char>());
+      btInterface:             IDispatch(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(IDispatch),False,IsConstr).AsType<IDispatch>();
       btSet:
         begin
           case TPSTypeRec_Set(res.aType).aByteSize  of
@@ -166,6 +168,11 @@ begin
       end;
       btArray: //need to check with open arrays
       begin
+        //NB. When you have types-synonyms like TCardinalDynArray = array of Cardinal;
+        //it will NOT be added to RTTI list by compiler. So, it will be never
+        //finded by this way. The only way is to declares types like:
+        //TCardinalDynArray_ = array of Cardinal;
+        //TCardinalDynArray = type TCardinalDynArray_
         for RttiType in ctx.GetTypes do
           if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkDynArray) then
           begin

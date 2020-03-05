@@ -110,16 +110,16 @@ begin
       btUnicodeString:         tbtunicodestring(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),True,IsConstr).AsString;
       btWideString:            tbtWideString(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),True,IsConstr).AsString;
       {$ENDIF}
-      btU8, btS8:              pbyte(res.dta)^ := Byte(Invoke(Address,Args,SysCalConv,TypeInfo(Byte),False,IsConstr).AsInteger);
-      btU16, btS16:            pword(res.dta)^ := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),False,IsConstr).AsInteger);
-      btU32, btS32:            pCardinal(res.dta)^ := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),False,IsConstr).AsInteger);
-      {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   pInt64(res.dta)^ := Int64(Invoke(Address,Args,SysCalConv,TypeInfo(Int64),False,IsConstr).AsInt64);
-      btSingle:                psingle(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Single),False,IsConstr).AsExtended);
-      btDouble:                pdouble(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Double),False,IsConstr).AsExtended);
-      btExtended:              pextended(res.dta)^ := Extended(Invoke(Address,Args,SysCalConv,TypeInfo(Extended),False,IsConstr).AsExtended);
-      btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsType<PChar>());
-      btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsType<Char>());
-      btInterface:             IDispatch(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(IDispatch),False,IsConstr).AsType<IDispatch>();
+      btU8, btS8:              pbyte(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Byte),False,IsConstr).AsType<Byte>;
+      btU16, btS16:            pword(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Word),False,IsConstr).AsType<Word>;
+      btU32, btS32:            pCardinal(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),False,IsConstr).AsType<Cardinal>;
+      {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   pInt64(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Int64),False,IsConstr).AsInt64;
+      btSingle:                psingle(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Single),False,IsConstr).AsType<Single>;
+      btDouble:                pdouble(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Double),False,IsConstr).AsType<Double>;
+      btExtended:              pextended(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Extended),False,IsConstr).AsExtended;
+      btPChar:                 ppchar(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsType<PChar>;
+      btChar:                  pchar(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsType<Char>;
+      btInterface:             IUnknown(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(IUnknown),True,IsConstr).AsType<IUnknown>;
       btSet:
         begin
           case TPSTypeRec_Set(res.aType).aByteSize  of

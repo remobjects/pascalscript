@@ -318,13 +318,10 @@ type
 {$IFDEF FPC}
   IPointer = PtrUInt;
 {$ELSE}
-  {$IFDEF VER140UP}
-    IPointer = NativeInt;
+  {$IFDEF DELPHI2009UP}
+    IPointer = NativeUInt;
   {$ELSE}
-    {$IFDEF CPUX64}
-    IPointer = IntPtr;
-    {$ELSE}
-    {$IFDEF CPU64} IPointer = LongWord;{$ELSE}  IPointer = Cardinal;{$ENDIF}{$ENDIF}
+    IPointer = Cardinal;
   {$ENDIF}
 {$ENDIF}
   TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafeCall);

@@ -19,7 +19,7 @@ begin
   else
     SysCalConv := ccReg;//to prevent warning "W1036 Variable might not have been initialized"
   end;
-  
+
   if Assigned(_Self) then
     Args := Args + [TValue.From<Pointer>( _Self )];
 
@@ -36,7 +36,7 @@ begin
         btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency,
         btUnicodeString
         {$IFNDEF PS_NOINT64}, bts64{$ENDIF}:
-          Arg := TValue.From<Pointer>( Pointer(fvar.dta) );  
+          Arg := TValue.From<Pointer>( Pointer(fvar.dta) );
         else
           begin
             Exit;
@@ -51,19 +51,19 @@ begin
         btWidestring,
         btUnicodestring,
         {$ENDIF}
-        btString:                          Arg := TValue.From(pstring(fvar.dta)^);
-        btU8, btS8:                        Arg := TValue.From(pbyte(fvar.dta)^);
-        btU16, BtS16:                      Arg := TValue.From(pword(fvar.dta)^);
-        btU32, btS32:                      Arg := TValue.From(pCardinal(fvar.dta)^);
-        {$IFNDEF PS_NOINT64}bts64:{$ENDIF} Arg := TValue.From(pint64(fvar.dta)^);
-        btSingle:                          Arg := TValue.From(PSingle(fvar.dta)^);
-        btDouble:                          Arg := TValue.From(PDouble(fvar.dta)^);
-        btExtended:                        Arg := TValue.From(PExtended(fvar.dta)^);
-        btPChar:                           Arg := TValue.From(ppchar(fvar.dta)^);
-        btChar:                            Arg := TValue.From(pchar(fvar.dta)^);
-        btClass:                           Arg := TValue.From(TObject(fvar.dta^));
-        btRecord:                          Arg := TValue.From<Pointer>(fvar.dta); 
-        btStaticArray:                     Arg := TValue.From<Pointer>(fvar.dta); 
+        btString:                          Arg := TValue.From<AnsiString>(pstring(fvar.dta)^);
+        btU8, btS8:                        Arg := TValue.From<Byte>(pbyte(fvar.dta)^);
+        btU16, BtS16:                      Arg := TValue.From<Word>(pword(fvar.dta)^);
+        btU32, btS32:                      Arg := TValue.From<Cardinal>(pCardinal(fvar.dta)^);
+        {$IFNDEF PS_NOINT64}bts64:{$ENDIF} Arg := TValue.From<Int64>(pint64(fvar.dta)^);
+        btSingle:                          Arg := TValue.From<Single>(PSingle(fvar.dta)^);
+        btDouble:                          Arg := TValue.From<Double>(PDouble(fvar.dta)^);
+        btExtended:                        Arg := TValue.From<Extended>(PExtended(fvar.dta)^);
+        btPChar:                           Arg := TValue.From<PChar>(ppchar(fvar.dta)^);
+        btChar:                            Arg := TValue.From<Char>(pchar(fvar.dta)^);
+        btClass:                           Arg := TValue.From<TObject>(TObject(fvar.dta^));
+        btRecord:                          Arg := TValue.From<Pointer>(fvar.dta);
+        btStaticArray:                     Arg := TValue.From<Pointer>(fvar.dta);
         btArray:
           begin
              if Copy(fvar.aType.ExportName, 1, 10) = '!OPENARRAY' then
@@ -79,10 +79,10 @@ begin
         btSet:
           begin
             case TPSTypeRec_Set(fvar.aType).aByteSize  of
-              1: Arg := TValue.From(pbyte(fvar.dta)^);
-              2: Arg := TValue.From(pWord(fvar.dta)^);
+              1: Arg := TValue.From<Byte>(pbyte(fvar.dta)^);
+              2: Arg := TValue.From<Word>(pWord(fvar.dta)^);
               3,
-              4: Arg := TValue.From(pCardinal(fvar.dta)^);
+              4: Arg := TValue.From<Cardinal>(pCardinal(fvar.dta)^);
               else
                 Arg := TValue.From<Pointer>(fvar.dta);
             end;
@@ -116,8 +116,13 @@ begin
       btSingle:                psingle(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Single),False,IsConstr).AsExtended);
       btDouble:                pdouble(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Double),False,IsConstr).AsExtended);
       btExtended:              pextended(res.dta)^ := Extended(Invoke(Address,Args,SysCalConv,TypeInfo(Extended),False,IsConstr).AsExtended);
+      {$IFDEF FPC}
+      btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsOrdinal);
+      btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsChar);
+      {$ELSE}
       btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsType<PChar>());
       btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsType<Char>());
+      {$ENDIF}
       btSet:
         begin
           case TPSTypeRec_Set(res.aType).aByteSize  of
@@ -125,6 +130,7 @@ begin
             2: word(res.Dta^) := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),False,IsConstr).AsInteger);
             3,
             4: Longint(res.Dta^) := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),False,IsConstr).AsInteger);
+            {$IFNDEF FPC}
             else
             begin
               for RttiType in ctx.GetTypes do
@@ -135,17 +141,19 @@ begin
                   Break;
                 end;
             end;
+            {$ENDIF}
           end;
         end;
       btClass:
       begin
-        for RttiType in ctx.GetTypes do
-          if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkClass) then
+        {$IFNDEF FPC}for RttiType in ctx.GetTypes do
+          if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkClass) then{$ENDIF}
           begin
-            TObject(res.dta^) := Invoke(Address,Args,SysCalConv,RttiType.Handle,False,IsConstr).AsObject;
-            Break;
+            TObject(res.dta^) := Invoke(Address,Args,SysCalConv,{$IFDEF FPC}TypeInfo(TObject){$ELSE}RttiType.Handle{$ENDIF},False,IsConstr).AsObject;
+            {$IFNDEF FPC}Break;{$ENDIF}
           end;
       end;
+      {$IFNDEF FPC}
       btStaticArray:
       begin
         for RttiType in ctx.GetTypes do
@@ -177,6 +185,7 @@ begin
             Break;
           end;
       end;
+      {$ENDIF}
       else
 //          writeln(stderr, 'Result type not implemented!');
         Exit;

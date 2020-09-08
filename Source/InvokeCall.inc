@@ -51,7 +51,7 @@ begin
         btWidestring,
         btUnicodestring,
         {$ENDIF}
-        btString:                          Arg := TValue.From<AnsiString>(pstring(fvar.dta)^);
+        btString:                          Arg := TValue.From<String>(pstring(fvar.dta)^);
         btU8, btS8:                        Arg := TValue.From<Byte>(pbyte(fvar.dta)^);
         btU16, BtS16:                      Arg := TValue.From<Word>(pword(fvar.dta)^);
         btU32, btS32:                      Arg := TValue.From<Cardinal>(pCardinal(fvar.dta)^);

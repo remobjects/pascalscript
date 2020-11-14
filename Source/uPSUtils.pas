@@ -291,8 +291,6 @@ type
 
   TbtU32 = Cardinal;
 
-  TbtS32 = Longint;
-
   TbtSingle = Single;
 
   TbtDouble = double;
@@ -317,7 +315,9 @@ type
 {$ENDIF}
 {$IFDEF FPC}
   IPointer = PtrUInt;
+  TbtS32 = LongInt;
 {$ELSE}
+  TbtS32 = Integer;
   {$IFDEF VER140UP}
     IPointer = NativeInt;
   {$ELSE}

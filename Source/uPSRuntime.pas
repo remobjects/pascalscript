@@ -9840,20 +9840,23 @@ end;
 
 
 {$IFNDEF FPC}
-  {$UNDEF _INVOKECALL_INC_}
-  {$UNDEF USEINVOKECALL}
-
-  {$IFDEF DELPHI23UP}
-  {$IFNDEF AUTOREFCOUNT}
-  {$IFNDEF PS_USECLASSICINVOKE}
-    {$DEFINE USEINVOKECALL}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-
-  {$IFDEF USEINVOKECALL}
-    {$include InvokeCall.inc}
-    {$DEFINE _INVOKECALL_INC_}
+//before XE8 no other platforms normal support, almost unsuable. No sense to support XE2+
+//but will set limit to Seattle for avoid doublecoding in InvokeCall.inc
+  {$IFDEF DELPHI_SEATTLE_UP}
+    {$IFDEF AUTOREFCOUNT}
+      {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT at the moment!}
+    {$ELSE}
+      {$IFDEF MSWINDOWS}
+        {$IFDEF CPUX64}
+          {$include x64.inc}
+        {$ELSE}
+          {$include x86.inc}
+        {$ENDIF}
+      {$ELSE}
+        {$DEFINE _INVOKECALL_INC_}
+        {$include InvokeCall.inc}
+      {$ENDIF}
+    {$ENDIF}
   {$ELSE}
     {$IFDEF Delphi6UP}
       {$IFDEF CPUX64}
@@ -10421,11 +10424,7 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
-    {$IFDEF _INVOKECALL_INC_}
-    Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), TPSCallingConvention(Integer(cc) or 128), MyList, v);
-    {$ELSE}
     Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 128){$ELSE}cc{$ENDIF}, MyList, v);
-    {$ENDIF}
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);

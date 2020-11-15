@@ -3,7 +3,7 @@ unit uPSR_dateutils;
 {$I PascalScript.inc}
 interface
 uses
-  SysUtils, uPSRuntime;
+  SysUtils, uPSRuntime, DateUtils;
 
 
 
@@ -42,22 +42,36 @@ begin
 end;
 
 procedure RegisterDateTimeLibrary_R(S: TPSExec);
+type _T2 = function(const DateTime: TDateTime): string;
+var _P2: _T2;
 begin
-  S.RegisterDelphiFunction(@EncodeDate, 'EncodeDate', cdRegister);
-  S.RegisterDelphiFunction(@EncodeTime, 'EncodeTime', cdRegister);
-  S.RegisterDelphiFunction(@TryEncodeDate, 'TryEncodeDate', cdRegister);
-  S.RegisterDelphiFunction(@TryEncodeTime, 'TryEncodeTime', cdRegister);
-  S.RegisterDelphiFunction(@DecodeDate, 'DecodeDate', cdRegister);
-  S.RegisterDelphiFunction(@DecodeTime, 'DecodeTime', cdRegister);
-  S.RegisterDelphiFunction(@DayOfWeek, 'DayOfWeek', cdRegister);
-  S.RegisterDelphiFunction(@Date, 'Date', cdRegister);
-  S.RegisterDelphiFunction(@Time, 'Time', cdRegister);
-  S.RegisterDelphiFunction(@Now, 'Now', cdRegister);
-  S.RegisterDelphiFunction(@DateTimeToUnix, 'DateTimeToUnix', cdRegister);
-  S.RegisterDelphiFunction(@UnixToDateTime, 'UnixToDateTime', cdRegister);
-  S.RegisterDelphiFunction(@DateToStr, 'DateToStr', cdRegister);
-  S.RegisterDelphiFunction(@FormatDateTime, 'FormatDateTime', cdRegister);
-  S.RegisterDelphiFunction(@StrToDate, 'StrToDate', cdRegister);
+  S.RegisterDelphiFunction(@EncodeDate, 'ENCODEDATE', cdRegister);
+  S.RegisterDelphiFunction(@EncodeTime, 'ENCODETIME', cdRegister);
+  S.RegisterDelphiFunction(@TryEncodeDate, 'TRYENCODEDATE', cdRegister);
+  S.RegisterDelphiFunction(@TryEncodeTime, 'TRYENCODETIME', cdRegister);
+  S.RegisterDelphiFunction(@DecodeDate, 'DECODEDATE', cdRegister);
+  S.RegisterDelphiFunction(@DecodeTime, 'DECODETIME', cdRegister);
+  S.RegisterDelphiFunction(@DayOfWeek, 'DAYOFWEEK', cdRegister);
+  S.RegisterDelphiFunction(@Date, 'DATE', cdRegister);
+  S.RegisterDelphiFunction(@Time, 'TIME', cdRegister);
+  S.RegisterDelphiFunction(@Now, 'NOW', cdRegister);
+  S.RegisterDelphiFunction(@DateTimeToUnix, 'DATETIMETOUNIX', cdRegister);
+  S.RegisterDelphiFunction(@UnixToDateTime, 'UNIXTODATETIME', cdRegister);
+  S.RegisterDelphiFunction(@IncYear, 'INCYEAR', cdRegister);
+  S.RegisterDelphiFunction(@IncMonth, 'INCMONTH', cdRegister);
+  S.RegisterDelphiFunction(@IncWeek, 'INCWEEK', cdRegister);
+  S.RegisterDelphiFunction(@IncDay, 'INCDAY', cdRegister);
+  S.RegisterDelphiFunction(@IncHour, 'INCHOUR', cdRegister);
+  S.RegisterDelphiFunction(@IncMinute, 'INCMINUTE', cdRegister);
+  S.RegisterDelphiFunction(@IncSecond, 'INCSECOND', cdRegister);
+  S.RegisterDelphiFunction(@IncMilliSecond, 'INCMILLISECOND', cdRegister);
+  _P2 := DateToStr;
+  S.RegisterDelphiFunction(@_P2, 'DateToStr', cdRegister);
+  _P2 := TimeToStr;
+  S.RegisterDelphiFunction(@_P2, 'TimeToStr', cdRegister);
+  _P2 := DateTimeToStr;
+  S.RegisterDelphiFunction(@_P2, 'DateTimeToStr', cdRegister);
+  S.RegisterDelphiFunction(@FormatDateTime, 'FORMATDATETIME', cdRegister);
 end;
 
 end.

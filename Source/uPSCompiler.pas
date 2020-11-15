@@ -12421,18 +12421,10 @@ begin
   AddType('ShortInt', btS8);
   AddType('Word', btU16);
   AddType('SmallInt', btS16);
-  {$IF (NOT DEFINED (FPC)) AND DEFINED (POSIX64)}
-  AddType('Integer', btS32);
-  AddType('Cardinal', btU32);
-  AddTypeCopyN('LongInt', 'Integer');
-  AddTypeCopyN('LongWord', 'Cardinal');
-  {$ELSE}
   AddType('LongInt', btS32);
-
   AddType('LongWord', btU32);
   AddTypeCopyN('Integer', 'LongInt');
   AddTypeCopyN('Cardinal', 'LongWord');
-  {$ENDIF}
   at2ut(AddType('___Pointer', btPointer));
   AddType('tbtString', btString);
   {$IFNDEF PS_NOINT64}

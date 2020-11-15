@@ -9,7 +9,7 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} System.Rtti,{$ENDIF} {$ENDIF}
+  {$IFNDEF FPC} {$IFDEF DELPHI_SEATTLE_UP} System.Types, System.Rtti,{$ENDIF} {$ENDIF}
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
 
@@ -25,7 +25,8 @@ type
     erOutOfGlobalVarsRange, erOutOfProcRange, ErOutOfRange, erOutOfStackRange,
     ErTypeMismatch, erUnexpectedEof, erVersionError, ErDivideByZero, ErMathError,
     erCouldNotCallProc, erOutofRecordRange, erOutOfMemory, erException,
-    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError);
+    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError,
+    ErOutOfArrayRange);
 
   TPSStatus = (isNotLoaded, isLoaded, isRunning, isPaused);
 
@@ -1106,7 +1107,7 @@ uses
   TypInfo {$IFDEF DELPHI3UP}
   {$IFNDEF FPC}{$IFDEF MSWINDOWS} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}
   {$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF}
-  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}, AnsiStrings{$IFEND};
+  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}, AnsiStrings{$ENDIF};
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -1220,6 +1221,7 @@ type
     tag: pointer;
   end;
 
+{$WARN COMBINING_SIGNED_UNSIGNED OFF}
 destructor TPSExceptionHandler.Destroy;
 begin
   ExceptionObject.Free;
@@ -3587,6 +3589,7 @@ begin
     else raise Exception.Create(RPS_TypeMismatch);
   end;
 end;
+{$ENDIF}
 
 function PSGetUnicodeString(Src: Pointer; aType: TPSTypeRec): tbtunicodestring;
 begin
@@ -3601,15 +3604,16 @@ begin
     btU16: Result := widechar(src^);
     btChar: Result := tbtunicodestring(tbtchar(Src^));
     btPchar: Result := tbtunicodestring(pansichar(src^));
+{$IFNDEF PS_NOWIDESTRING}
     btWideChar: Result := tbtwidechar(Src^);
-    btString: Result := tbtunicodestring(tbtstring(src^));
     btWideString: Result := tbtwidestring(src^);
+{$ENDIF}
+    btString: Result := tbtunicodestring(tbtstring(src^));
     btVariant:   Result := Variant(src^);
     btUnicodeString: result := tbtUnicodeString(src^);
     else raise Exception.Create(RPS_TypeMismatch);
   end;
 end;
-{$ENDIF}
 
 procedure PSSetUInt(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: Cardinal);
 begin
@@ -3842,6 +3846,7 @@ begin
     else ok := false;
   end;
 end;
+{$ENDIF}
 
 procedure PSSetUnicodeString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtunicodestring);
 begin
@@ -3854,7 +3859,9 @@ begin
   end;
   case aType.BaseType of
     btString: tbtstring(src^) := tbtString(val);
+    {$IFNDEF PS_NOWIDESTRING}
     btWideString: tbtwidestring(src^) := val;
+    {$ENDIF}
     btUnicodeString: tbtunicodestring(src^) := val;
     btVariant:
       begin
@@ -3867,7 +3874,6 @@ begin
     else ok := false;
   end;
 end;
-{$ENDIF}
 
 function PSGetString(Src: Pointer; aType: TPSTypeRec): string;
 begin
@@ -9978,7 +9984,7 @@ begin
   {$ENDIF}
 end;
 
-
+{$WARN COMPARING_SIGNED_UNSIGNED OFF}
 procedure CheckPackagePtr(var P: PByteArr);
 begin
   {$ifdef Win32}
@@ -11626,9 +11632,9 @@ begin
   s := '';
 end;
 
-{$ifdef CPUX64}
+{$if defined (Delphi) and defined (POSIX)}
 
-{.$DEFINE empty_methods_handler}
+{$DEFINE empty_methods_handler}
 {$ENDIF}
 
 {$ifdef fpc}
@@ -12789,6 +12795,7 @@ procedure TPSTypeRec_ProcPtr.CalcSize;
 begin
   FRealSize := 3 * sizeof(Pointer);
 end;
-
+{$WARN COMBINING_SIGNED_UNSIGNED ON}
+{$WARN COMPARING_SIGNED_UNSIGNED ON}
 end.
 

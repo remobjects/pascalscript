@@ -6789,7 +6789,7 @@ begin
               begin
                 CMD_Err2(erCustomError,
                          tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
-                                [Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)),Param])));
+                                [Param,Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType))])));
                 Result := False;
                 exit;
               end;
@@ -6802,7 +6802,7 @@ begin
               begin
                 CMD_Err2(erCustomError,
                          tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
-                                [Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size),Param])));
+                                [Param,Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size)])));
                 Result := False;
                 exit;
               end;

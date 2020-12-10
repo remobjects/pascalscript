@@ -9121,6 +9121,7 @@ begin
           result := false;
           exit;
         end;
+        Val.SetParserPos(FParser);
       end;
       if FParser.CurrTokenId = cr then
       begin

@@ -662,7 +662,7 @@ begin
               {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  tbts64(res^.dta^) := Int64(EAX) shl 32 or EDX;
+                  tbts64(res^.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
                 end;
               {$ENDIF}
               btVariant,
@@ -721,7 +721,7 @@ begin
               {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_CDecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  tbts64(res^.Dta^) := Int64(EAX) shl 32 or EDX;
+                  tbts64(res^.Dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
                 end;
               {$ENDIF}
               btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}
@@ -756,7 +756,7 @@ begin
               {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  tbts64(res^.dta^) := Int64(EAX) shl 32 or EDX;
+                  tbts64(res^.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
                 end;
               {$ENDIF}
               btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}

@@ -9,7 +9,7 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} System.Types, System.Rtti,{$ENDIF} {$ENDIF}
+  {$IF DEFINED (FPC) OR DEFINED (DELPHI2010UP)} Types, Rtti,{$ENDIF}
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
 

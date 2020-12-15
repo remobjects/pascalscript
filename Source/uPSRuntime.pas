@@ -9,7 +9,7 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  {$IFNDEF FPC} {$IFDEF DELPHI_SEATTLE_UP} System.Types, System.Rtti,{$ENDIF} {$ENDIF}
+  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} System.Types, System.Rtti,{$ENDIF} {$ENDIF}
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
 
@@ -1833,7 +1833,7 @@ type
     refCnt : ptrint;
     high : tdynarrayindex;
     {$else}
-    {$ifdef CPUX64}
+    {$ifdef CPU64}
     _Padding: LongInt; // Delphi XE2+ expects 16 byte align
     {$endif}
     /// dynamic array reference count (basic garbage memory mechanism)
@@ -2004,7 +2004,7 @@ begin
 
   for l := 0 to FRegProcs.Count - 1 do
   begin
-    x := FRegProcs.Data^[l];
+    x := FRegProcs.Items[l];
     if @x^.FreeProc <> nil then x^.FreeProc(Self, x);
     Dispose(x);
   end;
@@ -4250,9 +4250,9 @@ begin
     {$IFDEF FPC}
     darr^.header.high := NewLength - 1;
     {$ELSE}
-    {$IFDEF CPUX64}
+    {$IFDEF CPU64}
     darr^.header._Padding:=0;
-    {$ENDIF CPUX64}
+    {$ENDIF CPU64}
     darr^.header.length := NewLength;
     {$ENDIF FPC}
     for i := 0 to NewLength -1 do
@@ -9844,28 +9844,33 @@ begin
   Dispose(V);
 end;
 
+type
+  PScriptMethodInfo = ^TScriptMethodInfo;
+  TScriptMethodInfo = record
+    Se: TPSExec;
+    ProcNo: Cardinal;
+  end;
+
+//{$DEFINE _INVOKECALL_INC_}
 
 {$IFNDEF FPC}
-//before XE8 no other platforms normal support, almost unsuable. No sense to support XE2+
-//but will set limit to Seattle for avoid doublecoding in InvokeCall.inc
-  {$IFDEF DELPHI_SEATTLE_UP}
+  {$IFDEF DELPHI2010UP}
     {$IFDEF AUTOREFCOUNT}
-      {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT at the moment!}
+      {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT! Use newer Delphi version without ARC}
     {$ELSE}
-      {$IFDEF MSWINDOWS}
-        {$IFDEF CPUX64}
+      {$IF DEFINED (MSWINDOWS) AND NOT DEFINED (_INVOKECALL_INC_)}
+        {$IFDEF CPU64}
           {$include x64.inc}
         {$ELSE}
           {$include x86.inc}
         {$ENDIF}
       {$ELSE}
-        {$DEFINE _INVOKECALL_INC_}
         {$include InvokeCall.inc}
       {$ENDIF}
     {$ENDIF}
   {$ELSE}
     {$IFDEF Delphi6UP}
-      {$IFDEF CPUX64}
+      {$IFDEF CPU64}
         {$include x64.inc}
       {$ELSE}
         {$include x86.inc}
@@ -9892,14 +9897,9 @@ end;
   {$ENDIF}
 {$ENDIF}
 
-type
-  PScriptMethodInfo = ^TScriptMethodInfo;
-  TScriptMethodInfo = record
-    Se: TPSExec;
-    ProcNo: Cardinal;
-  end;
 
 
+{$if defined (MSWINDOWS) or defined (FPC)}
 function MkMethod(FSE: TPSExec; No: Cardinal): TMethod;
 begin
   if (no = 0) or (no = InvalidVal) then
@@ -9911,7 +9911,7 @@ begin
     Result.Data := GetMethodInfoRec(FSE, No);
   end;
 end;
-
+{$ENDIF}
 
 procedure PFree(Sender: TPSExec; P: PScriptMethodInfo);
 begin
@@ -11632,9 +11632,10 @@ begin
   s := '';
 end;
 
-{$if defined (Delphi) and defined (POSIX)}
+{$if defined (Delphi) and (not defined (MSWINDOWS)) and (not defined (MACOS32))}
 
 {$DEFINE empty_methods_handler}
+
 {$ENDIF}
 
 {$ifdef fpc}
@@ -11653,7 +11654,7 @@ end;
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
 
 procedure MyAllMethodsHandler;
-{$ifdef CPUX64}
+{$ifdef CPU64}
 //  On entry:
 //  RCX = Self pointer
 //  RDX, R8, R9 = param1 .. param3
@@ -12381,7 +12382,7 @@ begin
 end;
 
 {$IFNDEF PS_NOWIDESTRING}
-function TPSStack.GetUnicodeString(ItemNo: Integer): tbtunicodestring;
+function TPSStack.GetUnicodeString(ItemNo: Longint): tbtunicodestring;
 var
   val: PPSVariant;
 begin

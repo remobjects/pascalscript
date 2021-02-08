@@ -5,7 +5,7 @@ uses
   uPSRuntime,
   uPSUtils,
 
-  Dialogs
+  VCL.Dialogs
 
   ;
 

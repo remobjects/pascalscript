@@ -237,8 +237,7 @@ var
       {$ENDIF}
     end;
 
-    if (Integer(CallingConv) and 64) <> 0 then
-      IsConstr := true;
+    IsConstr := (Integer(CallingConv) and 64) <> 0;
 
     {$IFDEF FPC} // FPC: FIX FOR FPC constructor calls
       //x64.inc: {$if defined(FPC) and (fpc_version >= 3)}

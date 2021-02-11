@@ -237,6 +237,9 @@ var
       {$ENDIF}
     end;
 
+    if (Integer(CallingConv) and 64) <> 0 then
+      IsConstr := true;
+
     {$IFDEF FPC} // FPC: FIX FOR FPC constructor calls
       //x64.inc: {$if defined(FPC) and (fpc_version >= 3)}
       //x86.inc: {$ifdef FPC} + case CallingConv of cdRegister
@@ -247,7 +250,7 @@ var
     if (CallingConv = cdRegister) then
     {$ENDIF }
     begin
-      if IsConstructor then begin
+      if IsConstr then begin
         fvar := Params[0];
         p := rp(fvar);
         if p = nil then
@@ -498,8 +501,6 @@ var
       end;
       SetLength(Args, ArgIdx+1); // truncate args
 
-      IsConstr := False; //checked on Delhi, constructors works fine.
-
       res := rp(PPSVariantIFC(res));
       if Assigned(res) then
         res.VarParam := True;
@@ -709,7 +710,7 @@ var
             end;
           btClass:
           begin
-            ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TObject),IsStatic);
+            ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TObject),IsStatic,IsConstr);
             TObject(res.Dta^) := ResValue.AsObject;
           end;
           btVariant:

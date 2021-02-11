@@ -807,8 +807,8 @@ begin
     begin
       TypeData := GetTypeData(CustomTypeRes);
       case CustomTypeRes.Kind of
-        tkArray:    FreeMem(TypeData^.ArrayData.ElType, 4);
-        tkDynArray: FreeMem(TypeData^.elType2, 4);
+        tkArray:    FreeMem(TypeData^.ArrayData.ElType, SizeOf(Pointer));
+        tkDynArray: FreeMem(TypeData^.elType2, SizeOf(Pointer));
       end;
       FreeMem(CustomTypeRes, SizeOf(TTypeInfo) + ExtraSizeRes);
     end;

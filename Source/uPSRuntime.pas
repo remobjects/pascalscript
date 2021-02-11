@@ -9880,6 +9880,11 @@ type
     {$ENDIF}
   {$ENDIF}
 {$ELSE}
+  
+  {$IFDEF USEINVOKECALL}
+    {$include InvokeCall.inc}
+    {$DEFINE _INVOKECALL_INC_}
+  {$ELSE}
   {$IFDEF Delphi6UP}
     {$if defined(cpu86)}
       {$include x86.inc}
@@ -9894,6 +9899,7 @@ type
     {$ifend}
   {$ELSE}
     {$include x86.inc}
+  {$ENDIF}
   {$ENDIF}
 {$ENDIF}
 

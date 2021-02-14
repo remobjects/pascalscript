@@ -9,7 +9,7 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  {$IF DEFINED (FPC) OR DEFINED (DELPHI2010UP)} Types, Rtti,{$ENDIF}
+  {$IF DEFINED (FPC) OR DEFINED (DELPHI2010UP)} Types, Rtti, Generics.Collections,{$ENDIF}
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
 
@@ -9881,7 +9881,7 @@ type
   {$ENDIF}
 {$ELSE}
   
-  {$IFDEF USEINVOKECALL}
+  {$IFDEF _INVOKECALL_INC_}
     {$include InvokeCall.inc}
     {$DEFINE _INVOKECALL_INC_}
   {$ELSE}

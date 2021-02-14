@@ -17,14 +17,56 @@ const
 const
   EmptyPChar: array[0..1] of Byte = (0, 0);
 
+var
+  RTTITypesDict : TDictionary<String, TRttiType> = nil;
+  ctx: TRTTIContext;
 
+procedure InitRTTITypesDictInstance;
+begin
+  if Assigned(RTTITypesDict) then
+    Exit;
+  RTTITypesDict := TDictionary<String, TRttiType>.Create;
+end;
+
+procedure DisposeRTTITypesDictInstance;
+begin //this method should be called in finalization section of uPSRuntime.pas,
+      //but i dont want to modify it too much. Just keep in mind, that memory
+      //manager can report about leak in RTTITypesDict when program closing,
+      //if leakage detection enabled.
+  if Assigned(RTTITypesDict) then
+    RTTITypesDict.Free;
+end;
+
+function GetOrSearchRTTIType(ScriptTypeName : String; var DRttiType : TRttiType) : Boolean;
+var RttiType : TRttiType;
+begin
+  InitRTTITypesDictInstance;
+  TMonitor.Enter(RTTITypesDict);
+  try
+    if not RTTITypesDict.TryGetValue(ScriptTypeName, DRttiType) then
+    begin
+      DRttiType := nil;
+      for RttiType in ctx.GetTypes do
+        if (RttiType.Name.ToUpper.EndsWith(ScriptTypeName)) then
+        begin
+          DRttiType := RttiType;
+          Break;
+        end;
+      RTTITypesDict.AddOrSetValue(ScriptTypeName, DRttiType);
+    end;
+    Result := Assigned(DRttiType);
+  finally
+    TMonitor.Exit(RTTITypesDict);
+  end;
+end;
 
 {$if not declared(BoolToTxt)}
 function BoolToTxt(B: Boolean): string;
 begin
-  if B
-  then Result := 'True'
-  else Result := 'False';
+  if B then
+    Result := 'True'
+  else
+    Result := 'False';
 end;
 {$ifend}
 
@@ -134,6 +176,7 @@ end;
 
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention;
   Params: TPSList; res: PPSVariantIFC): Boolean;
+{$IFNDEF FPC}
 var
   ExtraSizeRes, ExtraSizeParam  : Integer;
   CustomTypeRes, CustomTypeParam : PTypeInfo;
@@ -166,12 +209,15 @@ var
           {$IFDEF FPC}
           TypeData^.SetSize := RTypeSize;
           {$ELSE}
-          TypeData^.SetTypeOrSize := $80 or RTypeSize;
+            {$IFDEF DELPHI26UP}
+            TypeData^.SetTypeOrSize := $80 or RTypeSize;
+            {$ENDIF}
           {$ENDIF}
         end;
         tkRecord:
         begin
           TypeData^.RecSize := RTypeSize;
+          TypeData^.ManagedFldCount := 0;
         end;
         tkDynArray:
         begin
@@ -186,6 +232,7 @@ var
       Result := nil;
     end;
   end;
+  {$ENDIF}
 
   function InnerfuseCallReal(Exec : TPSExec;_Self, Address: Pointer; CallingConv: TPSCallingConvention;
     Params: TPSList; res: PPSVariantIFC): Boolean;
@@ -220,10 +267,10 @@ var
       IsConstr, IsStatic : Boolean;
       ResValue : TValue;
       S: string;
+      RttiType : TRttiType;
     {%H-}p: Pointer;
     {%H-}pp: ^Byte;
     {%H-}CallData : TPSList;
-    {%H-}I64 : Int64;
   begin
     Result := False;
     case CallingConv of
@@ -687,84 +734,118 @@ var
                                    IInterface(res.Dta^) := ResValue.AsType<IInterface>;
                                    {$ENDIF}
                                  end;
+          btClass:               begin
+                                   ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TObject),IsStatic,IsConstr);
+                                   TObject(res.Dta^) := ResValue.AsObject;
+                                 end;
+          btVariant:             begin
+                                   {$IFDEF FPC}
+                                   ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TVarData), IsStatic);
+                                   ResValue.ExtractRawData(res.Dta);
+                                   {$ELSE}
+                                   ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(Variant), IsStatic);
+                                   ResValue.ExtractRawData(res.Dta);
+                                   {$ENDIF}
+                                 end;
+          btProcPtr:             begin
+                                   ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TMethod), IsStatic);
+                                   {$IFDEF FPC}
+                                   ResValue.ExtractRawData(res.Dta);
+                                   {$ELSE}
+                                   Pointer(Pointer(IPointer(res.Dta)+PointerSize)^)  := ResValue.AsType<TMethod>.Data;
+                                   Pointer(Pointer(IPointer(res.Dta)+PointerSize2)^) := ResValue.AsType<TMethod>.Code;
+                                   {$ENDIF}
+                                 end;
           btSet:
+          begin
+            if GetOrSearchRTTIType(String(res.aType.FExportName),RttiType) then
             begin
-              case TPSTypeRec_Set(res.aType).aByteSize of
-                1: Byte(res.Dta^) := Byte(DoInvoke(Address,Args,SysCalConv,TypeInfo(Byte), IsStatic).AsInteger);
-                2: Word(res.Dta^) := Word(DoInvoke(Address,Args,SysCalConv,TypeInfo(Word), IsStatic).AsInteger);
-                3,
-                4: Longint(res.Dta^) := Cardinal(DoInvoke(Address,Args,SysCalConv,TypeInfo(Cardinal),IsStatic,IsConstr).AsInteger);
-                5,6,7,8:
-                begin
-                  {$IF DEFINED (FPC)}
-                  Int64(res.Dta^) := Cardinal(DoInvoke(Address,Args,SysCalConv,TypeInfo(Int64),IsStatic,IsConstr).AsInt64);
-                  {$ELSE}
+              ResValue := DoInvoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic);
+              p := ResValue.GetReferenceToRawData;
+              Move(p^, res.Dta^, TPSTypeRec_Set(res.aType).aByteSize);
+            end
+            else
+            case TPSTypeRec_Set(res.aType).aByteSize of
+              1: Byte(res.Dta^) := Byte(DoInvoke(Address,Args,SysCalConv,TypeInfo(Byte), IsStatic).AsInteger);
+              2: Word(res.Dta^) := Word(DoInvoke(Address,Args,SysCalConv,TypeInfo(Word), IsStatic).AsInteger);
+              3,
+              4: Longint(res.Dta^) := Cardinal(DoInvoke(Address,Args,SysCalConv,TypeInfo(Cardinal),IsStatic,IsConstr).AsInteger);
+              5,6,7,8:
+              begin
+                {$IFDEF FPC}
+                Int64(res.Dta^) := Cardinal(DoInvoke(Address,Args,SysCalConv,TypeInfo(Int64),IsStatic,IsConstr).AsInt64);
+                {$ELSE}
+                  {$IFDEF DELPHI26UP}
                   ResValue := InvokeWithResTypeByKindSize(Address,Args,SysCalConv, tkSet,
                                TPSTypeRec_Set(res.aType).aByteSize, IsStatic);
                   p := ResValue.GetReferenceToRawData;
                   Move(p^, res.Dta^, TPSTypeRec_Set(res.aType).aByteSize);
+                  {$ELSE}
+                  S := 'Large sets setting available only in Delphi Rio+';
+                  raise EInvocationError.Create('Internal error: ' + S); // optional
                   {$ENDIF}
-                end;
-              end; // case
-            end;
-          btClass:
-          begin
-            ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TObject),IsStatic,IsConstr);
-            TObject(res.Dta^) := ResValue.AsObject;
-          end;
-          btVariant:
-          begin
-            {$IFDEF FPC}
-            ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TVarData), IsStatic);
-            ResValue.ExtractRawData(res.Dta);
-            {$ELSE}
-            ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(Variant), IsStatic);
-            ResValue.ExtractRawData(res.Dta);
-            {$ENDIF}
-          end;
-          btProcPtr:
-          begin
-            ResValue := DoInvoke(Address,Args,SysCalConv,TypeInfo(TMethod), IsStatic);
-            {$IFDEF FPC}
-            ResValue.ExtractRawData(res.Dta);
-            {$ELSE}
-            Pointer(Pointer(IPointer(res.Dta)+PointerSize)^)  := ResValue.AsType<TMethod>.Data;
-            Pointer(Pointer(IPointer(res.Dta)+PointerSize2)^) := ResValue.AsType<TMethod>.Code;
-            {$ENDIF}
+              {$ENDIF}
+              end;
+            end; // case
           end;
           btStaticArray:
           begin
-            {$IFDEF FPC}
-            ResValue := Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic,IsConstr);
-            PPointer(res.Dta)^ := Pointer(ResValue.AsOrdinal);
-            {$ELSE !FPC}
-            ResValue := InvokeWithResTypeByKindSize(Address,Args,SysCalConv, tkArray,
-                                            TPSTypeRec_StaticArray(res.aType).Size * TPSTypeRec_StaticArray(res.aType).ArrayType.RealSize,
-                                            IsStatic);
-            CopyArrayContents(res.Dta, ResValue.GetReferenceToRawData,
-                TPSTypeRec_StaticArray(res.aType).Size, TPSTypeRec_StaticArray(res.aType).ArrayType);
-            {$ENDIF !FPC}
-          end;
+            if GetOrSearchRTTIType(String(res.aType.FExportName),RttiType) then
+            begin
+              ResValue := DoInvoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic);
+              CopyArrayContents(res.dta, ResValue.GetReferenceToRawData,
+                  TPSTypeRec_StaticArray(res.aType).Size, TPSTypeRec_StaticArray(res.aType).ArrayType);
+            end
+            else
+            begin
+              {$IFDEF FPC}
+              ResValue := Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic,IsConstr);
+              PPointer(res.Dta)^ := Pointer(ResValue.AsOrdinal);
+              {$ELSE !FPC}
+              ResValue := InvokeWithResTypeByKindSize(Address,Args,SysCalConv, tkArray,
+                                              TPSTypeRec_StaticArray(res.aType).Size * TPSTypeRec_StaticArray(res.aType).ArrayType.RealSize,
+                                              IsStatic);
+              CopyArrayContents(res.dta, ResValue.GetReferenceToRawData,
+                  TPSTypeRec_StaticArray(res.aType).Size, TPSTypeRec_StaticArray(res.aType).ArrayType);
+              {$ENDIF !FPC}
+            end;
+           end;
           btRecord:
           begin
-            {$IFDEF FPC}
-            ResValue := Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic,IsConstr);
-            PPointer(res.Dta)^ := Pointer(ResValue.AsOrdinal);
-            {$ELSE !FPC}
-            ResValue := InvokeWithResTypeByKindSize(Address,Args,SysCalConv, tkRecord, res.aType.RealSize, IsStatic);
-            CopyRecordContents(res.Dta, ResValue.GetReferenceToRawData, TPSTypeRec_Record(res.aType));
-            {$ENDIF !FPC}
+            if GetOrSearchRTTIType(String(res.aType.FExportName),RttiType) then
+            begin
+              ResValue := DoInvoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic);
+              CopyRecordContents(res.Dta, ResValue.GetReferenceToRawData, TPSTypeRec_Record(res.aType));
+            end
+            else
+            begin
+              {$IFDEF FPC}
+              ResValue := Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic,IsConstr);
+              PPointer(res.Dta)^ := Pointer(ResValue.AsOrdinal);
+              {$ELSE !FPC}
+              ResValue := InvokeWithResTypeByKindSize(Address,Args,SysCalConv, tkRecord, res.aType.RealSize, IsStatic);
+              CopyRecordContents(res.Dta, ResValue.GetReferenceToRawData, TPSTypeRec_Record(res.aType));
+              {$ENDIF !FPC}
+            end;
           end;
           btArray: //open arrays can't be returned. So, just DynArray here.
           begin
-            {$IFDEF FPC}
-            ResValue := Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic,IsConstr);
-            PPointer(res.Dta)^ := Pointer(ResValue.AsOrdinal);
-            {$ELSE !FPC}
-            ResValue := InvokeWithResTypeByKindSize(Address,Args,SysCalConv, tkDynArray,
-                                                    PSDynArrayGetLength(Pointer(res.Dta^), res.aType),IsStatic);
-            CopyArrayContents(res.Dta, ResValue.GetReferenceToRawData, 1, res.aType)
-            {$ENDIF !FPC}
+            if GetOrSearchRTTIType(String(res.aType.FExportName),RttiType) then
+            begin
+              ResValue := DoInvoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic);
+              CopyArrayContents(res.Dta, ResValue.GetReferenceToRawData, 1, res.aType);
+            end
+            else
+            begin
+              {$IFDEF FPC}
+              ResValue := Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic,IsConstr);
+              PPointer(res.Dta)^ := Pointer(ResValue.AsOrdinal);
+              {$ELSE !FPC}
+              ResValue := InvokeWithResTypeByKindSize(Address,Args,SysCalConv, tkDynArray,
+                                                      PSDynArrayGetLength(Pointer(res.Dta^), res.aType),IsStatic);
+              CopyArrayContents(res.Dta, ResValue.GetReferenceToRawData, 1, res.aType)
+              {$ENDIF !FPC}
+            end;
           end;
           else
           begin
@@ -799,10 +880,13 @@ var
   end; //InnerfuseCall
 
 begin
+  {$IFNDEF FPC}
   CustomTypeRes  := nil;
+  {$ENDIF}
   try
     Result := InnerfuseCallReal(Self, _Self,Address,CallingConv,Params, res);
   finally
+    {$IFNDEF FPC}
     if Assigned(CustomTypeRes) then
     begin
       TypeData := GetTypeData(CustomTypeRes);
@@ -812,6 +896,7 @@ begin
       end;
       FreeMem(CustomTypeRes, SizeOf(TTypeInfo) + ExtraSizeRes);
     end;
+    {$ENDIF}
   end;
 
 end;

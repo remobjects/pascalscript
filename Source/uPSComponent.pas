@@ -1196,7 +1196,8 @@ begin
   if bi <> nil then
   begin
     if @dc.FOnBreakpoint <> nil then dc.FOnBreakpoint(dc, lFileName, Position, Row, Col);
-    dc.Pause;
+    if dc.FExec.Status = isRunning then
+      dc.Pause;
   end;
 end;
 

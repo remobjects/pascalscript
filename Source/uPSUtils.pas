@@ -29,6 +29,15 @@ type
 
   TPSVariableType = (ivtGlobal, ivtParam, ivtVariable);
 
+  {$IFDEF DELPHI}
+     {$IFDEF POSIX64}
+     LongInt = Integer;
+     {$ENDIF}
+  {$ELSE}
+     {$IFDEF X64}
+     Integer = LongInt;
+     {$ENDIF}
+  {$ENDIF}
 const
 
   btReturnAddress   = 0;
@@ -289,9 +298,9 @@ type
 
   TbtS16 = SmallInt;
 
-  TbtU32 = Cardinal;
+  TbtS32 = LongInt;
 
-  TbtS32 = Longint;
+  TbtU32 = Cardinal;
 
   TbtSingle = Single;
 

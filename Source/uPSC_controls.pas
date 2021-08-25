@@ -156,6 +156,10 @@ begin
   cl.addTypeS('TAnchorKind', '(akLeft, akTop, akRight, akBottom)');
   cl.addTypeS('TAnchors','set of TAnchorKind');
   {$ENDIF}
+  {$IFDEF FPC}
+  cl.addTypeS('TAnchorKind', '(akLeft, akTop, akRight, akBottom)');
+  cl.addTypeS('TAnchors','set of TAnchorKind');
+  {$ENDIF}
   cl.AddTypeS('TModalResult', 'Integer');
   cl.AddTypeS('TCursor', 'Integer');
   cl.AddTypeS('TPoint', 'record X,Y: LongInt; end;');

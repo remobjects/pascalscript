@@ -12439,10 +12439,10 @@ begin
   AddType('Word', btU16);
   AddType('SmallInt', btS16);
   AddType('LongInt', btS32);
-  at2ut(AddType('___Pointer', btPointer));
   AddType('LongWord', btU32);
   AddTypeCopyN('Integer', 'LongInt');
   AddTypeCopyN('Cardinal', 'LongWord');
+  at2ut(AddType('___Pointer', btPointer));
   AddType('tbtString', btString);
   {$IFNDEF PS_NOINT64}
   AddType('Int64', btS64);

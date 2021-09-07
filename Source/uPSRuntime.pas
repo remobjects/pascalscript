@@ -9,8 +9,7 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} System.Rtti,{$ENDIF} {$ENDIF}
-  {$IFDEF FPC}{$IFDEF USEINVOKECALL}Rtti,{$ENDIF}{$ENDIF}
+  {$IF DEFINED (FPC) OR DEFINED (DELPHI2010UP)} Types, Rtti, Generics.Collections,{$ENDIF}
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
 
@@ -26,7 +25,8 @@ type
     erOutOfGlobalVarsRange, erOutOfProcRange, ErOutOfRange, erOutOfStackRange,
     ErTypeMismatch, erUnexpectedEof, erVersionError, ErDivideByZero, ErMathError,
     erCouldNotCallProc, erOutofRecordRange, erOutOfMemory, erException,
-    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError);
+    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError,
+    ErOutOfArrayRange);
 
   TPSStatus = (isNotLoaded, isLoaded, isRunning, isPaused);
 
@@ -1107,7 +1107,7 @@ uses
   TypInfo {$IFDEF DELPHI3UP}
   {$IFNDEF FPC}{$IFDEF MSWINDOWS} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}
   {$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF}
-  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}, AnsiStrings{$IFEND};
+  {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}, AnsiStrings{$ENDIF};
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -1221,6 +1221,7 @@ type
     tag: pointer;
   end;
 
+{$WARN COMBINING_SIGNED_UNSIGNED OFF}
 destructor TPSExceptionHandler.Destroy;
 begin
   ExceptionObject.Free;
@@ -1832,7 +1833,7 @@ type
     refCnt : ptrint;
     high : tdynarrayindex;
     {$else}
-    {$ifdef CPUX64}
+    {$ifdef CPU64}
     _Padding: LongInt; // Delphi XE2+ expects 16 byte align
     {$endif}
     /// dynamic array reference count (basic garbage memory mechanism)
@@ -2003,7 +2004,7 @@ begin
 
   for l := 0 to FRegProcs.Count - 1 do
   begin
-    x := FRegProcs.Data^[l];
+    x := FRegProcs.Items[l];
     if @x^.FreeProc <> nil then x^.FreeProc(Self, x);
     Dispose(x);
   end;
@@ -3588,6 +3589,7 @@ begin
     else raise Exception.Create(RPS_TypeMismatch);
   end;
 end;
+{$ENDIF}
 
 function PSGetUnicodeString(Src: Pointer; aType: TPSTypeRec): tbtunicodestring;
 begin
@@ -3602,15 +3604,16 @@ begin
     btU16: Result := widechar(src^);
     btChar: Result := tbtunicodestring(tbtchar(Src^));
     btPchar: Result := tbtunicodestring(pansichar(src^));
+{$IFNDEF PS_NOWIDESTRING}
     btWideChar: Result := tbtwidechar(Src^);
-    btString: Result := tbtunicodestring(tbtstring(src^));
     btWideString: Result := tbtwidestring(src^);
+{$ENDIF}
+    btString: Result := tbtunicodestring(tbtstring(src^));
     btVariant:   Result := Variant(src^);
     btUnicodeString: result := tbtUnicodeString(src^);
     else raise Exception.Create(RPS_TypeMismatch);
   end;
 end;
-{$ENDIF}
 
 procedure PSSetUInt(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: Cardinal);
 begin
@@ -3843,6 +3846,7 @@ begin
     else ok := false;
   end;
 end;
+{$ENDIF}
 
 procedure PSSetUnicodeString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; const Val: tbtunicodestring);
 begin
@@ -3855,7 +3859,9 @@ begin
   end;
   case aType.BaseType of
     btString: tbtstring(src^) := tbtString(val);
+    {$IFNDEF PS_NOWIDESTRING}
     btWideString: tbtwidestring(src^) := val;
+    {$ENDIF}
     btUnicodeString: tbtunicodestring(src^) := val;
     btVariant:
       begin
@@ -3868,7 +3874,6 @@ begin
     else ok := false;
   end;
 end;
-{$ENDIF}
 
 function PSGetString(Src: Pointer; aType: TPSTypeRec): string;
 begin
@@ -4245,9 +4250,9 @@ begin
     {$IFDEF FPC}
     darr^.header.high := NewLength - 1;
     {$ELSE}
-    {$IFDEF CPUX64}
+    {$IFDEF CPU64}
     darr^.header._Padding:=0;
-    {$ENDIF CPUX64}
+    {$ENDIF CPU64}
     darr^.header.length := NewLength;
     {$ENDIF FPC}
     for i := 0 to NewLength -1 do
@@ -6784,7 +6789,7 @@ begin
               begin
                 CMD_Err2(erCustomError,
                          tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
-                                [Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)),Param])));
+                                [Param,Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType))])));
                 Result := False;
                 exit;
               end;
@@ -6797,7 +6802,7 @@ begin
               begin
                 CMD_Err2(erCustomError,
                          tbtstring(Format('Out Of Range! Element index is out of Array range: Element Index is %d, Array length = %d',
-                                [Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size),Param])));
+                                [Param,Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size)])));
                 Result := False;
                 exit;
               end;
@@ -9839,25 +9844,33 @@ begin
   Dispose(V);
 end;
 
+type
+  PScriptMethodInfo = ^TScriptMethodInfo;
+  TScriptMethodInfo = record
+    Se: TPSExec;
+    ProcNo: Cardinal;
+  end;
+
+//{$DEFINE _INVOKECALL_INC_}
 
 {$IFNDEF FPC}
-  {$UNDEF _INVOKECALL_INC_}
-  {$UNDEF USEINVOKECALL}
-
-  {$IFDEF DELPHI23UP}
-  {$IFNDEF AUTOREFCOUNT}
-  {$IFNDEF PS_USECLASSICINVOKE}
-    {$DEFINE USEINVOKECALL}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-
-  {$IFDEF USEINVOKECALL}
-    {$include InvokeCall.inc}
-    {$DEFINE _INVOKECALL_INC_}
+  {$IFDEF DELPHI2010UP}
+    {$IFDEF AUTOREFCOUNT}
+      {$fatal Pascal Script does not supports compilation with AUTOREFCOUNT! Use newer Delphi version without ARC}
+    {$ELSE}
+      {$IF DEFINED (MSWINDOWS) AND NOT DEFINED (_INVOKECALL_INC_)}
+        {$IFDEF CPU64}
+          {$include x64.inc}
+        {$ELSE}
+          {$include x86.inc}
+        {$ENDIF}
+      {$ELSE}
+        {$include InvokeCall.inc}
+      {$ENDIF}
+    {$ENDIF}
   {$ELSE}
     {$IFDEF Delphi6UP}
-      {$IFDEF CPUX64}
+      {$IFDEF CPU64}
         {$include x64.inc}
       {$ELSE}
         {$include x86.inc}
@@ -9868,7 +9881,7 @@ end;
   {$ENDIF}
 {$ELSE}
   
-  {$IFDEF USEINVOKECALL}
+  {$IFDEF _INVOKECALL_INC_}
     {$include InvokeCall.inc}
     {$DEFINE _INVOKECALL_INC_}
   {$ELSE}
@@ -9890,14 +9903,9 @@ end;
   {$ENDIF}
 {$ENDIF}
 
-type
-  PScriptMethodInfo = ^TScriptMethodInfo;
-  TScriptMethodInfo = record
-    Se: TPSExec;
-    ProcNo: Cardinal;
-  end;
 
 
+{$if defined (MSWINDOWS) or defined (FPC)}
 function MkMethod(FSE: TPSExec; No: Cardinal): TMethod;
 begin
   if (no = 0) or (no = InvalidVal) then
@@ -9909,7 +9917,7 @@ begin
     Result.Data := GetMethodInfoRec(FSE, No);
   end;
 end;
-
+{$ENDIF}
 
 procedure PFree(Sender: TPSExec; P: PScriptMethodInfo);
 begin
@@ -9982,7 +9990,7 @@ begin
   {$ENDIF}
 end;
 
-
+{$WARN COMPARING_SIGNED_UNSIGNED OFF}
 procedure CheckPackagePtr(var P: PByteArr);
 begin
   {$ifdef Win32}
@@ -10428,11 +10436,7 @@ begin
     v := NewPPSVariantIFC(Stack[CurrStack + 1], True);
   end else v := nil;
   try
-    {$IFDEF _INVOKECALL_INC_}
-    Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), TPSCallingConvention(Integer(cc) or 128), MyList, v);
-    {$ELSE}
     Result := Caller.InnerfuseCall(FSelf, VirtualClassMethodPtrToPtr(p.Ext1, FSelf), {$IFDEF FPC}TPSCallingConvention(Integer(cc) or 128){$ELSE}cc{$ENDIF}, MyList, v);
-    {$ENDIF}
   finally
     DisposePPSVariantIFC(v);
     DisposePPSVariantIFCList(mylist);
@@ -11634,9 +11638,10 @@ begin
   s := '';
 end;
 
-{$ifdef CPUX64}
+{$if defined (Delphi) and (not defined (MSWINDOWS)) and (not defined (MACOS32))}
 
-{.$DEFINE empty_methods_handler}
+{$DEFINE empty_methods_handler}
+
 {$ENDIF}
 
 {$ifdef fpc}
@@ -11655,7 +11660,7 @@ end;
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
 
 procedure MyAllMethodsHandler;
-{$ifdef CPUX64}
+{$ifdef CPU64}
 //  On entry:
 //  RCX = Self pointer
 //  RDX, R8, R9 = param1 .. param3
@@ -12383,7 +12388,7 @@ begin
 end;
 
 {$IFNDEF PS_NOWIDESTRING}
-function TPSStack.GetUnicodeString(ItemNo: Integer): tbtunicodestring;
+function TPSStack.GetUnicodeString(ItemNo: Longint): tbtunicodestring;
 var
   val: PPSVariant;
 begin
@@ -12797,6 +12802,7 @@ procedure TPSTypeRec_ProcPtr.CalcSize;
 begin
   FRealSize := 3 * sizeof(Pointer);
 end;
-
+{$WARN COMBINING_SIGNED_UNSIGNED ON}
+{$WARN COMPARING_SIGNED_UNSIGNED ON}
 end.
 

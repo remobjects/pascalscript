@@ -327,7 +327,7 @@ type
 {$IFDEF FPC}
   IPointer = PtrUInt;
 {$ELSE}
-  {$IFDEF VER140UP}
+  {$IFDEF DELPHIXE2UP}
     IPointer = NativeInt;
   {$ELSE}
     {$IFDEF CPUX64}

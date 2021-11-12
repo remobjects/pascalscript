@@ -178,8 +178,8 @@ function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingC
   Params: TPSList; res: PPSVariantIFC): Boolean;
 {$IFNDEF FPC}
 var
-  ExtraSizeRes, ExtraSizeParam  : Integer;
-  CustomTypeRes, CustomTypeParam : PTypeInfo;
+  ExtraSizeRes  : Integer;
+  CustomTypeRes : PTypeInfo;
   TypeData: PTypeData;
 
   function InvokeWithResTypeByKindSize(CodeAddress: Pointer; const Args: TArray<TValue>;
@@ -533,7 +533,7 @@ var
           end;  { case }
         end;  { if "not a var param" }
 
-        if Arg.IsEmpty then
+        if (Arg.Kind <> tkClass) and (Arg.IsEmpty) then //Obj value can be nil, why not?
         begin
           {$if declared(PSParamTypeToStr)}
           S := '#Param '+PSParamTypeToStr(fvar)

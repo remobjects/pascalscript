@@ -327,10 +327,13 @@ type
 {$IFDEF FPC}
   IPointer = PtrUInt;
 {$ELSE}
-  {$IFDEF DELPHI2009UP}
-    IPointer = NativeUInt;
+  {$IFDEF VER140UP}
+    IPointer = NativeInt;
   {$ELSE}
-    IPointer = Cardinal;
+    {$IFDEF CPUX64}
+    IPointer = IntPtr;
+    {$ELSE}
+    {$IFDEF CPU64} IPointer = LongWord;{$ELSE}  IPointer = Cardinal;{$ENDIF}{$ENDIF}
   {$ENDIF}
 {$ENDIF}
   TPSCallingConvention = (cdRegister, cdPascal, cdCdecl, cdStdCall, cdSafeCall);
@@ -731,7 +734,7 @@ end;
 
 function StrToFloat(const s: TbtString): Extended;
 var
-  i: longint;
+  i: LongInt;
 begin
   Val(string(s), Result, i);
   if i <> 0 then raise Exception.Create(RPS_InvalidFloat);
@@ -780,6 +783,7 @@ begin
     StrToIntDef := Res;
 end;
 //-------------------------------------------------------------------
+{$WARN COMBINING_SIGNED_UNSIGNED OFF}
 
 constructor TPSList.Create;
 begin
@@ -1231,7 +1235,7 @@ var
           while p^<>#0 do
           begin
             if p^ in [#97..#122] then
-              Dec(Byte(p^), 32);
+              Dec(p^, 32);
             inc(p);
           end;
           if not CheckReserved(FLastUpToken, CurrTokenId) then
@@ -1736,7 +1740,7 @@ begin
   fUnitName := FastUpperCase(Value);
 end;
 
-
+{$WARN COMBINING_SIGNED_UNSIGNED ON}
 end.
 
 

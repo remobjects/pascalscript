@@ -64,6 +64,8 @@ begin
         btClass:                           Arg := TValue.From<TObject>(TObject(fvar.dta^));
         btRecord:                          Arg := TValue.From<Pointer>(fvar.dta);
         btStaticArray:                     Arg := TValue.From<Pointer>(fvar.dta);
+        btVariant:
+          Arg := TValue.From(Variant(fvar.dta^));
         btArray:
           begin
              if Copy(fvar.aType.ExportName, 1, 10) = '!OPENARRAY' then
@@ -185,6 +187,10 @@ begin
             Break;
           end;
       end;
+      btVariant:
+        begin
+          PVariant(res.dta)^ := Invoke(Address, Args, SysCalConv, TypeInfo(Variant), False, IsConstr).AsVariant;
+        end;
       {$ENDIF}
       else
 //          writeln(stderr, 'Result type not implemented!');

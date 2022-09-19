@@ -1114,7 +1114,7 @@ uses
 {$IFDEF LOG}
 procedure __Log(aMessage:string);
 begin
-  OutputDebugString(PWideChar(WideString(aMessage)));
+  OutputDebugStringW(PWideChar(WideString(aMessage)));
 end;
 
 procedure ODS_stack(stack: TPSStack);forward;
@@ -11923,7 +11923,7 @@ end;
 
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
 {$IFDEF CPU64}
-function MyAllMethodsHandler3(Self: PScriptMethodInfo; const Stack: PPointer; _RDX, _R8, _R9: Pointer): Integer; forward;
+function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer): Integer; forward;
 {$ENDIF}
 procedure MyAllMethodsHandler;
 {$ifdef CPU64}
@@ -11937,15 +11937,27 @@ procedure MyAllMethodsHandler;
 //    * RDX, R8, R9 - param1 - param3
 //    * STACK = param4... paramcount
 asm
-  PUSH R9
-  MOV   R9,R8     // R9:=_ECX
-  MOV   R8,RDX    // R8:=_EDX
-  MOV   RDX, RSP  // RDX:=Stack
-  ADD   RDX, 30h
-  sub RSP, 20h
+  PUSH 0
+  MOVQ RAX, XMM3
+  PUSH RAX
+  MOVQ RAX, XMM2
+  PUSH RAX
+  MOVQ RAX, XMM1
+  PUSH RAX
+  MOV RAX, RSP
+  ADD RAX, 20h+28h   //48h
+  PUSH RAX  // stack
+  // R9 - 3rd param
+  // R8 - 2nd param
+  // Rdx -1st param
+  // Rcx - Self
+  SUB RSP, 20h
   CALL MyAllMethodsHandler3
   ADD   RSP, 20h  //Restore stack
-  POP R9
+  ADD   RSP, 40h
+  POP RAX
+  SUB RSP, 40h
+  ADD RSP, 4*8
 end;
 {$else}
 //  On entry:
@@ -12025,6 +12037,10 @@ begin
     btEnum: Result := true;
     btSet: Result := b.RealSize <= PointerSize;
     btStaticArray: Result := b.RealSize <= PointerSize;
+{$IFDEF CPU64}
+    btSingle,
+    btDouble: Result := True;
+{$ENDIF}
   else
     Result := false;
   end;
@@ -12049,7 +12065,7 @@ asm
 
 end;
 {$IFDEF CPU64}
-function MyAllMethodsHandler3(Self: PScriptMethodInfo; const Stack: PPointer; _RDX, _R8, _R9: Pointer): Integer;
+function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer): Integer;
 var
   Decl: tbtString;
   I, C, regno: Integer;
@@ -12062,10 +12078,13 @@ var
   ex: TPSExceptionHandler;
 begin
   {$IFDEF LOG}
-  __Log(string('stack=$'+ IntToHex(IPointer(Stack))));
-  __Log(string('RDX=$'+ IntToHex(IPointer(_RDX))));
-  __Log(string('R8=$'+ IntToHex(IPointer(_R8))));
-  __Log(string('R9=$'+ IntToHex(IPointer(_R9))));
+  __Log('RDX=$'+ IntToHex(IPointer(_RDX)));
+  __Log('R8=$'+ IntToHex(IPointer(_R8)));
+  __Log('R9=$'+ IntToHex(IPointer(_R9)));
+  __Log('stack=$'+ IntToHex(IPointer(Stack)));
+  __Log('XMM1=$'+ FloatToStr(Double(_XMM1)));
+  __Log('XMM2=$'+ FloatToStr(Double(_XMM2)));
+  __Log('XMM3=$'+ FloatToStr(Double(_XMM3)));
   {$ENDIF}
   Decl := TPSInternalProcRec(Self^.Se.FProcs[Self^.ProcNo]).ExportDecl;
 
@@ -12137,15 +12156,24 @@ begin
       Params[i] := tmp;
       case regno of
         0: begin
-            CopyArrayContents(@PPSVariantData(tmp)^.Data, @_RDX, 1, cpt);
+            if cpt.BaseType in [btSingle, btDouble] then
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM1, 1, cpt)
+            else
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_RDX, 1, cpt);
             inc(regno);
           end;
         1: begin
-            CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R8, 1, cpt);
+            if cpt.BaseType in [btSingle, btDouble] then
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM2, 1, cpt)
+            else
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R8, 1, cpt);
             inc(regno);
           end;
         2: begin
-            CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R9, 1, cpt);
+            if cpt.BaseType in [btSingle, btDouble] then
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM3, 1, cpt)
+            else
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R9, 1, cpt);
             inc(regno);
           end;
       end;
@@ -12155,7 +12183,7 @@ begin
   s := decl;
   grfw(s);
   for i := c-1 downto 0 do begin
-    e := grlw(s);
+    e := grfw(s);
     fmod := e[1];
     delete(e, 1, 1);
     if Params[i] <> nil then Continue;
@@ -12206,7 +12234,7 @@ begin
         Res := nil;
       end
       else begin
-        CopyArrayContents(Pointer(Longint(Stack)-Longint(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
+        CopyArrayContents(Pointer(IPointer(Stack)-IPointer(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
       end;
     end;
     DestroyHeapVariant(res);
@@ -12390,8 +12418,7 @@ begin
 {$IFNDEF PS_NOINT64}
         if res^.FType.BaseType <> btS64 then
 {$ENDIF}
-          //CopyArrayContents(Pointer(Longint(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
-          CopyArrayContents(Pointer(Longint(Stack)-Longint(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
+          CopyArrayContents(Pointer(IPointer(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
       end;
     end;
     DestroyHeapVariant(res);

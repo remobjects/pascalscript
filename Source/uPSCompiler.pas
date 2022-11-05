@@ -1,6 +1,13 @@
 unit uPSCompiler;
 {$I PascalScript.inc}
 interface
+
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CAST OFF}
+{$WARN UNSAFE_CODE OFF}
+
+{$DEFINE PS_USESSUPPORT}
+
 uses
   {$IFNDEF DELPHI3UP}{$IFNDEF PS_NOINTERFACES}{$IFNDEF LINUX}Windows, Ole2,{$ENDIF}
   {$ENDIF}{$ENDIF}SysUtils, uPSUtils;
@@ -1138,9 +1145,27 @@ type
 
     function AddTypeCopyN(const Name, FType: tbtString): TPSType;
 
-    function AddConstant(const Name: tbtString; FType: TPSType): TPSConstant;
+    function AddConstant(const Name: tbtString; FType: TPSType): TPSConstant; overload;
 
     function AddConstantN(const Name, FType: tbtString): TPSConstant;
+
+//    function AddConstant(const Name: tbtString; const Value ): TPSConstant; overload;
+    function AddConstant(const Name: tbtString; const Value: Integer): TPSConstant; overload;
+    function AddConstant(const Name: tbtString; const Value: Cardinal): TPSConstant; overload;
+    {$IFNDEF PS_NOINT64}
+    function AddConstant(const Name: tbtString; const Value: Int64): TPSConstant; overload;
+    {$ENDIF PS_NOINT64}
+//    {$IFNDEF PS_NOUINT64}
+//    function AddConstant(const Name: tbtString; const Value: UInt64): TPSConstant; overload;
+//    {$ENDIF PS_NOUINT64}
+    function AddConstant(const Name: tbtString; const Value: tbtString): TPSConstant; overload;
+    function AddConstant(const Name: tbtString; const Value: tbtChar): TPSConstant; overload;
+    {$IFNDEF PS_NOWIDESTRING}
+    function AddConstant(const Name: tbtString; const Value: WideChar): TPSConstant; overload;
+    function AddConstant(const Name: tbtString; const Value: tbtwidestring): TPSConstant; overload;
+    function AddConstant(const Name: tbtString; const Value: tbtunicodestring): TPSConstant; overload;
+    {$ENDIF PS_NOWIDESTRING}
+    function AddConstant(const Name: tbtString; const Value: Extended): TPSConstant; overload;
 
     function AddVariable(const Name: tbtString; FType: TPSType): TPSVar;
 
@@ -1216,9 +1241,9 @@ type
 
     property AttributesCloseTokenID: TPSPasToken read FAttributesCloseTokenID write FAttributesCloseTokenID;
 
-    {$WARNINGS OFF}
+    {.$WARNINGS OFF}
     property UnitName: tbtString read FUnitName;
-    {$WARNINGS ON}
+    {.$WARNINGS ON}
   end;
   TIFPSPascalCompiler = TPSPascalCompiler;
 
@@ -11896,7 +11921,6 @@ var
 
       if Parse then
       begin
-      {$ENDIF}
         FUses.Add(s);
         if @FOnUses <> nil then
         begin
@@ -11934,8 +11958,11 @@ var
             end;
           end;
         end;
-      {$IFDEF PS_USESSUPPORT}
       end;
+      {$ELSE}
+      MakeError('', ecUnknownIdentifier, S);
+      Result := False;
+      exit;
       {$ENDIF}
       FParser.Next;
       if FParser.CurrTokenID = CSTI_Semicolon then break
@@ -12396,6 +12423,7 @@ var
   i: Longint;
 begin
   AddType('Byte', btU8);
+  AddTypeCopyN('UCHAR', 'Byte');
   FDefaultBoolType := AddTypeS('Boolean', '(False, True)');
   FDefaultBoolType.ExportName := True;
   with TPSEnumType(AddType('LongBool', btEnum)) do
@@ -12410,11 +12438,15 @@ begin
   begin
     HighValue := 255; // make sure it's gonna be a 1 byte var
   end;
+
+  AddType( 'AnsiChar', btChar);
   //following 2 IFDEFs should actually be UNICODE IFDEFs...
-  AddType({$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF}, btChar);
   {$IFDEF PS_PANSICHAR}
   AddType('Char', btWideChar);
+  {$ELSE}
+  AddTypeCopyN('Char', 'AnsiChar');
   {$ENDIF}
+
   {$IFNDEF PS_NOWIDESTRING}
   AddType('WideChar', btWideChar);
   AddType('WideString', btWideString);
@@ -12433,20 +12465,60 @@ begin
   AddType('string', btString);
   AddType('NativeString', btString);
   {$ENDIF}
+  AddType('tbtString', btString);
+
   FAnyString := AddType('AnyString', btString);
   FAnyMethod := AddTypeS('AnyMethod', 'procedure');
-  AddType('ShortInt', btS8);
-  AddType('Word', btU16);
-  AddType('SmallInt', btS16);
-  AddType('LongInt', btS32);
+
   at2ut(AddType('___Pointer', btPointer));
+
+  AddType('ShortInt', btS8);
+
+  AddType('Word', btU16);
+  AddTypeCopyN('USHORT', 'Word');
+  AddType('SmallInt', btS16);
+  AddTypeCopyN('SHORT', 'SmallInt');
+
+  AddType('LongInt', btS32);
+  AddTypeCopyN('LONG', 'LongInt');
+
   AddType('LongWord', btU32);
   AddTypeCopyN('Integer', 'LongInt');
+  AddTypeCopyN('FixedInt', 'LongInt');
   AddTypeCopyN('Cardinal', 'LongWord');
-  AddType('tbtString', btString);
+  AddTypeCopyN('UINT', 'LongWord');
+  AddTypeCopyN('ULONG', 'LongWord');
+  AddTypeCopyN('ULONG32', 'LongWord');
+
   {$IFNDEF PS_NOINT64}
   AddType('Int64', btS64);
+  AddTypeCopyN('LONG64', 'Int64');
+  AddTypeCopyN('LONGLONG', 'Int64');
   {$ENDIF}
+
+//  {$IFNDEF PS_NOUINT64}
+//  AddType('UInt64', btSU64);
+//  AddTypeCopyN('ULONG64', 'UInt64');
+//  AddTypeCopyN('ULONGLONG', 'UInt64');
+//  AddTypeCopyN('DWORDLONG', 'UInt64');
+//  {$ENDIF}
+
+  {$IFDEF Win64}
+    {$IFNDEF PS_NOINT64}
+    AddTypeCopyN('NativeInt', 'Int64');
+    AddTypeCopyN('NativeUInt', 'Int64');
+    AddTypeCopyN('THandle', 'Int64');
+    {$ELSE}
+    AddTypeCopyN('NativeInt', 'LongInt');
+    AddTypeCopyN('NativeUInt', 'LongWord');
+    AddTypeCopyN('THandle', 'LongWord');
+    {$ENDIF}
+  {$ELSE}
+  AddTypeCopyN('NativeInt', 'LongInt');
+  AddTypeCopyN('NativeUInt', 'LongWord');
+  AddTypeCopyN('THandle', 'LongWord');
+  {$ENDIF}
+
   AddType('Single', btSingle);
   AddType('Double', btDouble);
   AddType('Extended', btExtended);
@@ -13407,8 +13479,82 @@ end;
 
 function TPSPascalCompiler.AddConstantN(const Name,
   FType: tbtString): TPSConstant;
+var
+  cx : TPSType;
 begin
   Result := AddConstant(Name, FindType(FType));
+end;
+
+//function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value ): TPSConstant;
+//begin
+//  result := AddConstant( Name, FindType( 'Set' ) );
+//  result.SetSet( Value );
+//end;
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Integer): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'Integer' ) ); // LONGINT
+  result.SetInt( Value );
+end;
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Cardinal): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'Cardinal' ) ); // LONGWORD
+  result.SetUInt( Value );
+end;
+
+{$IFNDEF PS_NOINT64}
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Int64): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'Int64' ) ); // INT64
+  result.SetInt64( Value );
+end;
+{$ENDIF PS_NOINT64}
+
+//{$IFNDEF PS_NOUINT64}
+//function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: UInt64): TPSConstant;
+//begin
+//  result := AddConstant( Name, FindType( 'UInt64' ) ); // UINT64
+//  result.SetUInt64( Value );
+//end;
+//{$ENDIF PS_NOUINT64}
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: tbtString): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'String' ) ); // STRING
+  result.SetString( Value );
+end;
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: tbtChar): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'Char' ) ); // ANSICHAR
+  result.SetChar( Value );
+end;
+
+{$IFNDEF PS_NOWIDESTRING}
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: WideChar): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'WideChar' ) ); // WIDECHAR
+  result.SetWideChar( Value );
+end;
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: tbtwidestring): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'WideString' ) ); // WIDESTRING
+  result.SetWideString( Value );
+end;
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: tbtunicodestring): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'UnicodeString' ) ); // UNICODESTRING
+  result.SetUnicodeString( Value );
+end;
+{$ENDIF PS_NOWIDESTRING}
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Extended): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'Extended' ) ); // EXTENDED
+  result.SetExtended( Value );
 end;
 
 function TPSPascalCompiler.AddTypeCopy(const Name: tbtString;

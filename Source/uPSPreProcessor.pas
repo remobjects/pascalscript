@@ -3,6 +3,11 @@ unit uPSPreProcessor;
 {$I PascalScript.inc}
 
 interface
+
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CODE OFF}
+{$WARN UNSAFE_CAST OFF}
+
 uses
   Classes, SysUtils, uPSCompiler, uPSUtils;
 
@@ -205,6 +210,9 @@ type
 
 implementation
 
+uses
+  StrUtils;
+
 {$IFDEF DELPHI3UP }
 resourceString
 {$ELSE }
@@ -214,6 +222,8 @@ const
   RPS_TooManyNestedInclude = 'Too many nested include files while processing ''%s'' from ''%s''';
   RPS_IncludeNotFound = 'Unable to find file ''%s'' used from ''%s''';
   RPS_DefineTooManyParameters = 'Too many parameters in ''%s'' at %d:%d';
+  RPS_DefineTooLessParameters = 'Too less parameters in ''%s'' at %d:%d';
+  RPS_DefineInvalidParameters = 'Invalid parameters in ''%s'' at %d:%d';
   RPS_NoIfdefForEndif = 'No IFDEF for ENDIF in ''%s'' at %d:%d';
   RPS_NoIfdefForElse = 'No IFDEF for ELSE in ''%s'' at %d:%d';
   RPS_ElseTwice = 'Can''t use ELSE twice in ''%s'' at %d:%d';
@@ -558,12 +568,20 @@ begin
 end;
 
 procedure TPSPreProcessor.IntPreProcess(Level: Integer; const OrgFileName: tbtstring; FileName: tbtstring; Dest: TStream);
+const
+  sDEFINED = 'DEFINED(';
+  sNOT     = 'NOT';
+  sAND     = 'AND';
+  sOR      = 'OR';
+  sANDNOT  = 'ANDNOT';
+  sORNOT   = 'ORNOT';
+  sCompilerVersion = 'COMPILERVERSION';
 var
   Parser: TPSPascalPreProcessorParser;
   dta: tbtstring;
   item: TPSLineInfo;
-  s, name: tbtstring;
-  current, i: Longint;
+  s, ts, name: tbtstring;
+  current, i, j: Longint;
   ds: TPSDefineState;
   AppContinue: Boolean;
   ADoWrite: Boolean;
@@ -654,7 +672,7 @@ begin
             //JeromeWelsh - nesting fix
             ADoWrite := (FCurrentDefines.IndexOf(Uppercase(s)) < 0) and FDefineState.DoWrite;
             FDefineState.Add.DoWrite := ADoWrite;
-          end else if (Name = 'ENDIF') then
+          end else if (Name = 'ENDIF') OR (Name = 'IFEND') then
           begin
             //- jgv remove - borland use it (sysutils.pas)
             //- if s <> '' then raise EPSPreProcessor.CreateFmt(RPS_DefineTooManyParameters, [Parser.Row, Parser.Col]);
@@ -672,7 +690,122 @@ begin
             ds.FInElse := True;
             //JeromeWelsh - nesting fix
             ds.DoWrite := not ds.DoWrite and FDefineState.DoPrevWrite;
-          end
+          end else if (Name = 'IF') then
+          begin
+            if pos(' ', s) = 0 then raise EPSPreProcessor.CreateFmt(RPS_DefineTooLessParameters, [FileName, Parser.Row, Parser.Col]);
+            S := Trim( S );
+            S := UpperCase( s );
+            S := StringReplace( s, #32#32, #32, [ rfReplaceAll ] );
+            S := StringReplace( s, ' (', '(', [ rfReplaceAll ] );
+            S := StringReplace( s, '( ', '(', [ rfReplaceAll ] );
+            S := StringReplace( s, ' )', ')', [ rfReplaceAll ] );
+            S := StringReplace( s, ') ', ')', [ rfReplaceAll ] );
+
+            if ( Copy( s, 1, Length( sDEFINED ) ) = sDEFINED ) OR
+               ( Copy( s, 1, Length( sNOT ) + Length( sDEFINED ) ) = sNOT + sDEFINED ) OR
+                ( Copy( s, 1, Length( sNOT ) + Length( sDEFINED ) + 1 ) = sNOT + ' ' + sDEFINED ) then
+              begin // MS
+              S := StringReplace( s, ' NOT', 'NOT', [ rfReplaceAll ] );
+              S := StringReplace( s, 'NOT ', 'NOT', [ rfReplaceAll ] );
+
+              S := StringReplace( s, ' AND', 'AND', [ rfReplaceAll ] );
+              S := StringReplace( s, 'AND ', 'AND', [ rfReplaceAll ] );
+              S := StringReplace( s, ' OR', 'OR', [ rfReplaceAll ] );
+              S := StringReplace( s, 'OR ', 'OR', [ rfReplaceAll ] );
+
+              ADoWrite := FDefineState.DoWrite;
+              ts := s;
+
+              if ( Copy( ts, 1, Length( sNOT ) ) = sNOT ) then
+                begin
+                j := 2;
+                ts := Copy( ts, Length( sNOT )+1, Length( ts )-Length( sNOT ) );
+                end
+              else
+                j := 0; // AND
+
+              while ( ts <> '' ) do
+                begin
+                i := PosEx( ')', ts, Length( sDEFINED )+1 );
+                if ( i = 0 ) then
+                  begin
+                  raise EPSPreProcessor.CreateFmt(RPS_DefineInvalidParameters, [FileName, Parser.Row, Parser.Col]);
+                  Break;
+                  end;
+
+                if ( j = 0 ) then // AND
+                  ADoWrite := (FCurrentDefines.IndexOf( Copy( ts, Length( sDefined )+1, i-Length( sDefined )-1 ) ) >= 0) and ADoWrite
+                else if ( j = 1 ) then // OR
+                  ADoWrite := (FCurrentDefines.IndexOf( Copy( ts, Length( sDefined )+1, i-Length( sDefined )-1 ) ) >= 0) OR ADoWrite
+                else if ( j = 2 ) then // (AND) NOT
+                  ADoWrite := (FCurrentDefines.IndexOf( Copy( ts, Length( sDefined )+1, i-Length( sDefined )-1 ) ) < 0) AND ADoWrite
+                else if ( j = 3 ) then // OR NOT
+                  ADoWrite := (FCurrentDefines.IndexOf( Copy( ts, Length( sDefined )+1, i-Length( sDefined )-1 ) ) < 0) OR ADoWrite
+                else
+                  ADoWrite := (FCurrentDefines.IndexOf( Copy( ts, Length( sDefined )+1, i-Length( sDefined )-1 ) ) >= 0) OR ADoWrite;
+                ts := Copy( ts, i+1, Length( ts )-i );
+
+                if ( Copy( ts, 1, Length( sANDNOT ) ) = sANDNOT ) then
+                  begin
+                  j  := 2;
+                  ts := Copy( ts, Length( sANDNOT )+1, Length( ts )-Length( sANDNOT ) );
+                  end
+                else if ( Copy( ts, 1, Length( sORNOT ) ) = sORNOT ) then
+                  begin
+                  j  := 3;
+                  ts := Copy( ts, Length( sORNOT )+1, Length( ts )-Length( sORNOT ) );
+                  end
+                else if ( Copy( ts, 1, Length( sAND ) ) = sAND ) then
+                  begin
+                  j  := 0;
+                  ts := Copy( ts, Length( sAND )+1, Length( ts )-Length( sAND ) );
+                  end
+                else if ( Copy( ts, 1, Length( sOR ) ) = sOR ) then
+                  begin
+                  j := 1;
+                  ts := Copy( ts, Length( sOR )+1, Length( ts )-Length( sOR ) );
+                  end;
+                end;
+
+              FDefineState.Add.DoWrite := ADoWrite;
+              end
+
+            else if ( Copy( s, 1, Length( sCompilerVersion ) ) = sCompilerVersion ) then
+              begin
+              S := StringReplace( s, #32, '', [ rfReplaceAll ] );
+
+              if ( Copy( S, 16, 2 ) = '>=' ) then
+                FDefineState.Add.DoWrite := ( StrToIntDef( Copy( S, 18, Length( S )-17 ), -1 ) >= CompilerVersion )
+              else if ( Copy( S, 16, 2 ) = '<=' ) then
+                FDefineState.Add.DoWrite := ( StrToIntDef( Copy( S, 18, Length( S )-17 ), High( Integer ) ) <= CompilerVersion )
+              else if ( Copy( S, 16, 1 ) = '<' ) then
+                FDefineState.Add.DoWrite := ( StrToIntDef( Copy( S, 17, Length( S )-16 ), High( Integer ) ) < CompilerVersion )
+              else if ( Copy( S, 16, 1 ) = '>' ) then
+                FDefineState.Add.DoWrite := ( StrToIntDef( Copy( S, 17, Length( S )-16 ), -1 ) > CompilerVersion )
+              else if ( Copy( S, 16, 1 ) = '=' ) then
+                FDefineState.Add.DoWrite := ( StrToIntDef( Copy( S, 17, Length( S )-16 ), -1 ) = CompilerVersion )
+              else
+                raise EPSPreProcessor.CreateFmt(RPS_DefineInvalidParameters, [FileName, Parser.Row, Parser.Col]);
+              end
+            else
+              begin
+              If @OnProcessUnknowDirective <> Nil then begin
+                OnProcessUnknowDirective (Self, Parser, FDefineState.DoWrite, name, s, AppContinue);
+              end;
+              If AppContinue then
+              //-- end jgv
+                raise EPSPreProcessor.CreateFmt(RPS_UnknownCompilerDirective, [FileName, Parser.Row, Parser.Col]);
+              end;
+
+          // Compatibility Dummys
+          end else if (Name = 'UNSAFE_TYPE') OR (Name = 'UNSAFE_CODE') OR (Name = 'UNSAFE_CAST') OR (Name = 'SYMBOL_PLATFORM') OR
+                      (Name = 'GARBAGE') OR (Name = 'WARN') OR (Name = 'RANGECHECKS') OR (Name = 'WEAKPACKAGEUNIT') OR
+                      (Name = 'EXTERNALSYM') OR (Name = 'NODEFINE') then
+            begin
+            SetLength(s, Length(Parser.Token));
+            for i := length(s) downto 1 do
+              s[i] := #32; // space
+            end
 
           //-- 20050710_jgv custom application error process
           else begin
@@ -681,7 +814,6 @@ begin
             end;
             If AppContinue then
             //-- end jgv
-          
               raise EPSPreProcessor.CreateFmt(RPS_UnknownCompilerDirective, [FileName, Parser.Row, Parser.Col]);
           end;
       end;
@@ -798,4 +930,4 @@ begin
   else Result := TPSDefineState(FItems[FItems.Count -2]).DoWrite;
 end;
 
-end.
+end.

@@ -2,6 +2,10 @@ unit uPSComponent;
 {$I PascalScript.inc}
 interface
 
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CODE OFF}
+{$WARN UNSAFE_CAST OFF}
+
 uses
   SysUtils, Classes, uPSRuntime, uPSDebugger, uPSUtils,
   uPSCompiler,
@@ -1082,7 +1086,7 @@ begin
       Result := false;
     end;
   end else begin
-    FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
+    FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, Name);
     result := false;
   end;
 end;

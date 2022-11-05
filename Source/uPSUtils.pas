@@ -2,6 +2,11 @@ unit uPSUtils;
 {$I PascalScript.inc}
 
 interface
+
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CODE OFF
+{$WARN UNSAFE_CAST OFF}
+
 uses
   Classes, SysUtils {$IFDEF VER130}, Windows {$ENDIF};
 
@@ -307,6 +312,7 @@ type
 {$ENDIF}
 
   tbtchar = {$IFDEF DELPHI4UP}AnsiChar{$ELSE}CHAR{$ENDIF};
+  tbtansichar = AnsiChar;
 {$IFNDEF PS_NOWIDESTRING}
 
   tbtwidestring = widestring;
@@ -426,9 +432,9 @@ type
 
     function HasUses(pUnitName: TbtString): Boolean;
 
-    {$WARNINGS OFF}
+    {.$WARNINGS OFF}
     property UnitName: TbtString read fUnitName write SetUnitName;
-    {$WARNINGS ON}
+    {.$WARNINGS ON}
   end;
 
   TPSUnitList = class
@@ -628,6 +634,9 @@ const
 function WideUpperCase(const S: WideString): WideString;
 function WideLowerCase(const S: WideString): WideString;
 {$ENDIF}
+
+
+
 implementation
 
 {$IFDEF DELPHI3UP }

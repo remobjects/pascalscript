@@ -1077,9 +1077,10 @@ type
     procedure CheckForUnusedVars(Func: TPSInternalProcedure);
     function ProcIsDuplic(Decl: TPSParametersDecl; const FunctionName, FunctionParamNames: tbtString; const s: tbtString; Func: TPSInternalProcedure): Boolean;
    public
-     function GetConstant(const Name: tbtString): TPSConstant;
+    function GetConstant(const Name: tbtString): TPSConstant;
+    function GetVariable(const Name: tbtString): TPSVar;
 
-     function UseExternalProc(const Name: tbtString): TPSParametersDecl;
+    function UseExternalProc(const Name: tbtString): TPSParametersDecl;
 
     function FindProc(const aName: tbtString): Cardinal;
 
@@ -1167,7 +1168,7 @@ type
     {$ENDIF PS_NOWIDESTRING}
     function AddConstant(const Name: tbtString; const Value: Extended): TPSConstant; overload;
 
-    function AddVariable(const Name: tbtString; FType: TPSType): TPSVar;
+    function AddVariable(const Name: tbtString; FType: TPSType): TPSVar; overload;
 
     function AddVariableN(const Name, FType: tbtString): TPSVar;
 
@@ -13938,13 +13939,29 @@ function TPSPascalCompiler.GetConstant(const Name: tbtString): TPSConstant;
 var
   h, i: Longint;
   n: tbtString;
-
 begin
   n := FastUppercase(name);
   h := MakeHash(n);
   for i := 0 to FConstants.Count -1 do
   begin
     result := TPSConstant(FConstants[i]);
+    if (Result.NameHash = h) and (Result.Name = n) then exit;
+  end;
+  result := nil;
+end;
+
+function TPSPascalCompiler.GetVariable(const Name: tbtString): TPSVar;
+var
+  h, i: Longint;
+  n: tbtString;
+
+begin
+  n := FastUppercase(name);
+  h := MakeHash(n);
+
+  for i := 0 to FVars.Count -1 do
+  begin
+    result := TPSVar(FVars[i]);
     if (Result.NameHash = h) and (Result.Name = n) then exit;
   end;
   result := nil;

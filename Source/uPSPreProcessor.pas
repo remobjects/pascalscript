@@ -103,6 +103,7 @@ type
     FMainFile: tbtstring;
     FOnProcessDirective: TPSOnProcessDirective;
     FOnProcessUnknowDirective: TPSOnProcessDirective;
+    fCompiler : TPSPascalCompiler;
     procedure ParserNewLine(Sender: TPSPascalPreProcessorParser; Row, Col, Pos: Cardinal);
     procedure IntPreProcess(Level: Integer; const OrgFileName: tbtstring; FileName: tbtstring; Dest: TStream);
   protected
@@ -115,6 +116,7 @@ type
     property OnNeedFile: TPSOnNeedFile read FOnNeedFile write FOnNeedFile;
 
     property Defines: TStringList read FDefines write FDefines;
+    property Compiler : TPSPascalCompiler read fCompiler write fCompiler;
 
     property MainFile: tbtstring read FMainFile write FMainFile;
 
@@ -538,6 +540,7 @@ begin
   FCurrentDefines.Duplicates := dupIgnore;
   FDefineState := TPSDefineStates.Create;
   FMaxLevel := 20;
+  FCompiler := nil;
 
   doAddStdPredefines;
 end;
@@ -570,6 +573,7 @@ end;
 procedure TPSPreProcessor.IntPreProcess(Level: Integer; const OrgFileName: tbtstring; FileName: tbtstring; Dest: TStream);
 const
   sDEFINED = 'DEFINED(';
+  sDECLARED= 'DECLARED(';
   sNOT     = 'NOT';
   sAND     = 'AND';
   sOR      = 'OR';
@@ -581,7 +585,7 @@ var
   dta: tbtstring;
   item: TPSLineInfo;
   s, ts, name: tbtstring;
-  current, i, j: Longint;
+  current, i, j : Longint;
   ds: TPSDefineState;
   AppContinue: Boolean;
   ADoWrite: Boolean;
@@ -704,7 +708,7 @@ begin
             if ( Copy( s, 1, Length( sDEFINED ) ) = sDEFINED ) OR
                ( Copy( s, 1, Length( sNOT ) + Length( sDEFINED ) ) = sNOT + sDEFINED ) OR
                 ( Copy( s, 1, Length( sNOT ) + Length( sDEFINED ) + 1 ) = sNOT + ' ' + sDEFINED ) then
-              begin // MS
+              begin
               S := StringReplace( s, ' NOT', 'NOT', [ rfReplaceAll ] );
               S := StringReplace( s, 'NOT ', 'NOT', [ rfReplaceAll ] );
 
@@ -769,6 +773,101 @@ begin
 
               FDefineState.Add.DoWrite := ADoWrite;
               end
+
+(*
+            else if Assigned( fCompiler ) AND ( Copy( s, 1, Length( sDECLARED ) ) = sDECLARED ) OR
+               ( Copy( s, 1, Length( sNOT ) + Length( sDECLARED ) ) = sNOT + sDECLARED ) OR
+                ( Copy( s, 1, Length( sNOT ) + Length( sDECLARED ) + 1 ) = sNOT + ' ' + sDECLARED ) then
+              begin
+              S := StringReplace( s, ' NOT', 'NOT', [ rfReplaceAll ] );
+              S := StringReplace( s, 'NOT ', 'NOT', [ rfReplaceAll ] );
+
+              S := StringReplace( s, ' AND', 'AND', [ rfReplaceAll ] );
+              S := StringReplace( s, 'AND ', 'AND', [ rfReplaceAll ] );
+              S := StringReplace( s, ' OR', 'OR', [ rfReplaceAll ] );
+              S := StringReplace( s, 'OR ', 'OR', [ rfReplaceAll ] );
+
+              ADoWrite := FDefineState.DoWrite;
+              ts := s;
+
+              if ( Copy( ts, 1, Length( sNOT ) ) = sNOT ) then
+                begin
+                j := 2;
+                ts := Copy( ts, Length( sNOT )+1, Length( ts )-Length( sNOT ) );
+                end
+              else
+                j := 0; // AND
+
+              while ( ts <> '' ) do
+                begin
+                i := PosEx( ')', ts, Length( sDECLARED )+1 );
+                if ( i = 0 ) then
+                  begin
+                  raise EPSPreProcessor.CreateFmt(RPS_DefineInvalidParameters, [FileName, Parser.Row, Parser.Col]);
+                  Break;
+                  end;
+
+//                if ( fCompiler.GetConstant( Copy( ts, Length( sDECLARED )+1, i-Length( sDECLARED )-1 ) ) <> nil ) then
+//                  k := 0
+//                else
+                  k := -1;
+
+//                if ( k < 0 ) then
+//                  begin
+//                  if ( fCompiler.GetVariable( Copy( ts, Length( sDECLARED )+1, i-Length( sDECLARED )-1 ) ) <> nil ) then
+//                    k := 0
+//                  end;
+
+//                if ( k < 0 ) then
+//                  k := fCompiler.FindProc( Copy( ts, Length( sDECLARED )+1, i-Length( sDECLARED )-1 ) );
+//                if ( k < 0 ) then
+//                  begin
+//                  if ( fCompiler.FindType( Copy( ts, Length( sDECLARED )+1, i-Length( sDECLARED )-1 ) ) <> nil ) then
+//                    k := 0
+//                  end;
+//                if ( k < 0 ) then
+//                  begin
+//                  if ( fCompiler.FindClass( Copy( ts, Length( sDECLARED )+1, i-Length( sDECLARED )-1 ) ) <> nil ) then
+//                    k := 0
+//                  end;
+
+                if ( j = 0 ) then // AND
+                  ADoWrite := (k >= 0) and ADoWrite
+                else if ( j = 1 ) then // OR
+                  ADoWrite := (k >= 0) OR ADoWrite
+                else if ( j = 2 ) then // (AND) NOT
+                  ADoWrite := (k < 0) AND ADoWrite
+                else if ( j = 3 ) then // OR NOT
+                  ADoWrite := (k < 0) OR ADoWrite
+                else
+                  ADoWrite := (k >= 0) OR ADoWrite;
+                ts := Copy( ts, i+1, Length( ts )-i );
+
+                if ( Copy( ts, 1, Length( sANDNOT ) ) = sANDNOT ) then
+                  begin
+                  j  := 2;
+                  ts := Copy( ts, Length( sANDNOT )+1, Length( ts )-Length( sANDNOT ) );
+                  end
+                else if ( Copy( ts, 1, Length( sORNOT ) ) = sORNOT ) then
+                  begin
+                  j  := 3;
+                  ts := Copy( ts, Length( sORNOT )+1, Length( ts )-Length( sORNOT ) );
+                  end
+                else if ( Copy( ts, 1, Length( sAND ) ) = sAND ) then
+                  begin
+                  j  := 0;
+                  ts := Copy( ts, Length( sAND )+1, Length( ts )-Length( sAND ) );
+                  end
+                else if ( Copy( ts, 1, Length( sOR ) ) = sOR ) then
+                  begin
+                  j := 1;
+                  ts := Copy( ts, Length( sOR )+1, Length( ts )-Length( sOR ) );
+                  end;
+                end;
+
+              FDefineState.Add.DoWrite := ADoWrite;
+              end
+*)
 
             else if ( Copy( s, 1, Length( sCompilerVersion ) ) = sCompilerVersion ) then
               begin

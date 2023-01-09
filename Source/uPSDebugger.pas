@@ -2,6 +2,10 @@
 unit uPSDebugger;
 {$I PascalScript.inc}
 interface
+
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CODE OFF}
+
 uses
   SysUtils, uPSRuntime, uPSUtils;
 
@@ -9,7 +13,8 @@ type
   
   TDebugMode = (dmRun 
   , dmStepOver 
-  , dmStepInto 
+  , dmStepInto
+  , dmStepTo
   , dmPaused 
   );
   
@@ -77,6 +82,7 @@ type
     FOnIdleCall: TOnIdleCall;
     FOnSourceLine: TOnSourceLine;
     FDebugEnabled: Boolean;
+    FStepToLine: Cardinal;
   protected
     
     procedure SourceChanged;
@@ -94,6 +100,8 @@ type
     procedure StepInto;
     
     procedure StepOver;
+
+    procedure StepTo( Line : Cardinal );
     
     procedure Stop; override;
 	
@@ -687,6 +695,11 @@ begin
           FDebugMode := dmPaused;
         end;
       end;
+    dmStepTo:
+      begin
+      if FCurrentRow = FStepToLine then
+        FDebugMode := dmPaused;
+      end;
   end;
   if @FOnSourceLine <> nil then
     FOnSourceLine(Self, FCurrentFile, FCurrentSourcePos, FCurrentRow, FCurrentCol);
@@ -719,6 +732,12 @@ begin
   FStepOverProc := FCurrProc;
   FStepOverStackBase := FCurrStackBase;
   FDebugMode := dmStepOver;
+end;
+
+procedure TPSDebugExec.StepTo( Line : Cardinal );
+begin
+  FStepToLine := Line;
+  FDebugMode := dmStepTo;
 end;
 
 

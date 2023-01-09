@@ -74,29 +74,33 @@ const
   btS64             = 17;
 {$ENDIF}
 
-  btChar            = 18;
-
-{$IFNDEF PS_NOWIDESTRING}
-  btWideString      = 19;
-
-  btWideChar        = 20;
+{$IFNDEF PS_NOINT64}
+  btu64             = 18;
 {$ENDIF}
 
-  btProcPtr         = 21;
+  btChar            = 19;
 
-  btStaticArray     = 22;
+{$IFNDEF PS_NOWIDESTRING}
+  btWideString      = 20;
 
-  btSet             = 23;
+  btWideChar        = 21;
+{$ENDIF}
 
-  btCurrency        = 24;
+  btProcPtr         = 22;
 
-  btClass           = 25;
+  btStaticArray     = 23;
 
-  btInterface       = 26;
+  btSet             = 24;
 
-  btNotificationVariant = 27;
+  btCurrency        = 25;
 
-  btUnicodeString = 28;
+  btClass           = 26;
+
+  btInterface       = 27;
+
+  btNotificationVariant = 28;
+
+  btUnicodeString = 29;
 
   btType = 130;
 
@@ -307,8 +311,11 @@ type
   tbtCurrency = Currency;
 
 {$IFNDEF PS_NOINT64}
-
   tbts64 = int64;
+{$ENDIF}
+
+{$IFNDEF PS_NOUINT64}
+  tbtu64 = uint64;
 {$ENDIF}
 
   tbtchar = {$IFDEF DELPHI4UP}AnsiChar{$ELSE}CHAR{$ENDIF};

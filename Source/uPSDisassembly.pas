@@ -64,6 +64,7 @@ var
       btU32: Result := 'U32';
       btS32: Result := 'S32';
       {$IFNDEF PS_NOINT64}bts64: Result := 'S64'; {$ENDIF}
+      {$IFNDEF PS_NOUINT64}btu64: Result := 'U64'; {$ENDIF}
       btChar: Result := {$IFDEF PS_PANSICHAR}'AnsiChar'{$ELSE}'Char'{$ENDIF};
       {$IFNDEF PS_NOWIDESTRING}
       btWideChar: Result := 'WideChar';
@@ -181,6 +182,7 @@ var
           w: word;
           l: Cardinal;
           {$IFNDEF PS_NOINT64}ff: Int64;{$ENDIF}
+          {$IFNDEF PS_NOUINT64}ui: UInt64;{$ENDIF}
           e: extended;
           ss: single;
           d: double;
@@ -204,6 +206,7 @@ var
             btU32: begin if not ReadData(l, 4) then exit; Result := IntToStr(tbtu32(l)); end;
             btS32: begin if not ReadData(l, 4) then exit; Result := IntToStr(tbts32(l)); end;
             {$IFNDEF PS_NOINT64}bts64: begin if not ReadData(ff, 8) then exit; Result := IntToStr(ff); end;{$ENDIF}
+            {$IFNDEF PS_NOUINT64}btu64: begin if not ReadData(ui, 8) then exit; Result := UIntToStr(ui); end;{$ENDIF}
             btSingle: begin if not ReadData(ss, Sizeof(tbtsingle)) then exit; Result := FloatToStr(ss); end;
             btDouble: begin if not ReadData(d, Sizeof(tbtdouble)) then exit; Result := FloatToStr(d); end;
             btExtended: begin if not ReadData(e, Sizeof(tbtextended)) then exit; Result := FloatToStr(e); end;

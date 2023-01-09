@@ -519,7 +519,8 @@ _XMM0: Double;
         btClass,
         {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-        {$IFNDEF PS_NOINT64}, bts64{$ENDIF}:
+        {$IFNDEF PS_NOINT64}, bts64{$ENDIF}
+        {$IFNDEF PS_NOUINT64}, btu64{$ENDIF}:
           begin
             Varptr := fvar.Dta;
           end;

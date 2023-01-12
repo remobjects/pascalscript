@@ -43,6 +43,20 @@ begin
   s.AddTypeS( 'TFormatSettings', Str );
   {$IFEND}
 
+  S.AddConstant('HoursPerDay', HoursPerDay);
+  S.AddConstant('MinsPerHour', MinsPerHour);
+  S.AddConstant('SecsPerMin', SecsPerMin);
+  S.AddConstant('MSecsPerSec', MSecsPerSec);
+  S.AddConstant('MinsPerDay', MinsPerDay);
+  S.AddConstant('SecsPerDay', SecsPerDay);
+  {$IF CompilerVersion >= 28}
+  S.AddConstant('SecsPerHour', SecsPerHour);
+  S.AddConstant('MSecsPerDay', MSecsPerDay);
+  {$IFEND}
+
+  S.AddConstant('DateDelta', DateDelta);
+  S.AddConstant('UnixDateDelta', UnixDateDelta);
+
   s.AddDelphiFunction('function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;');
   s.AddDelphiFunction('function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;');
   s.AddDelphiFunction('function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;');

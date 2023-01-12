@@ -1,5 +1,5 @@
 { Compile time Date Time library }
-unit uPSC_dateutils;
+unit uPSC_DateUtils;
 
 interface
 
@@ -14,30 +14,101 @@ uses
   DateUtils;
 
 procedure RegisterDatetimeLibrary_C(S: TPSPascalCompiler);
+var
+  Str : AnsiString;
 begin
   s.AddType('TDateTime', btDouble).ExportName := True;
   {$IF CompilerVersion >= 28}
   s.AddType('TDate', btDouble).ExportName := True;
   s.AddType('TTime', btDouble).ExportName := True;
   {$IFEND}
+  s.AddType('Comp', {$IFNDEF PS_NOINT64}btS64{$ELSE}btS32{$ENDIF}).ExportName := True;
+
+  s.AddTypeS('TTimeStamp', 'record Time: Integer; Date: Integer; end;');
+  s.AddTypeS('TSystemTime', 'record wYear: Word; wMonth: Word; wDayOfWeek: Word; wDay: Word; wHour: Word; wMinute: Word; wSecond: Word; wMilliseconds: Word; end;' );
+
+  S.AddConstant( 'MinDateTime', MinDateTime );
+  S.AddConstant( 'MaxDateTime', MaxDateTime );
+
+  {$IF CompilerVersion >= 28}
+  s.AddTypeS('TEraInfo', 'record EraName: string; EraOffset: Integer; EraStart: TDate; EraEnd: TDate; end' );
+  Str := 'record CurrencyString: string; CurrencyFormat: Byte; CurrencyDecimals: Byte; DateSeparator: Char; TimeSeparator: Char; ListSeparator: Char; ShortDateFormat: string; LongDateFormat: string; TimeAMString: string; TimePMString: string; ' +
+         'ShortTimeFormat: string; LongTimeFormat: string; ShortMonthNames: array[1..12] of string; LongMonthNames: array[1..12] of string; ShortDayNames: array[1..7] of string; LongDayNames: array[1..7] of string; EraInfo: array of TEraInfo; ' +
+         'ThousandSeparator: Char; DecimalSeparator: Char; TwoDigitYearCenturyWindow: Word; NegCurrFormat: Byte; NormalizedLocaleName: string; end;';
+  s.AddTypeS( 'TFormatSettings', Str );
+  {$ELSE}
+  Str := 'record CurrencyFormat: Byte; NegCurrFormat: Byte; ThousandSeparator: Char; DecimalSeparator: Char; CurrencyDecimals: Byte; DateSeparator: Char; TimeSeparator: Char; ListSeparator: Char; CurrencyString: string; ShortDateFormat: string; ' +
+         'LongDateFormat: string; TimeAMString: string; TimePMString: string; ShortTimeFormat: string; LongTimeFormat: string; ShortMonthNames: array[1..12] of string; LongMonthNames: array[1..12] of string; ShortDayNames: array[1..7] of string; ' +
+         'LongDayNames: array[1..7] of string; TwoDigitYearCenturyWindow: Word; end';
+  s.AddTypeS( 'TFormatSettings', Str );
+  {$IFEND}
+
+  s.AddDelphiFunction('function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;');
+  s.AddDelphiFunction('function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;');
+  s.AddDelphiFunction('function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;');
+  s.AddDelphiFunction('function TimeStampToMSecs(const TimeStamp: TTimeStamp): Comp;');
 
   s.AddDelphiFunction('function EncodeDate(Year, Month, Day: Word): TDateTime;');
   s.AddDelphiFunction('function EncodeTime(Hour, Min, Sec, MSec: Word): TDateTime;');
   s.AddDelphiFunction('function TryEncodeDate(Year, Month, Day: Word; var Date: TDateTime): Boolean;');
   s.AddDelphiFunction('function TryEncodeTime(Hour, Min, Sec, MSec: Word; var Time: TDateTime): Boolean;');
   s.AddDelphiFunction('procedure DecodeDate(const DateTime: TDateTime; var Year, Month, Day: Word);');
+  s.AddDelphiFunction('function DecodeDateFully(const DateTime: TDateTime; var Year, Month, Day, DOW: Word): Boolean;');
   s.AddDelphiFunction('procedure DecodeTime(const DateTime: TDateTime; var Hour, Min, Sec, MSec: Word);');
+
+  {$IFDEF MSWINDOWS}
+  s.AddDelphiFunction('procedure DateTimeToSystemTime(const DateTime: TDateTime; var SystemTime: TSystemTime);');
+  s.AddDelphiFunction('function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;');
+  {$IF CompilerVersion >= 28}
+  s.AddDelphiFunction('function TrySystemTimeToDateTime(const SystemTime: TSystemTime; out DateTime: TDateTime): Boolean;');
+  {$IFEND}
+  {$ENDIF MSWINDOWS}
+
+  // SysUtils
   s.AddDelphiFunction('function DayOfWeek(const DateTime: TDateTime): Word;');
   s.AddDelphiFunction('function Date: TDateTime;');
   s.AddDelphiFunction('function Time: TDateTime;');
   s.AddDelphiFunction('function Now: TDateTime;');
-  s.AddDelphiFunction('function DateTimeToUnix(D: TDateTime): Int64;');
-  s.AddDelphiFunction('function UnixToDateTime(U: Int64): TDateTime;');
-
-  s.AddDelphiFunction('function DateToStr(D: TDateTime): string;');
+  s.AddDelphiFunction('function CurrentYear: Word;');
+  s.AddDelphiFunction('function IncMonth(const DateTime: TDateTime; NumberOfMonths: Integer{ = 1}): TDateTime;');
+  s.AddDelphiFunction('procedure IncAMonth(var Year, Month, Day: Word; NumberOfMonths: Integer{ = 1});');
+  s.AddDelphiFunction('procedure ReplaceTime(var DateTime: TDateTime; const NewTime: TDateTime);');
+  s.AddDelphiFunction('procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime);');
+  s.AddDelphiFunction('function IsLeapYear(Year: Word): Boolean;');
+  s.AddDelphiFunction('function DateToStr(const DateTime: TDateTime): string;');
+  s.AddDelphiFunction('function DateToStrS(const DateTime: TDateTime; const AFormatSettings: TFormatSettings): string;');
+  s.AddDelphiFunction('function TimeToStr(const DateTime: TDateTime): string;');
+  s.AddDelphiFunction('function TimeToStrS(const DateTime: TDateTime; const AFormatSettings: TFormatSettings): string;');
+  s.AddDelphiFunction('function DateTimeToStr(const DateTime: TDateTime): string;');
+  s.AddDelphiFunction('function DateTimeToStrS(const DateTime: TDateTime; const AFormatSettings: TFormatSettings): string;');
   s.AddDelphiFunction('function StrToDate(const S: string): TDateTime;');
+  s.AddDelphiFunction('function StrToDateS(const S: string; const AFormatSettings: TFormatSettings): TDateTime;');
+  s.AddDelphiFunction('function StrToDateDef(const S: string; const Default: TDateTime): TDateTime;');
+  s.AddDelphiFunction('function StrToDateDefS(const S: string; const Default: TDateTime; const AFormatSettings: TFormatSettings): TDateTime;');
+  s.AddDelphiFunction('function TryStrToDate(const S: string; out Value: TDateTime): Boolean;');
+  s.AddDelphiFunction('function TryStrToDateS(const S: string; out Value: TDateTime; const AFormatSettings: TFormatSettings): Boolean;');
+  s.AddDelphiFunction('function StrToTime(const S: string): TDateTime;');
+  s.AddDelphiFunction('function StrToTimeS(const S: string; const AFormatSettings: TFormatSettings): TDateTime;');
+  s.AddDelphiFunction('function StrToTimeDef(const S: string; const Default: TDateTime): TDateTime;');
+  s.AddDelphiFunction('function StrToTimeDefS(const S: string; const Default: TDateTime; const AFormatSettings: TFormatSettings): TDateTime;');
+  s.AddDelphiFunction('function TryStrToTime(const S: string; out Value: TDateTime): Boolean;');
+  s.AddDelphiFunction('function TryStrToTimeS(const S: string; out Value: TDateTime; const AFormatSettings: TFormatSettings): Boolean;');
+  s.AddDelphiFunction('function StrToDateTime(const S: string): TDateTime;');
+  s.AddDelphiFunction('function StrToDateTimeS(const S: string; const AFormatSettings: TFormatSettings): TDateTime;');
+  s.AddDelphiFunction('function StrToDateTimeDef(const S: string; const Default: TDateTime): TDateTime;');
+  s.AddDelphiFunction('function StrToDateTimeDefS(const S: string; const Default: TDateTime; const AFormatSettings: TFormatSettings): TDateTime;');
+  s.AddDelphiFunction('function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;');
+  s.AddDelphiFunction('function TryStrToDateTimeS(const S: string; out Value: TDateTime; const AFormatSettings: TFormatSettings): Boolean;');
   s.AddDelphiFunction('function FormatDateTime(const fmt: string; D: TDateTime): string;');
+  s.AddDelphiFunction('function FormatDateTimeS(const Format: string; DateTime: TDateTime; const AFormatSettings: TFormatSettings): string;');
+  s.AddDelphiFunction('procedure DateTimeToString(var Result: string; const Format: string; DateTime: TDateTime);');
+  s.AddDelphiFunction('procedure DateTimeToStringS(var Result: string; const Format: string; DateTime: TDateTime; const AFormatSettings: TFormatSettings);');
+  s.AddDelphiFunction('function FloatToDateTime(const Value: Extended): TDateTime;');
+  s.AddDelphiFunction('function TryFloatToDateTime(const Value: Extended; out AResult: TDateTime): Boolean;');
+  s.AddDelphiFunction('function FileDateToDateTime(FileDate: LongInt): TDateTime;' );
+  s.AddDelphiFunction('function DateTimeToFileDate(DateTime: TDateTime): LongInt;' );
 
+  // DateUtils
   s.AddDelphiFunction('function DateOf(const AValue: TDateTime): TDateTime;');
   s.AddDelphiFunction('function TimeOf(const AValue: TDateTime): TDateTime;');
   s.AddDelphiFunction('function IsInLeapYear(const AValue: TDateTime): Boolean;');

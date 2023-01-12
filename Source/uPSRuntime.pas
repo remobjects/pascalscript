@@ -14,10 +14,12 @@ interface
 {$WARN UNSAFE_CODE OFF}
 
 uses
-  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} System.Rtti,{$ENDIF} {$ENDIF}
+  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} Types, Rtti, Generics.Collections,{$ENDIF} {$ENDIF}
+//  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} System.Rtti,{$ENDIF} {$ENDIF}
   {$IFDEF FPC}{$IFDEF USEINVOKECALL}Rtti,{$ENDIF}{$ENDIF}
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
-  {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
+  {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF}
+  ;
 
 
 type
@@ -31,7 +33,8 @@ type
     erOutOfGlobalVarsRange, erOutOfProcRange, ErOutOfRange, erOutOfStackRange,
     ErTypeMismatch, erUnexpectedEof, erVersionError, ErDivideByZero, ErMathError,
     erCouldNotCallProc, erOutofRecordRange, erOutOfMemory, erException,
-    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError);
+    erNullPointerException, erNullVariantError, erInterfaceNotSupported, erCustomError,
+    erOutOfArrayRange);
 
   TPSStatus = (isNotLoaded, isLoaded, isRunning, isPaused);
 
@@ -1140,11 +1143,13 @@ function MakeWString(const s: tbtunicodestring): tbtstring;
 function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
 {$ENDIF}
 
-
 implementation
+
 uses
-  TypInfo {$IFDEF DELPHI3UP}
-  {$IFNDEF FPC}{$IFDEF MSWINDOWS} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}
+  TypInfo
+  {$IFDEF DELPHI3UP}
+    {$IFNDEF FPC}{$IFDEF MSWINDOWS}, ComObj {$ENDIF}{$ENDIF}
+  {$ENDIF}
   {$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF}
   {$IF NOT DEFINED (NEXTGEN) AND NOT DEFINED (MACOS) AND  DEFINED (DELPHI_TOKYO_UP)}, AnsiStrings{$IFEND};
 
@@ -10489,6 +10494,7 @@ end;
   {$ENDIF}
 
   {$IFDEF USEINVOKECALL}
+    {$DEFINE RTTI_InvokeFix}
     {$include InvokeCall.inc}
     {$DEFINE _INVOKECALL_INC_}
   {$ELSE}
@@ -10503,7 +10509,7 @@ end;
     {$ENDIF}
   {$ENDIF}
 {$ELSE}
-  
+
   {$IFDEF USEINVOKECALL}
     {$include InvokeCall.inc}
     {$DEFINE _INVOKECALL_INC_}

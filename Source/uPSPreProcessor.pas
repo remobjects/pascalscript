@@ -461,6 +461,28 @@ begin
         end;
       else
       begin
+        //vizit0r - added for correct handling of #10 (without #13) as linebreak
+        ci := FPos;
+        if FText[ci] in [#10,#13] then
+          while (FText[ci] in [#10,#13]) do
+          begin
+            if FText[ci] = #13 then
+            begin
+              inc(FRow);
+              if FText[ci+1] = #10 then
+                inc(ci);
+              FLastEnterPos := ci - 1;
+              if @FOnNewLine <> nil then FOnNewLine(Self, FRow, FPos - FLastEnterPos + 1, ci+1);
+            end else if FText[ci] = #10 then
+            begin
+              inc(FRow);
+              FLastEnterPos := ci -1 ;
+              if @FOnNewLine <> nil then FOnNewLine(Self, FRow, FPos - FLastEnterPos + 1, ci+1);
+            end;
+            Inc(Ci);
+          end
+        else
+        //end_vizit0r
         ci := FPos + 1;
         while not (FText[ci] in [#0,'{', '(', '''', '/']) do
         begin

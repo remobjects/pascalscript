@@ -1174,7 +1174,9 @@ type
     function AddConstant(const Name: tbtString; const Value: tbtwidestring): TPSConstant; overload;
     function AddConstant(const Name: tbtString; const Value: tbtunicodestring): TPSConstant; overload;
     {$ENDIF PS_NOWIDESTRING}
+    function AddConstant(const Name: tbtString; const Value: Double): TPSConstant; overload;
     function AddConstant(const Name: tbtString; const Value: Extended): TPSConstant; overload;
+    function AddConstant(const Name: tbtString; const Value: TDateTime): TPSConstant; overload;
 
     function AddVariable(const Name: tbtString; FType: TPSType): TPSVar; overload;
 
@@ -13717,9 +13719,21 @@ begin
 end;
 {$ENDIF PS_NOWIDESTRING}
 
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Double): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'Double' ) ); // DOUBLE
+  result.SetExtended( Value );
+end;
+
 function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Extended): TPSConstant;
 begin
   result := AddConstant( Name, FindType( 'Extended' ) ); // EXTENDED
+  result.SetExtended( Value );
+end;
+
+function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: TDateTime): TPSConstant;
+begin
+  result := AddConstant( Name, FindType( 'Double' ) ); // DOUBLE
   result.SetExtended( Value );
 end;
 

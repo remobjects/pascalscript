@@ -55,12 +55,20 @@ type
     property CurrentProcVars: TIfStringList read GetCurrentProcVars;
 	
     property CurrentProcParams: TIfStringList read GetCurrentProcParams;
-    
-    function GetGlobalVar(I: Cardinal): PIfVariant;
-	
-    function GetProcVar(I: Cardinal): PIfVariant;
-	
-    function GetProcParam(I: Cardinal): PIfVariant;
+
+    function FindVariable(Name : AnsiString): PIfVariant;
+
+    function GetGlobalVar(Name : AnsiString): PIfVariant; overload;
+
+    function GetGlobalVar(I: Cardinal): PIfVariant; overload;
+
+    function GetProcVar(Name : AnsiString): PIfVariant; overload;
+
+    function GetProcVar(I: Cardinal): PIfVariant; overload;
+
+    function GetProcParam(Name : AnsiString): PIfVariant; overload;
+
+    function GetProcParam(I: Cardinal): PIfVariant; overload;
   
     function GetCallStack(var Count: Cardinal): tbtString;
   
@@ -238,14 +246,74 @@ begin
   end else Result := nil;
 end;
 
+function TPSCustomDebugExec.FindVariable(Name : AnsiString): PIfVariant;
+begin
+  result := GetGlobalVar( Name );
+  if NOT Assigned( result ) then
+    result := GetProcParam( Name );
+  if NOT Assigned( result ) then
+    result := GetProcVar( Name );
+end;
+
+function TPSCustomDebugExec.GetGlobalVar(Name : AnsiString): PIfVariant;
+var
+  i: integer;
+  n: String;
+begin
+  result := nil;
+  Name := FastUppercase( Name );
+  for i := 0 to FGlobalVarNames.Count-1 do
+    begin
+    if ( FGlobalVarNames[ i ] = Name ) then
+      begin
+      result := FGlobalVars[i];
+      break;
+      end;
+    end;
+end;
+
 function TPSCustomDebugExec.GetGlobalVar(I: Cardinal): PIfVariant;
 begin
   Result := FGlobalVars[I];
 end;
 
+function TPSCustomDebugExec.GetProcParam(Name : AnsiString): PIfVariant;
+var
+  i: integer;
+  n: String;
+begin
+  result := nil;
+  Name := FastUppercase( Name );
+  for i := 0 to CurrentProcParams.Count-1 do
+    begin
+    if ( CurrentProcParams[ i ] = Name ) then
+      begin
+      result := FStack[Cardinal(Longint(FCurrStackBase) - Longint(I) - 1)];
+      break;
+      end;
+    end;
+end;
+
 function TPSCustomDebugExec.GetProcParam(I: Cardinal): PIfVariant;
 begin
   Result := FStack[Cardinal(Longint(FCurrStackBase) - Longint(I) - 1)];
+end;
+
+function TPSCustomDebugExec.GetProcVar(Name : AnsiString): PIfVariant;
+var
+  i: integer;
+  n: String;
+begin
+  result := nil;
+  Name := FastUppercase( Name );
+  for i := 0 to CurrentProcVars.Count-1 do
+    begin
+    if ( CurrentProcVars[ i ] = Name ) then
+      begin
+      result := FStack[Cardinal(Longint(FCurrStackBase) + Longint(I) + 1)];
+      break;
+      end;
+    end;
 end;
 
 function TPSCustomDebugExec.GetProcVar(I: Cardinal): PIfVariant;

@@ -74,7 +74,7 @@ const
   btS64             = 17;
 {$ENDIF}
 
-{$IFNDEF PS_NOINT64}
+{$IFNDEF PS_NOUINT64}
   btu64             = 18;
 {$ENDIF}
 
@@ -331,7 +331,7 @@ type
 {$IFDEF FPC}
   IPointer = PtrUInt;
 {$ELSE}
-  {$IFDEF DELPHI2009UP}
+  {$IFDEF DELPHIXE2UP}
     IPointer = NativeUInt;
   {$ELSE}
     IPointer = Cardinal;
@@ -641,8 +641,6 @@ const
 function WideUpperCase(const S: WideString): WideString;
 function WideLowerCase(const S: WideString): WideString;
 {$ENDIF}
-
-
 
 implementation
 
@@ -1238,7 +1236,7 @@ var
           while p^<>#0 do
           begin
             if p^ in [#97..#122] then
-              Dec(Byte(p^), 32);
+              Dec(p^, 32);
             inc(p);
           end;
           if not CheckReserved(FLastUpToken, CurrTokenId) then
@@ -1745,6 +1743,3 @@ end;
 
 
 end.
-
-
-

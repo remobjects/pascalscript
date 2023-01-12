@@ -12655,13 +12655,16 @@ begin
     {$IFNDEF PS_NOUINT64}
     AddTypeCopyN('NativeUInt', 'UInt64');
     AddTypeCopyN('THandle', 'UInt64');
+    AddTypeCopyN('Pointer', 'UInt64');
     {$ELSE}
     {$IFNDEF PS_NOINT64}
     AddTypeCopyN('NativeUInt', 'Int64');
     AddTypeCopyN('THandle', 'Int64');
+    AddTypeCopyN('Pointer', 'Int64');
     {$ELSE}
     AddTypeCopyN('NativeUInt', 'LongWord');
     AddTypeCopyN('THandle', 'LongWord');
+    AddTypeCopyN('Pointer', 'LongWord');
     {$ENDIF PS_NOINT64}
     {$ENDIF PS_NOUINT64}
 
@@ -12674,6 +12677,7 @@ begin
   AddTypeCopyN('NativeInt', 'LongInt');
   AddTypeCopyN('NativeUInt', 'LongWord');
   AddTypeCopyN('THandle', 'LongWord');
+  AddTypeCopyN('Pointer', 'LongWord');
   {$ENDIF}
 
   AddType('Single', btSingle);
@@ -13367,13 +13371,34 @@ begin
       aType:=FindBaseType(btS32);  //Integer
     end;
   end;
-  {$IFNDEF PS_NOINT64}
+  with AddFunction('procedure FillChar;').Decl do
+  begin
+    with AddParam do
+    begin
+      OrgName:='s';
+      Mode:=pmInOut;
+    end;
+    with AddParam do
+    begin
+      OrgName:='Length';
+      aType:=FindBaseType(btS32);  //Integer
+    end;
+    with AddParam do
+    begin
+      OrgName:='Char';
+      aType:=FindBaseType(btS32);  //Integer
+    end;
+  end;
+  {$IF NOT Defined( PS_NOINT64 )}
   AddFunction('function Low: Int64;').Decl.AddParam.OrgName := 'X';
   AddFunction('function High: Int64;').Decl.AddParam.OrgName := 'X';
+  {$ELSEIF NOT Defined( PS_NOUINT64 )}
+  AddFunction('function Low: UInt64;').Decl.AddParam.OrgName := 'X';
+  AddFunction('function High: UInt64;').Decl.AddParam.OrgName := 'X';
   {$ELSE}
   AddFunction('function Low: Integer;').Decl.AddParam.OrgName := 'X';
   AddFunction('function High: Integer;').Decl.AddParam.OrgName := 'X';
-  {$ENDIF}
+  {$IFEND}
   with AddFunction('procedure Dec;').Decl do begin
     with AddParam do
     begin

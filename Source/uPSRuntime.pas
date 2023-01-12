@@ -9803,6 +9803,14 @@ begin
   end;
 end;
 
+function FillChar_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+var
+  arr: TPSVariantIFC;
+begin
+  Result:=True;
+  arr:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
+  FillChar( arr.Dta^, STack.GetInt(-2), STack.GetInt(-3) );
+end;
 
 function SetLength_(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
 var
@@ -10001,6 +10009,7 @@ begin
 
   RegisterFunctionName('Length',Length_,nil,nil);
   RegisterFunctionName('SetLength',SetLength_,nil,nil);
+  RegisterFunctionName('FillChar',FillChar_,nil,nil);
   RegisterFunctionName('Low',Low_,nil,nil);
   RegisterFunctionName('High',High_,nil,nil);
   RegisterFunctionName('Dec',Dec_,nil,nil);

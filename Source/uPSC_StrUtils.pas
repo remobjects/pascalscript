@@ -107,7 +107,9 @@ const
   s.AddDelphiFunction('function StuffString(const AText: string; AStart, ALength: Cardinal; const ASubText: string): string;');
   s.AddDelphiFunction('function RandomFrom(const AValues: array of string): string;');
   s.AddDelphiFunction('function IfThen(AValue: Boolean; const ATrue: string; AFalse: string{ = ''}): string;');
+  {$IFDEF UNICODE}
   s.AddDelphiFunction('function SplitString(const S, Delimiters: string): TStringDynArray;');
+  {$ENDIF UNICODE}
 
   {$IFDEF UNICODE}
   s.AddDelphiFunction('function LeftStr(const AText: string; const ACount: Integer): string;');

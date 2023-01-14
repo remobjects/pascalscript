@@ -1,6 +1,9 @@
 unit uPSR_SysUtils;
 {$I PascalScript.inc}
 interface
+
+{$WARN UNSAFE_CODE OFF}
+
 uses
   uPSRuntime;
 
@@ -35,7 +38,9 @@ begin
   s.RegisterDelphiFunction(@CompareText, 'CompareTextS', cdRegister );
   {$IFEND}
   s.RegisterDelphiFunction(@SameText, 'SameText', cdRegister );
+  {$IF CompilerVersion >= 28}
   s.RegisterDelphiFunction(@SameText, 'SameTextS', cdRegister );
+  {$IFEND}
 //  s.RegisterDelphiFunction(@AnsiUpperCase, 'AnsiUpperCase', cdRegister );
 //  s.RegisterDelphiFunction(@AnsiLowerCase, 'AnsiLowerCase', cdRegister );
   s.RegisterDelphiFunction(@AnsiCompareStr, 'AnsiCompareStr', cdRegister );

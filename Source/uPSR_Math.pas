@@ -1,6 +1,9 @@
 unit uPSR_Math;
 {$I PascalScript.inc}
 interface
+
+{$WARN UNSAFE_CODE OFF}
+
 uses
   uPSRuntime;
 
@@ -29,7 +32,9 @@ begin
   S.RegisterDelphiFunction( @DegToRad, 'DegToRad', cdRegister );
   S.RegisterDelphiFunction( @DegToGrad, 'DegToGrad', cdRegister );
   S.RegisterDelphiFunction( @DegToCycle, 'DegToCycle', cdRegister );
+  {$IF CompilerVersion >= 23}
   S.RegisterDelphiFunction( @DegNormalize, 'DegNormalize', cdRegister );
+  {$IFEND}
   S.RegisterDelphiFunction( @GradToRad, 'GradToRad', cdRegister );
   S.RegisterDelphiFunction( @GradToDeg, 'GradToDeg', cdRegister );
   S.RegisterDelphiFunction( @GradToCycle, 'GradToCycle', cdRegister );
@@ -96,7 +101,9 @@ begin
   S.RegisterDelphiFunction( @SameValue, 'SameValue', cdRegister );
   S.RegisterDelphiFunction( @IsZero, 'IsZero', cdRegister );
   S.RegisterDelphiFunction( @IfThen, 'IfThen', cdRegister );
+  {$IF CompilerVersion > 22}
   S.RegisterDelphiFunction( @FMod, 'FMod', cdRegister );
+  {$IFEND}
   S.RegisterDelphiFunction( @RandomRange, 'RandomRange', cdRegister );
   S.RegisterDelphiFunction( @RandomFrom, 'RandomFrom', cdRegister );
   S.RegisterDelphiFunction( @InRange, 'InRange', cdRegister );

@@ -9,7 +9,7 @@ code implementing the class wrapper is taken from Carlo Kok's conv utility
 }
 interface
  
-
+{$WARN UNSAFE_CODE OFF}
  
 uses
    SysUtils

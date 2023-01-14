@@ -9862,8 +9862,10 @@ begin
     btS64        : Stack.SetInt64(-1,Low(Int64));     //Int64: -9223372036854775808
 {$ENDIF}
 {$IFNDEF PS_NOINT64}
-    btU64        : Stack.SetUInt64(-1,Low(UInt64));     //UInt64: 0
-{$ENDIF}
+    {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
+    btU64        : Stack.SetUInt64(-1, UInt64( 0 ) );     //UInt64: 0
+   {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118
+{$ENDIF}   
     else Result:=false;
   end;
 end;
@@ -9888,7 +9890,11 @@ begin
     btS64        : Stack.SetInt64(-1,High(Int64));    //Int64: 9223372036854775807
 {$ENDIF}
 {$IFNDEF PS_NOINT64}
+    {$IF CompilerVersion >= 23}
     btU64        : Stack.SetUInt64(-1,High(UInt64));    //UInt64: 18446744073709551615
+    {$ELSE}
+    btU64        : Stack.SetUInt64(-1,UInt64( $FFFFFFFFFFFFFFFF ) );    //UInt64: 18446744073709551615
+    {$IFEND}
 {$ENDIF}
     else Result:=false;
   end;
@@ -9911,7 +9917,9 @@ begin
     btS64        : Stack.SetInt64(-1,Tbts64(arr.dta^)-1);
 {$ENDIF}
 {$IFNDEF PS_NOUINT64}
+    {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
     btU64        : Stack.SetUInt64(-1,Tbtu64(arr.dta^)-1);
+    {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118
 {$ENDIF}
     else Result:=false;
   end;
@@ -9934,7 +9942,9 @@ begin
     btS64        : Stack.SetInt64(-1,Tbts64(arr.dta^)+1);
 {$ENDIF}
 {$IFNDEF PS_NOUINT64}
+    {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
     btU64        : Stack.SetUInt64(-1,Tbtu64(arr.dta^)+1);
+    {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118
 {$ENDIF}
     else Result:=false;
   end;
@@ -10672,12 +10682,16 @@ begin
       begin
         if I <> ({$IFDEF VER90}-44{$ELSE}vmtTypeInfo{$ENDIF} div SizeOf(Pointer)) then
         begin // from GExperts code
+        {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
           if (IPointer(p^[I]) > IPointer(p)) and ((IPointer(p^[I]) - IPointer(p))
+        {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118          
             div
             //PointerSize < Ret.FEndOfVMT) then
             PointerSize < Cardinal(Ret.FEndOfVMT)) then
           begin
+          {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
             Ret.FEndOfVMT := (IPointer(p^[I]) - IPointer(p)) div SizeOf(Pointer);
+          {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118
           end;
         end;
       end;
@@ -12082,11 +12096,14 @@ var
   I: Longint;
   P: PClassItem;
 begin
-  for i:= FClassItems.Count -1 downto 0 do
-  begin
-    P := FClassItems[I];
-    Dispose(p);
-  end;
+  if ( FClassItems.Count > 0 ) then
+    begin
+    for i:= FClassItems.Count -1 downto 0 do
+    begin
+      P := FClassItems[I];
+      Dispose(p);
+    end;
+    end;
   FClassItems.Free;
   inherited Destroy;
 end;
@@ -12842,15 +12859,18 @@ var
 begin
   lName := FastUpperCase(Name);
   h := MakeHash(lName);
-  for i := FClasses.Count -1 downto 0 do
-  begin
-    p := FClasses[i];
-    if (p.FClassNameHash = h) and (p.FClassName = lName) then
+  if ( FClasses.Count > 0 ) then
     begin
-      Result := P;
-      exit;
+    for i := FClasses.Count -1 downto 0 do
+    begin
+      p := FClasses[i];
+      if (p.FClassNameHash = h) and (p.FClassName = lName) then
+      begin
+        Result := P;
+        exit;
+      end;
     end;
-  end;
+    end;
   Result := nil;
 end;
 
@@ -13006,8 +13026,11 @@ destructor TPSRuntimeAttributes.Destroy;
 var
   i: Longint;
 begin
-  for i := FAttributes.Count -1 downto 0 do
-    TPSRuntimeAttribute(FAttributes[i]).Free;
+  if ( FAttributes.Count > 0 ) then
+    begin
+    for i := FAttributes.Count -1 downto 0 do
+      TPSRuntimeAttribute(FAttributes[i]).Free;
+    end;
   FAttributes.Free;
   inherited Destroy;
 end;
@@ -13102,12 +13125,15 @@ var
   v: Pointer;
   i: Longint;
 begin
-  for i := Count -1 downto 0 do
-  begin
-    v := Data[i];
-    if TPSTypeRec(v^).BaseType in NeedFinalization then
-      FinalizeVariant(Pointer(IPointer(v)+PointerSize), TPSTypeRec(v^));
-  end;
+  if ( Count > 0 ) then
+    begin
+    for i := Count -1 downto 0 do
+    begin
+      v := Data[i];
+      if TPSTypeRec(v^).BaseType in NeedFinalization then
+        FinalizeVariant(Pointer(IPointer(v)+PointerSize), TPSTypeRec(v^));
+    end;
+    end;
   inherited Clear;
   FLength := 0;
   SetCapacity(0);
@@ -13126,12 +13152,15 @@ var
   v: Pointer;
   i: Longint;
 begin
-  for i := Count -1 downto 0 do
-  begin
-    v := Data[i];
-    if TPSTypeRec(v^).BaseType in NeedFinalization then
-    FinalizeVariant(Pointer(IPointer(v)+PointerSize), Pointer(v^));
-  end;
+  if ( Count > 0 ) then
+    begin
+    for i := Count -1 downto 0 do
+    begin
+      v := Data[i];
+      if TPSTypeRec(v^).BaseType in NeedFinalization then
+      FinalizeVariant(Pointer(IPointer(v)+PointerSize), Pointer(v^));
+    end;
+    end;
   FreeMem(FDataPtr, FCapacity);
   inherited Destroy;
 end;

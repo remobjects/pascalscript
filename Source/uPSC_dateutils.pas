@@ -281,11 +281,13 @@ begin
   s.AddDelphiFunction('function TryModifiedJulianDateToDateTime(const AValue: Double; out ADateTime: TDateTime): Boolean;');
   s.AddDelphiFunction('function DateTimeToUnix(const AValue: TDateTime; AInputIsUTC: Boolean{ = True}): Int64;');
   s.AddDelphiFunction('function UnixToDateTime(const AValue: Int64; AReturnUTC: Boolean{ = True}): TDateTime;');
+  {$IF CompilerVersion > 23}
   s.AddDelphiFunction('function DateTimeToMilliseconds(const ADateTime: TDateTime): Int64;');
   s.AddDelphiFunction('function TimeToMilliseconds(const ATime: TTime): Integer;');
   s.AddDelphiFunction('function ISO8601ToDate(const AISODate: string; AReturnUTC: Boolean{ = True}): TDateTime;');
   s.AddDelphiFunction('function TryISO8601ToDate(const AISODate: string; out Value: TDateTime; AReturnUTC: Boolean{ = True}): Boolean;');
-  s.AddDelphiFunction('function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean{ = True}): string;');
+  s.AddDelphiFunction('function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean{ = True}): string;');  
+  {$IFEND}
 
   {$IF CompilerVersion >= 28}
   S.AddTypeS('TLocalTimeType', '(lttStandard, lttDaylight, lttAmbiguous, lttInvalid)');

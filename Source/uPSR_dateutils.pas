@@ -1,10 +1,11 @@
 unit uPSR_DateUtils;
 {$I PascalScript.inc}
 interface
+
+{$WARN UNSAFE_CODE OFF}
+
 uses
   SysUtils, uPSRuntime;
-
-
 
 procedure RegisterDateTimeLibrary_R(S: TPSExec);
 
@@ -268,11 +269,14 @@ begin
   S.RegisterDelphiFunction(@TryModifiedJulianDateToDateTime, 'TryModifiedJulianDateToDateTime', cdRegister);
   S.RegisterDelphiFunction(@DateTimeToUnix, 'DateTimeToUnix', cdRegister);
   S.RegisterDelphiFunction(@UnixToDateTime, 'UnixToDateTime', cdRegister);
+
+  {$IF CompilerVersion > 23}
   S.RegisterDelphiFunction(@DateTimeToMilliseconds, 'DateTimeToMilliseconds', cdRegister);
   S.RegisterDelphiFunction(@TimeToMilliseconds, 'TimeToMilliseconds', cdRegister);
   S.RegisterDelphiFunction(@ISO8601ToDate, 'ISO8601ToDate', cdRegister);
   S.RegisterDelphiFunction(@TryISO8601ToDate, 'TryISO8601ToDate', cdRegister);
-  S.RegisterDelphiFunction(@DateToISO8601, 'DateToISO8601', cdRegister);
+  S.RegisterDelphiFunction(@DateToISO8601, 'DateToISO8601', cdRegister);  
+  {$IFEND}
 end;
 
 end.

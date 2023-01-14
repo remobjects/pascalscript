@@ -2,6 +2,9 @@
 Unit uPSR_menus;
 {$I PascalScript.inc}
 Interface
+
+{$WARN UNSAFE_CODE OFF}
+
 Uses uPSRuntime;
 
 procedure RIRegister_Menus_Routines(S: TPSExec);

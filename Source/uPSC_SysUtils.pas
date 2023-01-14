@@ -2,6 +2,8 @@ unit uPSC_SysUtils;
 
 interface
 
+{$WARN SYMBOL_PLATFORM OFF}
+
 uses
   uPSCompiler, uPSUtils;
 
@@ -13,8 +15,6 @@ uses
   SysUtils;
 
 procedure RegisterSysUtilsLibrary_C(S: TPSPascalCompiler);
-var
-  Str : string;
 begin
   {$IF CompilerVersion >= 28}
   S.AddConstant('INVALID_HANDLE_VALUE', INVALID_HANDLE_VALUE);
@@ -42,7 +42,7 @@ begin
   S.AddConstant('faSymLink', faSymLink);
   S.AddConstant('faCompressed', faCompressed);
   S.AddConstant('faEncrypted', faEncrypted);
-  S.AddConstant('faVirtual', faVirtual);
+  S.AddConstant('faVirtual', faVirtual );
   S.AddConstant('faAnyFile', faAnyFile);
 
   S.AddConstant('DefaultTrueBoolStr', DefaultTrueBoolStr);
@@ -86,7 +86,9 @@ begin
   s.AddDelphiFunction('function CompareTextS(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer;' );
   {$IFEND}
   s.AddDelphiFunction('function SameText(const S1, S2: string): Boolean;' );
+  {$IF CompilerVersion >= 28}
   s.AddDelphiFunction('function SameTextS(const S1, S2: string; LocaleOptions: TLocaleOptions): Boolean;' );
+  {$IFEND}
 //  s.AddDelphiFunction('function AnsiUpperCase(const S: string): string;' );
 //  s.AddDelphiFunction('function AnsiLowerCase(const S: string): string;' );
   s.AddDelphiFunction('function AnsiCompareStr(const S1, S2: string): Integer;' );

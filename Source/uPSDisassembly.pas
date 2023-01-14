@@ -4,6 +4,10 @@ unit uPSDisassembly;
 {$I PascalScript.inc}
 
 interface
+
+{$WARN UNSAFE_CODE OFF}
+{$WARN UNSAFE_CAST OFF}
+
 uses
   uPSRuntime, uPSUtils, sysutils;
 

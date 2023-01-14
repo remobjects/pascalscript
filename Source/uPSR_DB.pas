@@ -1,7 +1,11 @@
-{runtime DB support}
 Unit uPSR_DB;
+
 {$I PascalScript.inc}
+
 Interface
+
+{$WARN UNSAFE_CODE OFF}
+
 Uses uPSRuntime, uPSUtils, SysUtils;
 
 procedure RIRegisterTDATASET(Cl: TPSRuntimeClassImporter);

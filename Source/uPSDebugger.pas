@@ -258,7 +258,6 @@ end;
 function TPSCustomDebugExec.GetGlobalVar(Name : AnsiString): PIfVariant;
 var
   i: integer;
-  n: String;
 begin
   result := nil;
   Name := FastUppercase( Name );
@@ -280,7 +279,6 @@ end;
 function TPSCustomDebugExec.GetProcParam(Name : AnsiString): PIfVariant;
 var
   i: integer;
-  n: String;
 begin
   result := nil;
   Name := FastUppercase( Name );
@@ -302,7 +300,6 @@ end;
 function TPSCustomDebugExec.GetProcVar(Name : AnsiString): PIfVariant;
 var
   i: integer;
-  n: String;
 begin
   result := nil;
   Name := FastUppercase( Name );

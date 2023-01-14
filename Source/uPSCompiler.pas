@@ -1162,9 +1162,13 @@ type
 
 //    function AddConstant(const Name: tbtString; const Value ): TPSConstant; overload;
     function AddConstant(const Name: tbtString; const Value: Integer): TPSConstant; overload;
+    {$IF CompilerVersion > 23}
     function AddConstant(const Name: tbtString; const Value: Cardinal): TPSConstant; overload;
+    {$IFEND}
     {$IFNDEF PS_NOINT64}
+    {$IF CompilerVersion > 23}
     function AddConstant(const Name: tbtString; const Value: Int64): TPSConstant; overload;
+    {$IFEND}
     {$ENDIF PS_NOINT64}
     {$IFNDEF PS_NOUINT64}
     function AddConstant(const Name: tbtString; const Value: UInt64): TPSConstant; overload;
@@ -1174,11 +1178,15 @@ type
     {$IFNDEF PS_NOWIDESTRING}
     function AddConstant(const Name: tbtString; const Value: WideChar): TPSConstant; overload;
     function AddConstant(const Name: tbtString; const Value: tbtwidestring): TPSConstant; overload;
+    {$IF CompilerVersion >= 23}
     function AddConstant(const Name: tbtString; const Value: tbtunicodestring): TPSConstant; overload;
+    {$IFEND}
     {$ENDIF PS_NOWIDESTRING}
     function AddConstant(const Name: tbtString; const Value: Double): TPSConstant; overload;
     function AddConstant(const Name: tbtString; const Value: Extended): TPSConstant; overload;
+    {$IF CompilerVersion > 23}
     function AddConstant(const Name: tbtString; const Value: TDateTime): TPSConstant; overload;
+    {$IFEND}
 
     function AddVariable(const Name: tbtString; FType: TPSType): TPSVar; overload;
 
@@ -1921,7 +1929,7 @@ begin
   Move(Data, BlockInfo.Proc.FData[Length(BlockInfo.Proc.FData) - Len + 1], Len);
 end;
 
-procedure BlockWriteLong(BlockInfo: TPSBlockInfo; l: Cardinal);
+procedure BlockWriteLong(BlockInfo: TPSBlockInfo; l: {$IF CompilerVersion < 23}Integer{$ELSE}Cardinal{$IFEND});
 begin
   BlockWriteData(BlockInfo, l, 4);
 end;
@@ -7633,34 +7641,37 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       bi := BlockInfo;
       while bi <> nil do
       begin
-        for l := bi.WithList.Count -1 downto 0 do
-        begin
-          TWith := TPSValueAllocatedStackVar.Create;
-          TPSValueAllocatedStackVar(TWith).LocalVarNo := TPSValueAllocatedStackVar(TPSValueReplace(bi.WithList[l]).NewValue).LocalVarNo;
-          Temp := TWith;
-          VNo := TPSValueAllocatedStackVar(Temp).LocalVarNo;
-          lOldRecCount := TPSValueVar(TWith).GetRecCount;
-          vt := ivtVariable;
-          if Temp = TWith then CheckFurther(TWith, True);
-          if Temp = TWith then CheckClass(TWith, vt, vno, True);
-          if Temp = TWith then  CheckExtClass(TWith, vt, vno, True);
-          if (Temp <> TWith) or (Cardinal(lOldRecCount) <> TPSValueVar(TWith).GetRecCount) then
+        if ( bi.WithList.Count > 0 ) then
           begin
-            repeat
-              Temp := TWith;
-              if TWith <> nil then CheckFurther(TWith, False);
-              if TWith <> nil then CheckClass(TWith, vt, vno, False);
-              if TWith <> nil then  CheckExtClass(TWith, vt, vno, False);
-{$IFNDEF PS_NOIDISPATCH}if TWith <> nil then CheckIntf(TWith, vt, vno, False);{$ENDIF}
-              if TWith <> nil then CheckProcCall(TWith);
-              if TWith <> nil then CheckClassArrayProperty(TWith, vt, vno);
-              vno := InvalidVal;
-            until (TWith = nil) or (Temp = TWith);
-            Result := TWith;
-            Exit;
+          for l := bi.WithList.Count -1 downto 0 do
+          begin
+            TWith := TPSValueAllocatedStackVar.Create;
+            TPSValueAllocatedStackVar(TWith).LocalVarNo := TPSValueAllocatedStackVar(TPSValueReplace(bi.WithList[l]).NewValue).LocalVarNo;
+            Temp := TWith;
+            VNo := TPSValueAllocatedStackVar(Temp).LocalVarNo;
+            lOldRecCount := TPSValueVar(TWith).GetRecCount;
+            vt := ivtVariable;
+            if Temp = TWith then CheckFurther(TWith, True);
+            if Temp = TWith then CheckClass(TWith, vt, vno, True);
+            if Temp = TWith then  CheckExtClass(TWith, vt, vno, True);
+            if (Temp <> TWith) or (Cardinal(lOldRecCount) <> TPSValueVar(TWith).GetRecCount) then
+            begin
+              repeat
+                Temp := TWith;
+                if TWith <> nil then CheckFurther(TWith, False);
+                if TWith <> nil then CheckClass(TWith, vt, vno, False);
+                if TWith <> nil then  CheckExtClass(TWith, vt, vno, False);
+  {$IFNDEF PS_NOIDISPATCH}if TWith <> nil then CheckIntf(TWith, vt, vno, False);{$ENDIF}
+                if TWith <> nil then CheckProcCall(TWith);
+                if TWith <> nil then CheckClassArrayProperty(TWith, vt, vno);
+                vno := InvalidVal;
+              until (TWith = nil) or (Temp = TWith);
+              Result := TWith;
+              Exit;
+            end;
+            TWith.Free;
           end;
-          TWith.Free;
-        end;
+          end;
         bi := bi.FOwner;
       end;
     end;
@@ -7735,72 +7746,77 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
     end;
 
     h := MakeHash(s);
-
-    for l := 0 to BlockInfo.Proc.ProcVars.Count - 1 do
-    begin
-      if (PIFPSProcVar(BlockInfo.Proc.ProcVars[l]).NameHash = h) and
-        (PIFPSProcVar(BlockInfo.Proc.ProcVars[l]).Name = s) then
+    if ( BlockInfo.Proc.ProcVars.Count > 0 ) then
       begin
-        PIFPSProcVar(BlockInfo.Proc.ProcVars[l]).Use;
-        vno := l;
-        vt := ivtVariable;
-        if @FOnUseVariable <> nil then
-          FOnUseVariable(Self, vt, vno, BlockInfo.ProcNo, FParser.CurrTokenPos, '');
-        Result := TPSValueLocalVar.Create;
-        with TPSValueLocalVar(Result) do
+      for l := 0 to BlockInfo.Proc.ProcVars.Count - 1 do
+      begin
+        if (PIFPSProcVar(BlockInfo.Proc.ProcVars[l]).NameHash = h) and
+          (PIFPSProcVar(BlockInfo.Proc.ProcVars[l]).Name = s) then
         begin
-          LocalVarNo := l;
-          SetParserPos(FParser);
-        end;
-        FParser.Next;
-        repeat
-          Temp := Result;
-          if Result <> nil then CheckFurther(Result, False);
-          if Result <> nil then CheckClass(Result, vt, vno, False);
-          if Result <> nil then  CheckExtClass(Result, vt, vno, False);
-{$IFNDEF PS_NOIDISPATCH}if Result <> nil then CheckIntf(Result, vt, vno, False);{$ENDIF}
-          if Result <> nil then CheckProcCall(Result);
-          if Result <> nil then CheckClassArrayProperty(Result, vt, vno);
-          vno := InvalidVal;
-        until (Result = nil) or (Temp = Result);
+          PIFPSProcVar(BlockInfo.Proc.ProcVars[l]).Use;
+          vno := l;
+          vt := ivtVariable;
+          if @FOnUseVariable <> nil then
+            FOnUseVariable(Self, vt, vno, BlockInfo.ProcNo, FParser.CurrTokenPos, '');
+          Result := TPSValueLocalVar.Create;
+          with TPSValueLocalVar(Result) do
+          begin
+            LocalVarNo := l;
+            SetParserPos(FParser);
+          end;
+          FParser.Next;
+          repeat
+            Temp := Result;
+            if Result <> nil then CheckFurther(Result, False);
+            if Result <> nil then CheckClass(Result, vt, vno, False);
+            if Result <> nil then  CheckExtClass(Result, vt, vno, False);
+  {$IFNDEF PS_NOIDISPATCH}if Result <> nil then CheckIntf(Result, vt, vno, False);{$ENDIF}
+            if Result <> nil then CheckProcCall(Result);
+            if Result <> nil then CheckClassArrayProperty(Result, vt, vno);
+            vno := InvalidVal;
+          until (Result = nil) or (Temp = Result);
 
-        exit;
+          exit;
+        end;
       end;
     end;
 
-    for l := 0 to FVars.Count - 1 do
-    begin
-      if (TPSVar(FVars[l]).NameHash = h) and
-        (TPSVar(FVars[l]).Name = s)    {$IFDEF PS_USESSUPPORT} and
-        (IsInLocalUnitList(TPSVar(FVars[l]).FDeclareUnit)){$ENDIF} then
+    if ( FVars.Count > 0 ) then
       begin
-        TPSVar(FVars[l]).Use;
-        Result := TPSValueGlobalVar.Create;
-        with TPSValueGlobalVar(Result) do
+      for l := 0 to FVars.Count - 1 do
+      begin
+        if (TPSVar(FVars[l]).NameHash = h) and
+          (TPSVar(FVars[l]).Name = s)    {$IFDEF PS_USESSUPPORT} and
+          (IsInLocalUnitList(TPSVar(FVars[l]).FDeclareUnit)){$ENDIF} then
         begin
-          SetParserPos(FParser);
-          GlobalVarNo := l;
+          TPSVar(FVars[l]).Use;
+          Result := TPSValueGlobalVar.Create;
+          with TPSValueGlobalVar(Result) do
+          begin
+            SetParserPos(FParser);
+            GlobalVarNo := l;
 
+          end;
+          vt := ivtGlobal;
+          vno := l;
+          if @FOnUseVariable <> nil then
+            FOnUseVariable(Self, vt, vno, BlockInfo.ProcNo, FParser.CurrTokenPos, '');
+          FParser.Next;
+          repeat
+            Temp := Result;
+            if Result <> nil then CheckNotificationVariant(Result);
+            if Result <> nil then CheckFurther(Result, False);
+            if Result <> nil then CheckClass(Result, vt, vno, False);
+            if Result <> nil then  CheckExtClass(Result, vt, vno, False);
+  {$IFNDEF PS_NOIDISPATCH}if Result <> nil then CheckIntf(Result, vt, vno, False);{$ENDIF}
+            if Result <> nil then CheckProcCall(Result);
+            if Result <> nil then CheckClassArrayProperty(Result, vt, vno);
+            vno := InvalidVal;
+          until (Result = nil) or (Temp = Result);
+          exit;
         end;
-        vt := ivtGlobal;
-        vno := l;
-        if @FOnUseVariable <> nil then
-          FOnUseVariable(Self, vt, vno, BlockInfo.ProcNo, FParser.CurrTokenPos, '');
-        FParser.Next;
-        repeat
-          Temp := Result;
-          if Result <> nil then CheckNotificationVariant(Result);
-          if Result <> nil then CheckFurther(Result, False);
-          if Result <> nil then CheckClass(Result, vt, vno, False);
-          if Result <> nil then  CheckExtClass(Result, vt, vno, False);
-{$IFNDEF PS_NOIDISPATCH}if Result <> nil then CheckIntf(Result, vt, vno, False);{$ENDIF}
-          if Result <> nil then CheckProcCall(Result);
-          if Result <> nil then CheckClassArrayProperty(Result, vt, vno);
-          vno := InvalidVal;
-        until (Result = nil) or (Temp = Result);
-        exit;
       end;
-    end;
+      end;
     Temp1 := FindType(FParser.GetToken);
     if Temp1 <> nil then
     begin
@@ -10065,24 +10081,30 @@ begin
     {$else}
     Longint((@BlockInfo.Proc.Data[EPos + 1])^) := Length(BlockInfo.Proc.Data) - RPos;
     {$endif}
-    for i := 0 to FBreakOffsets.Count -1 do
-    begin
-      EPos := IPointer(FBreakOffsets[I]);
-      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-      unaligned(Longint((@BlockInfo.Proc.Data[EPos - 3])^)) := Length(BlockInfo.Proc.Data) - Longint(EPos);
-      {$else}
-      Longint((@BlockInfo.Proc.Data[EPos - 3])^) := Length(BlockInfo.Proc.Data) - Longint(EPos);
-      {$endif}
-    end;
-    for i := 0 to FContinueOffsets.Count -1 do
-    begin
-      EPos := IPointer(FContinueOffsets[I]);
-      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-      unaligned(Longint((@BlockInfo.Proc.Data[EPos - 3])^)) := Longint(FPos) - Longint(EPos);
-      {$else}
-      Longint((@BlockInfo.Proc.Data[EPos - 3])^) := Longint(FPos) - Longint(EPos);
-      {$endif}
-    end;
+    if ( FBreakOffsets.Count > 0 ) then
+      begin
+      for i := 0 to FBreakOffsets.Count -1 do
+      begin
+        EPos := IPointer(FBreakOffsets[I]);
+        {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        unaligned(Longint((@BlockInfo.Proc.Data[EPos - 3])^)) := Length(BlockInfo.Proc.Data) - Longint(EPos);
+        {$else}
+        Longint((@BlockInfo.Proc.Data[EPos - 3])^) := Length(BlockInfo.Proc.Data) - Longint(EPos);
+        {$endif}
+      end;
+      end;
+    if ( FContinueOffsets.Count > 0 ) then
+      begin
+      for i := 0 to FContinueOffsets.Count -1 do
+      begin
+        EPos := IPointer(FContinueOffsets[I]);
+        {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        unaligned(Longint((@BlockInfo.Proc.Data[EPos - 3])^)) := Longint(FPos) - Longint(EPos);
+        {$else}
+        Longint((@BlockInfo.Proc.Data[EPos - 3])^) := Longint(FPos) - Longint(EPos);
+        {$endif}
+      end;
+      end;
     FBreakOffsets.Free;
     FContinueOffsets.Free;
     FContinueOffsets := OldCO;
@@ -11441,61 +11463,78 @@ var
     FGlobalBlock.Free;
     FGlobalBlock := nil;
 
-    for I := 0 to FRegProcs.Count - 1 do
-      TObject(FRegProcs[I]).Free;
+    if ( FRegProcs.Count > 0  ) then
+      begin
+      for I := 0 to FRegProcs.Count - 1 do
+        TObject(FRegProcs[I]).Free;
+      end;
     FRegProcs.Free;
-    for i := 0 to FConstants.Count -1 do
-    begin
-      TPSConstant(FConstants[I]).Free;
-    end;
+    if ( FConstants.Count > 0  ) then
+      begin
+      for i := 0 to FConstants.Count -1 do
+        TPSConstant(FConstants[I]).Free;
+      end;
     Fconstants.Free;
-    for I := 0 to FVars.Count - 1 do
-    begin
-      TPSVar(FVars[I]).Free;
-    end;
+    if ( FVars.Count > 0  ) then
+      begin
+      for I := 0 to FVars.Count - 1 do
+        TPSVar(FVars[I]).Free;
+      end;
     FVars.Free;
     FVars := nil;
-    for I := 0 to FProcs.Count - 1 do
-      TPSProcedure(FProcs[I]).Free;
+    if ( FProcs.Count > 0  ) then
+      begin
+      for I := 0 to FProcs.Count - 1 do
+        TPSProcedure(FProcs[I]).Free;
+      end;
     FProcs.Free;
     FProcs := nil;
     //reverse free types: a custom type's attribute value type may point to a base type
-    for I := FTypes.Count - 1 downto 0 do
-    begin
-      PT := FTypes[I];
-      pt.Free;
-    end;
+    if ( FTypes.Count > 0  ) then
+      begin
+      for I := FTypes.Count - 1 downto 0 do
+        begin
+        PT := FTypes[I];
+        pt.Free;
+        end;
+      end;
     FTypes.Free;
 
 {$IFNDEF PS_NOINTERFACES}
-    for i := FInterfaces.Count -1 downto 0 do
-      TPSInterface(FInterfaces[i]).Free;
+    if ( FInterfaces.Count > 0  ) then
+      begin
+      for i := FInterfaces.Count -1 downto 0 do
+        TPSInterface(FInterfaces[i]).Free;
+      end;
     FInterfaces.Free;
 {$ENDIF}
-
-    for i := FClasses.Count -1 downto 0 do
-    begin
-      TPSCompileTimeClass(FClasses[I]).Free;
-    end;
+    if ( FClasses.Count > 0  ) then
+      begin
+      for i := FClasses.Count -1 downto 0 do
+        TPSCompileTimeClass(FClasses[I]).Free;
+      end;
     FClasses.Free;
-    for i := FAttributeTypes.Count -1 downto 0 do
-    begin
-      TPSAttributeType(FAttributeTypes[i]).Free;
-    end;
+    if ( FAttributeTypes.Count > 0  ) then
+      begin
+      for i := FAttributeTypes.Count -1 downto 0 do
+        TPSAttributeType(FAttributeTypes[i]).Free;
+      end;
     FAttributeTypes.Free;
     FAttributeTypes := nil;
 
     {$IFDEF PS_USESSUPPORT}
-    for I := 0 to FUnitInits.Count - 1 do        //nvds
-    begin                                        //nvds
-      TPSBlockInfo(FUnitInits[I]).free;          //nvds
-    end;                                         //nvds
+    if ( FUnitInits.Count > 0  ) then
+      begin
+      for I := 0 to FUnitInits.Count - 1 do        //nvds
+        TPSBlockInfo(FUnitInits[I]).free;          //nvds
+      end;                                         //nvds
     FUnitInits.Free;                             //nvds
     FUnitInits := nil;                           //
-    for I := 0 to FUnitFinits.Count - 1 do       //nvds
-    begin                                        //nvds
-      TPSBlockInfo(FUnitFinits[I]).free;         //nvds
-    end;                                         //nvds
+    if ( FUnitFinits.Count > 0  ) then
+      begin
+      for I := 0 to FUnitFinits.Count - 1 do       //nvds
+        TPSBlockInfo(FUnitFinits[I]).free;         //nvds
+      end;                                         //nvds
     FUnitFinits.Free;                            //
     FUnitFinits := nil;                          //
 
@@ -11827,17 +11866,23 @@ var
       end;
     begin
       ProcData := ''; Calls := 1;
-      for l := 0 to FUnitInits.Count-1 do
-        if (FUnitInits[l] <> nil) and
-           (TPSBlockInfo(FUnitInits[l]).Proc.Data<>'') then
-          WriteProc(TPSBlockInfo(FUnitInits[l]).FProcNo);
+      if ( FUnitInits.Count > 0 ) then
+        begin
+        for l := 0 to FUnitInits.Count-1 do
+          if (FUnitInits[l] <> nil) and
+             (TPSBlockInfo(FUnitInits[l]).Proc.Data<>'') then
+            WriteProc(TPSBlockInfo(FUnitInits[l]).FProcNo);
+        end;
 
       WriteProc(FGlobalBlock.FProcNo);
 
-      for l := FUnitFinits.Count-1 downto 0 do
-        if (FUnitFinits[l] <> nil) and
-           (TPSBlockInfo(FUnitFinits[l]).Proc.Data<>'') then
-          WriteProc(TPSBlockInfo(FUnitFinits[l]).FProcNo);
+      if ( FUnitFinits.Count > 0 ) then
+        begin
+        for l := FUnitFinits.Count-1 downto 0 do
+          if (FUnitFinits[l] <> nil) and
+             (TPSBlockInfo(FUnitFinits[l]).Proc.Data<>'') then
+            WriteProc(TPSBlockInfo(FUnitFinits[l]).FProcNo);
+        end;
 
       if Calls = 1 then begin
         Result := FGlobalBlock.FProcNo;
@@ -12691,7 +12736,17 @@ begin
   AddType('Double', btDouble);
   AddType('Extended', btExtended);
   AddType('Currency', btCurrency);
-  AddType({$IFDEF PS_PANSICHAR}'PAnsiChar'{$ELSE}'PChar'{$ENDIF}, btPChar);
+
+  {$IFDEF PS_PANSICHAR}
+  AddType('PAnsiChar', btPChar);
+  AddTypeCopyN('PChar', 'PAnsiChar');
+  {$ELSE}
+  AddType('PChar', btPChar);
+  AddTypeCopyN('PAnsiChar', 'PChar');
+  {$ENDIF}
+
+  AddTypeCopyN('Pointer', 'LongWord');
+
   AddType('Variant', btVariant);
   AddType('!NotificationVariant', btNotificationVariant);
   for i := FTypes.Count -1 downto 0 do AT2UT(FTypes[i]);
@@ -13679,8 +13734,6 @@ end;
 
 function TPSPascalCompiler.AddConstantN(const Name,
   FType: tbtString): TPSConstant;
-var
-  cx : TPSType;
 begin
   Result := AddConstant(Name, FindType(FType));
 end;
@@ -13697,18 +13750,22 @@ begin
   result.SetInt( Value );
 end;
 
+{$IF CompilerVersion > 23}
 function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Cardinal): TPSConstant;
 begin
   result := AddConstant( Name, FindType( 'Cardinal' ) ); // LONGWORD
   result.SetUInt( Value );
 end;
+{$IFEND}
 
 {$IFNDEF PS_NOINT64}
+{$IF CompilerVersion > 23}
 function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Int64): TPSConstant;
 begin
   result := AddConstant( Name, FindType( 'Int64' ) ); // INT64
   result.SetInt64( Value );
 end;
+{$IFEND}
 {$ENDIF PS_NOINT64}
 
 {$IFNDEF PS_NOUINT64}
@@ -13744,11 +13801,13 @@ begin
   result.SetWideString( Value );
 end;
 
+{$IF CompilerVersion >= 23}
 function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: tbtunicodestring): TPSConstant;
 begin
   result := AddConstant( Name, FindType( 'UnicodeString' ) ); // UNICODESTRING
   result.SetUnicodeString( Value );
 end;
+{$IFEND}
 {$ENDIF PS_NOWIDESTRING}
 
 function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: Double): TPSConstant;
@@ -13763,11 +13822,13 @@ begin
   result.SetExtended( Value );
 end;
 
+{$IF CompilerVersion > 23}
 function TPSPascalCompiler.AddConstant(const Name: tbtString; const Value: TDateTime): TPSConstant;
 begin
   result := AddConstant( Name, FindType( 'Double' ) ); // DOUBLE
   result.SetExtended( Value );
 end;
+{$IFEND} // RangeCheck might cause Internal-Error C1118
 
 function TPSPascalCompiler.AddTypeCopy(const Name: tbtString;
   TypeNo: TPSType): TPSType;
@@ -13976,7 +14037,6 @@ var
   DOrgName: tbtString;
   FT: TPMFuncType;
   i: Longint;
-
 begin
   pDecl := TPSParametersDecl.Create;
 {$IFNDEF DELPHI_TOKYO_UP}
@@ -14112,15 +14172,18 @@ var
 begin
   cl := FastUpperCase(aClass);
   H := MakeHash(Cl);
-  for i :=0 to FClasses.Count -1 do
-  begin
-    x := FClasses[I];
-    if (X.FClassNameHash = H) and (X.FClassName = Cl) then
+  if ( FClasses.Count > 0 ) then
     begin
-      Result := X;
-      Exit;
+    for i :=0 to FClasses.Count -1 do
+    begin
+      x := FClasses[I];
+      if (X.FClassNameHash = H) and (X.FClassName = Cl) then
+      begin
+        Result := X;
+        Exit;
+      end;
     end;
-  end;
+    end;
   Result := nil;
 end;
 
@@ -14348,8 +14411,11 @@ var
   i: Longint;
 begin
   FDecl.Free;
-  for i := FProcVars.Count -1 downto 0 do
-    TPSProcVar(FProcVars[I]).Free;
+  if ( FProcVars.Count > 0 ) then
+    begin
+    for i := FProcVars.Count -1 downto 0 do
+      TPSProcVar(FProcVars[I]).Free;
+    end;
   FProcVars.Free;
   FGotos.Free;
   FLabels.Free;
@@ -14457,7 +14523,9 @@ begin
       bts64: FValue.ts64 := Val;
       {$ENDIF}
       {$IFNDEF PS_NOUINT64}
+      {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
       btu64: FValue.tu64 := Val;
+      {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118      
       {$ENDIF}
     else
       raise EPSCompilerException.Create(RPS_ConstantValueMismatch);
@@ -14481,7 +14549,9 @@ begin
       btExtended: FValue.textended := Val;
       btCurrency: FValue.tcurrency := Val;
       bts64: FValue.ts64 := Val;
+      {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
       btu64: FValue.tu64 := Val;
+      {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118
     else
       raise EPSCompilerException.Create(RPS_ConstantValueMismatch);
     end;
@@ -14505,7 +14575,9 @@ begin
       btExtended: FValue.textended := Val;
       btCurrency: FValue.tcurrency := Val;
       bts64: FValue.ts64 := Val;
+      {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
       btu64: FValue.tu64 := Val;
+      {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118
     else
       raise EPSCompilerException.Create(RPS_ConstantValueMismatch);
     end;
@@ -14575,7 +14647,9 @@ begin
       bts64: FValue.ts64 := Val;
       {$ENDIF}
       {$IFNDEF PS_NOINT64}
+      {$IF CompilerVersion < 23}{$RANGECHECKS OFF}{$IFEND} // RangeCheck might cause Internal-Error C1118
       btu64: FValue.tu64 := Val;
+      {$IF CompilerVersion < 23}{$RANGECHECKS ON}{$IFEND} // RangeCheck might cause Internal-Error C1118
       {$ENDIF}
     else
       raise EPSCompilerException.Create(RPS_ConstantValueMismatch);
@@ -14866,10 +14940,11 @@ destructor TPSValueVar.Destroy;
 var
   i: Longint;
 begin
-  for i := 0 to FRecItems.Count -1 do
-  begin
-    TPSSubItem(FRecItems[I]).Free;
-  end;
+  if ( FRecItems.Count > 0 ) then
+    begin
+    for i := 0 to FRecItems.Count -1 do
+      TPSSubItem(FRecItems[I]).Free;
+    end;
   FRecItems.Free;
   inherited Destroy;
 end;
@@ -15182,8 +15257,11 @@ destructor TPSCompileTimeClass.Destroy;
 var
   I: Longint;
 begin
-  for i := FClassItems.Count -1 downto 0 do
-    TPSDelphiClassItem(FClassItems[I]).Free;
+  if ( FClassItems.Count > 0 ) then
+    begin
+    for i := FClassItems.Count -1 downto 0 do
+      TPSDelphiClassItem(FClassItems[I]).Free;
+    end;
   FClassItems.Free;
   inherited Destroy;
 end;
@@ -15591,11 +15669,14 @@ procedure TPSBlockInfo.Clear;
 var
   i: Longint;
 begin
-  for i := WithList.Count -1 downto 0 do
-  begin
-    TPSValue(WithList[i]).Free;
-    WithList.Delete(i);
-  end;
+  if ( WithList.Count > 0  ) then
+    begin
+    for i := WithList.Count -1 downto 0 do
+    begin
+      TPSValue(WithList[i]).Free;
+      WithList.Delete(i);
+    end;
+    end;
 end;
 
 constructor TPSBlockInfo.Create(Owner: TPSBlockInfo);
@@ -15784,10 +15865,13 @@ destructor TPSAttributes.Destroy;
 var
   i: Longint;
 begin
-  for i := FItems.Count -1 downto 0 do
-  begin
-    TPSAttribute(FItems[i]).Free;
-  end;
+  if ( FItems.Count > 0 ) then
+    begin
+    for i := FItems.Count -1 downto 0 do
+    begin
+      TPSAttribute(FItems[i]).Free;
+    end;
+    end;
   FItems.Free;
   inherited Destroy;
 end;
@@ -15797,21 +15881,23 @@ var
   newitem, item: TPSAttribute;
   i: Longint;
 begin
-  for i := ATtr.FItems.Count -1 downto 0 do
-  begin
-    Item := Attr.Fitems[i];
-    if Move then
+  if ( ATtr.FItems.Count > 0 ) then
     begin
-      FItems.Add(Item);
-      Attr.FItems.Delete(i);
-    end else
+    for i := ATtr.FItems.Count -1 downto 0 do
     begin
-      newitem := TPSAttribute.Create(Item.FAttribType );
-      newitem.Assign(item);
-      FItems.Add(NewItem);
+      Item := Attr.Fitems[i];
+      if Move then
+      begin
+        FItems.Add(Item);
+        Attr.FItems.Delete(i);
+      end else
+      begin
+        newitem := TPSAttribute.Create(Item.FAttribType );
+        newitem.Assign(item);
+        FItems.Add(NewItem);
+      end;
     end;
-  end;
-
+    end;
 end;
 
 
@@ -15846,24 +15932,30 @@ var
   i: Longint;
   np, orgp: TPSParameterDecl;
 begin
-  for i := FParams.Count -1 downto 0 do
-  begin
-    TPSParameterDecl(Fparams[i]).Free;
-  end;
-  FParams.Clear;
+  if ( FParams.Count > 0 ) then
+    begin
+    for i := FParams.Count -1 downto 0 do
+    begin
+      TPSParameterDecl(Fparams[i]).Free;
+    end;
+    FParams.Clear;
+    end;
   FResult := Params.Result;
 
-  for i := 0 to Params.FParams.count -1 do
-  begin
-    orgp := Params.FParams[i];
-    np := AddParam;
-    np.OrgName := orgp.OrgName;
-    np.Mode := orgp.Mode;
-    np.aType := orgp.aType;
-    np.DeclarePos:=orgp.DeclarePos;
-    np.DeclareRow:=orgp.DeclareRow;
-    np.DeclareCol:=orgp.DeclareCol;
-  end;
+  if ( Params.FParams.count > 0 ) then
+    begin
+    for i := 0 to Params.FParams.count -1 do
+    begin
+      orgp := Params.FParams[i];
+      np := AddParam;
+      np.OrgName := orgp.OrgName;
+      np.Mode := orgp.Mode;
+      np.aType := orgp.aType;
+      np.DeclarePos:=orgp.DeclarePos;
+      np.DeclareRow:=orgp.DeclareRow;
+      np.DeclareCol:=orgp.DeclareCol;
+    end;
+    end;
 end;
 
 
@@ -15902,10 +15994,13 @@ destructor TPSParametersDecl.Destroy;
 var
   i: Longint;
 begin
-  for i := FParams.Count -1 downto 0 do
-  begin
-    TPSParameterDecl(Fparams[i]).Free;
-  end;
+  if ( FParams.Count > 0 ) then
+    begin
+    for i := FParams.Count -1 downto 0 do
+    begin
+      TPSParameterDecl(Fparams[i]).Free;
+    end;
+    end;
   FParams.Free;
   inherited Destroy;
 end;

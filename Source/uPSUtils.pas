@@ -643,7 +643,18 @@ function WideUpperCase(const S: WideString): WideString;
 function WideLowerCase(const S: WideString): WideString;
 {$ENDIF}
 
+{$IF CompilerVersion < 23}
+function StrToUInt64( const s: string ): UInt64;
+function StrToUInt64Def( const s: string; Default : UInt64 ): UInt64;
+function UIntToStr( UInt : UInt64 ): string;
+{$IFEND}
+
 implementation
+
+{$IF CompilerVersion < 23}
+uses
+  Variants;
+{$IFEND}
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -1742,5 +1753,33 @@ begin
   fUnitName := FastUpperCase(Value);
 end;
 
+{$IF CompilerVersion < 23}
+{$RANGECHECKS OFF}
+function StrToUInt64( const s: string ): UInt64;
+const
+  SInvalidUInt64 = '''%s'' is not a valid UInt64 value';
+var
+  Error: Integer;
+begin
+  Val( S, result, Error );
+  if Error <> 0 then
+    Raise Exception.Create( Format( SInvalidUInt64, [ S ] ) );
+end;
+
+function StrToUInt64Def( const s: string; Default : UInt64 ): UInt64;
+var
+  Error: Integer;
+begin
+  Val( S, result, Error );
+  if Error <> 0 then
+    result := Default;
+end;
+
+function UIntToStr( UInt : UInt64 ): string;
+begin
+  result := VarToStr( UInt );
+end;
+{$RANGECHECKS ON}
+{$IFEND}
 
 end.

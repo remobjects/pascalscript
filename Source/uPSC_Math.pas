@@ -30,6 +30,7 @@ begin
   S.AddConstant( 'ZeroValue', ZeroValue );
   S.AddConstant( 'PositiveValue', PositiveValue );
 
+  {$IF CompilerVersion > 23}
   S.AddConstant( 'seSSE', seSSE );
   S.AddConstant( 'seSSE2', seSSE2 );
   S.AddConstant( 'seSSE3', seSSE3 );
@@ -39,6 +40,7 @@ begin
   S.AddConstant( 'sePOPCNT', sePOPCNT );
   S.AddConstant( 'seAESNI', seAESNI );
   S.AddConstant( 'sePCLMULQDQ', sePCLMULQDQ );
+  {$IFEND}
 
   S.AddTypeS( 'TPaymentTime', '(ptEndOfPeriod, ptStartOfPeriod)' );
 
@@ -58,7 +60,9 @@ begin
   s.AddDelphiFunction('function DegToRad(const Degrees: Extended): Extended;');
   s.AddDelphiFunction('function DegToGrad(const Degrees: Extended): Extended;');
   s.AddDelphiFunction('function DegToCycle(const Degrees: Extended): Extended;');
+  {$IF CompilerVersion >= 23}
   s.AddDelphiFunction('function DegNormalize(const Degrees: Extended): Extended;');
+  {$IFEND}
   s.AddDelphiFunction('function GradToRad(const Grads: Extended): Extended;');
   s.AddDelphiFunction('function GradToDeg(const Grads: Extended): Extended;');
   s.AddDelphiFunction('function GradToCycle(const Grads: Extended): Extended;');

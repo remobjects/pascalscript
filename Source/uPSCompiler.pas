@@ -935,6 +935,7 @@ type
 
   TPSOnFunction = procedure(name: tbtString; Pos, Row, Col: Integer) of object;
 
+  TPSOnAddFunction = procedure(Declaration: tbtString) of object;
 
   TPSPascalCompiler = class
   protected
@@ -977,6 +978,7 @@ type
     FOnFunctionStart: TPSOnFunction;
     FOnFunctionEnd: TPSOnFunction;
     FAttributesOpenTokenID, FAttributesCloseTokenID: TPsPasToken;
+    FOnAddFunction : TPSOnAddFunction;
 
 		FWithCount: Integer;
 		FTryCount: Integer;
@@ -1190,6 +1192,8 @@ type
 
     function AddUsedPtrVariableN(const Name, FType: tbtString): TPSVar;
 
+//    function AddRecordWithRTTI( const ATypeInfo: Pointer ): TPSType;
+
     function FindType(const Name: tbtString): TPSType;
 
     function MakeDecl(decl: TPSParametersDecl): tbtString;
@@ -1251,6 +1255,8 @@ type
     property AttributesOpenTokenID: TPSPasToken read FAttributesOpenTokenID write FAttributesOpenTokenID;
 
     property AttributesCloseTokenID: TPSPasToken read FAttributesCloseTokenID write FAttributesCloseTokenID;
+
+    property OnAddFunction: TPSOnAddFunction read FOnAddFunction write FOnAddFunction;
 
     {.$WARNINGS OFF}
     property UnitName: tbtString read FUnitName;
@@ -1795,7 +1801,8 @@ procedure DisposeVariant(p: PIfRVariant);
 
 implementation
 
-uses {$IFDEF DELPHI5}ComObj, {$ENDIF}{$IFDEF PS_FPC_HAS_COM}ComObj, {$ENDIF}Classes, typInfo;
+uses
+ {$IFDEF DELPHI5}ComObj, {$ENDIF}{$IFDEF PS_FPC_HAS_COM}ComObj, {$ENDIF}Classes, typInfo;
 
 {$IFDEF DELPHI3UP}
 resourceString
@@ -2068,7 +2075,6 @@ var
   modifier: TPSParameterMode;
   VCType: TPSType;
   ERow, EPos, ECol: Integer;
-
 begin
   if CustomParser = nil then begin
     Parser := TPSPascalParser.Create;
@@ -12533,6 +12539,7 @@ begin
   FMessages := TPSList.Create;
   FAttributesOpenTokenID := CSTI_OpenBlock;
   FAttributesCloseTokenID := CSTI_CloseBlock;
+  FOnAddFunction := nil;
 end;
 
 destructor TPSPascalCompiler.Destroy;
@@ -13821,6 +13828,39 @@ begin
   end;
 end;
 
+(*
+function TPSPascalCompiler.AddRecordWithRTTI( const ATypeInfo: Pointer{PTypeInfo} ): TPSType;
+var
+  rt: TRttiType;
+  i : Integer;
+  fields: TArray<TRttiField>;
+  S : string;
+begin
+  result := nil;
+  if not Assigned( ATypeInfo ) then
+    Exit;
+
+  rt := TRttiContext.Create.GetType( ATypeInfo );
+  case rt.TypeKind of
+    tkRecord : begin
+               fields := rt.GetFields;
+               for i := 0 to High( fields ) do
+                 begin
+                 if Assigned( fields[i].FieldType ) then
+                   begin
+                   if ( fields[i].FieldType.TypeKind = tkArray ) then
+                     S := S + Format('%s: Array [] of ; ', [ fields[i].Name ] )
+                   else
+                     S := S + Format('%s: %s; ', [ fields[i].Name, fields[i].FieldType.ToString{, fields[i].GetValue(@m).ToString} ] );
+                   end;
+                 end;
+               S := {rt.Name + ' = ' +} 'record ' + S + 'end;';
+               result := AddTypeS( rt.Name, S );
+               end;
+  end;
+end;
+*)
+
 function TPSPascalCompiler.AddTypeS(const Name, Decl: tbtString): TPSType;
 var
   Parser: TPSPascalParser;
@@ -13969,6 +14009,9 @@ begin
       else
         p.ImportDecl := p.ImportDecl + #0;
     end;
+
+    if Assigned( FOnAddFunction ) then
+      FOnAddFunction( Decl );
   finally
     pDecl.Free;
   end;

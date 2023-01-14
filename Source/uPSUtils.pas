@@ -599,6 +599,7 @@ type
     property OriginalToken: TbtString read FOriginalToken;
 
     property CurrTokenPos: Cardinal read FRealPosition;
+    property CurrTokenLength: Cardinal read FTokenLength;
 
     property CurrTokenID: TPSPasToken read FTokenId;
 

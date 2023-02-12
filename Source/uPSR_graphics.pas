@@ -2,6 +2,9 @@
 unit uPSR_graphics;
 {$I PascalScript.inc}
 interface
+
+{$WARN UNSAFE_CODE OFF}
+
 uses
   uPSRuntime, uPSUtils;
 

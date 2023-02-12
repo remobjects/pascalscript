@@ -3,6 +3,9 @@ unit uPSR_classes;
 
 {$I PascalScript.inc}
 interface
+
+{$WARN UNSAFE_CODE OFF}
+
 uses
   uPSRuntime, uPSUtils;
 

@@ -52,7 +52,7 @@ function IFPS3DataToText(const Input: tbtstring; var Output: string): Boolean;
 var
   I: TMyPSExec;
 
-  procedure Writeln(const s: string);
+  procedure Writeln(const s: String);
   begin
     Output := Output + s + #13#10;
   end;

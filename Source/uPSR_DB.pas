@@ -819,10 +819,10 @@ begin T := Self.FIXEDCHAR; end;
 {$ENDIF}
 
 
-procedure TSTRINGFIELDVALUE_W(Self: TSTRINGFIELD; const T: String);
+procedure TSTRINGFIELDVALUE_W(Self: TSTRINGFIELD; const T: AnsiString);
 begin Self.VALUE := T; end;
 
-procedure TSTRINGFIELDVALUE_R(Self: TSTRINGFIELD; var T: String);
+procedure TSTRINGFIELDVALUE_R(Self: TSTRINGFIELD; var T: AnsiString);
 begin T := Self.VALUE; end;
 
 procedure TFIELDONVALIDATE_W(Self: TFIELD; const T: TFIELDNOTIFYEVENT);

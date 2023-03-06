@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, SynEditHighlighter, SynHighlighterPas, SynEdit, Menus, ExtCtrls,
   StdCtrls, SynEditMiscClasses, inifiles, ComCtrls, ImgList, ToolWin,
-  SynEditSearch, SynEditTypes;
+  SynEditSearch, SynEditTypes, System.ImageList, SynEditCodeFolding;
 
 type
   TfrmMain = class(TForm)

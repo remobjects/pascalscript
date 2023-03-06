@@ -307,7 +307,8 @@ begin
           { add var params here }
           btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
           btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-          {$IFNDEF PS_NOINT64}, bts64{$ENDIF}: addgen(dword(fvar.dta));  { TODO: test all }
+          {$IFNDEF PS_NOINT64}, bts64{$ENDIF}
+          {$IFNDEF PS_NOUINT64}, btu64{$ENDIF}: addgen(dword(fvar.dta));  { TODO: test all }
           else begin
             writeln(stderr, 'Parameter type not recognised!');
             Exit;
@@ -317,7 +318,8 @@ begin
         case fvar.aType.BaseType of
 //          btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
 //          btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-//          {$IFNDEF PS_NOINT64}, bts64{$ENDIF}: writeln('normal param');
+//          {$IFNDEF PS_NOINT64}, bts64{$ENDIF}
+//          {$IFNDEF PS_NOUINT64}, btu64{$ENDIF}: writeln('normal param');
 
           { add normal params here }
           btString:                            addgen(dword(pstring(fvar.dta)^));
@@ -328,7 +330,8 @@ begin
           btDouble, btExtended:                addfloat(fvar.dta, 2);
           btPChar:                             addgen(dword(ppchar(fvar.dta)^));
           btChar:                              addgen(dword(pchar(fvar.dta)^));
-          {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   begin
+          {$IFNDEF PS_NOINT64}bts64:{$ENDIF}
+          {$IFNDEF PS_NOUINT64}btu64:{$ENDIF}   begin
                                                  addgen(dword(pint64(fvar.dta)^ shr 32));
                                                  addgen(dword(pint64(fvar.dta)^ and $ffffffff));
                                                end;

@@ -85,7 +85,7 @@ procedure SIRegister_DB(Cl: TPSPascalCompiler);
 implementation
 Uses Sysutils;
 
-Function RegClassS(cl : TPSPascalCompiler;Const InheritsFrom,Classname : String) : TPSCompileTimeClass;
+Function RegClassS(cl : TPSPascalCompiler;Const InheritsFrom,Classname : AnsiString) : TPSCompileTimeClass;
 begin
 Result := cl.FindClass(Classname);
 if Result = nil then
@@ -536,7 +536,7 @@ procedure SIRegisterTSTRINGFIELD(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TField','TStringField') do
   begin
-  RegisterProperty('Value', 'string', iptrw);
+  RegisterProperty('Value', 'ansistring', iptrw);
   RegisterProperty('FixedChar', 'Boolean', iptrw);
   RegisterProperty('Transliterate', 'Boolean', iptrw);
   end;

@@ -2,6 +2,10 @@ unit uPSComponent;
 {$I PascalScript.inc}
 interface
 
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CODE OFF}
+{$WARN UNSAFE_CAST OFF}
+
 uses
   SysUtils, Classes, uPSRuntime, uPSDebugger, uPSUtils,
   uPSCompiler,
@@ -344,7 +348,9 @@ type
     procedure StepInto; virtual;
 
     procedure StepOver; virtual;
-    
+
+    procedure StepTo( Line : Cardinal ); virtual;
+
     procedure SetBreakPoint(const Fn: tbtstring; Line: Longint);
 
     procedure ClearBreakPoint(const Fn: tbtstring; Line: Longint);
@@ -594,6 +600,7 @@ begin
   begin
     FPP.Clear;
     FPP.Defines.Assign(FDefines);
+    FPP.Compiler := FComp;
     FComp.OnTranslateLineInfo := CompTranslateLineInfo;
     Fpp.OnProcessDirective := callObjectOnProcessDirective;
     Fpp.OnProcessUnknowDirective := callObjectOnProcessUnknowDirective;
@@ -1082,7 +1089,7 @@ begin
       Result := false;
     end;
   end else begin
-    FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
+    FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, Name);
     result := false;
   end;
 end;
@@ -1469,7 +1476,13 @@ begin
     raise Exception.Create(RPS_NoScript);
 end;
 
-
+procedure TPSScriptDebugger.StepTo( Line : Cardinal );
+begin
+  if (FExec.Status = isRunning) or (FExec.Status = isLoaded) then
+    FExec.StepTo( Line )
+  else
+    raise Exception.Create(RPS_NoScript);
+end;
 
 { TPSPluginItem }
 

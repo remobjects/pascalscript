@@ -2,6 +2,11 @@ unit uPSUtils;
 {$I PascalScript.inc}
 
 interface
+
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CODE OFF
+{$WARN UNSAFE_CAST OFF}
+
 uses
   Classes, SysUtils {$IFDEF VER130}, Windows {$ENDIF};
 
@@ -69,29 +74,33 @@ const
   btS64             = 17;
 {$ENDIF}
 
-  btChar            = 18;
-
-{$IFNDEF PS_NOWIDESTRING}
-  btWideString      = 19;
-
-  btWideChar        = 20;
+{$IFNDEF PS_NOUINT64}
+  btu64             = 18;
 {$ENDIF}
 
-  btProcPtr         = 21;
+  btChar            = 19;
 
-  btStaticArray     = 22;
+{$IFNDEF PS_NOWIDESTRING}
+  btWideString      = 20;
 
-  btSet             = 23;
+  btWideChar        = 21;
+{$ENDIF}
 
-  btCurrency        = 24;
+  btProcPtr         = 22;
 
-  btClass           = 25;
+  btStaticArray     = 23;
 
-  btInterface       = 26;
+  btSet             = 24;
 
-  btNotificationVariant = 27;
+  btCurrency        = 25;
 
-  btUnicodeString = 28;
+  btClass           = 26;
+
+  btInterface       = 27;
+
+  btNotificationVariant = 28;
+
+  btUnicodeString = 29;
 
   btType = 130;
 
@@ -302,11 +311,15 @@ type
   tbtCurrency = Currency;
 
 {$IFNDEF PS_NOINT64}
-
   tbts64 = int64;
 {$ENDIF}
 
+{$IFNDEF PS_NOUINT64}
+  tbtu64 = uint64;
+{$ENDIF}
+
   tbtchar = {$IFDEF DELPHI4UP}AnsiChar{$ELSE}CHAR{$ENDIF};
+  tbtansichar = AnsiChar;
 {$IFNDEF PS_NOWIDESTRING}
 
   tbtwidestring = widestring;
@@ -318,7 +331,7 @@ type
 {$IFDEF FPC}
   IPointer = PtrUInt;
 {$ELSE}
-  {$IFDEF DELPHI2009UP}
+  {$IFDEF DELPHIXE2UP}
     IPointer = NativeUInt;
   {$ELSE}
     IPointer = Cardinal;
@@ -426,9 +439,9 @@ type
 
     function HasUses(pUnitName: TbtString): Boolean;
 
-    {$WARNINGS OFF}
+    {.$WARNINGS OFF}
     property UnitName: TbtString read fUnitName write SetUnitName;
-    {$WARNINGS ON}
+    {.$WARNINGS ON}
   end;
 
   TPSUnitList = class
@@ -586,6 +599,7 @@ type
     property OriginalToken: TbtString read FOriginalToken;
 
     property CurrTokenPos: Cardinal read FRealPosition;
+    property CurrTokenLength: Cardinal read FTokenLength;
 
     property CurrTokenID: TPSPasToken read FTokenId;
 
@@ -628,7 +642,19 @@ const
 function WideUpperCase(const S: WideString): WideString;
 function WideLowerCase(const S: WideString): WideString;
 {$ENDIF}
+
+{$IF CompilerVersion < 23}
+function StrToUInt64( const s: string ): UInt64;
+function StrToUInt64Def( const s: string; Default : UInt64 ): UInt64;
+function UIntToStr( UInt : UInt64 ): string;
+{$IFEND}
+
 implementation
+
+{$IF CompilerVersion < 23}
+uses
+  Variants;
+{$IFEND}
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -1222,7 +1248,7 @@ var
           while p^<>#0 do
           begin
             if p^ in [#97..#122] then
-              Dec(Byte(p^), 32);
+              Dec(p^, 32);
             inc(p);
           end;
           if not CheckReserved(FLastUpToken, CurrTokenId) then
@@ -1727,8 +1753,33 @@ begin
   fUnitName := FastUpperCase(Value);
 end;
 
+{$IF CompilerVersion < 23}
+{$RANGECHECKS OFF}
+function StrToUInt64( const s: string ): UInt64;
+const
+  SInvalidUInt64 = '''%s'' is not a valid UInt64 value';
+var
+  Error: Integer;
+begin
+  Val( S, result, Error );
+  if Error <> 0 then
+    Raise Exception.Create( Format( SInvalidUInt64, [ S ] ) );
+end;
+
+function StrToUInt64Def( const s: string; Default : UInt64 ): UInt64;
+var
+  Error: Integer;
+begin
+  Val( S, result, Error );
+  if Error <> 0 then
+    result := Default;
+end;
+
+function UIntToStr( UInt : UInt64 ): string;
+begin
+  result := VarToStr( UInt );
+end;
+{$RANGECHECKS ON}
+{$IFEND}
 
 end.
-
-
-

@@ -6,7 +6,7 @@ interface
 uses
   Classes, SysUtils, uPSCompiler, uPSUtils;
 
-
+{$WARNINGS OFF}
 
 type
   EPSPreProcessor = class(Exception); //- jgv
@@ -798,4 +798,4 @@ begin
   else Result := TPSDefineState(FItems[FItems.Count -2]).DoWrite;
 end;
 
-end.
+end.

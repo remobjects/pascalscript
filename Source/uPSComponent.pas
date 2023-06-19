@@ -2,6 +2,8 @@ unit uPSComponent;
 {$I PascalScript.inc}
 interface
 
+{$WARNINGS OFF}
+
 uses
   SysUtils, Classes, uPSRuntime, uPSDebugger, uPSUtils,
   uPSCompiler,

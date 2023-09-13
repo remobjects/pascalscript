@@ -7623,6 +7623,8 @@ begin
     Result := TMethod(Meth).Code;
 end;
 {$IFDEF LOG}
+function NilProc(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean; forward;
+
 procedure ODSvar(name: string; data: TPSResultData);
 begin
   __Log(name + '= $'+IntToHex(IPointer(data.P))+', '+
@@ -7633,10 +7635,22 @@ begin
 end;
 
 procedure ODS_TPSExternalProcRec(name: string; data: TPSExternalProcRec);
+var
+  s: string;
 begin
-  __Log(name + ': name='+string(data.Name)+', '+
+  s := string(data.Name);
+  if s = '' then begin
+    if @data.ProcPtr = @NilProc then
+      s := 'NilProc';
+  end;
+  __Log(name + ': name='+s+', '+
                                    'ext1=$'+ IntToHex(IPointer(TObject(data.ext1)))+', '+
                                    'ext2=$'+ IntToHex(IPointer(TObject(data.ext2))));
+end;
+
+procedure ODS_TPSInternalProcRec(name: string; data: TPSInternalProcRec);
+begin
+  __Log(name + ': name='+string(data.ExportName));
 end;
 
 procedure ODS_stack(stack: TPSStack);
@@ -8025,21 +8039,21 @@ begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
-	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
               p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
-	      {$else}
+              {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
-	      {$endif}
+              {$endif}
               Inc(FCurrentPosition, 4);
               if p >= FProcs.Count then begin
                 CMD_Err(erOutOfProcRange);
                 break;
               end;
               u := FProcs.Data^[p];
-              {$IFDEF LOG}
-              ODS_TPSExternalProcRec('proc', TPSExternalProcRec(u));
-              {$ENDIF}
               if u.ClassType = TPSExternalProcRec then begin
+                {$IFDEF LOG}
+                ODS_TPSExternalProcRec('proc', TPSExternalProcRec(u));
+                {$ENDIF}
                 try
                   if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then begin
                     if ExEx = erNoError then
@@ -8090,6 +8104,10 @@ begin
                 {$ENDIF}
               end
               else begin
+                {$IFDEF LOG}
+                if u.ClassType = TPSInternalProcRec then
+                  ODS_TPSInternalProcRec('proc', TPSInternalProcRec(u));
+                {$ENDIF}
                 Vtemp := Fstack.PushType(FReturnAddressType);
                 vd.P := Pointer(IPointer(VTemp)+PointerSize);
                 vd.aType := pointer(vtemp^);
@@ -10481,6 +10499,8 @@ begin
   CurrStack := Cardinal(Stack.Count) - Cardinal(length(s)) -1;
   if s[1] = #0 then inc(CurrStack);
   MyList := TPSList.Create;
+  if p.Ext2 = nil then
+    MyList.Add(NewPPSVariantIFC(n, False));
   for i := 2 to length(s) do
   begin
     MyList.Add(nil);
@@ -10497,7 +10517,7 @@ begin
   end else v := nil;
   try
     if p.Ext2 = nil then
-      Result := Caller.InnerfuseCall(FSelf, p.Ext1, cc, MyList, v)
+      Result := Caller.InnerfuseCall(nil, p.Ext1, cc, MyList, v)
     else
       Result := Caller.InnerfuseCall(FSelf, VirtualMethodPtrToPtr(p.Ext1, FSelf), cc, MyList, v);
   finally
@@ -11073,13 +11093,14 @@ begin
       exit;
     end;
     Params := TPSList.Create;
+    Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 2], False));
     Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 1], True));
     for i := Stack.Count -3 downto Longint(Stack.Count) - ParamCount -2 do
     begin
       Params.Add(NewPPSVariantIFC(Stack[I], False));
     end;
     try
-      Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
+      Result := Caller.InnerfuseCall(nil, p.Ext1, cdRegister, Params, nil);
     finally
       DisposePPSVariantIFCList(Params);
     end;
@@ -11099,6 +11120,7 @@ begin
       exit;
     end;
     Params := TPSList.Create;
+    Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 1], False));
     Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - ParamCount - 2], False));
 
     for i := Stack.Count -2 downto Longint(Stack.Count) - ParamCount -1 do
@@ -11106,7 +11128,7 @@ begin
       Params.Add(NewPPSVariantIFC(Stack[I], False));
     end;
     try
-      Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
+      Result := Caller.InnerfuseCall(nil, p.Ext2, cdregister, Params, nil);
     finally
       DisposePPSVariantIFCList(Params);
     end;

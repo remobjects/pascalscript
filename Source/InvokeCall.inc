@@ -5,11 +5,13 @@ var SysCalConv : TCallConv;
     i : Integer;
     fvar: PPSVariantIFC;
     IsConstr : Boolean;
+    IsStatic : Boolean;
     ctx: TRTTIContext;
     RttiType : TRttiType;
     ResValue : TValue;
 begin
   Result := False;
+  IsStatic := _Self = nil;
   case CallingConv of
     cdRegister : SysCalConv := ccReg;
     cdPascal : SysCalConv := ccPascal;
@@ -20,8 +22,12 @@ begin
     SysCalConv := ccReg;//to prevent warning "W1036 Variable might not have been initialized"
   end;
 
-  if Assigned(_Self) then
-    Args := Args + [TValue.From<Pointer>( _Self )];
+  if not IsStatic then begin
+    {$IFDEF CPUX86}
+    if CallingConv <> cdPascal then
+    {$ENDIF CPUX86}
+      Args := Args + [TValue.From<Pointer>( _Self )];
+  end;
 
   for I := 0 to Params.Count - 1 do
   begin
@@ -97,41 +103,47 @@ begin
     Args := Args + [Arg];
   end;
 
+  {$IFDEF CPUX86}
+  if not IsStatic then begin
+    if CallingConv = cdPascal then
+      Args := Args + [TValue.From<Pointer>( _Self )];
+  end;
+  {$ENDIF CPUX86}
+
   IsConstr := (Integer(CallingConv) and 64) <> 0;
   if not assigned(res) then
   begin
-    Invoke(Address,Args,SysCalConv,nil,False,IsConstr);  { ignore return }
+    Invoke(Address, Args, SysCalConv, nil);  { ignore return }
   end
   else begin
     case res.atype.basetype of
       { add result types here }
-      btString:                tbtstring(res.dta^) := tbtstring(Invoke(Address,Args,SysCalConv,TypeInfo(String),False,IsConstr).AsString)
-      ;
+      btString:                tbtstring(res.dta^) := tbtstring(Invoke(Address,Args,SysCalConv,TypeInfo(String),IsStatic).AsString);
       {$IFNDEF PS_NOWIDESTRING}
-      btUnicodeString:         tbtunicodestring(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),False,IsConstr).AsString;
-      btWideString:            tbtWideString(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),False,IsConstr).AsString;
+      btUnicodeString:         tbtunicodestring(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),IsStatic).AsString;
+      btWideString:            tbtWideString(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(String),IsStatic).AsString;
       {$ENDIF}
-      btU8, btS8:              pbyte(res.dta)^ := Byte(Invoke(Address,Args,SysCalConv,TypeInfo(Byte),False,IsConstr).AsInteger);
-      btU16, btS16:            pword(res.dta)^ := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),False,IsConstr).AsInteger);
-      btU32, btS32:            pCardinal(res.dta)^ := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),False,IsConstr).AsInteger);
-      {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   pInt64(res.dta)^ := Int64(Invoke(Address,Args,SysCalConv,TypeInfo(Int64),False,IsConstr).AsInt64);
-      btSingle:                psingle(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Single),False,IsConstr).AsExtended);
-      btDouble:                pdouble(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Double),False,IsConstr).AsExtended);
-      btExtended:              pextended(res.dta)^ := Extended(Invoke(Address,Args,SysCalConv,TypeInfo(Extended),False,IsConstr).AsExtended);
+      btU8, btS8:              pbyte(res.dta)^ := Byte(Invoke(Address,Args,SysCalConv,TypeInfo(Byte),IsStatic).AsInteger);
+      btU16, btS16:            pword(res.dta)^ := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),IsStatic).AsInteger);
+      btU32, btS32:            pCardinal(res.dta)^ := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),IsStatic).AsInteger);
+      {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   pInt64(res.dta)^ := Int64(Invoke(Address,Args,SysCalConv,TypeInfo(Int64),IsStatic).AsInt64);
+      btSingle:                psingle(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Single),IsStatic).AsExtended);
+      btDouble:                pdouble(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Double),IsStatic).AsExtended);
+      btExtended:              pextended(res.dta)^ := Extended(Invoke(Address,Args,SysCalConv,TypeInfo(Extended),IsStatic).AsExtended);
       {$IFDEF FPC}
-      btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsOrdinal);
-      btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsChar);
+      btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),IsStatic).AsOrdinal);
+      btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),IsStatic).AsChar);
       {$ELSE}
-      btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),False,IsConstr).AsType<PChar>());
-      btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),False,IsConstr).AsType<Char>());
+      btPChar:                 ppchar(res.dta)^ := pchar(Invoke(Address,Args,SysCalConv,TypeInfo(PChar),IsStatic).AsType<PChar>());
+      btChar:                  pchar(res.dta)^ := Char(Invoke(Address,Args,SysCalConv,TypeInfo(Char),IsStatic).AsType<Char>());
       {$ENDIF}
       btSet:
         begin
           case TPSTypeRec_Set(res.aType).aByteSize  of
-            1: byte(res.Dta^) := Byte(Invoke(Address,Args,SysCalConv,TypeInfo(Byte),False,IsConstr).AsInteger);
-            2: word(res.Dta^) := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),False,IsConstr).AsInteger);
+            1: byte(res.Dta^) := Byte(Invoke(Address,Args,SysCalConv,TypeInfo(Byte),IsStatic).AsInteger);
+            2: word(res.Dta^) := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),IsStatic).AsInteger);
             3,
-            4: Longint(res.Dta^) := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),False,IsConstr).AsInteger);
+            4: Longint(res.Dta^) := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),IsStatic).AsInteger);
             {$IFNDEF FPC}
             else
             begin
@@ -139,7 +151,7 @@ begin
                 if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkSet)
                   and (RttiType.TypeSize = TPSTypeRec_Set(res.aType).aByteSize) then
                 begin
-                  Invoke(Address,Args,SysCalConv,RttiType.Handle,False,IsConstr).ExtractRawData(res.dta);
+                  Invoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic).ExtractRawData(res.dta);
                   Break;
                 end;
             end;
@@ -151,7 +163,7 @@ begin
         {$IFNDEF FPC}for RttiType in ctx.GetTypes do
           if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkClass) then{$ENDIF}
           begin
-            TObject(res.dta^) := Invoke(Address,Args,SysCalConv,{$IFDEF FPC}TypeInfo(TObject){$ELSE}RttiType.Handle{$ENDIF},False,IsConstr).AsObject;
+            TObject(res.dta^) := Invoke(Address,Args,SysCalConv,{$IFDEF FPC}TypeInfo(TObject){$ELSE}RttiType.Handle{$ENDIF},IsStatic, IsConstr).AsObject;
             {$IFNDEF FPC}Break;{$ENDIF}
           end;
       end;
@@ -161,7 +173,7 @@ begin
         for RttiType in ctx.GetTypes do
           if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkArray) then
           begin
-            CopyArrayContents(res.dta, Invoke(Address,Args,SysCalConv,RttiType.Handle,False,IsConstr).GetReferenceToRawData, TPSTypeRec_StaticArray(res.aType).Size, TPSTypeRec_StaticArray(res.aType).ArrayType);
+            CopyArrayContents(res.dta, Invoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic).GetReferenceToRawData, TPSTypeRec_StaticArray(res.aType).Size, TPSTypeRec_StaticArray(res.aType).ArrayType);
             Break;
           end;
       end;
@@ -170,7 +182,7 @@ begin
         for RttiType in ctx.GetTypes do
           if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkRecord) then
           begin
-            CopyArrayContents(res.dta, (Invoke(Address,Args,SysCalConv,RttiType.Handle,False,IsConstr).GetReferenceToRawData), 1, res.aType);
+            CopyArrayContents(res.dta, (Invoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic).GetReferenceToRawData), 1, res.aType);
             Break;
           end;
       end;
@@ -179,7 +191,7 @@ begin
         for RttiType in ctx.GetTypes do
           if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkDynArray) then
           begin
-            ResValue := Invoke(Address,Args,SysCalConv,RttiType.Handle,False,IsConstr);
+            ResValue := Invoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic);
             if ResValue.GetArrayLength > 0 then
               CopyArrayContents(res.dta, ResValue.GetReferenceToRawData, 1, res.aType)
             else
@@ -189,7 +201,7 @@ begin
       end;
       btVariant:
         begin
-          PVariant(res.dta)^ := Invoke(Address, Args, SysCalConv, TypeInfo(Variant), False, IsConstr).AsVariant;
+          PVariant(res.dta)^ := Invoke(Address, Args, SysCalConv, TypeInfo(Variant), IsStatic).AsVariant;
         end;
       {$ENDIF}
       else

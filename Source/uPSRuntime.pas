@@ -10476,6 +10476,7 @@ var
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
   s: tbtString;
+  dx: Integer;
 begin
   s := p.Decl;
   if length(S) < 2 then
@@ -10499,8 +10500,13 @@ begin
   CurrStack := Cardinal(Stack.Count) - Cardinal(length(s)) -1;
   if s[1] = #0 then inc(CurrStack);
   MyList := TPSList.Create;
-  if p.Ext2 = nil then
+  {$IFDEF CPUX64}
+  if p.Ext2 = nil then begin
     MyList.Add(NewPPSVariantIFC(n, False));
+    FSelf := nil;
+  end;
+  {$ENDIF}
+  dx := MyList.Count;
   for i := 2 to length(s) do
   begin
     MyList.Add(nil);
@@ -10508,7 +10514,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n := Stack[CurrStack];
-    MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 2 + dx] := NewPPSVariantIFC(n, s[i] <> #0);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -10517,7 +10523,7 @@ begin
   end else v := nil;
   try
     if p.Ext2 = nil then
-      Result := Caller.InnerfuseCall(nil, p.Ext1, cc, MyList, v)
+      Result := Caller.InnerfuseCall(FSelf, p.Ext1, cc, MyList, v)
     else
       Result := Caller.InnerfuseCall(FSelf, VirtualMethodPtrToPtr(p.Ext1, FSelf), cc, MyList, v);
   finally
@@ -11093,14 +11099,13 @@ begin
       exit;
     end;
     Params := TPSList.Create;
-    Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 2], False));
     Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 1], True));
     for i := Stack.Count -3 downto Longint(Stack.Count) - ParamCount -2 do
     begin
       Params.Add(NewPPSVariantIFC(Stack[I], False));
     end;
     try
-      Result := Caller.InnerfuseCall(nil, p.Ext1, cdRegister, Params, nil);
+      Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
     finally
       DisposePPSVariantIFCList(Params);
     end;
@@ -11120,7 +11125,6 @@ begin
       exit;
     end;
     Params := TPSList.Create;
-    Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 1], False));
     Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - ParamCount - 2], False));
 
     for i := Stack.Count -2 downto Longint(Stack.Count) - ParamCount -1 do
@@ -11128,7 +11132,7 @@ begin
       Params.Add(NewPPSVariantIFC(Stack[I], False));
     end;
     try
-      Result := Caller.InnerfuseCall(nil, p.Ext2, cdregister, Params, nil);
+      Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
     finally
       DisposePPSVariantIFCList(Params);
     end;

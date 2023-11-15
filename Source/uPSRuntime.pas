@@ -10500,13 +10500,6 @@ begin
   CurrStack := Cardinal(Stack.Count) - Cardinal(length(s)) -1;
   if s[1] = #0 then inc(CurrStack);
   MyList := TPSList.Create;
-  {$IFDEF CPUX64}
-  if p.Ext2 = nil then begin
-    MyList.Add(NewPPSVariantIFC(n, False));
-    FSelf := nil;
-  end;
-  {$ENDIF}
-  dx := MyList.Count;
   for i := 2 to length(s) do
   begin
     MyList.Add(nil);
@@ -10514,7 +10507,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n := Stack[CurrStack];
-    MyList[i - 2 + dx] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
     inc(CurrStack);
   end;
   if s[1] <> #0 then

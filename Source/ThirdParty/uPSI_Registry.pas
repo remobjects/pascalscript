@@ -7,6 +7,12 @@ UnitParser. Components of ifps3 are used in the construction of UnitParser,
 code implementing the class wrapper is taken from Carlo Kok''s conv unility
 }
 
+{$IFDEF MSWINDOWS}
+{$I ..\PascalScript.inc}
+{$ELSE}
+{$I ../PascalScript.inc}
+{$ENDIF}
+
 interface
 
 uses
@@ -132,6 +138,38 @@ begin
 end;
 
 (* === run-time registration functions === *)
+{$IFDEF DELPHI10UP}{$REGION 'TRegistryIniFile'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TRegistryIniFile_PSHelper = class helper for TRegistryIniFile
+  public
+    Function Create_P(CreateNewInstance: Boolean;  const FileName : string):TObject;
+    Function CreateA_P(CreateNewInstance: Boolean;  const FileName : string; AAccess : LongWord):TObject;
+    procedure RegIniFile_R(var T: TRegIniFile);
+  end;
+(*----------------------------------------------------------------------------*)
+procedure TRegistryIniFile_PSHelper.RegIniFile_R(var T: TRegIniFile);
+begin T := Self.RegIniFile; end;
+
+(*----------------------------------------------------------------------------*)
+Function TRegistryIniFile_PSHelper.CreateA_P(CreateNewInstance: Boolean;  const FileName : string; AAccess : LongWord):TObject;
+Begin Result := TRegistryIniFile.Create(FileName, AAccess); END;
+
+(*----------------------------------------------------------------------------*)
+Function TRegistryIniFile_PSHelper.Create_P(CreateNewInstance: Boolean;  const FileName : string):TObject;
+Begin Result := TRegistryIniFile.Create(FileName); END;
+
+procedure RIRegister_TRegistryIniFile(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TRegistryIniFile) do
+  begin
+    RegisterConstructor(@TRegistryIniFile.Create_P, 'Create');
+    RegisterConstructor(@TRegistryIniFile.CreateA_P, 'CreateA');
+    RegisterPropertyHelper(@TRegistryIniFile.RegIniFile_R,nil,'RegIniFile');
+  end;
+end;
+
+{$ELSE}
 (*----------------------------------------------------------------------------*)
 procedure TRegistryIniFileRegIniFile_R(Self: TRegistryIniFile; var T: TRegIniFile);
 begin T := Self.RegIniFile; end;
@@ -144,6 +182,63 @@ Begin Result := TRegistryIniFile.Create(FileName, AAccess); END;
 Function TRegistryIniFileCreate_P(Self: TClass; CreateNewInstance: Boolean;  const FileName : string):TObject;
 Begin Result := TRegistryIniFile.Create(FileName); END;
 
+procedure RIRegister_TRegistryIniFile(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TRegistryIniFile) do
+  begin
+    RegisterConstructor(@TRegistryIniFileCreate_P, 'Create');
+    RegisterConstructor(@TRegistryIniFileCreateA_P, 'CreateA');
+    RegisterPropertyHelper(@TRegistryIniFileRegIniFile_R,nil,'RegIniFile');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TRegIniFile'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TRegIniFile_PSHelper = class helper for TRegIniFile
+  public
+    Function Create_P(CreateNewInstance: Boolean;  const FileName : string):TObject;
+    Function CreateA_P(CreateNewInstance: Boolean;  const FileName : string; AAccess : LongWord):TObject;
+    procedure FileName_R(var T: string);
+  end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegIniFile_PSHelper.FileName_R(var T: string);
+begin T := Self.FileName; end;
+
+(*----------------------------------------------------------------------------*)
+Function TRegIniFile_PSHelper.CreateA_P(CreateNewInstance: Boolean;  const FileName : string; AAccess : LongWord):TObject;
+Begin Result := TRegIniFile.Create(FileName, AAccess); END;
+
+(*----------------------------------------------------------------------------*)
+Function TRegIniFile_PSHelper.Create_P(CreateNewInstance: Boolean;  const FileName : string):TObject;
+Begin Result := TRegIniFile.Create(FileName); END;
+
+procedure RIRegister_TRegIniFile(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TRegIniFile) do
+  begin
+    RegisterConstructor(@TRegIniFile.Create_P, 'Create');
+    RegisterConstructor(@TRegIniFile.CreateA_P, 'CreateA');
+    RegisterMethod(@TRegIniFile.ReadString, 'ReadString');
+    RegisterMethod(@TRegIniFile.ReadInteger, 'ReadInteger');
+    RegisterMethod(@TRegIniFile.WriteInteger, 'WriteInteger');
+    RegisterMethod(@TRegIniFile.WriteString, 'WriteString');
+    RegisterMethod(@TRegIniFile.ReadBool, 'ReadBool');
+    RegisterMethod(@TRegIniFile.WriteBool, 'WriteBool');
+    RegisterMethod(@TRegIniFile.ReadSection, 'ReadSection');
+    RegisterMethod(@TRegIniFile.ReadSections, 'ReadSections');
+    RegisterMethod(@TRegIniFile.ReadSectionValues, 'ReadSectionValues');
+    RegisterMethod(@TRegIniFile.EraseSection, 'EraseSection');
+    RegisterMethod(@TRegIniFile.DeleteKey, 'DeleteKey');
+    RegisterPropertyHelper(@TRegIniFile.FileName_R,nil,'FileName');
+  end;
+end;
+
+{$ELSE}
 (*----------------------------------------------------------------------------*)
 procedure TRegIniFileFileName_R(Self: TRegIniFile; var T: string);
 begin T := Self.FileName; end;
@@ -156,6 +251,143 @@ Begin Result := TRegIniFile.Create(FileName, AAccess); END;
 Function TRegIniFileCreate_P(Self: TClass; CreateNewInstance: Boolean;  const FileName : string):TObject;
 Begin Result := TRegIniFile.Create(FileName); END;
 
+procedure RIRegister_TRegIniFile(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TRegIniFile) do
+  begin
+    RegisterConstructor(@TRegIniFileCreate_P, 'Create');
+    RegisterConstructor(@TRegIniFileCreateA_P, 'CreateA');
+    RegisterMethod(@TRegIniFile.ReadString, 'ReadString');
+    RegisterMethod(@TRegIniFile.ReadInteger, 'ReadInteger');
+    RegisterMethod(@TRegIniFile.WriteInteger, 'WriteInteger');
+    RegisterMethod(@TRegIniFile.WriteString, 'WriteString');
+    RegisterMethod(@TRegIniFile.ReadBool, 'ReadBool');
+    RegisterMethod(@TRegIniFile.WriteBool, 'WriteBool');
+    RegisterMethod(@TRegIniFile.ReadSection, 'ReadSection');
+    RegisterMethod(@TRegIniFile.ReadSections, 'ReadSections');
+    RegisterMethod(@TRegIniFile.ReadSectionValues, 'ReadSectionValues');
+    RegisterMethod(@TRegIniFile.EraseSection, 'EraseSection');
+    RegisterMethod(@TRegIniFile.DeleteKey, 'DeleteKey');
+    RegisterPropertyHelper(@TRegIniFileFileName_R,nil,'FileName');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TRegistry'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TRegistry_PSHelper = class helper for TRegistry
+  public
+    Function Create_P(CreateNewInstance: Boolean):TObject;
+    Function CreateA_P(CreateNewInstance: Boolean;  AAccess : LongWord):TObject;
+    procedure Access_R(var T: LongWord);
+    procedure Access_W(const T: LongWord);
+    procedure CurrentKey_R(var T: HKEY);
+    procedure CurrentPath_R(var T: string);
+    procedure LazyWrite_R(var T: Boolean);
+    procedure LazyWrite_W(const T: Boolean);
+    procedure RootKey_R(var T: HKEY);
+    procedure RootKey_W(const T: HKEY);
+  end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.Access_W(const T: LongWord);
+begin Self.Access := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.Access_R(var T: LongWord);
+begin T := Self.Access; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.RootKey_W(const T: HKEY);
+begin Self.RootKey := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.RootKey_R(var T: HKEY);
+begin T := Self.RootKey; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.LazyWrite_W(const T: Boolean);
+begin Self.LazyWrite := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.LazyWrite_R(var T: Boolean);
+begin T := Self.LazyWrite; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.CurrentPath_R(var T: string);
+begin T := Self.CurrentPath; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TRegistry_PSHelper.CurrentKey_R(var T: HKEY);
+begin T := Self.CurrentKey; end;
+
+(*----------------------------------------------------------------------------*)
+Function TRegistry_PSHelper.CreateA_P(CreateNewInstance: Boolean;  AAccess : LongWord):TObject;
+Begin Result := TRegistry.Create(AAccess); END;
+
+(*----------------------------------------------------------------------------*)
+Function TRegistry_PSHelper.Create_P(CreateNewInstance: Boolean):TObject;
+Begin Result := TRegistry.Create; END;
+
+(*----------------------------------------------------------------------------*)
+procedure RIRegister_TRegistry(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TRegistry) do
+  begin
+    RegisterConstructor(@TRegistry.CreateA_P, 'CreateA');
+    RegisterConstructor(@TRegistry.Create_P, 'Create');
+    RegisterMethod(@TRegistry.CloseKey, 'CloseKey');
+    RegisterMethod(@TRegistry.CreateKey, 'CreateKey');
+    RegisterMethod(@TRegistry.DeleteKey, 'DeleteKey');
+    RegisterMethod(@TRegistry.DeleteValue, 'DeleteValue');
+    RegisterMethod(@TRegistry.GetDataInfo, 'GetDataInfo');
+    RegisterMethod(@TRegistry.GetDataSize, 'GetDataSize');
+    RegisterMethod(@TRegistry.GetDataType, 'GetDataType');
+    RegisterMethod(@TRegistry.GetKeyInfo, 'GetKeyInfo');
+    RegisterMethod(@TRegistry.GetKeyNames, 'GetKeyNames');
+    RegisterMethod(@TRegistry.GetValueNames, 'GetValueNames');
+    RegisterMethod(@TRegistry.HasSubKeys, 'HasSubKeys');
+    RegisterMethod(@TRegistry.KeyExists, 'KeyExists');
+    RegisterMethod(@TRegistry.LoadKey, 'LoadKey');
+    RegisterMethod(@TRegistry.MoveKey, 'MoveKey');
+    RegisterMethod(@TRegistry.OpenKey, 'OpenKey');
+    RegisterMethod(@TRegistry.OpenKeyReadOnly, 'OpenKeyReadOnly');
+    RegisterMethod(@TRegistry.ReadCurrency, 'ReadCurrency');
+    RegisterMethod(@TRegistry.ReadBool, 'ReadBool');
+    RegisterMethod(@TRegistry.ReadDate, 'ReadDate');
+    RegisterMethod(@TRegistry.ReadDateTime, 'ReadDateTime');
+    RegisterMethod(@TRegistry.ReadFloat, 'ReadFloat');
+    RegisterMethod(@TRegistry.ReadInteger, 'ReadInteger');
+    RegisterMethod(@TRegistry.ReadString, 'ReadString');
+    RegisterMethod(@TRegistry.ReadTime, 'ReadTime');
+    RegisterMethod(@TRegistry.RegistryConnect, 'RegistryConnect');
+    RegisterMethod(@TRegistry.RenameValue, 'RenameValue');
+    RegisterMethod(@TRegistry.ReplaceKey, 'ReplaceKey');
+    RegisterMethod(@TRegistry.RestoreKey, 'RestoreKey');
+    RegisterMethod(@TRegistry.SaveKey, 'SaveKey');
+    RegisterMethod(@TRegistry.UnLoadKey, 'UnLoadKey');
+    RegisterMethod(@TRegistry.ValueExists, 'ValueExists');
+    RegisterMethod(@TRegistry.WriteCurrency, 'WriteCurrency');
+    RegisterMethod(@TRegistry.WriteBool, 'WriteBool');
+    RegisterMethod(@TRegistry.WriteDate, 'WriteDate');
+    RegisterMethod(@TRegistry.WriteDateTime, 'WriteDateTime');
+    RegisterMethod(@TRegistry.WriteFloat, 'WriteFloat');
+    RegisterMethod(@TRegistry.WriteInteger, 'WriteInteger');
+    RegisterMethod(@TRegistry.WriteString, 'WriteString');
+    RegisterMethod(@TRegistry.WriteExpandString, 'WriteExpandString');
+    RegisterMethod(@TRegistry.WriteTime, 'WriteTime');
+    RegisterPropertyHelper(@TRegistry.CurrentKey_R,nil,'CurrentKey');
+    RegisterPropertyHelper(@TRegistry.CurrentPath_R,nil,'CurrentPath');
+    RegisterPropertyHelper(@TRegistry.LazyWrite_R,@TRegistry.LazyWrite_W,'LazyWrite');
+    RegisterPropertyHelper(@TRegistry.RootKey_R,@TRegistry.RootKey_W,'RootKey');
+    RegisterPropertyHelper(@TRegistry.Access_R,@TRegistry.Access_W,'Access');
+  end;
+end;
+
+{$ELSE}
 (*----------------------------------------------------------------------------*)
 procedure TRegistryAccess_W(Self: TRegistry; const T: LongWord);
 begin Self.Access := T; end;
@@ -195,39 +427,6 @@ Begin Result := TRegistry.Create(AAccess); END;
 (*----------------------------------------------------------------------------*)
 Function TRegistryCreate_P(Self: TClass; CreateNewInstance: Boolean):TObject;
 Begin Result := TRegistry.Create; END;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TRegistryIniFile(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TRegistryIniFile) do
-  begin
-    RegisterConstructor(@TRegistryIniFileCreate_P, 'Create');
-    RegisterConstructor(@TRegistryIniFileCreateA_P, 'CreateA');
-    RegisterPropertyHelper(@TRegistryIniFileRegIniFile_R,nil,'RegIniFile');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TRegIniFile(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TRegIniFile) do
-  begin
-    RegisterConstructor(@TRegIniFileCreate_P, 'Create');
-    RegisterConstructor(@TRegIniFileCreateA_P, 'CreateA');
-    RegisterMethod(@TRegIniFile.ReadString, 'ReadString');
-    RegisterMethod(@TRegIniFile.ReadInteger, 'ReadInteger');
-    RegisterMethod(@TRegIniFile.WriteInteger, 'WriteInteger');
-    RegisterMethod(@TRegIniFile.WriteString, 'WriteString');
-    RegisterMethod(@TRegIniFile.ReadBool, 'ReadBool');
-    RegisterMethod(@TRegIniFile.WriteBool, 'WriteBool');
-    RegisterMethod(@TRegIniFile.ReadSection, 'ReadSection');
-    RegisterMethod(@TRegIniFile.ReadSections, 'ReadSections');
-    RegisterMethod(@TRegIniFile.ReadSectionValues, 'ReadSectionValues');
-    RegisterMethod(@TRegIniFile.EraseSection, 'EraseSection');
-    RegisterMethod(@TRegIniFile.DeleteKey, 'DeleteKey');
-    RegisterPropertyHelper(@TRegIniFileFileName_R,nil,'FileName');
-  end;
-end;
 
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_TRegistry(CL: TPSRuntimeClassImporter);
@@ -283,6 +482,10 @@ begin
     RegisterPropertyHelper(@TRegistryAccess_R,@TRegistryAccess_W,'Access');
   end;
 end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
 
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_Registry(CL: TPSRuntimeClassImporter);

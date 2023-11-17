@@ -7,7 +7,11 @@ unit uDAPascalScript;
 { Using this code requires a valid license of the Data Abstract              }
 { which can be obtained at http://www.remobjects.com.                        }
 {----------------------------------------------------------------------------}
-
+{$IFDEF MSWINDOWS}
+{$I ..\..\Source\PascalScript.inc}
+{$ELSE}
+{$I ../../Source/PascalScript.inc}
+{$ENDIF}
 {$I DataAbstract.inc}
 
 interface
@@ -247,7 +251,210 @@ begin
 end;
 
 (* === run-time registration functions === *)
+{$IFDEF DELPHI10UP}{$REGION 'TDADataTable'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TDADataTable_PSHelper = class helper for TDADataTable
+  public
+    procedure Active_R(var T: boolean);
+    procedure Active_W(const T: boolean);
+    procedure BusinessRulesID_R(var T: string);
+    procedure BusinessRulesID_W(const T: string);
+    procedure DetailFields_R(var T: string);
+    procedure DetailFields_W(const T: string);
+    procedure DetailOptions_R(var T: TDADetailOptions);
+    procedure DetailOptions_W(const T: TDADetailOptions);
+    procedure Fields_R(var T: TDAFieldCollection);
+    procedure Fields_W(const T: TDAFieldCollection);
+    procedure Filter_R(var T: string);
+    procedure Filter_W(const T: string);
+    procedure Filtered_R(var T: boolean);
+    procedure Filtered_W(const T: boolean);
+    procedure LogChanges_R(var T: boolean);
+    procedure LogChanges_W(const T: boolean);
+    procedure LogicalName_R(var T: string);
+    procedure LogicalName_W(const T: string);
+    procedure MasterFields_R(var T: string);
+    procedure MasterFields_W(const T: string);
+    procedure MasterOptions_R(var T: TDAMasterOptions);
+    procedure MasterOptions_W(const T: TDAMasterOptions);
+    procedure MasterRequestMappings_R(var T: TStrings);
+    procedure MasterRequestMappings_W(const T: TStrings);
+    procedure Params_R(var T: TDAParamCollection);
+    procedure Params_W(const T: TDAParamCollection);
+    procedure RemoteFetchEnabled_R(var T: boolean);
+    procedure RemoteFetchEnabled_W(const T: boolean);
+    procedure State_R(var T: TDataSetState);
+  end;
 
+procedure TDADataTable_PSHelper.BusinessRulesID_W(const T: string);
+begin
+  Self.BusinessRulesID := T;
+end;
+
+procedure TDADataTable_PSHelper.BusinessRulesID_R(var T: string);
+begin
+  T := Self.BusinessRulesID;
+end;
+
+procedure TDADataTable_PSHelper.LogicalName_W(const T: string);
+begin
+  Self.LogicalName := T;
+end;
+
+procedure TDADataTable_PSHelper.LogicalName_R(var T: string);
+begin
+  T := Self.LogicalName;
+end;
+
+procedure TDADataTable_PSHelper.Filter_W(const T: string);
+begin
+  Self.Filter := T;
+end;
+
+procedure TDADataTable_PSHelper.Filter_R(var T: string);
+begin
+  T := Self.Filter;
+end;
+
+procedure TDADataTable_PSHelper.Filtered_W(const T: boolean);
+begin
+  Self.Filtered := T;
+end;
+
+procedure TDADataTable_PSHelper.Filtered_R(var T: boolean);
+begin
+  T := Self.Filtered;
+end;
+
+procedure TDADataTable_PSHelper.MasterOptions_W(const T: TDAMasterOptions);
+begin
+  Self.MasterOptions := T;
+end;
+
+procedure TDADataTable_PSHelper.MasterOptions_R(var T: TDAMasterOptions);
+begin
+  T := Self.MasterOptions;
+end;
+
+procedure TDADataTable_PSHelper.DetailOptions_W(const T: TDADetailOptions);
+begin
+  Self.DetailOptions := T;
+end;
+
+procedure TDADataTable_PSHelper.DetailOptions_R(var T: TDADetailOptions);
+begin
+  T := Self.DetailOptions;
+end;
+
+procedure TDADataTable_PSHelper.MasterRequestMappings_W(const T: TStrings);
+begin
+  Self.MasterRequestMappings := T;
+end;
+
+procedure TDADataTable_PSHelper.MasterRequestMappings_R(var T: TStrings);
+begin
+  T := Self.MasterRequestMappings;
+end;
+
+procedure TDADataTable_PSHelper.DetailFields_W(const T: string);
+begin
+  Self.DetailFields := T;
+end;
+
+procedure TDADataTable_PSHelper.DetailFields_R(var T: string);
+begin
+  T := Self.DetailFields;
+end;
+
+procedure TDADataTable_PSHelper.MasterFields_W(const T: string);
+begin
+  Self.MasterFields := T;
+end;
+
+procedure TDADataTable_PSHelper.MasterFields_R(var T: string);
+begin
+  T := Self.MasterFields;
+end;
+
+procedure TDADataTable_PSHelper.RemoteFetchEnabled_W(const T: boolean);
+begin
+  Self.RemoteFetchEnabled := T;
+end;
+
+procedure TDADataTable_PSHelper.RemoteFetchEnabled_R(var T: boolean);
+begin
+  T := Self.RemoteFetchEnabled;
+end;
+
+procedure TDADataTable_PSHelper.LogChanges_W(const T: boolean);
+begin
+  Self.LogChanges := T;
+end;
+
+procedure TDADataTable_PSHelper.LogChanges_R(var T: boolean);
+begin
+  T := Self.LogChanges;
+end;
+
+procedure TDADataTable_PSHelper.Params_W(const T: TDAParamCollection);
+begin
+  Self.Params := T;
+end;
+
+procedure TDADataTable_PSHelper.Params_R(var T: TDAParamCollection);
+begin
+  T := Self.Params;
+end;
+
+procedure TDADataTable_PSHelper.Fields_W(const T: TDAFieldCollection);
+begin
+  Self.Fields := T;
+end;
+
+procedure TDADataTable_PSHelper.Fields_R(var T: TDAFieldCollection);
+begin
+  T := Self.Fields;
+end;
+
+procedure TDADataTable_PSHelper.Active_W(const T: boolean);
+begin
+  Self.Active := T;
+end;
+
+procedure TDADataTable_PSHelper.Active_R(var T: boolean);
+begin
+  T := Self.Active;
+end;
+
+procedure TDADataTable_PSHelper.State_R(var T: TDataSetState);
+begin
+  T := Self.State;
+end;
+
+procedure RIRegister_TDADataTable(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDADataTable);
+  lc.RegisterPropertyHelper(@TDADataTable.Active_R, @TDADataTable.Active_W, 'Active');
+  lc.RegisterPropertyHelper(@TDADataTable.Fields_R, @TDADataTable.Fields_W, 'Fields');
+  lc.RegisterPropertyHelper(@TDADataTable.Params_R, @TDADataTable.Params_W, 'Params');
+  lc.RegisterPropertyHelper(@TDADataTable.LogChanges_R, @TDADataTable.LogChanges_W, 'LogChanges');
+  lc.RegisterPropertyHelper(@TDADataTable.RemoteFetchEnabled_R, @TDADataTable.RemoteFetchEnabled_W, 'RemoteFetchEnabled');
+  lc.RegisterPropertyHelper(@TDADataTable.MasterFields_R, @TDADataTable.MasterFields_W, 'MasterFields');
+  lc.RegisterPropertyHelper(@TDADataTable.DetailFields_R, @TDADataTable.DetailFields_W, 'DetailFields');
+  lc.RegisterPropertyHelper(@TDADataTable.MasterRequestMappings_R, @TDADataTable.MasterRequestMappings_W, 'MasterRequestMappings');
+  lc.RegisterPropertyHelper(@TDADataTable.DetailOptions_R, @TDADataTable.DetailOptions_W, 'DetailOptions');
+  lc.RegisterPropertyHelper(@TDADataTable.MasterOptions_R, @TDADataTable.MasterOptions_W, 'MasterOptions');
+  lc.RegisterPropertyHelper(@TDADataTable.Filtered_R, @TDADataTable.Filtered_W, 'Filtered');
+  lc.RegisterPropertyHelper(@TDADataTable.Filter_R, @TDADataTable.Filter_W, 'Filter');
+  lc.RegisterPropertyHelper(@TDADataTable.LogicalName_R, @TDADataTable.LogicalName_W, 'LogicalName');
+  lc.RegisterPropertyHelper(@TDADataTable.BusinessRulesID_R, @TDADataTable.BusinessRulesID_W, 'BusinessRulesID');
+  lc.RegisterPropertyHelper(@TDADataTable.State_R, nil, 'State');
+end;
+
+{$ELSE}
 procedure TDADataTableBusinessRulesID_W(Self: TDADataTable; const T: string);
 begin
   Self.BusinessRulesID := T;
@@ -388,6 +595,78 @@ begin
   T := Self.Active;
 end;
 
+procedure TDADataTableState_R(Self: TDADataTable; var T: TDataSetState);
+begin
+  T := Self.State;
+end;
+
+procedure RIRegister_TDADataTable(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDADataTable);
+  lc.RegisterPropertyHelper(@TDADataTableActive_R, @TDADataTableActive_W, 'Active');
+  lc.RegisterPropertyHelper(@TDADataTableFields_R, @TDADataTableFields_W, 'Fields');
+  lc.RegisterPropertyHelper(@TDADataTableParams_R, @TDADataTableParams_W, 'Params');
+  lc.RegisterPropertyHelper(@TDADataTableLogChanges_R, @TDADataTableLogChanges_W, 'LogChanges');
+  lc.RegisterPropertyHelper(@TDADataTableRemoteFetchEnabled_R, @TDADataTableRemoteFetchEnabled_W, 'RemoteFetchEnabled');
+  lc.RegisterPropertyHelper(@TDADataTableMasterFields_R, @TDADataTableMasterFields_W, 'MasterFields');
+  lc.RegisterPropertyHelper(@TDADataTableDetailFields_R, @TDADataTableDetailFields_W, 'DetailFields');
+  lc.RegisterPropertyHelper(@TDADataTableMasterRequestMappings_R, @TDADataTableMasterRequestMappings_W, 'MasterRequestMappings');
+  lc.RegisterPropertyHelper(@TDADataTableDetailOptions_R, @TDADataTableDetailOptions_W, 'DetailOptions');
+  lc.RegisterPropertyHelper(@TDADataTableMasterOptions_R, @TDADataTableMasterOptions_W, 'MasterOptions');
+  lc.RegisterPropertyHelper(@TDADataTableFiltered_R, @TDADataTableFiltered_W, 'Filtered');
+  lc.RegisterPropertyHelper(@TDADataTableFilter_R, @TDADataTableFilter_W, 'Filter');
+  lc.RegisterPropertyHelper(@TDADataTableLogicalName_R, @TDADataTableLogicalName_W, 'LogicalName');
+  lc.RegisterPropertyHelper(@TDADataTableBusinessRulesID_R, @TDADataTableBusinessRulesID_W, 'BusinessRulesID');
+  lc.RegisterPropertyHelper(@TDADataTableState_R, nil, 'State');
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TDAParamCollection'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TDAParamCollection_PSHelper = class helper for TDAParamCollection
+  public
+    procedure HasInputParams_R(var T: boolean);
+    procedure Params_R(var T: TDAParam; const t1: integer);
+    procedure Params_W(const T: TDAParam; const t1: integer);
+  end;
+
+procedure TDAParamCollection_PSHelper.HasInputParams_R(var T: boolean);
+begin
+  T := Self.HasInputParams;
+end;
+
+procedure TDAParamCollection_PSHelper.Params_W(const T: TDAParam; const t1: integer);
+begin
+  Self.Params[t1] := T;
+end;
+
+procedure TDAParamCollection_PSHelper.Params_R(var T: TDAParam; const t1: integer);
+begin
+  T := Self.Params[t1];
+end;
+
+procedure RIRegister_TDAParamCollection(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDAParamCollection);
+  lc.RegisterConstructor(@TDAParamCollection.Create, 'Create');
+  lc.RegisterMethod(@TDAParamCollection.WriteValues, 'WriteValues');
+  lc.RegisterMethod(@TDAParamCollection.ReadValues, 'ReadValues');
+  lc.RegisterMethod(@TDAParamCollection.Add, 'Add');
+  lc.RegisterMethod(@TDAParamCollection.ParamByName, 'ParamByName');
+  lc.RegisterMethod(@TDAParamCollection.FindParam, 'FindParam');
+  lc.RegisterMethod(@TDAParamCollection.AssignParamCollection, 'AssignParamCollection');
+  lc.RegisterPropertyHelper(@TDAParamCollection.Params_R, @TDAParamCollection.Params_W, 'Params');
+  lc.RegisterPropertyHelper(@TDAParamCollection.HasInputParams_R, nil, 'HasInputParams');
+end;
+
+{$ELSE}
 procedure TDAParamCollectionHasInputParams_R(Self: TDAParamCollection; var T: boolean);
 begin
   T := Self.HasInputParams;
@@ -403,6 +682,57 @@ begin
   T := Self.Params[t1];
 end;
 
+procedure RIRegister_TDAParamCollection(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDAParamCollection);
+  lc.RegisterConstructor(@TDAParamCollection.Create, 'Create');
+  lc.RegisterMethod(@TDAParamCollection.WriteValues, 'WriteValues');
+  lc.RegisterMethod(@TDAParamCollection.ReadValues, 'ReadValues');
+  lc.RegisterMethod(@TDAParamCollection.Add, 'Add');
+  lc.RegisterMethod(@TDAParamCollection.ParamByName, 'ParamByName');
+  lc.RegisterMethod(@TDAParamCollection.FindParam, 'FindParam');
+  lc.RegisterMethod(@TDAParamCollection.AssignParamCollection, 'AssignParamCollection');
+  lc.RegisterPropertyHelper(@TDAParamCollectionParams_R, @TDAParamCollectionParams_W, 'Params');
+  lc.RegisterPropertyHelper(@TDAParamCollectionHasInputParams_R, nil, 'HasInputParams');
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TDAParam'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TDAParam_PSHelper = class helper for TDAParam
+  public
+    procedure ParamType_W(const T: TDAParamType);
+    procedure ParamType_R(var T: TDAParamType);
+  end;
+
+procedure TDAParam_PSHelper.ParamType_W(const T: TDAParamType);
+begin
+  Self.ParamType := T;
+end;
+
+procedure TDAParam_PSHelper.ParamType_R(var T: TDAParamType);
+begin
+  T := Self.ParamType;
+end;
+
+procedure RIRegister_TDAParam(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDAParam);
+  lc.RegisterMethod(@TDAParam.SaveToStream, 'SaveToStream');
+  lc.RegisterMethod(@TDAParam.LoadFromStream, 'LoadFromStream');
+  lc.RegisterMethod(@TDAParam.SaveToFile, 'SaveToFile');
+  lc.RegisterMethod(@TDAParam.LoadFromFile, 'LoadFromFile');
+  lc.RegisterPropertyHelper(@TDAParam.ParamType_R, @TDAParam.ParamType_W, 'ParamType');
+end;
+
+{$ELSE}
 procedure TDAParamParamType_W(Self: TDAParam; const T: TDAParamType);
 begin
   Self.ParamType := T;
@@ -413,6 +743,51 @@ begin
   T := Self.ParamType;
 end;
 
+procedure RIRegister_TDAParam(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDAParam);
+  lc.RegisterMethod(@TDAParam.SaveToStream, 'SaveToStream');
+  lc.RegisterMethod(@TDAParam.LoadFromStream, 'LoadFromStream');
+  lc.RegisterMethod(@TDAParam.SaveToFile, 'SaveToFile');
+  lc.RegisterMethod(@TDAParam.LoadFromFile, 'LoadFromFile');
+  lc.RegisterPropertyHelper(@TDAParamParamType_R, @TDAParamParamType_W, 'ParamType');
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TDAFieldCollection'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TDAFieldCollection_PSHelper = class helper for TDAFieldCollection
+  public
+    procedure Fields_R(var T: TDAField; const t1: integer);
+    procedure Fields_W(const T: TDAField; const t1: integer);
+  end;
+
+procedure TDAFieldCollection_PSHelper.Fields_W(const T: TDAField; const t1: integer);
+begin
+  Self.Fields[t1] := T;
+end;
+
+procedure TDAFieldCollection_PSHelper.Fields_R(var T: TDAField; const t1: integer);
+begin
+  T := Self.Fields[t1];
+end;
+
+procedure RIRegister_TDAFieldCollection(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDAFieldCollection);
+  lc.RegisterConstructor(@TDAFieldCollection.Create, 'Create');
+  lc.RegisterMethod(@TDAFieldCollection.FieldByName, 'FieldByName');
+  lc.RegisterMethod(@TDAFieldCollection.FindField, 'FindField');
+  lc.RegisterPropertyHelper(@TDAFieldCollection.Fields_R, @TDAFieldCollection.Fields_W, 'Fields');
+end;
+{$ELSE}
 procedure TDAFieldCollectionFields_W(Self: TDAFieldCollection; const T: TDAField; const t1: integer);
 begin
   Self.Fields[t1] := T;
@@ -423,6 +798,79 @@ begin
   T := Self.Fields[t1];
 end;
 
+procedure RIRegister_TDAFieldCollection(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDAFieldCollection);
+  lc.RegisterConstructor(@TDAFieldCollection.Create, 'Create');
+  lc.RegisterMethod(@TDAFieldCollection.FieldByName, 'FieldByName');
+  lc.RegisterMethod(@TDAFieldCollection.FindField, 'FindField');
+  lc.RegisterPropertyHelper(@TDAFieldCollectionFields_R, @TDAFieldCollectionFields_W, 'Fields');
+end;
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TDACustomFieldCollection'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TDACustomFieldCollection_PSHelper = class helper for TDACustomFieldCollection
+  public
+    procedure DataDictionary_R(var T: IDADataDictionary);
+    procedure DataDictionary_W(const T: IDADataDictionary);
+    procedure FieldEventsDisabled_R(var T: boolean);
+    procedure FieldEventsDisabled_W(const T: boolean);
+    procedure Fields_R(var T: TDACustomField; const t1: integer);
+    procedure Fields_W(const T: TDACustomField; const t1: integer);
+  end;
+
+procedure TDACustomFieldCollection_PSHelper.Fields_W(const T: TDACustomField; const t1: integer);
+begin
+  Self.Fields[t1] := T;
+end;
+
+procedure TDACustomFieldCollection_PSHelper.Fields_R(var T: TDACustomField; const t1: integer);
+begin
+  T := Self.Fields[t1];
+end;
+
+procedure TDACustomFieldCollection_PSHelper.DataDictionary_W(const T: IDADataDictionary);
+begin
+  Self.DataDictionary := T;
+end;
+
+procedure TDACustomFieldCollection_PSHelper.DataDictionary_R(var T: IDADataDictionary);
+begin
+  T := Self.DataDictionary;
+end;
+
+procedure TDACustomFieldCollection_PSHelper.FieldEventsDisabled_W(const T: boolean);
+begin
+  Self.FieldEventsDisabled := T;
+end;
+
+procedure TDACustomFieldCollection_PSHelper.FieldEventsDisabled_R(var T: boolean);
+begin
+  T := Self.FieldEventsDisabled;
+end;
+
+procedure RIRegister_TDACustomFieldCollection(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDACustomFieldCollection);
+  lc.RegisterMethod(@TDACustomFieldCollection.Bind, 'Bind');
+  lc.RegisterMethod(@TDACustomFieldCollection.Unbind, 'Unbind');
+  lc.RegisterPropertyHelper(@TDACustomFieldCollection.FieldEventsDisabled_R, @TDACustomFieldCollection.FieldEventsDisabled_W, 'FieldEventsDisabled');
+  lc.RegisterMethod(@TDACustomFieldCollection.AssignFieldCollection, 'AssignFieldCollection');
+  lc.RegisterMethod(@TDACustomFieldCollection.FieldByName, 'FieldByName');
+  lc.RegisterMethod(@TDACustomFieldCollection.FindField, 'FindField');
+  lc.RegisterMethod(@TDACustomFieldCollection.MoveItem, 'MoveItem');
+  lc.RegisterPropertyHelper(@TDACustomFieldCollection.DataDictionary_R, @TDACustomFieldCollection.DataDictionary_W, 'DataDictionary');
+  lc.RegisterPropertyHelper(@TDACustomFieldCollection.Fields_R, @TDACustomFieldCollection.Fields_W, 'Fields');
+end;
+
+{$ELSE}
 procedure TDACustomFieldCollectionFields_W(Self: TDACustomFieldCollection; const T: TDACustomField; const t1: integer);
 begin
   Self.Fields[t1] := T;
@@ -453,6 +901,359 @@ begin
   T := Self.FieldEventsDisabled;
 end;
 
+procedure RIRegister_TDACustomFieldCollection(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDACustomFieldCollection);
+  lc.RegisterMethod(@TDACustomFieldCollection.Bind, 'Bind');
+  lc.RegisterMethod(@TDACustomFieldCollection.Unbind, 'Unbind');
+  lc.RegisterPropertyHelper(@TDACustomFieldCollectionFieldEventsDisabled_R, @TDACustomFieldCollectionFieldEventsDisabled_W, 'FieldEventsDisabled');
+  lc.RegisterMethod(@TDACustomFieldCollection.AssignFieldCollection, 'AssignFieldCollection');
+  lc.RegisterMethod(@TDACustomFieldCollection.FieldByName, 'FieldByName');
+  lc.RegisterMethod(@TDACustomFieldCollection.FindField, 'FindField');
+  lc.RegisterMethod(@TDACustomFieldCollection.MoveItem, 'MoveItem');
+  lc.RegisterPropertyHelper(@TDACustomFieldCollectionDataDictionary_R, @TDACustomFieldCollectionDataDictionary_W, 'DataDictionary');
+  lc.RegisterPropertyHelper(@TDACustomFieldCollectionFields_R, @TDACustomFieldCollectionFields_W, 'Fields');
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TDACustomField'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TDACustomField_PSHelper = class helper for TDACustomField
+  public
+    procedure Alignment_R(var T: TAlignment);
+    procedure Alignment_W(const T: TAlignment);
+    procedure BusinessRulesID_R(var T: string);
+    procedure BusinessRulesID_W(const T: string);
+    procedure Calculated_R(var T: boolean);
+    procedure Calculated_W(const T: boolean);
+    procedure CustomAttributes_R(var T: TStrings);
+    procedure CustomAttributes_W(const T: TStrings);
+    procedure DefaultValue_R(var T: string);
+    procedure DefaultValue_W(const T: string);
+    procedure DisplayFormat_R(var T: string);
+    procedure DisplayFormat_W(const T: string);
+    procedure DisplayLabel_R(var T: string);
+    procedure DisplayLabel_W(const T: string);
+    procedure DisplayWidth_R(var T: integer);
+    procedure DisplayWidth_W(const T: integer);
+    procedure EditFormat_R(var T: string);
+    procedure EditFormat_W(const T: string);
+    procedure EditMask_R(var T: string);
+    procedure EditMask_W(const T: string);
+    procedure FieldCollection_R(var T: TDACustomFieldCollection);
+    procedure InPrimaryKey_R(var T: boolean);
+    procedure InPrimaryKey_W(const T: boolean);
+    procedure IsNull_R(var T: boolean);
+    procedure KeyFields_R(var T: string);
+    procedure KeyFields_W(const T: string);
+    procedure LogChanges_R(var T: boolean);
+    procedure LogChanges_W(const T: boolean);
+    procedure Lookup_R(var T: boolean);
+    procedure Lookup_W(const T: boolean);
+    procedure LookupCache_R(var T: boolean);
+    procedure LookupCache_W(const T: boolean);
+    procedure LookupKeyFields_R(var T: string);
+    procedure LookupKeyFields_W(const T: string);
+    procedure LookupResultField_R(var T: string);
+    procedure LookupResultField_W(const T: string);
+    procedure LookupSource_R(var T: TDataSource);
+    procedure LookupSource_W(const T: TDataSource);
+    procedure ReadOnly_R(var T: boolean);
+    procedure ReadOnly_W(const T: boolean);
+    procedure RegExpression_R(var T: string);
+    procedure RegExpression_W(const T: string);
+    procedure Required_R(var T: boolean);
+    procedure Required_W(const T: boolean);
+    procedure TableField_R(var T: string);
+    procedure TableField_W(const T: string);
+    procedure Visible_R(var T: boolean);
+    procedure Visible_W(const T: boolean);
+  end;
+
+procedure TDACustomField_PSHelper.Alignment_W(const T: TAlignment);
+begin
+  Self.Alignment := T;
+end;
+
+procedure TDACustomField_PSHelper.Alignment_R(var T: TAlignment);
+begin
+  T := Self.Alignment;
+end;
+
+procedure TDACustomField_PSHelper.EditFormat_W(const T: string);
+begin
+  Self.EditFormat := T;
+end;
+
+procedure TDACustomField_PSHelper.EditFormat_R(var T: string);
+begin
+  T := Self.EditFormat;
+end;
+
+procedure TDACustomField_PSHelper.BusinessRulesID_W(const T: string);
+begin
+  Self.BusinessClassID := T;
+end;
+
+procedure TDACustomField_PSHelper.BusinessRulesID_R(var T: string);
+begin
+  T := Self.BusinessClassID;
+end;
+
+procedure TDACustomField_PSHelper.DisplayFormat_W(const T: string);
+begin
+  Self.DisplayFormat := T;
+end;
+
+procedure TDACustomField_PSHelper.DisplayFormat_R(var T: string);
+begin
+  T := Self.DisplayFormat;
+end;
+
+procedure TDACustomField_PSHelper.CustomAttributes_W(const T: TStrings);
+begin
+  Self.CustomAttributes := T;
+end;
+
+procedure TDACustomField_PSHelper.CustomAttributes_R(var T: TStrings);
+begin
+  T := Self.CustomAttributes;
+end;
+
+procedure TDACustomField_PSHelper.ReadOnly_W(const T: boolean);
+begin
+  Self.ReadOnly := T;
+end;
+
+procedure TDACustomField_PSHelper.ReadOnly_R(var T: boolean);
+begin
+  T := Self.ReadOnly;
+end;
+
+procedure TDACustomField_PSHelper.Visible_W(const T: boolean);
+begin
+  Self.Visible := T;
+end;
+
+procedure TDACustomField_PSHelper.Visible_R(var T: boolean);
+begin
+  T := Self.Visible;
+end;
+
+procedure TDACustomField_PSHelper.EditMask_W(const T: string);
+begin
+  Self.EditMask := T;
+end;
+
+procedure TDACustomField_PSHelper.EditMask_R(var T: string);
+begin
+  T := Self.EditMask;
+end;
+
+procedure TDACustomField_PSHelper.DisplayLabel_W(const T: string);
+begin
+  Self.DisplayLabel := T;
+end;
+
+procedure TDACustomField_PSHelper.DisplayLabel_R(var T: string);
+begin
+  T := Self.DisplayLabel;
+end;
+
+procedure TDACustomField_PSHelper.DisplayWidth_W(const T: integer);
+begin
+  Self.DisplayWidth := T;
+end;
+
+procedure TDACustomField_PSHelper.DisplayWidth_R(var T: integer);
+begin
+  T := Self.DisplayWidth;
+end;
+
+procedure TDACustomField_PSHelper.Required_W(const T: boolean);
+begin
+  Self.Required := T;
+end;
+
+procedure TDACustomField_PSHelper.Required_R(var T: boolean);
+begin
+  T := Self.Required;
+end;
+
+procedure TDACustomField_PSHelper.DefaultValue_W(const T: string);
+begin
+  Self.DefaultValue := T;
+end;
+
+procedure TDACustomField_PSHelper.DefaultValue_R(var T: string);
+begin
+  T := Self.DefaultValue;
+end;
+
+procedure TDACustomField_PSHelper.RegExpression_W(const T: string);
+begin
+  Self.RegExpression := T;
+end;
+
+procedure TDACustomField_PSHelper.RegExpression_R(var T: string);
+begin
+  T := Self.RegExpression;
+end;
+
+procedure TDACustomField_PSHelper.LogChanges_W(const T: boolean);
+begin
+  Self.LogChanges := T;
+end;
+
+procedure TDACustomField_PSHelper.LogChanges_R(var T: boolean);
+begin
+  T := Self.LogChanges;
+end;
+
+procedure TDACustomField_PSHelper.LookupCache_W(const T: boolean);
+begin
+  Self.LookupCache := T;
+end;
+
+procedure TDACustomField_PSHelper.LookupCache_R(var T: boolean);
+begin
+  T := Self.LookupCache;
+end;
+
+procedure TDACustomField_PSHelper.KeyFields_W(const T: string);
+begin
+  Self.KeyFields := T;
+end;
+
+procedure TDACustomField_PSHelper.KeyFields_R(var T: string);
+begin
+  T := Self.KeyFields;
+end;
+
+procedure TDACustomField_PSHelper.LookupResultField_W(const T: string);
+begin
+  Self.LookupResultField := T;
+end;
+
+procedure TDACustomField_PSHelper.LookupResultField_R(var T: string);
+begin
+  T := Self.LookupResultField;
+end;
+
+procedure TDACustomField_PSHelper.LookupKeyFields_W(const T: string);
+begin
+  Self.LookupKeyFields := T;
+end;
+
+procedure TDACustomField_PSHelper.LookupKeyFields_R(var T: string);
+begin
+  T := Self.LookupKeyFields;
+end;
+
+procedure TDACustomField_PSHelper.LookupSource_W(const T: TDataSource);
+begin
+  Self.LookupSource := T;
+end;
+
+procedure TDACustomField_PSHelper.LookupSource_R(var T: TDataSource);
+begin
+  T := Self.LookupSource;
+end;
+
+procedure TDACustomField_PSHelper.Lookup_W(const T: boolean);
+begin
+  Self.Lookup := T;
+end;
+
+procedure TDACustomField_PSHelper.Lookup_R(var T: boolean);
+begin
+  T := Self.Lookup;
+end;
+
+procedure TDACustomField_PSHelper.Calculated_W(const T: boolean);
+begin
+  Self.Calculated := T;
+end;
+
+procedure TDACustomField_PSHelper.Calculated_R(var T: boolean);
+begin
+  T := Self.Calculated;
+end;
+
+procedure TDACustomField_PSHelper.InPrimaryKey_W(const T: boolean);
+begin
+  Self.InPrimaryKey := T;
+end;
+
+procedure TDACustomField_PSHelper.InPrimaryKey_R(var T: boolean);
+begin
+  T := Self.InPrimaryKey;
+end;
+
+procedure TDACustomField_PSHelper.IsNull_R(var T: boolean);
+begin
+  T := Self.IsNull;
+end;
+
+procedure TDACustomField_PSHelper.TableField_W(const T: string);
+begin
+  Self.TableField := T;
+end;
+
+procedure TDACustomField_PSHelper.TableField_R(var T: string);
+begin
+  T := Self.TableField;
+end;
+
+procedure TDACustomField_PSHelper.FieldCollection_R(var T: TDACustomFieldCollection);
+begin
+  T := Self.FieldCollection;
+end;
+
+procedure RIRegister_TDACustomField(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDACustomField);
+  lc.RegisterMethod(@TDACustomField.Bind, 'Bind');
+  lc.RegisterMethod(@TDACustomField.Unbind, 'Unbind');
+  lc.RegisterMethod(@TDACustomField.SaveToStream, 'SaveToStream');
+  lc.RegisterMethod(@TDACustomField.LoadFromStream, 'LoadFromStream');
+  lc.RegisterMethod(@TDACustomField.SaveToFile, 'SaveToFile');
+  lc.RegisterMethod(@TDACustomField.LoadFromFile, 'LoadFromFile');
+  lc.RegisterPropertyHelper(@TDACustomField.FieldCollection_R, nil, 'FieldCollection');
+  lc.RegisterPropertyHelper(@TDACustomField.TableField_R, @TDACustomField.TableField_W, 'TableField');
+  lc.RegisterPropertyHelper(@TDACustomField.IsNull_R, nil, 'IsNull');
+  lc.RegisterPropertyHelper(@TDACustomField.InPrimaryKey_R, @TDACustomField.InPrimaryKey_W, 'InPrimaryKey');
+  lc.RegisterPropertyHelper(@TDACustomField.Calculated_R, @TDACustomField.Calculated_W, 'Calculated');
+  lc.RegisterPropertyHelper(@TDACustomField.Lookup_R, @TDACustomField.Lookup_W, 'Lookup');
+  lc.RegisterPropertyHelper(@TDACustomField.LookupSource_R, @TDACustomField.LookupSource_W, 'LookupSource');
+  lc.RegisterPropertyHelper(@TDACustomField.LookupKeyFields_R, @TDACustomField.LookupKeyFields_W, 'LookupKeyFields');
+  lc.RegisterPropertyHelper(@TDACustomField.LookupResultField_R, @TDACustomField.LookupResultField_W, 'LookupResultField');
+  lc.RegisterPropertyHelper(@TDACustomField.KeyFields_R, @TDACustomField.KeyFields_W, 'KeyFields');
+  lc.RegisterPropertyHelper(@TDACustomField.LookupCache_R, @TDACustomField.LookupCache_W, 'LookupCache');
+  lc.RegisterPropertyHelper(@TDACustomField.LogChanges_R, @TDACustomField.LogChanges_W, 'LogChanges');
+  lc.RegisterPropertyHelper(@TDACustomField.RegExpression_R, @TDACustomField.RegExpression_W, 'RegExpression');
+  lc.RegisterPropertyHelper(@TDACustomField.DefaultValue_R, @TDACustomField.DefaultValue_W, 'DefaultValue');
+  lc.RegisterPropertyHelper(@TDACustomField.Required_R, @TDACustomField.Required_W, 'Required');
+  lc.RegisterPropertyHelper(@TDACustomField.DisplayWidth_R, @TDACustomField.DisplayWidth_W, 'DisplayWidth');
+  lc.RegisterPropertyHelper(@TDACustomField.DisplayLabel_R, @TDACustomField.DisplayLabel_W, 'DisplayLabel');
+  lc.RegisterPropertyHelper(@TDACustomField.EditMask_R, @TDACustomField.EditMask_W, 'EditMask');
+  lc.RegisterPropertyHelper(@TDACustomField.Visible_R, @TDACustomField.Visible_W, 'Visible');
+  lc.RegisterPropertyHelper(@TDACustomField.ReadOnly_R, @TDACustomField.ReadOnly_W, 'ReadOnly');
+  lc.RegisterPropertyHelper(@TDACustomField.CustomAttributes_R, @TDACustomField.CustomAttributes_W, 'CustomAttributes');
+  lc.RegisterPropertyHelper(@TDACustomField.DisplayFormat_R, @TDACustomField.DisplayFormat_W, 'DisplayFormat');
+  lc.RegisterPropertyHelper(@TDACustomField.BusinessRulesID_R, @TDACustomField.BusinessRulesID_W, 'BusinessRulesID');
+  lc.RegisterPropertyHelper(@TDACustomField.EditFormat_R, @TDACustomField.EditFormat_W, 'EditFormat');
+  lc.RegisterPropertyHelper(@TDACustomField.Alignment_R, @TDACustomField.Alignment_W, 'Alignment');
+end;
+
+{$ELSE}
 procedure TDACustomFieldAlignment_W(Self: TDACustomField; const T: TAlignment);
 begin
   Self.Alignment := T;
@@ -693,6 +1494,246 @@ begin
   T := Self.FieldCollection;
 end;
 
+procedure RIRegister_TDACustomField(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDACustomField);
+  lc.RegisterMethod(@TDACustomField.Bind, 'Bind');
+  lc.RegisterMethod(@TDACustomField.Unbind, 'Unbind');
+  lc.RegisterMethod(@TDACustomField.SaveToStream, 'SaveToStream');
+  lc.RegisterMethod(@TDACustomField.LoadFromStream, 'LoadFromStream');
+  lc.RegisterMethod(@TDACustomField.SaveToFile, 'SaveToFile');
+  lc.RegisterMethod(@TDACustomField.LoadFromFile, 'LoadFromFile');
+  lc.RegisterPropertyHelper(@TDACustomFieldFieldCollection_R, nil, 'FieldCollection');
+  lc.RegisterPropertyHelper(@TDACustomFieldTableField_R, @TDACustomFieldTableField_W, 'TableField');
+  lc.RegisterPropertyHelper(@TDACustomFieldIsNull_R, nil, 'IsNull');
+  lc.RegisterPropertyHelper(@TDACustomFieldInPrimaryKey_R, @TDACustomFieldInPrimaryKey_W, 'InPrimaryKey');
+  lc.RegisterPropertyHelper(@TDACustomFieldCalculated_R, @TDACustomFieldCalculated_W, 'Calculated');
+  lc.RegisterPropertyHelper(@TDACustomFieldLookup_R, @TDACustomFieldLookup_W, 'Lookup');
+  lc.RegisterPropertyHelper(@TDACustomFieldLookupSource_R, @TDACustomFieldLookupSource_W, 'LookupSource');
+  lc.RegisterPropertyHelper(@TDACustomFieldLookupKeyFields_R, @TDACustomFieldLookupKeyFields_W, 'LookupKeyFields');
+  lc.RegisterPropertyHelper(@TDACustomFieldLookupResultField_R, @TDACustomFieldLookupResultField_W, 'LookupResultField');
+  lc.RegisterPropertyHelper(@TDACustomFieldKeyFields_R, @TDACustomFieldKeyFields_W, 'KeyFields');
+  lc.RegisterPropertyHelper(@TDACustomFieldLookupCache_R, @TDACustomFieldLookupCache_W, 'LookupCache');
+  lc.RegisterPropertyHelper(@TDACustomFieldLogChanges_R, @TDACustomFieldLogChanges_W, 'LogChanges');
+  lc.RegisterPropertyHelper(@TDACustomFieldRegExpression_R, @TDACustomFieldRegExpression_W, 'RegExpression');
+  lc.RegisterPropertyHelper(@TDACustomFieldDefaultValue_R, @TDACustomFieldDefaultValue_W, 'DefaultValue');
+  lc.RegisterPropertyHelper(@TDACustomFieldRequired_R, @TDACustomFieldRequired_W, 'Required');
+  lc.RegisterPropertyHelper(@TDACustomFieldDisplayWidth_R, @TDACustomFieldDisplayWidth_W, 'DisplayWidth');
+  lc.RegisterPropertyHelper(@TDACustomFieldDisplayLabel_R, @TDACustomFieldDisplayLabel_W, 'DisplayLabel');
+  lc.RegisterPropertyHelper(@TDACustomFieldEditMask_R, @TDACustomFieldEditMask_W, 'EditMask');
+  lc.RegisterPropertyHelper(@TDACustomFieldVisible_R, @TDACustomFieldVisible_W, 'Visible');
+  lc.RegisterPropertyHelper(@TDACustomFieldReadOnly_R, @TDACustomFieldReadOnly_W, 'ReadOnly');
+  lc.RegisterPropertyHelper(@TDACustomFieldCustomAttributes_R, @TDACustomFieldCustomAttributes_W, 'CustomAttributes');
+  lc.RegisterPropertyHelper(@TDACustomFieldDisplayFormat_R, @TDACustomFieldDisplayFormat_W, 'DisplayFormat');
+  lc.RegisterPropertyHelper(@TDACustomFieldBusinessRulesID_R, @TDACustomFieldBusinessRulesID_W, 'BusinessRulesID');
+  lc.RegisterPropertyHelper(@TDACustomFieldEditFormat_R, @TDACustomFieldEditFormat_W, 'EditFormat');
+  lc.RegisterPropertyHelper(@TDACustomFieldAlignment_R, @TDACustomFieldAlignment_W, 'Alignment');
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TDABaseField'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TDABaseField_PSHelper = class helper for TDABaseField
+  public
+    procedure AsBoolean_R(var T: boolean);
+    procedure AsBoolean_W(const T: boolean);
+    procedure AsCurrency_R(var T: currency);
+    procedure AsCurrency_W(const T: currency);
+    procedure AsDateTime_R(var T: TDateTime);
+    procedure AsDateTime_W(const T: TDateTime);
+    procedure AsFloat_R(var T: double);
+    procedure AsFloat_W(const T: double);
+    procedure AsInteger_R(var T: integer);
+    procedure AsInteger_W(const T: integer);
+    procedure AsString_R(var T: string);
+    procedure AsString_W(const T: string);
+    procedure AsVariant_R(var T: variant);
+    procedure AsVariant_W(const T: variant);
+    procedure BlobType_R(var T: TDABlobType);
+    procedure BlobType_W(const T: TDABlobType);
+    procedure DataType_R(var T: TDADataType);
+    procedure DataType_W(const T: TDADataType);
+    procedure Description_R(var T: string);
+    procedure Description_W(const T: string);
+    procedure DictionaryEntry_R(var T: string);
+    procedure DictionaryEntry_W(const T: string);
+    procedure Name_R(var T: string);
+    procedure Name_W(const T: string);
+    procedure Size_R(var T: integer);
+    procedure Size_W(const T: integer);
+    procedure Value_R(var T: Variant);
+    procedure Value_W(const T: Variant);
+  end;
+
+procedure TDABaseField_PSHelper.BlobType_W(const T: TDABlobType);
+begin
+  Self.BlobType := T;
+end;
+
+procedure TDABaseField_PSHelper.BlobType_R(var T: TDABlobType);
+begin
+  T := Self.BlobType;
+end;
+
+procedure TDABaseField_PSHelper.Description_W(const T: string);
+begin
+  Self.Description := T;
+end;
+
+procedure TDABaseField_PSHelper.Description_R(var T: string);
+begin
+  T := Self.Description;
+end;
+
+procedure TDABaseField_PSHelper.Size_W(const T: integer);
+begin
+  Self.Size := T;
+end;
+
+procedure TDABaseField_PSHelper.Size_R(var T: integer);
+begin
+  T := Self.Size;
+end;
+
+procedure TDABaseField_PSHelper.DataType_W(const T: TDADataType);
+begin
+  Self.DataType := T;
+end;
+
+procedure TDABaseField_PSHelper.DataType_R(var T: TDADataType);
+begin
+  T := Self.DataType;
+end;
+
+procedure TDABaseField_PSHelper.Name_W(const T: string);
+begin
+  Self.Name := T;
+end;
+
+procedure TDABaseField_PSHelper.Name_R(var T: string);
+begin
+  T := Self.Name;
+end;
+
+procedure TDABaseField_PSHelper.DictionaryEntry_W(const T: string);
+begin
+  Self.DictionaryEntry := T;
+end;
+
+procedure TDABaseField_PSHelper.DictionaryEntry_R(var T: string);
+begin
+  T := Self.DictionaryEntry;
+end;
+
+procedure TDABaseField_PSHelper.AsVariant_W(const T: variant);
+begin
+  Self.AsVariant := T;
+end;
+
+procedure TDABaseField_PSHelper.AsVariant_R(var T: variant);
+begin
+  T := Self.AsVariant;
+end;
+
+procedure TDABaseField_PSHelper.AsString_W(const T: string);
+begin
+  Self.AsString := T;
+end;
+
+procedure TDABaseField_PSHelper.AsString_R(var T: string);
+begin
+  T := Self.AsString;
+end;
+
+procedure TDABaseField_PSHelper.AsInteger_W(const T: integer);
+begin
+  Self.AsInteger := T;
+end;
+
+procedure TDABaseField_PSHelper.AsInteger_R(var T: integer);
+begin
+  T := Self.AsInteger;
+end;
+
+procedure TDABaseField_PSHelper.AsFloat_W(const T: double);
+begin
+  Self.AsFloat := T;
+end;
+
+procedure TDABaseField_PSHelper.AsFloat_R(var T: double);
+begin
+  T := Self.AsFloat;
+end;
+
+procedure TDABaseField_PSHelper.AsDateTime_W(const T: TDateTime);
+begin
+  Self.AsDateTime := T;
+end;
+
+procedure TDABaseField_PSHelper.AsDateTime_R(var T: TDateTime);
+begin
+  T := Self.AsDateTime;
+end;
+
+procedure TDABaseField_PSHelper.AsCurrency_W(const T: currency);
+begin
+  Self.AsCurrency := T;
+end;
+
+procedure TDABaseField_PSHelper.AsCurrency_R(var T: currency);
+begin
+  T := Self.AsCurrency;
+end;
+
+procedure TDABaseField_PSHelper.AsBoolean_W(const T: boolean);
+begin
+  Self.AsBoolean := T;
+end;
+
+procedure TDABaseField_PSHelper.AsBoolean_R(var T: boolean);
+begin
+  T := Self.AsBoolean;
+end;
+
+procedure TDABaseField_PSHelper.Value_W(const T: Variant);
+begin
+  Self.Value := T;
+end;
+
+procedure TDABaseField_PSHelper.Value_R(var T: Variant);
+begin
+  T := Self.Value;
+end;
+
+procedure RIRegister_TDABaseField(CL: TIFPSRuntimeClassImporter);
+var
+  lc:TPSRuntimeClass;
+begin
+  lc := CL.Add(TDABaseField);
+  lc.RegisterPropertyHelper(@TDABaseField.Value_R, @TDABaseField.Value_W, 'Value');
+  lc.RegisterVirtualMethod(@TDABaseField.AssignField, 'AssignField');
+  lc.RegisterMethod(@TDABaseField.HasValidDictionaryField, 'HasValidDictionaryField');
+  lc.RegisterPropertyHelper(@TDABaseField.AsBoolean_R, @TDABaseField.AsBoolean_W, 'AsBoolean');
+  lc.RegisterPropertyHelper(@TDABaseField.AsCurrency_R, @TDABaseField.AsCurrency_W, 'AsCurrency');
+  lc.RegisterPropertyHelper(@TDABaseField.AsDateTime_R, @TDABaseField.AsDateTime_W, 'AsDateTime');
+  lc.RegisterPropertyHelper(@TDABaseField.AsFloat_R, @TDABaseField.AsFloat_W, 'AsFloat');
+  lc.RegisterPropertyHelper(@TDABaseField.AsInteger_R, @TDABaseField.AsInteger_W, 'AsInteger');
+  lc.RegisterPropertyHelper(@TDABaseField.AsString_R, @TDABaseField.AsString_W, 'AsString');
+  lc.RegisterPropertyHelper(@TDABaseField.AsVariant_R, @TDABaseField.AsVariant_W, 'AsVariant');
+  lc.RegisterPropertyHelper(@TDABaseField.DictionaryEntry_R, @TDABaseField.DictionaryEntry_W, 'DictionaryEntry');
+  lc.RegisterPropertyHelper(@TDABaseField.Name_R, @TDABaseField.Name_W, 'Name');
+  lc.RegisterPropertyHelper(@TDABaseField.DataType_R, @TDABaseField.DataType_W, 'DataType');
+  lc.RegisterPropertyHelper(@TDABaseField.Size_R, @TDABaseField.Size_W, 'Size');
+  lc.RegisterPropertyHelper(@TDABaseField.Description_R, @TDABaseField.Description_W, 'Description');
+  lc.RegisterPropertyHelper(@TDABaseField.BlobType_R, @TDABaseField.BlobType_W, 'BlobType');
+end;
+{$ELSE}
+
 procedure TDABaseFieldBlobType_W(Self: TDABaseField; const T: TDABlobType);
 begin
   Self.BlobType := T;
@@ -833,136 +1874,6 @@ begin
   T := Self.Value;
 end;
 
-procedure TDADataTableState_R(Self: TDADataTable; var T: TDataSetState);
-begin
-  T := Self.State;
-end;
-
-procedure RIRegister_TDADataTable(CL: TIFPSRuntimeClassImporter);
-var
-  lc:TPSRuntimeClass;
-begin
-  lc := CL.Add(TDADataTable);
-  lc.RegisterPropertyHelper(@TDADataTableActive_R, @TDADataTableActive_W, 'Active');
-  lc.RegisterPropertyHelper(@TDADataTableFields_R, @TDADataTableFields_W, 'Fields');
-  lc.RegisterPropertyHelper(@TDADataTableParams_R, @TDADataTableParams_W, 'Params');
-  lc.RegisterPropertyHelper(@TDADataTableLogChanges_R, @TDADataTableLogChanges_W, 'LogChanges');
-  lc.RegisterPropertyHelper(@TDADataTableRemoteFetchEnabled_R, @TDADataTableRemoteFetchEnabled_W, 'RemoteFetchEnabled');
-  lc.RegisterPropertyHelper(@TDADataTableMasterFields_R, @TDADataTableMasterFields_W, 'MasterFields');
-  lc.RegisterPropertyHelper(@TDADataTableDetailFields_R, @TDADataTableDetailFields_W, 'DetailFields');
-  lc.RegisterPropertyHelper(@TDADataTableMasterRequestMappings_R, @TDADataTableMasterRequestMappings_W, 'MasterRequestMappings');
-  lc.RegisterPropertyHelper(@TDADataTableDetailOptions_R, @TDADataTableDetailOptions_W, 'DetailOptions');
-  lc.RegisterPropertyHelper(@TDADataTableMasterOptions_R, @TDADataTableMasterOptions_W, 'MasterOptions');
-  lc.RegisterPropertyHelper(@TDADataTableFiltered_R, @TDADataTableFiltered_W, 'Filtered');
-  lc.RegisterPropertyHelper(@TDADataTableFilter_R, @TDADataTableFilter_W, 'Filter');
-  lc.RegisterPropertyHelper(@TDADataTableLogicalName_R, @TDADataTableLogicalName_W, 'LogicalName');
-  lc.RegisterPropertyHelper(@TDADataTableBusinessRulesID_R, @TDADataTableBusinessRulesID_W, 'BusinessRulesID');
-  lc.RegisterPropertyHelper(@TDADataTableState_R, nil, 'State');
-end;
-
-procedure RIRegister_TDAParamCollection(CL: TIFPSRuntimeClassImporter);
-var
-  lc:TPSRuntimeClass;
-begin
-  lc := CL.Add(TDAParamCollection);
-  lc.RegisterConstructor(@TDAParamCollection.Create, 'Create');
-  lc.RegisterMethod(@TDAParamCollection.WriteValues, 'WriteValues');
-  lc.RegisterMethod(@TDAParamCollection.ReadValues, 'ReadValues');
-  lc.RegisterMethod(@TDAParamCollection.Add, 'Add');
-  lc.RegisterMethod(@TDAParamCollection.ParamByName, 'ParamByName');
-  lc.RegisterMethod(@TDAParamCollection.FindParam, 'FindParam');
-  lc.RegisterMethod(@TDAParamCollection.AssignParamCollection, 'AssignParamCollection');
-  lc.RegisterPropertyHelper(@TDAParamCollectionParams_R, @TDAParamCollectionParams_W, 'Params');
-  lc.RegisterPropertyHelper(@TDAParamCollectionHasInputParams_R, nil, 'HasInputParams');
-end;
-
-procedure RIRegister_TDAParam(CL: TIFPSRuntimeClassImporter);
-var
-  lc:TPSRuntimeClass;
-begin
-  lc := CL.Add(TDAParam);
-  lc.RegisterMethod(@TDAParam.SaveToStream, 'SaveToStream');
-  lc.RegisterMethod(@TDAParam.LoadFromStream, 'LoadFromStream');
-  lc.RegisterMethod(@TDAParam.SaveToFile, 'SaveToFile');
-  lc.RegisterMethod(@TDAParam.LoadFromFile, 'LoadFromFile');
-  lc.RegisterPropertyHelper(@TDAParamParamType_R, @TDAParamParamType_W, 'ParamType');
-end;
-
-procedure RIRegister_TDAFieldCollection(CL: TIFPSRuntimeClassImporter);
-var
-  lc:TPSRuntimeClass;
-begin
-  lc := CL.Add(TDAFieldCollection);
-  lc.RegisterConstructor(@TDAFieldCollection.Create, 'Create');
-  lc.RegisterMethod(@TDAFieldCollection.FieldByName, 'FieldByName');
-  lc.RegisterMethod(@TDAFieldCollection.FindField, 'FindField');
-  lc.RegisterPropertyHelper(@TDAFieldCollectionFields_R, @TDAFieldCollectionFields_W, 'Fields');
-end;
-
-procedure RIRegister_TDACustomFieldCollection(CL: TIFPSRuntimeClassImporter);
-var
-  lc:TPSRuntimeClass;
-begin
-  lc := CL.Add(TDACustomFieldCollection);
-  lc.RegisterMethod(@TDACustomFieldCollection.Bind, 'Bind');
-  lc.RegisterMethod(@TDACustomFieldCollection.Unbind, 'Unbind');
-  lc.RegisterPropertyHelper(@TDACustomFieldCollectionFieldEventsDisabled_R, @TDACustomFieldCollectionFieldEventsDisabled_W, 'FieldEventsDisabled');
-  lc.RegisterMethod(@TDACustomFieldCollection.AssignFieldCollection, 'AssignFieldCollection');
-  lc.RegisterMethod(@TDACustomFieldCollection.FieldByName, 'FieldByName');
-  lc.RegisterMethod(@TDACustomFieldCollection.FindField, 'FindField');
-  lc.RegisterMethod(@TDACustomFieldCollection.MoveItem, 'MoveItem');
-  lc.RegisterPropertyHelper(@TDACustomFieldCollectionDataDictionary_R, @TDACustomFieldCollectionDataDictionary_W, 'DataDictionary');
-  lc.RegisterPropertyHelper(@TDACustomFieldCollectionFields_R, @TDACustomFieldCollectionFields_W, 'Fields');
-end;
-
-procedure RIRegister_TDADataDictionaryField(CL: TIFPSRuntimeClassImporter);
-begin
-  CL.Add(TDADataDictionaryField);
-end;
-
-procedure RIRegister_TDAField(CL: TIFPSRuntimeClassImporter);
-begin
-  CL.Add(TDAField);
-end;
-
-procedure RIRegister_TDACustomField(CL: TIFPSRuntimeClassImporter);
-var
-  lc:TPSRuntimeClass;
-begin
-  lc := CL.Add(TDACustomField);
-  lc.RegisterMethod(@TDACustomField.Bind, 'Bind');
-  lc.RegisterMethod(@TDACustomField.Unbind, 'Unbind');
-  lc.RegisterMethod(@TDACustomField.SaveToStream, 'SaveToStream');
-  lc.RegisterMethod(@TDACustomField.LoadFromStream, 'LoadFromStream');
-  lc.RegisterMethod(@TDACustomField.SaveToFile, 'SaveToFile');
-  lc.RegisterMethod(@TDACustomField.LoadFromFile, 'LoadFromFile');
-  lc.RegisterPropertyHelper(@TDACustomFieldFieldCollection_R, nil, 'FieldCollection');
-  lc.RegisterPropertyHelper(@TDACustomFieldTableField_R, @TDACustomFieldTableField_W, 'TableField');
-  lc.RegisterPropertyHelper(@TDACustomFieldIsNull_R, nil, 'IsNull');
-  lc.RegisterPropertyHelper(@TDACustomFieldInPrimaryKey_R, @TDACustomFieldInPrimaryKey_W, 'InPrimaryKey');
-  lc.RegisterPropertyHelper(@TDACustomFieldCalculated_R, @TDACustomFieldCalculated_W, 'Calculated');
-  lc.RegisterPropertyHelper(@TDACustomFieldLookup_R, @TDACustomFieldLookup_W, 'Lookup');
-  lc.RegisterPropertyHelper(@TDACustomFieldLookupSource_R, @TDACustomFieldLookupSource_W, 'LookupSource');
-  lc.RegisterPropertyHelper(@TDACustomFieldLookupKeyFields_R, @TDACustomFieldLookupKeyFields_W, 'LookupKeyFields');
-  lc.RegisterPropertyHelper(@TDACustomFieldLookupResultField_R, @TDACustomFieldLookupResultField_W, 'LookupResultField');
-  lc.RegisterPropertyHelper(@TDACustomFieldKeyFields_R, @TDACustomFieldKeyFields_W, 'KeyFields');
-  lc.RegisterPropertyHelper(@TDACustomFieldLookupCache_R, @TDACustomFieldLookupCache_W, 'LookupCache');
-  lc.RegisterPropertyHelper(@TDACustomFieldLogChanges_R, @TDACustomFieldLogChanges_W, 'LogChanges');
-  lc.RegisterPropertyHelper(@TDACustomFieldRegExpression_R, @TDACustomFieldRegExpression_W, 'RegExpression');
-  lc.RegisterPropertyHelper(@TDACustomFieldDefaultValue_R, @TDACustomFieldDefaultValue_W, 'DefaultValue');
-  lc.RegisterPropertyHelper(@TDACustomFieldRequired_R, @TDACustomFieldRequired_W, 'Required');
-  lc.RegisterPropertyHelper(@TDACustomFieldDisplayWidth_R, @TDACustomFieldDisplayWidth_W, 'DisplayWidth');
-  lc.RegisterPropertyHelper(@TDACustomFieldDisplayLabel_R, @TDACustomFieldDisplayLabel_W, 'DisplayLabel');
-  lc.RegisterPropertyHelper(@TDACustomFieldEditMask_R, @TDACustomFieldEditMask_W, 'EditMask');
-  lc.RegisterPropertyHelper(@TDACustomFieldVisible_R, @TDACustomFieldVisible_W, 'Visible');
-  lc.RegisterPropertyHelper(@TDACustomFieldReadOnly_R, @TDACustomFieldReadOnly_W, 'ReadOnly');
-  lc.RegisterPropertyHelper(@TDACustomFieldCustomAttributes_R, @TDACustomFieldCustomAttributes_W, 'CustomAttributes');
-  lc.RegisterPropertyHelper(@TDACustomFieldDisplayFormat_R, @TDACustomFieldDisplayFormat_W, 'DisplayFormat');
-  lc.RegisterPropertyHelper(@TDACustomFieldBusinessRulesID_R, @TDACustomFieldBusinessRulesID_W, 'BusinessRulesID');
-  lc.RegisterPropertyHelper(@TDACustomFieldEditFormat_R, @TDACustomFieldEditFormat_W, 'EditFormat');
-  lc.RegisterPropertyHelper(@TDACustomFieldAlignment_R, @TDACustomFieldAlignment_W, 'Alignment');
-end;
-
 procedure RIRegister_TDABaseField(CL: TIFPSRuntimeClassImporter);
 var
   lc:TPSRuntimeClass;
@@ -984,6 +1895,18 @@ begin
   lc.RegisterPropertyHelper(@TDABaseFieldSize_R, @TDABaseFieldSize_W, 'Size');
   lc.RegisterPropertyHelper(@TDABaseFieldDescription_R, @TDABaseFieldDescription_W, 'Description');
   lc.RegisterPropertyHelper(@TDABaseFieldBlobType_R, @TDABaseFieldBlobType_W, 'BlobType');
+end;
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+procedure RIRegister_TDADataDictionaryField(CL: TIFPSRuntimeClassImporter);
+begin
+  CL.Add(TDADataDictionaryField);
+end;
+
+procedure RIRegister_TDAField(CL: TIFPSRuntimeClassImporter);
+begin
+  CL.Add(TDAField);
 end;
 
 procedure RIRegister_uDA(CL: TIFPSRuntimeClassImporter);

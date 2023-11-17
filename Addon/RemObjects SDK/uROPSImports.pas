@@ -1,5 +1,11 @@
 unit uROPSImports;
 
+{$IFDEF MSWINDOWS}
+{$I ..\..\Source\PascalScript.inc}
+{$ELSE}
+{$I ../../Source/PascalScript.inc}
+{$ENDIF}
+
 interface
 
 uses
@@ -86,103 +92,44 @@ begin
   T := Self.LIBRARYNAME; 
 end; }
 
-procedure TROBINMESSAGEUSECOMPRESSION_W(Self: TROBINMESSAGE; const T: boolean);
-begin 
-  Self.USECOMPRESSION := T; 
+{$IFDEF DELPHI10UP}{$REGION 'TROBinMessage'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TROBinMessage_PSHelper = class helper for TROBinMessage
+  public
+    procedure USECOMPRESSION_W(const T: boolean);
+    procedure USECOMPRESSION_R(var T: boolean);
+  end;
+
+procedure TROBinMessage_PSHelper.USECOMPRESSION_W(const T: boolean);
+begin
+  Self.USECOMPRESSION := T;
+end;
+
+procedure TROBinMessage_PSHelper.USECOMPRESSION_R(var T: boolean);
+begin
+  T := Self.USECOMPRESSION;
+end;
+
+procedure RIRegisterTROBINMESSAGE(Cl: TIFPSRuntimeClassImporter);
+begin
+  with Cl.Add(TROBINMESSAGE) do
+  begin
+    RegisterPropertyHelper(@TROBINMESSAGE.USECOMPRESSION_R,
+      @TROBINMESSAGE.USECOMPRESSION_W, 'USECOMPRESSION');
+  end;
+end;
+
+{$ELSE}
+procedure TROBINMESSAGEUSECOMPRESSION_W(Self: TROBinMessage; const T: boolean);
+begin
+  Self.USECOMPRESSION := T;
 end;
 
 procedure TROBINMESSAGEUSECOMPRESSION_R(Self: TROBINMESSAGE; var T: boolean);
-begin 
-  T := Self.USECOMPRESSION; 
-end;
-
-procedure TROINDYHTTPCHANNELTARGETURL_W(Self: TROINDYHTTPCHANNEL; const T: string);
-begin 
-  Self.TARGETURL := T; 
-end;
-
-procedure TROINDYHTTPCHANNELTARGETURL_R(Self: TROINDYHTTPCHANNEL; var T: string);
-begin 
-  T := Self.TARGETURL; 
-end;
-
-procedure TROINDYTCPCHANNELINDYCLIENT_R(Self: TROINDYTCPCHANNEL; var T: TIdTCPClientBaseClass);
-begin 
-  T := Self.INDYCLIENT; 
-end;
-
-procedure TIDTCPCLIENTPORT_W(Self: TIDTCPCLIENT; const T: integer);
-begin 
-  Self.PORT := T; 
-end;
-
-procedure TIDTCPCLIENTPORT_R(Self: TIdTCPClientBaseClass; var T: integer);
-begin 
-  T := TIdIndy10HackClient(Self).PORT;
-end;
-
-procedure TIDTCPCLIENTHOST_W(Self: TIdTCPClientBaseClass; const T: string);
-begin 
-  TIdIndy10HackClient(Self).HOST := T;
-end;
-
-procedure TIDTCPCLIENTHOST_R(Self: TIdTCPClientBaseClass; var T: string);
-begin 
-  T := TIdIndy10HackClient(Self).HOST; 
-end;
-
-{procedure TIDTCPCLIENTBOUNDPORT_W(Self: TIdTCPClientBaseClass; const T: integer);
-begin 
-  Self.BOUNDPORT := T; 
-end;
-
-procedure TIDTCPCLIENTBOUNDPORT_R(Self: TIdTCPClientBaseClass; var T: integer);
-begin 
-  T := Self.BOUNDPORT; 
-end;
-
-procedure TIDTCPCLIENTBOUNDIP_W(Self: TIdTCPClientBaseClass; const T: string);
-begin 
-  Self.BOUNDIP := T; 
-end;
-
-procedure TIDTCPCLIENTBOUNDIP_R(Self: TIdTCPClientBaseClass; var T: string);
-begin 
-  T := Self.BOUNDIP; 
-end;]
-
-procedure TIDTCPCLIENTBOUNDPORTMIN_W(Self: TIdTCPClientBaseClass; const T: integer);
-begin 
-  Self.BOUNDPORTMIN := T; 
-end;
-
-procedure TIDTCPCLIENTBOUNDPORTMIN_R(Self: TIdTCPClientBaseClass; var T: integer);
-begin 
-  T := Self.BOUNDPORTMIN; 
-end;
-
-procedure TIDTCPCLIENTBOUNDPORTMAX_W(Self: TIdTCPClientBaseClass; const T: integer);
-begin 
-  Self.BOUNDPORTMAX := T; 
-end;
-
-procedure TIDTCPCLIENTBOUNDPORTMAX_R(Self: TIdTCPClientBaseClass; var T: integer);
-begin 
-  T := Self.BOUNDPORTMAX; 
-end;
-
-{procedure RIRegisterTROSOAPMESSAGE(Cl: TIFPSRuntimeClassImporter);
 begin
-  with Cl.Add(TROSOAPMESSAGE) do
-  begin
-    RegisterPropertyHelper(@TROSOAPMESSAGELIBRARYNAME_R, @TROSOAPMESSAGELIBRARYNAME_W,
-      'LIBRARYNAME');
-    RegisterPropertyHelper(@TROSOAPMESSAGECUSTOMLOCATION_R,
-      @TROSOAPMESSAGECUSTOMLOCATION_W, 'CUSTOMLOCATION');
-    RegisterPropertyHelper(@TROSOAPMESSAGESERIALIZATIONOPTIONS_R,
-      @TROSOAPMESSAGESERIALIZATIONOPTIONS_W, 'SERIALIZATIONOPTIONS');
-  end;
-end; }
+  T := Self.USECOMPRESSION;
+end;
 
 procedure RIRegisterTROBINMESSAGE(Cl: TIFPSRuntimeClassImporter);
 begin
@@ -191,6 +138,48 @@ begin
     RegisterPropertyHelper(@TROBINMESSAGEUSECOMPRESSION_R,
       @TROBINMESSAGEUSECOMPRESSION_W, 'USECOMPRESSION');
   end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TROIndyHTTPChannel'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TROIndyHTTPChannel_PSHelper = class helper for TROIndyHTTPChannel
+  public
+    procedure TARGETURL_W(const T: string);
+    procedure TARGETURL_R(var T: string);
+  end;
+
+procedure TROIndyHTTPChannel_PSHelper.TARGETURL_W(const T: string);
+begin
+  Self.TARGETURL := T;
+end;
+
+procedure TROIndyHTTPChannel_PSHelper.TARGETURL_R(var T: string);
+begin
+  T := Self.TARGETURL;
+end;
+
+procedure RIRegisterTROINDYHTTPCHANNEL(Cl: TIFPSRuntimeClassImporter);
+begin
+  with Cl.Add(TROINDYHTTPCHANNEL) do
+  begin
+    RegisterPropertyHelper(@TROINDYHTTPCHANNEL.TARGETURL_R,
+      @TROINDYHTTPCHANNEL.TARGETURL_W, 'TARGETURL');
+  end;
+end;
+
+{$ELSE}
+procedure TROINDYHTTPCHANNELTARGETURL_W(Self: TROIndyHTTPChannel; const T: string);
+begin
+  Self.TARGETURL := T;
+end;
+
+procedure TROINDYHTTPCHANNELTARGETURL_R(Self: TROINDYHTTPCHANNEL; var T: string);
+begin
+  T := Self.TARGETURL;
 end;
 
 procedure RIRegisterTROINDYHTTPCHANNEL(Cl: TIFPSRuntimeClassImporter);
@@ -202,12 +191,201 @@ begin
   end;
 end;
 
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TROIndyTCPChannel'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TROIndyTCPChannel_PSHelper = class helper for TROIndyTCPChannel
+  public
+    procedure INDYCLIENT_R(var T: TIdTCPClientBaseClass);
+  end;
+
+procedure TROIndyTCPChannel_PSHelper.INDYCLIENT_R(var T: TIdTCPClientBaseClass);
+begin
+  T := Self.INDYCLIENT;
+end;
+
+procedure RIRegisterTROINDYTCPCHANNEL(Cl: TIFPSRuntimeClassImporter);
+begin
+  with Cl.Add(TROINDYTCPCHANNEL) do
+  begin
+    RegisterPropertyHelper(@TROINDYTCPCHANNEL.INDYCLIENT_R, nil, 'INDYCLIENT');
+  end;
+end;
+
+{$ELSE}
+procedure TROINDYTCPCHANNELINDYCLIENT_R(Self: TROIndyTCPChannel; var T: TIdTCPClientBaseClass);
+begin
+  T := Self.INDYCLIENT;
+end;
+
 procedure RIRegisterTROINDYTCPCHANNEL(Cl: TIFPSRuntimeClassImporter);
 begin
   with Cl.Add(TROINDYTCPCHANNEL) do
   begin
     RegisterPropertyHelper(@TROINDYTCPCHANNELINDYCLIENT_R, nil, 'INDYCLIENT');
   end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIdTCPClientBaseClass'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIdTCPClientBaseClass_PSHelper = class helper for TIdTCPClientBaseClass
+  public
+//    procedure BOUNDIP_R(var T: string);
+//    procedure BOUNDIP_W(const T: string);
+//    procedure BOUNDPORT_R(var T: integer);
+//    procedure BOUNDPORT_W(const T: integer);
+//    procedure BOUNDPORTMAX_R(var T: integer);
+//    procedure BOUNDPORTMAX_W(const T: integer);
+//    procedure BOUNDPORTMIN_R(var T: integer);
+//    procedure BOUNDPORTMIN_W(const T: integer);
+    procedure HOST_R(var T: string);
+    procedure HOST_W(const T: string);
+    procedure PORT_R(var T: integer);
+    procedure PORT_W(const T: integer);
+  end;
+
+{procedure TIdTCPClientBaseClass_PSHelper.BOUNDPORT_W(const T: integer);
+begin
+  Self.BOUNDPORT := T;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.BOUNDPORT_R(var T: integer);
+begin
+  T := Self.BOUNDPORT;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.BOUNDIP_W(const T: string);
+begin
+  Self.BOUNDIP := T;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.BOUNDIP_R(var T: string);
+begin
+  T := Self.BOUNDIP;
+end;]
+
+procedure TIdTCPClientBaseClass_PSHelper.BOUNDPORTMIN_W(const T: integer);
+begin
+  Self.BOUNDPORTMIN := T;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.BOUNDPORTMIN_R(var T: integer);
+begin
+  T := Self.BOUNDPORTMIN;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.BOUNDPORTMAX_W(const T: integer);
+begin
+  Self.BOUNDPORTMAX := T;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.BOUNDPORTMAX_R(var T: integer);
+begin
+  T := Self.BOUNDPORTMAX;
+end; }
+
+procedure TIdTCPClientBaseClass_PSHelper.PORT_W(const T: integer);
+begin
+  Self.PORT := T;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.PORT_R(var T: integer);
+begin
+  T := TIdIndy10HackClient(Self).PORT;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.HOST_W(const T: string);
+begin
+  TIdIndy10HackClient(Self).HOST := T;
+end;
+
+procedure TIdTCPClientBaseClass_PSHelper.HOST_R(var T: string);
+begin
+  T := TIdIndy10HackClient(Self).HOST;
+end;
+
+procedure RIRegisterTIDTCPCLIENT(Cl: TIFPSRuntimeClassImporter);
+begin
+  with Cl.Add(TIdTCPClientBaseClass) do
+  begin
+    {RegisterPropertyHelper(@TIdTCPClientBaseClass.BOUNDPORTMAX_R, @TIdTCPClientBaseClass.BOUNDPORTMAX_W,
+      'BOUNDPORTMAX');
+    RegisterPropertyHelper(@TIdTCPClientBaseClass.BOUNDPORTMIN_R, @TIdTCPClientBaseClass.BOUNDPORTMIN_W,
+      'BOUNDPORTMIN');
+    RegisterPropertyHelper(@TIdTCPClientBaseClass.BOUNDIP_R, @TIdTCPClientBaseClass.BOUNDIP_W, 'BOUNDIP');
+    RegisterPropertyHelper(@TIdTCPClientBaseClass.BOUNDPORT_R, @TIdTCPClientBaseClass.BOUNDPORT_W,
+      'BOUNDPORT');}
+    RegisterPropertyHelper(@TIdTCPClientBaseClass.HOST_R, @TIdTCPClientBaseClass.HOST_W, 'HOST');
+    RegisterPropertyHelper(@TIdTCPClientBaseClass.PORT_R, @TIdTCPClientBaseClass.PORT_W, 'PORT');
+  end;
+end;
+{$ELSE}
+
+{procedure TIDTCPCLIENTBOUNDPORT_W(Self: TIdTCPClientBaseClass; const T: integer);
+begin
+  Self.BOUNDPORT := T;
+end;
+
+procedure TIDTCPCLIENTBOUNDPORT_R(Self: TIdTCPClientBaseClass; var T: integer);
+begin
+  T := Self.BOUNDPORT;
+end;
+
+procedure TIDTCPCLIENTBOUNDIP_W(Self: TIdTCPClientBaseClass; const T: string);
+begin
+  Self.BOUNDIP := T;
+end;
+
+procedure TIDTCPCLIENTBOUNDIP_R(Self: TIdTCPClientBaseClass; var T: string);
+begin
+  T := Self.BOUNDIP;
+end;]
+
+procedure TIDTCPCLIENTBOUNDPORTMIN_W(Self: TIdTCPClientBaseClass; const T: integer);
+begin
+  Self.BOUNDPORTMIN := T;
+end;
+
+procedure TIDTCPCLIENTBOUNDPORTMIN_R(Self: TIdTCPClientBaseClass; var T: integer);
+begin
+  T := Self.BOUNDPORTMIN;
+end;
+
+procedure TIDTCPCLIENTBOUNDPORTMAX_W(Self: TIdTCPClientBaseClass; const T: integer);
+begin
+  Self.BOUNDPORTMAX := T;
+end;
+
+procedure TIDTCPCLIENTBOUNDPORTMAX_R(Self: TIdTCPClientBaseClass; var T: integer);
+begin
+  T := Self.BOUNDPORTMAX;
+end; }
+
+procedure TIDTCPCLIENTPORT_W(Self: TIdTCPClient; const T: integer);
+begin
+  Self.PORT := T;
+end;
+
+procedure TIDTCPCLIENTPORT_R(Self: TIdTCPClientBaseClass; var T: integer);
+begin
+  T := TIdIndy10HackClient(Self).PORT;
+end;
+
+procedure TIDTCPCLIENTHOST_W(Self: TIdTCPClientBaseClass; const T: string);
+begin
+  TIdIndy10HackClient(Self).HOST := T;
+end;
+
+procedure TIDTCPCLIENTHOST_R(Self: TIdTCPClientBaseClass; var T: string);
+begin
+  T := TIdIndy10HackClient(Self).HOST;
 end;
 
 procedure RIRegisterTIDTCPCLIENT(Cl: TIFPSRuntimeClassImporter);
@@ -225,6 +403,22 @@ begin
     RegisterPropertyHelper(@TIDTCPCLIENTPORT_R, @TIDTCPCLIENTPORT_W, 'PORT');
   end;
 end;
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+
+{procedure RIRegisterTROSOAPMESSAGE(Cl: TIFPSRuntimeClassImporter);
+begin
+  with Cl.Add(TROSOAPMESSAGE) do
+  begin
+    RegisterPropertyHelper(@TROSOAPMESSAGELIBRARYNAME_R, @TROSOAPMESSAGELIBRARYNAME_W,
+      'LIBRARYNAME');
+    RegisterPropertyHelper(@TROSOAPMESSAGECUSTOMLOCATION_R,
+      @TROSOAPMESSAGECUSTOMLOCATION_W, 'CUSTOMLOCATION');
+    RegisterPropertyHelper(@TROSOAPMESSAGESERIALIZATIONOPTIONS_R,
+      @TROSOAPMESSAGESERIALIZATIONOPTIONS_W, 'SERIALIZATIONOPTIONS');
+  end;
+end; }
 
 procedure RIRegisterRODLImports(CL: TIFPSRuntimeClassImporter);
 begin

@@ -6,6 +6,13 @@ Source Code from Carlo Kok has been used to implement various sections of
 UnitParser. Components of ifps3 are used in the construction of UnitParser,
 code implementing the class wrapper is taken from Carlo Kok''s conv unility
 }
+
+{$IFDEF MSWINDOWS}
+{$I ..\PascalScript.inc}
+{$ELSE}
+{$I ../PascalScript.inc}
+{$ENDIF}
+
 interface
 
 uses
@@ -91,6 +98,51 @@ begin
 end;
 
 (* === run-time registration functions === *)
+{$IFDEF DELPHI10UP}{$REGION 'TCustomMaskEdit'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TCustomMaskEdit_PSHelper = class helper for TCustomMaskEdit
+  public
+    procedure EditText_R(var T: string);
+    procedure EditText_W(const T: string);
+    procedure IsMasked_R(var T: Boolean);
+    procedure Text_R(var T: string);
+    procedure Text_W(const T: string);
+  end;
+
+(*----------------------------------------------------------------------------*)
+procedure TCustomMaskEdit_PSHelper.Text_W(const T: string);
+begin Self.Text := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TCustomMaskEdit_PSHelper.Text_R(var T: string);
+begin T := Self.Text; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TCustomMaskEdit_PSHelper.EditText_W(const T: string);
+begin Self.EditText := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TCustomMaskEdit_PSHelper.EditText_R(var T: string);
+begin T := Self.EditText; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TCustomMaskEdit_PSHelper.IsMasked_R(var T: Boolean);
+begin T := Self.IsMasked; end;
+
+procedure RIRegister_TCustomMaskEdit(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TCustomMaskEdit) do
+  begin
+    RegisterVirtualMethod(@TCustomMaskEdit.ValidateEdit, 'ValidateEdit');
+    RegisterMethod(@TCustomMaskEdit.GetTextLen, 'GetTextLen');
+    RegisterPropertyHelper(@TCustomMaskEdit.IsMasked_R,nil,'IsMasked');
+    RegisterPropertyHelper(@TCustomMaskEdit.EditText_R,@TCustomMaskEdit.EditText_W,'EditText');
+    RegisterPropertyHelper(@TCustomMaskEdit.Text_R,@TCustomMaskEdit.Text_W,'Text');
+  end;
+end;
+
+{$ELSE}
 (*----------------------------------------------------------------------------*)
 procedure TCustomMaskEditText_W(Self: TCustomMaskEdit; const T: string);
 begin Self.Text := T; end;
@@ -111,6 +163,22 @@ begin T := Self.EditText; end;
 procedure TCustomMaskEditIsMasked_R(Self: TCustomMaskEdit; var T: Boolean);
 begin T := Self.IsMasked; end;
 
+procedure RIRegister_TCustomMaskEdit(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TCustomMaskEdit) do
+  begin
+    RegisterVirtualMethod(@TCustomMaskEdit.ValidateEdit, 'ValidateEdit');
+    RegisterMethod(@TCustomMaskEdit.GetTextLen, 'GetTextLen');
+    RegisterPropertyHelper(@TCustomMaskEditIsMasked_R,nil,'IsMasked');
+    RegisterPropertyHelper(@TCustomMaskEditEditText_R,@TCustomMaskEditEditText_W,'EditText');
+    RegisterPropertyHelper(@TCustomMaskEditText_R,@TCustomMaskEditText_W,'Text');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_Mask_Routines(S: TPSExec);
 begin
@@ -129,17 +197,6 @@ begin
 end;
 
 (*----------------------------------------------------------------------------*)
-procedure RIRegister_TCustomMaskEdit(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TCustomMaskEdit) do
-  begin
-    RegisterVirtualMethod(@TCustomMaskEdit.ValidateEdit, 'ValidateEdit');
-    RegisterMethod(@TCustomMaskEdit.GetTextLen, 'GetTextLen');
-    RegisterPropertyHelper(@TCustomMaskEditIsMasked_R,nil,'IsMasked');
-    RegisterPropertyHelper(@TCustomMaskEditEditText_R,@TCustomMaskEditEditText_W,'EditText');
-    RegisterPropertyHelper(@TCustomMaskEditText_R,@TCustomMaskEditText_W,'Text');
-  end;
-end;
 
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_Mask(CL: TPSRuntimeClassImporter);

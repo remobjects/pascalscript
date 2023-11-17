@@ -5,7 +5,11 @@ Source Code from Carlo Kok has been used to implement various sections of
 UnitParser. Components of ifps3 are used in the construction of UnitParser,
 code implementing the class wrapper is taken from Carlo Kok''s conv unility
 }
-
+{$IFDEF MSWINDOWS}
+{$I ..\PascalScript.inc}
+{$ELSE}
+{$I ../PascalScript.inc}
+{$ENDIF}
 interface
 
 uses
@@ -259,8 +263,130 @@ begin
   SIRegister_TIBBASE(CL);
 end;
 
-(* === run-time registration functions === *)
-(*----------------------------------------------------------------------------*)
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBBASE'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBBASE_PSHelper = class helper for TIBBASE
+  public
+    procedure TRANSACTION_W(const T: TIBTRANSACTION);
+    procedure TRANSACTION_R(var T: TIBTRANSACTION);
+    procedure TRHANDLE_R(var T: PISC_TR_HANDLE);
+    procedure OWNER_R(var T: TOBJECT);
+    procedure DBHANDLE_R(var T: PISC_DB_HANDLE);
+    procedure DATABASE_W(const T: TIBDATABASE);
+    procedure DATABASE_R(var T: TIBDATABASE);
+    procedure ONTRANSACTIONFREE_W(const T: TNOTIFYEVENT);
+    procedure ONTRANSACTIONFREE_R(var T: TNOTIFYEVENT);
+    procedure AFTERTRANSACTIONEND_W(const T: TNOTIFYEVENT);
+    procedure AFTERTRANSACTIONEND_R(var T: TNOTIFYEVENT);
+    procedure BEFORETRANSACTIONEND_W(const T: TNOTIFYEVENT);
+    procedure BEFORETRANSACTIONEND_R(var T: TNOTIFYEVENT);
+    procedure ONDATABASEFREE_W(const T: TNOTIFYEVENT);
+    procedure ONDATABASEFREE_R(var T: TNOTIFYEVENT);
+    procedure AFTERDATABASEDISCONNECT_W(const T: TNOTIFYEVENT);
+    procedure AFTERDATABASEDISCONNECT_R(var T: TNOTIFYEVENT);
+    procedure BEFOREDATABASEDISCONNECT_W(const T: TNOTIFYEVENT);
+    procedure BEFOREDATABASEDISCONNECT_R(var T: TNOTIFYEVENT);
+  end;
+
+procedure TIBBASE_PSHelper.TRANSACTION_W(const T: TIBTRANSACTION);
+begin Self.TRANSACTION := T; end;
+
+
+procedure TIBBASE_PSHelper.TRANSACTION_R(var T: TIBTRANSACTION);
+begin T := Self.TRANSACTION; end;
+
+
+procedure TIBBASE_PSHelper.TRHANDLE_R(var T: PISC_TR_HANDLE);
+begin T := Self.TRHANDLE; end;
+
+
+procedure TIBBASE_PSHelper.OWNER_R(var T: TOBJECT);
+begin T := Self.OWNER; end;
+
+
+procedure TIBBASE_PSHelper.DBHANDLE_R(var T: PISC_DB_HANDLE);
+begin T := Self.DBHANDLE; end;
+
+
+procedure TIBBASE_PSHelper.DATABASE_W(const T: TIBDATABASE);
+begin Self.DATABASE := T; end;
+
+
+procedure TIBBASE_PSHelper.DATABASE_R(var T: TIBDATABASE);
+begin T := Self.DATABASE; end;
+
+
+procedure TIBBASE_PSHelper.ONTRANSACTIONFREE_W(const T: TNOTIFYEVENT);
+begin Self.ONTRANSACTIONFREE := T; end;
+
+
+procedure TIBBASE_PSHelper.ONTRANSACTIONFREE_R(var T: TNOTIFYEVENT);
+begin T := Self.ONTRANSACTIONFREE; end;
+
+
+procedure TIBBASE_PSHelper.AFTERTRANSACTIONEND_W(const T: TNOTIFYEVENT);
+begin Self.AFTERTRANSACTIONEND := T; end;
+
+
+procedure TIBBASE_PSHelper.AFTERTRANSACTIONEND_R(var T: TNOTIFYEVENT);
+begin T := Self.AFTERTRANSACTIONEND; end;
+
+
+procedure TIBBASE_PSHelper.BEFORETRANSACTIONEND_W(const T: TNOTIFYEVENT);
+begin Self.BEFORETRANSACTIONEND := T; end;
+
+
+procedure TIBBASE_PSHelper.BEFORETRANSACTIONEND_R(var T: TNOTIFYEVENT);
+begin T := Self.BEFORETRANSACTIONEND; end;
+
+
+procedure TIBBASE_PSHelper.ONDATABASEFREE_W(const T: TNOTIFYEVENT);
+begin Self.ONDATABASEFREE := T; end;
+
+
+procedure TIBBASE_PSHelper.ONDATABASEFREE_R(var T: TNOTIFYEVENT);
+begin T := Self.ONDATABASEFREE; end;
+
+
+procedure TIBBASE_PSHelper.AFTERDATABASEDISCONNECT_W(const T: TNOTIFYEVENT);
+begin Self.AFTERDATABASEDISCONNECT := T; end;
+
+
+procedure TIBBASE_PSHelper.AFTERDATABASEDISCONNECT_R(var T: TNOTIFYEVENT);
+begin T := Self.AFTERDATABASEDISCONNECT; end;
+
+
+procedure TIBBASE_PSHelper.BEFOREDATABASEDISCONNECT_W(const T: TNOTIFYEVENT);
+begin Self.BEFOREDATABASEDISCONNECT := T; end;
+
+
+procedure TIBBASE_PSHelper.BEFOREDATABASEDISCONNECT_R(var T: TNOTIFYEVENT);
+begin T := Self.BEFOREDATABASEDISCONNECT; end;
+
+procedure RIRegister_TIBBASE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBBASE) do
+  begin
+    RegisterConstructor(@TIBBASE.CREATE, 'Create');
+    RegisterVirtualMethod(@TIBBASE.CHECKDATABASE, 'CheckDatabase');
+    RegisterVirtualMethod(@TIBBASE.CHECKTRANSACTION, 'CheckTransaction');
+    RegisterPropertyHelper(@TIBBASE.BEFOREDATABASEDISCONNECT_R,@TIBBASE.BEFOREDATABASEDISCONNECT_W,'BeforeDatabaseDisconnect');
+    RegisterPropertyHelper(@TIBBASE.AFTERDATABASEDISCONNECT_R,@TIBBASE.AFTERDATABASEDISCONNECT_W,'AfterDatabaseDisconnect');
+    RegisterEventPropertyHelper(@TIBBASE.ONDATABASEFREE_R,@TIBBASE.ONDATABASEFREE_W,'OnDatabaseFree');
+    RegisterPropertyHelper(@TIBBASE.BEFORETRANSACTIONEND_R,@TIBBASE.BEFORETRANSACTIONEND_W,'BeforeTransactionEnd');
+    RegisterPropertyHelper(@TIBBASE.AFTERTRANSACTIONEND_R,@TIBBASE.AFTERTRANSACTIONEND_W,'AfterTransactionEnd');
+    RegisterEventPropertyHelper(@TIBBASE.ONTRANSACTIONFREE_R,@TIBBASE.ONTRANSACTIONFREE_W,'OnTransactionFree');
+    RegisterPropertyHelper(@TIBBASE.DATABASE_R,@TIBBASE.DATABASE_W,'Database');
+    RegisterPropertyHelper(@TIBBASE.DBHANDLE_R,nil,'DBHandle');
+    RegisterPropertyHelper(@TIBBASE.OWNER_R,nil,'Owner');
+    RegisterPropertyHelper(@TIBBASE.TRHANDLE_R,nil,'TRHandle');
+    RegisterPropertyHelper(@TIBBASE.TRANSACTION_R,@TIBBASE.TRANSACTION_W,'Transaction');
+  end;
+end;
+
+{$ELSE}
 procedure TIBBASETRANSACTION_W(Self: TIBBASE; const T: TIBTRANSACTION);
 begin Self.TRANSACTION := T; end;
 
@@ -336,7 +462,189 @@ begin Self.BEFOREDATABASEDISCONNECT := T; end;
 procedure TIBBASEBEFOREDATABASEDISCONNECT_R(Self: TIBBASE; var T: TNOTIFYEVENT);
 begin T := Self.BEFOREDATABASEDISCONNECT; end;
 
-(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBBASE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBBASE) do
+  begin
+    RegisterConstructor(@TIBBASE.CREATE, 'Create');
+    RegisterVirtualMethod(@TIBBASE.CHECKDATABASE, 'CheckDatabase');
+    RegisterVirtualMethod(@TIBBASE.CHECKTRANSACTION, 'CheckTransaction');
+    RegisterPropertyHelper(@TIBBASEBEFOREDATABASEDISCONNECT_R,@TIBBASEBEFOREDATABASEDISCONNECT_W,'BeforeDatabaseDisconnect');
+    RegisterPropertyHelper(@TIBBASEAFTERDATABASEDISCONNECT_R,@TIBBASEAFTERDATABASEDISCONNECT_W,'AfterDatabaseDisconnect');
+    RegisterEventPropertyHelper(@TIBBASEONDATABASEFREE_R,@TIBBASEONDATABASEFREE_W,'OnDatabaseFree');
+    RegisterPropertyHelper(@TIBBASEBEFORETRANSACTIONEND_R,@TIBBASEBEFORETRANSACTIONEND_W,'BeforeTransactionEnd');
+    RegisterPropertyHelper(@TIBBASEAFTERTRANSACTIONEND_R,@TIBBASEAFTERTRANSACTIONEND_W,'AfterTransactionEnd');
+    RegisterEventPropertyHelper(@TIBBASEONTRANSACTIONFREE_R,@TIBBASEONTRANSACTIONFREE_W,'OnTransactionFree');
+    RegisterPropertyHelper(@TIBBASEDATABASE_R,@TIBBASEDATABASE_W,'Database');
+    RegisterPropertyHelper(@TIBBASEDBHANDLE_R,nil,'DBHandle');
+    RegisterPropertyHelper(@TIBBASEOWNER_R,nil,'Owner');
+    RegisterPropertyHelper(@TIBBASETRHANDLE_R,nil,'TRHandle');
+    RegisterPropertyHelper(@TIBBASETRANSACTION_R,@TIBBASETRANSACTION_W,'Transaction');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBTRANSACTION'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBTRANSACTION_PSHelper = class helper for TIBTRANSACTION
+  public
+    procedure ONIDLETIMER_W(const T: TNOTIFYEVENT);
+    procedure ONIDLETIMER_R(var T: TNOTIFYEVENT);
+    procedure AUTOSTOPACTION_W(const T: TAUTOSTOPACTION);
+    procedure AUTOSTOPACTION_R(var T: TAUTOSTOPACTION);
+    procedure PARAMS_W(const T: TSTRINGS);
+    procedure PARAMS_R(var T: TSTRINGS);
+    procedure DEFAULTACTION_W(const T: TTRANSACTIONACTION);
+    procedure DEFAULTACTION_R(var T: TTRANSACTIONACTION);
+    procedure IDLETIMER_W(const T: INTEGER);
+    procedure IDLETIMER_R(var T: INTEGER);
+    procedure DEFAULTDATABASE_W(const T: TIBDATABASE);
+    procedure DEFAULTDATABASE_R(var T: TIBDATABASE);
+    procedure ACTIVE_W(const T: BOOLEAN);
+    procedure ACTIVE_R(var T: BOOLEAN);
+    procedure TPBLENGTH_R(var T: SHORT);
+    procedure TPB_R(var T: PCHAR);
+    procedure INTRANSACTION_R(var T: BOOLEAN);
+    procedure HANDLEISSHARED_R(var T: BOOLEAN);
+    procedure HANDLE_R(var T: TISC_TR_HANDLE);
+    procedure SQLOBJECTS_R(var T: TIBBASE; const t1: INTEGER);
+    procedure SQLOBJECTCOUNT_R(var T: INTEGER);
+    procedure DATABASES_R(var T: TIBDATABASE; const t1: INTEGER);
+    procedure DATABASECOUNT_R(var T: INTEGER);
+  end;
+
+procedure TIBTRANSACTION_PSHelper.ONIDLETIMER_W(const T: TNOTIFYEVENT);
+begin Self.ONIDLETIMER := T; end;
+
+
+procedure TIBTRANSACTION_PSHelper.ONIDLETIMER_R(var T: TNOTIFYEVENT);
+begin T := Self.ONIDLETIMER; end;
+
+
+procedure TIBTRANSACTION_PSHelper.AUTOSTOPACTION_W(const T: TAUTOSTOPACTION);
+begin Self.AUTOSTOPACTION := T; end;
+
+
+procedure TIBTRANSACTION_PSHelper.AUTOSTOPACTION_R(var T: TAUTOSTOPACTION);
+begin T := Self.AUTOSTOPACTION; end;
+
+
+procedure TIBTRANSACTION_PSHelper.PARAMS_W(const T: TSTRINGS);
+begin Self.PARAMS := T; end;
+
+
+procedure TIBTRANSACTION_PSHelper.PARAMS_R(var T: TSTRINGS);
+begin T := Self.PARAMS; end;
+
+
+procedure TIBTRANSACTION_PSHelper.DEFAULTACTION_W(const T: TTRANSACTIONACTION);
+begin Self.DEFAULTACTION := T; end;
+
+
+procedure TIBTRANSACTION_PSHelper.DEFAULTACTION_R(var T: TTRANSACTIONACTION);
+begin T := Self.DEFAULTACTION; end;
+
+
+procedure TIBTRANSACTION_PSHelper.IDLETIMER_W(const T: INTEGER);
+begin Self.IDLETIMER := T; end;
+
+
+procedure TIBTRANSACTION_PSHelper.IDLETIMER_R(var T: INTEGER);
+begin T := Self.IDLETIMER; end;
+
+
+procedure TIBTRANSACTION_PSHelper.DEFAULTDATABASE_W(const T: TIBDATABASE);
+begin Self.DEFAULTDATABASE := T; end;
+
+
+procedure TIBTRANSACTION_PSHelper.DEFAULTDATABASE_R(var T: TIBDATABASE);
+begin T := Self.DEFAULTDATABASE; end;
+
+
+procedure TIBTRANSACTION_PSHelper.ACTIVE_W(const T: BOOLEAN);
+begin Self.ACTIVE := T; end;
+
+
+procedure TIBTRANSACTION_PSHelper.ACTIVE_R(var T: BOOLEAN);
+begin T := Self.ACTIVE; end;
+
+
+procedure TIBTRANSACTION_PSHelper.TPBLENGTH_R(var T: SHORT);
+begin T := Self.TPBLENGTH; end;
+
+
+procedure TIBTRANSACTION_PSHelper.TPB_R(var T: PCHAR);
+begin T := Self.TPB; end;
+
+
+procedure TIBTRANSACTION_PSHelper.INTRANSACTION_R(var T: BOOLEAN);
+begin T := Self.INTRANSACTION; end;
+
+
+procedure TIBTRANSACTION_PSHelper.HANDLEISSHARED_R(var T: BOOLEAN);
+begin T := Self.HANDLEISSHARED; end;
+
+
+procedure TIBTRANSACTION_PSHelper.HANDLE_R(var T: TISC_TR_HANDLE);
+begin T := Self.HANDLE; end;
+
+
+procedure TIBTRANSACTION_PSHelper.SQLOBJECTS_R(var T: TIBBASE; const t1: INTEGER);
+begin T := Self.SQLOBJECTS[t1]; end;
+
+
+procedure TIBTRANSACTION_PSHelper.SQLOBJECTCOUNT_R(var T: INTEGER);
+begin T := Self.SQLOBJECTCOUNT; end;
+
+
+procedure TIBTRANSACTION_PSHelper.DATABASES_R(var T: TIBDATABASE; const t1: INTEGER);
+begin T := Self.DATABASES[t1]; end;
+
+
+procedure TIBTRANSACTION_PSHelper.DATABASECOUNT_R(var T: INTEGER);
+begin T := Self.DATABASECOUNT; end;
+
+procedure RIRegister_TIBTRANSACTION(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBTRANSACTION) do
+  begin
+    RegisterMethod(@TIBTRANSACTION.CALL, 'Call');
+    RegisterMethod(@TIBTRANSACTION.COMMIT, 'Commit');
+    RegisterMethod(@TIBTRANSACTION.COMMITRETAINING, 'CommitRetaining');
+    RegisterMethod(@TIBTRANSACTION.ROLLBACK, 'Rollback');
+    RegisterMethod(@TIBTRANSACTION.ROLLBACKRETAINING, 'RollbackRetaining');
+    RegisterMethod(@TIBTRANSACTION.STARTTRANSACTION, 'StartTransaction');
+    RegisterMethod(@TIBTRANSACTION.CHECKINTRANSACTION, 'CheckInTransaction');
+    RegisterMethod(@TIBTRANSACTION.CHECKNOTINTRANSACTION, 'CheckNotInTransaction');
+    RegisterMethod(@TIBTRANSACTION.CHECKAUTOSTOP, 'CheckAutoStop');
+    RegisterMethod(@TIBTRANSACTION.ADDDATABASE, 'AddDatabase');
+    RegisterMethod(@TIBTRANSACTION.FINDDATABASE, 'FindDatabase');
+    RegisterMethod(@TIBTRANSACTION.FINDDEFAULTDATABASE, 'FindDefaultDatabase');
+    RegisterMethod(@TIBTRANSACTION.REMOVEDATABASE, 'RemoveDatabase');
+    RegisterMethod(@TIBTRANSACTION.REMOVEDATABASES, 'RemoveDatabases');
+    RegisterMethod(@TIBTRANSACTION.CHECKDATABASESINLIST, 'CheckDatabasesInList');
+    RegisterPropertyHelper(@TIBTRANSACTION.DATABASECOUNT_R,nil,'DatabaseCount');
+    RegisterPropertyHelper(@TIBTRANSACTION.DATABASES_R,nil,'Databases');
+    RegisterPropertyHelper(@TIBTRANSACTION.SQLOBJECTCOUNT_R,nil,'SQLObjectCount');
+    RegisterPropertyHelper(@TIBTRANSACTION.SQLOBJECTS_R,nil,'SQLObjects');
+    RegisterPropertyHelper(@TIBTRANSACTION.HANDLE_R,nil,'Handle');
+    RegisterPropertyHelper(@TIBTRANSACTION.HANDLEISSHARED_R,nil,'HandleIsShared');
+    RegisterPropertyHelper(@TIBTRANSACTION.INTRANSACTION_R,nil,'InTransaction');
+    RegisterPropertyHelper(@TIBTRANSACTION.TPB_R,nil,'TPB');
+    RegisterPropertyHelper(@TIBTRANSACTION.TPBLENGTH_R,nil,'TPBLength');
+    RegisterPropertyHelper(@TIBTRANSACTION.ACTIVE_R,@TIBTRANSACTION.ACTIVE_W,'Active');
+    RegisterPropertyHelper(@TIBTRANSACTION.DEFAULTDATABASE_R,@TIBTRANSACTION.DEFAULTDATABASE_W,'DefaultDatabase');
+    RegisterPropertyHelper(@TIBTRANSACTION.IDLETIMER_R,@TIBTRANSACTION.IDLETIMER_W,'IdleTimer');
+    RegisterPropertyHelper(@TIBTRANSACTION.DEFAULTACTION_R,@TIBTRANSACTION.DEFAULTACTION_W,'DefaultAction');
+    RegisterPropertyHelper(@TIBTRANSACTION.PARAMS_R,@TIBTRANSACTION.PARAMS_W,'Params');
+    RegisterPropertyHelper(@TIBTRANSACTION.AUTOSTOPACTION_R,@TIBTRANSACTION.AUTOSTOPACTION_W,'AutoStopAction');
+    RegisterEventPropertyHelper(@TIBTRANSACTION.ONIDLETIMER_R,@TIBTRANSACTION.ONIDLETIMER_W,'OnIdleTimer');
+  end;
+end;
+{$ELSE}
 procedure TIBTRANSACTIONONIDLETIMER_W(Self: TIBTRANSACTION; const T: TNOTIFYEVENT);
 begin Self.ONIDLETIMER := T; end;
 
@@ -428,7 +736,272 @@ begin T := Self.DATABASES[t1]; end;
 procedure TIBTRANSACTIONDATABASECOUNT_R(Self: TIBTRANSACTION; var T: INTEGER);
 begin T := Self.DATABASECOUNT; end;
 
-(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBTRANSACTION(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBTRANSACTION) do
+  begin
+    RegisterMethod(@TIBTRANSACTION.CALL, 'Call');
+    RegisterMethod(@TIBTRANSACTION.COMMIT, 'Commit');
+    RegisterMethod(@TIBTRANSACTION.COMMITRETAINING, 'CommitRetaining');
+    RegisterMethod(@TIBTRANSACTION.ROLLBACK, 'Rollback');
+    RegisterMethod(@TIBTRANSACTION.ROLLBACKRETAINING, 'RollbackRetaining');
+    RegisterMethod(@TIBTRANSACTION.STARTTRANSACTION, 'StartTransaction');
+    RegisterMethod(@TIBTRANSACTION.CHECKINTRANSACTION, 'CheckInTransaction');
+    RegisterMethod(@TIBTRANSACTION.CHECKNOTINTRANSACTION, 'CheckNotInTransaction');
+    RegisterMethod(@TIBTRANSACTION.CHECKAUTOSTOP, 'CheckAutoStop');
+    RegisterMethod(@TIBTRANSACTION.ADDDATABASE, 'AddDatabase');
+    RegisterMethod(@TIBTRANSACTION.FINDDATABASE, 'FindDatabase');
+    RegisterMethod(@TIBTRANSACTION.FINDDEFAULTDATABASE, 'FindDefaultDatabase');
+    RegisterMethod(@TIBTRANSACTION.REMOVEDATABASE, 'RemoveDatabase');
+    RegisterMethod(@TIBTRANSACTION.REMOVEDATABASES, 'RemoveDatabases');
+    RegisterMethod(@TIBTRANSACTION.CHECKDATABASESINLIST, 'CheckDatabasesInList');
+    RegisterPropertyHelper(@TIBTRANSACTIONDATABASECOUNT_R,nil,'DatabaseCount');
+    RegisterPropertyHelper(@TIBTRANSACTIONDATABASES_R,nil,'Databases');
+    RegisterPropertyHelper(@TIBTRANSACTIONSQLOBJECTCOUNT_R,nil,'SQLObjectCount');
+    RegisterPropertyHelper(@TIBTRANSACTIONSQLOBJECTS_R,nil,'SQLObjects');
+    RegisterPropertyHelper(@TIBTRANSACTIONHANDLE_R,nil,'Handle');
+    RegisterPropertyHelper(@TIBTRANSACTIONHANDLEISSHARED_R,nil,'HandleIsShared');
+    RegisterPropertyHelper(@TIBTRANSACTIONINTRANSACTION_R,nil,'InTransaction');
+    RegisterPropertyHelper(@TIBTRANSACTIONTPB_R,nil,'TPB');
+    RegisterPropertyHelper(@TIBTRANSACTIONTPBLENGTH_R,nil,'TPBLength');
+    RegisterPropertyHelper(@TIBTRANSACTIONACTIVE_R,@TIBTRANSACTIONACTIVE_W,'Active');
+    RegisterPropertyHelper(@TIBTRANSACTIONDEFAULTDATABASE_R,@TIBTRANSACTIONDEFAULTDATABASE_W,'DefaultDatabase');
+    RegisterPropertyHelper(@TIBTRANSACTIONIDLETIMER_R,@TIBTRANSACTIONIDLETIMER_W,'IdleTimer');
+    RegisterPropertyHelper(@TIBTRANSACTIONDEFAULTACTION_R,@TIBTRANSACTIONDEFAULTACTION_W,'DefaultAction');
+    RegisterPropertyHelper(@TIBTRANSACTIONPARAMS_R,@TIBTRANSACTIONPARAMS_W,'Params');
+    RegisterPropertyHelper(@TIBTRANSACTIONAUTOSTOPACTION_R,@TIBTRANSACTIONAUTOSTOPACTION_W,'AutoStopAction');
+    RegisterEventPropertyHelper(@TIBTRANSACTIONONIDLETIMER_R,@TIBTRANSACTIONONIDLETIMER_W,'OnIdleTimer');
+  end;
+end;
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBDATABASE'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBDATABASE_PSHelper = class helper for TIBDATABASE
+  public
+    procedure ONDIALECTDOWNGRADEWARNING_W(const T: TNOTIFYEVENT);
+    procedure ONDIALECTDOWNGRADEWARNING_R(var T: TNOTIFYEVENT);
+    procedure ONIDLETIMER_W(const T: TNOTIFYEVENT);
+    procedure ONIDLETIMER_R(var T: TNOTIFYEVENT);
+    procedure ONLOGIN_W(const T: TIBDATABASELOGINEVENT);
+    procedure ONLOGIN_R(var T: TIBDATABASELOGINEVENT);
+    procedure CONNECTED_W(const T: Boolean);
+    procedure CONNECTED_R(var T: Boolean);
+    procedure ALLOWSTREAMEDCONNECTED_W(const T: BOOLEAN);
+    procedure ALLOWSTREAMEDCONNECTED_R(var T: BOOLEAN);
+    procedure TRACEFLAGS_W(const T: TTRACEFLAGS);
+    procedure TRACEFLAGS_R(var T: TTRACEFLAGS);
+    procedure DBSQLDIALECT_R(var T: INTEGER);
+    procedure SQLDIALECT_W(const T: INTEGER);
+    procedure SQLDIALECT_R(var T: INTEGER);
+    procedure IDLETIMER_W(const T: INTEGER);
+    procedure IDLETIMER_R(var T: INTEGER);
+    procedure DEFAULTTRANSACTION_W(const T: TIBTRANSACTION);
+    procedure DEFAULTTRANSACTION_R(var T: TIBTRANSACTION);
+    procedure PARAMS_W(const T: TSTRINGS);
+    procedure PARAMS_R(var T: TSTRINGS);
+    procedure DATABASENAME_W(const T: TIBFILENAME);
+    procedure DATABASENAME_R(var T: TIBFILENAME);
+    procedure INTERNALTRANSACTION_R(var T: TIBTRANSACTION);
+    procedure TRANSACTIONS_R(var T: TIBTRANSACTION; const t1: INTEGER);
+    procedure TRANSACTIONCOUNT_R(var T: INTEGER);
+    procedure HANDLEISSHARED_R(var T: BOOLEAN);
+    procedure SQLOBJECTS_R(var T: TIBBASE; const t1: INTEGER);
+    procedure SQLOBJECTCOUNT_R(var T: INTEGER);
+    procedure DBPARAMBYDPB_W(const T: STRING; const t1: INTEGER);
+    procedure DBPARAMBYDPB_R(var T: STRING; const t1: INTEGER);
+    procedure ISREADONLY_R(var T: BOOLEAN);
+    procedure HANDLE_R(var T: TISC_DB_HANDLE);
+  end;
+
+procedure TIBDATABASE_PSHelper.ONDIALECTDOWNGRADEWARNING_W(const T: TNOTIFYEVENT);
+begin Self.ONDIALECTDOWNGRADEWARNING := T; end;
+
+
+procedure TIBDATABASE_PSHelper.ONDIALECTDOWNGRADEWARNING_R(var T: TNOTIFYEVENT);
+begin T := Self.ONDIALECTDOWNGRADEWARNING; end;
+
+
+procedure TIBDATABASE_PSHelper.ONIDLETIMER_W(const T: TNOTIFYEVENT);
+begin Self.ONIDLETIMER := T; end;
+
+
+procedure TIBDATABASE_PSHelper.ONIDLETIMER_R(var T: TNOTIFYEVENT);
+begin T := Self.ONIDLETIMER; end;
+
+
+procedure TIBDATABASE_PSHelper.ONLOGIN_W(const T: TIBDATABASELOGINEVENT);
+begin Self.ONLOGIN := T; end;
+
+
+procedure TIBDATABASE_PSHelper.ONLOGIN_R(var T: TIBDATABASELOGINEVENT);
+begin T := Self.ONLOGIN; end;
+
+
+procedure TIBDATABASE_PSHelper.CONNECTED_W(const T: Boolean);
+begin Self.Connected := T; end;
+
+
+procedure TIBDATABASE_PSHelper.CONNECTED_R(var T: Boolean);
+begin T := Self.Connected; end;
+
+
+procedure TIBDATABASE_PSHelper.ALLOWSTREAMEDCONNECTED_W(const T: BOOLEAN);
+begin Self.ALLOWSTREAMEDCONNECTED := T; end;
+
+
+procedure TIBDATABASE_PSHelper.ALLOWSTREAMEDCONNECTED_R(var T: BOOLEAN);
+begin T := Self.ALLOWSTREAMEDCONNECTED; end;
+
+
+procedure TIBDATABASE_PSHelper.TRACEFLAGS_W(const T: TTRACEFLAGS);
+begin Self.TRACEFLAGS := T; end;
+
+
+procedure TIBDATABASE_PSHelper.TRACEFLAGS_R(var T: TTRACEFLAGS);
+begin T := Self.TRACEFLAGS; end;
+
+
+procedure TIBDATABASE_PSHelper.DBSQLDIALECT_R(var T: INTEGER);
+begin T := Self.DBSQLDIALECT; end;
+
+
+procedure TIBDATABASE_PSHelper.SQLDIALECT_W(const T: INTEGER);
+begin Self.SQLDIALECT := T; end;
+
+
+procedure TIBDATABASE_PSHelper.SQLDIALECT_R(var T: INTEGER);
+begin T := Self.SQLDIALECT; end;
+
+
+procedure TIBDATABASE_PSHelper.IDLETIMER_W(const T: INTEGER);
+begin Self.IDLETIMER := T; end;
+
+
+procedure TIBDATABASE_PSHelper.IDLETIMER_R(var T: INTEGER);
+begin T := Self.IDLETIMER; end;
+
+
+procedure TIBDATABASE_PSHelper.DEFAULTTRANSACTION_W(const T: TIBTRANSACTION);
+begin Self.DEFAULTTRANSACTION := T; end;
+
+
+procedure TIBDATABASE_PSHelper.DEFAULTTRANSACTION_R(var T: TIBTRANSACTION);
+begin T := Self.DEFAULTTRANSACTION; end;
+
+
+procedure TIBDATABASE_PSHelper.PARAMS_W(const T: TSTRINGS);
+begin Self.PARAMS := T; end;
+
+
+procedure TIBDATABASE_PSHelper.PARAMS_R(var T: TSTRINGS);
+begin T := Self.PARAMS; end;
+
+
+procedure TIBDATABASE_PSHelper.DATABASENAME_W(const T: TIBFILENAME);
+begin Self.DATABASENAME := T; end;
+
+
+procedure TIBDATABASE_PSHelper.DATABASENAME_R(var T: TIBFILENAME);
+begin T := Self.DATABASENAME; end;
+
+
+procedure TIBDATABASE_PSHelper.INTERNALTRANSACTION_R(var T: TIBTRANSACTION);
+begin T := Self.INTERNALTRANSACTION; end;
+
+
+procedure TIBDATABASE_PSHelper.TRANSACTIONS_R(var T: TIBTRANSACTION; const t1: INTEGER);
+begin T := Self.TRANSACTIONS[t1]; end;
+
+
+procedure TIBDATABASE_PSHelper.TRANSACTIONCOUNT_R(var T: INTEGER);
+begin T := Self.TRANSACTIONCOUNT; end;
+
+
+procedure TIBDATABASE_PSHelper.HANDLEISSHARED_R(var T: BOOLEAN);
+begin T := Self.HANDLEISSHARED; end;
+
+
+procedure TIBDATABASE_PSHelper.SQLOBJECTS_R(var T: TIBBASE; const t1: INTEGER);
+begin T := Self.SQLOBJECTS[t1]; end;
+
+
+procedure TIBDATABASE_PSHelper.SQLOBJECTCOUNT_R(var T: INTEGER);
+begin T := Self.SQLOBJECTCOUNT; end;
+
+
+procedure TIBDATABASE_PSHelper.DBPARAMBYDPB_W(const T: STRING; const t1: INTEGER);
+begin Self.DBPARAMBYDPB[t1] := T; end;
+
+
+procedure TIBDATABASE_PSHelper.DBPARAMBYDPB_R(var T: STRING; const t1: INTEGER);
+begin T := Self.DBPARAMBYDPB[t1]; end;
+
+
+procedure TIBDATABASE_PSHelper.ISREADONLY_R(var T: BOOLEAN);
+begin T := Self.ISREADONLY; end;
+
+
+procedure TIBDATABASE_PSHelper.HANDLE_R(var T: TISC_DB_HANDLE);
+begin T := Self.HANDLE; end;
+
+procedure RIRegister_TIBDATABASE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBDATABASE) do
+  begin
+    RegisterMethod(@TIBDATABASE.ADDEVENTNOTIFIER, 'AddEventNotifier');
+    RegisterMethod(@TIBDATABASE.REMOVEEVENTNOTIFIER, 'RemoveEventNotifier');
+    RegisterMethod(@TIBDATABASE.APPLYUPDATES, 'ApplyUpdates');
+    RegisterMethod(@TIBDATABASE.CLOSEDATASETS, 'CloseDataSets');
+    RegisterMethod(@TIBDATABASE.CHECKACTIVE, 'CheckActive');
+    RegisterMethod(@TIBDATABASE.CHECKINACTIVE, 'CheckInactive');
+    RegisterMethod(@TIBDATABASE.CREATEDATABASE, 'CreateDatabase');
+    RegisterMethod(@TIBDATABASE.DROPDATABASE, 'DropDatabase');
+    RegisterMethod(@TIBDATABASE.FORCECLOSE, 'ForceClose');
+    RegisterMethod(@TIBDATABASE.GETFIELDNAMES, 'GetFieldNames');
+    RegisterMethod(@TIBDATABASE.GETTABLENAMES, 'GetTableNames');
+    RegisterMethod(@TIBDATABASE.INDEXOFDBCONST, 'IndexOfDBConst');
+    RegisterMethod(@TIBDATABASE.TESTCONNECTED, 'TestConnected');
+    RegisterMethod(@TIBDATABASE.CHECKDATABASENAME, 'CheckDatabaseName');
+    RegisterMethod(@TIBDATABASE.CALL, 'Call');
+    RegisterMethod(@TIBDATABASE.Open, 'Open');
+    RegisterMethod(@TIBDATABASE.Close, 'Close');
+    RegisterMethod(@TIBDATABASE.ADDTRANSACTION, 'AddTransaction');
+    RegisterMethod(@TIBDATABASE.FINDTRANSACTION, 'FindTransaction');
+    RegisterMethod(@TIBDATABASE.FINDDEFAULTTRANSACTION, 'FindDefaultTransaction');
+    RegisterMethod(@TIBDATABASE.REMOVETRANSACTION, 'RemoveTransaction');
+    RegisterMethod(@TIBDATABASE.REMOVETRANSACTIONS, 'RemoveTransactions');
+    RegisterMethod(@TIBDATABASE.SETHANDLE, 'SetHandle');
+    RegisterPropertyHelper(@TIBDATABASE.HANDLE_R,nil,'Handle');
+    RegisterPropertyHelper(@TIBDATABASE.ISREADONLY_R,nil,'IsReadOnly');
+    RegisterPropertyHelper(@TIBDATABASE.DBPARAMBYDPB_R,@TIBDATABASE.DBPARAMBYDPB_W,'DBParamByDPB');
+    RegisterPropertyHelper(@TIBDATABASE.SQLOBJECTCOUNT_R,nil,'SQLObjectCount');
+    RegisterPropertyHelper(@TIBDATABASE.SQLOBJECTS_R,nil,'SQLObjects');
+    RegisterPropertyHelper(@TIBDATABASE.HANDLEISSHARED_R,nil,'HandleIsShared');
+    RegisterPropertyHelper(@TIBDATABASE.TRANSACTIONCOUNT_R,nil,'TransactionCount');
+    RegisterPropertyHelper(@TIBDATABASE.TRANSACTIONS_R,nil,'Transactions');
+    RegisterPropertyHelper(@TIBDATABASE.INTERNALTRANSACTION_R,nil,'InternalTransaction');
+    RegisterMethod(@TIBDATABASE.HAS_DEFAULT_VALUE, 'Has_DEFAULT_VALUE');
+    RegisterMethod(@TIBDATABASE.HAS_COMPUTED_BLR, 'Has_COMPUTED_BLR');
+    RegisterMethod(@TIBDATABASE.FLUSHSCHEMA, 'FlushSchema');
+    RegisterPropertyHelper(@TIBDATABASE.DATABASENAME_R,@TIBDATABASE.DATABASENAME_W,'DatabaseName');
+    RegisterPropertyHelper(@TIBDATABASE.CONNECTED_R,@TIBDATABASE.CONNECTED_W,'Connected');
+    RegisterPropertyHelper(@TIBDATABASE.PARAMS_R,@TIBDATABASE.PARAMS_W,'Params');
+    RegisterPropertyHelper(@TIBDATABASE.DEFAULTTRANSACTION_R,@TIBDATABASE.DEFAULTTRANSACTION_W,'DefaultTransaction');
+    RegisterPropertyHelper(@TIBDATABASE.IDLETIMER_R,@TIBDATABASE.IDLETIMER_W,'IdleTimer');
+    RegisterPropertyHelper(@TIBDATABASE.SQLDIALECT_R,@TIBDATABASE.SQLDIALECT_W,'SQLDialect');
+    RegisterPropertyHelper(@TIBDATABASE.DBSQLDIALECT_R,nil,'DBSQLDialect');
+    RegisterPropertyHelper(@TIBDATABASE.TRACEFLAGS_R,@TIBDATABASE.TRACEFLAGS_W,'TraceFlags');
+    RegisterPropertyHelper(@TIBDATABASE.ALLOWSTREAMEDCONNECTED_R,@TIBDATABASE.ALLOWSTREAMEDCONNECTED_W,'AllowStreamedConnected');
+    RegisterEventPropertyHelper(@TIBDATABASE.ONLOGIN_R,@TIBDATABASE.ONLOGIN_W,'OnLogin');
+    RegisterEventPropertyHelper(@TIBDATABASE.ONIDLETIMER_R,@TIBDATABASE.ONIDLETIMER_W,'OnIdleTimer');
+    RegisterEventPropertyHelper(@TIBDATABASE.ONDIALECTDOWNGRADEWARNING_R,@TIBDATABASE.ONDIALECTDOWNGRADEWARNING_W,'OnDialectDowngradeWarning');
+  end;
+end;
+
+{$ELSE}
 procedure TIBDATABASEONDIALECTDOWNGRADEWARNING_W(Self: TIBDATABASE; const T: TNOTIFYEVENT);
 begin Self.ONDIALECTDOWNGRADEWARNING := T; end;
 
@@ -559,6 +1132,63 @@ begin T := Self.ISREADONLY; end;
 (*----------------------------------------------------------------------------*)
 procedure TIBDATABASEHANDLE_R(Self: TIBDATABASE; var T: TISC_DB_HANDLE);
 begin T := Self.HANDLE; end;
+procedure RIRegister_TIBDATABASE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBDATABASE) do
+  begin
+    RegisterMethod(@TIBDATABASE.ADDEVENTNOTIFIER, 'AddEventNotifier');
+    RegisterMethod(@TIBDATABASE.REMOVEEVENTNOTIFIER, 'RemoveEventNotifier');
+    RegisterMethod(@TIBDATABASE.APPLYUPDATES, 'ApplyUpdates');
+    RegisterMethod(@TIBDATABASE.CLOSEDATASETS, 'CloseDataSets');
+    RegisterMethod(@TIBDATABASE.CHECKACTIVE, 'CheckActive');
+    RegisterMethod(@TIBDATABASE.CHECKINACTIVE, 'CheckInactive');
+    RegisterMethod(@TIBDATABASE.CREATEDATABASE, 'CreateDatabase');
+    RegisterMethod(@TIBDATABASE.DROPDATABASE, 'DropDatabase');
+    RegisterMethod(@TIBDATABASE.FORCECLOSE, 'ForceClose');
+    RegisterMethod(@TIBDATABASE.GETFIELDNAMES, 'GetFieldNames');
+    RegisterMethod(@TIBDATABASE.GETTABLENAMES, 'GetTableNames');
+    RegisterMethod(@TIBDATABASE.INDEXOFDBCONST, 'IndexOfDBConst');
+    RegisterMethod(@TIBDATABASE.TESTCONNECTED, 'TestConnected');
+    RegisterMethod(@TIBDATABASE.CHECKDATABASENAME, 'CheckDatabaseName');
+    RegisterMethod(@TIBDATABASE.CALL, 'Call');
+    RegisterMethod(@TIBDATABASE.Open, 'Open');
+    RegisterMethod(@TIBDATABASE.Close, 'Close');
+    RegisterMethod(@TIBDATABASE.ADDTRANSACTION, 'AddTransaction');
+    RegisterMethod(@TIBDATABASE.FINDTRANSACTION, 'FindTransaction');
+    RegisterMethod(@TIBDATABASE.FINDDEFAULTTRANSACTION, 'FindDefaultTransaction');
+    RegisterMethod(@TIBDATABASE.REMOVETRANSACTION, 'RemoveTransaction');
+    RegisterMethod(@TIBDATABASE.REMOVETRANSACTIONS, 'RemoveTransactions');
+    RegisterMethod(@TIBDATABASE.SETHANDLE, 'SetHandle');
+    RegisterPropertyHelper(@TIBDATABASEHANDLE_R,nil,'Handle');
+    RegisterPropertyHelper(@TIBDATABASEISREADONLY_R,nil,'IsReadOnly');
+    RegisterPropertyHelper(@TIBDATABASEDBPARAMBYDPB_R,@TIBDATABASEDBPARAMBYDPB_W,'DBParamByDPB');
+    RegisterPropertyHelper(@TIBDATABASESQLOBJECTCOUNT_R,nil,'SQLObjectCount');
+    RegisterPropertyHelper(@TIBDATABASESQLOBJECTS_R,nil,'SQLObjects');
+    RegisterPropertyHelper(@TIBDATABASEHANDLEISSHARED_R,nil,'HandleIsShared');
+    RegisterPropertyHelper(@TIBDATABASETRANSACTIONCOUNT_R,nil,'TransactionCount');
+    RegisterPropertyHelper(@TIBDATABASETRANSACTIONS_R,nil,'Transactions');
+    RegisterPropertyHelper(@TIBDATABASEINTERNALTRANSACTION_R,nil,'InternalTransaction');
+    RegisterMethod(@TIBDATABASE.HAS_DEFAULT_VALUE, 'Has_DEFAULT_VALUE');
+    RegisterMethod(@TIBDATABASE.HAS_COMPUTED_BLR, 'Has_COMPUTED_BLR');
+    RegisterMethod(@TIBDATABASE.FLUSHSCHEMA, 'FlushSchema');
+    RegisterPropertyHelper(@TIBDATABASEDATABASENAME_R,@TIBDATABASEDATABASENAME_W,'DatabaseName');
+    RegisterPropertyHelper(@TIBDATABASECONNECTED_R,@TIBDATABASECONNECTED_W,'Connected');
+    RegisterPropertyHelper(@TIBDATABASEPARAMS_R,@TIBDATABASEPARAMS_W,'Params');
+    RegisterPropertyHelper(@TIBDATABASEDEFAULTTRANSACTION_R,@TIBDATABASEDEFAULTTRANSACTION_W,'DefaultTransaction');
+    RegisterPropertyHelper(@TIBDATABASEIDLETIMER_R,@TIBDATABASEIDLETIMER_W,'IdleTimer');
+    RegisterPropertyHelper(@TIBDATABASESQLDIALECT_R,@TIBDATABASESQLDIALECT_W,'SQLDialect');
+    RegisterPropertyHelper(@TIBDATABASEDBSQLDIALECT_R,nil,'DBSQLDialect');
+    RegisterPropertyHelper(@TIBDATABASETRACEFLAGS_R,@TIBDATABASETRACEFLAGS_W,'TraceFlags');
+    RegisterPropertyHelper(@TIBDATABASEALLOWSTREAMEDCONNECTED_R,@TIBDATABASEALLOWSTREAMEDCONNECTED_W,'AllowStreamedConnected');
+    RegisterEventPropertyHelper(@TIBDATABASEONLOGIN_R,@TIBDATABASEONLOGIN_W,'OnLogin');
+    RegisterEventPropertyHelper(@TIBDATABASEONIDLETIMER_R,@TIBDATABASEONIDLETIMER_W,'OnIdleTimer');
+    RegisterEventPropertyHelper(@TIBDATABASEONDIALECTDOWNGRADEWARNING_R,@TIBDATABASEONDIALECTDOWNGRADEWARNING_W,'OnDialectDowngradeWarning');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+(* === run-time registration functions === *)
 
 (*----------------------------------------------------------------------------*)
 procedure SIRegister_TIBDATALINK(CL: TPSPascalCompiler);
@@ -624,12 +1254,162 @@ begin
   SIRegister_TIBDATASET(CL);
 end;
 
-(* === run-time registration functions === *)
-(*----------------------------------------------------------------------------*)
+{$IFDEF DELPHI10UP}{$REGION 'TIBDATASET'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBDATASET_PSHelper = class helper for TIBDATASET
+  public
+    procedure PREPARED_R(var T: BOOLEAN);
+  end;
+
+procedure TIBDATASET_PSHelper.PREPARED_R(var T: BOOLEAN);
+begin T := Self.PREPARED; end;
+
+procedure RIRegister_TIBDATASET(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBDATASET) do
+  begin
+    RegisterMethod(@TIBDATASET.PREPARE, 'Prepare');
+    RegisterMethod(@TIBDATASET.UNPREPARE, 'UnPrepare');
+    RegisterMethod(@TIBDATASET.BATCHINPUT, 'BatchInput');
+    RegisterMethod(@TIBDATASET.BATCHOUTPUT, 'BatchOutput');
+    RegisterMethod(@TIBDATASET.EXECSQL, 'ExecSQL');
+    RegisterMethod(@TIBDATASET.PARAMBYNAME, 'ParamByName');
+    RegisterPropertyHelper(@TIBDATASET.PREPARED_R,nil,'Prepared');
+  end;
+end;
+
+{$ELSE}
 procedure TIBDATASETPREPARED_R(Self: TIBDATASET; var T: BOOLEAN);
 begin T := Self.PREPARED; end;
 
-(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBDATASET(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBDATASET) do
+  begin
+    RegisterMethod(@TIBDATASET.PREPARE, 'Prepare');
+    RegisterMethod(@TIBDATASET.UNPREPARE, 'UnPrepare');
+    RegisterMethod(@TIBDATASET.BATCHINPUT, 'BatchInput');
+    RegisterMethod(@TIBDATASET.BATCHOUTPUT, 'BatchOutput');
+    RegisterMethod(@TIBDATASET.EXECSQL, 'ExecSQL');
+    RegisterMethod(@TIBDATASET.PARAMBYNAME, 'ParamByName');
+    RegisterPropertyHelper(@TIBDATASETPREPARED_R,nil,'Prepared');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBCUSTOMDATASET'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBCUSTOMDATASET_PSHelper = class helper for TIBCUSTOMDATASET
+  public
+    procedure FORCEDREFRESH_W(const T: BOOLEAN);
+    procedure FORCEDREFRESH_R(var T: BOOLEAN);
+    procedure TRANSACTION_W(const T: TIBTRANSACTION);
+    procedure TRANSACTION_R(var T: TIBTRANSACTION);
+    procedure DATABASE_W(const T: TIBDATABASE);
+    procedure DATABASE_R(var T: TIBDATABASE);
+    procedure PLAN_R(var T: STRING);
+    procedure ROWSAFFECTED_R(var T: INTEGER);
+    procedure UPDATERECORDTYPES_W(const T: TIBUPDATERECORDTYPES);
+    procedure UPDATERECORDTYPES_R(var T: TIBUPDATERECORDTYPES);
+    procedure UPDATESPENDING_R(var T: BOOLEAN);
+    procedure UPDATEOBJECT_W(const T: TIBDATASETUPDATEOBJECT);
+    procedure UPDATEOBJECT_R(var T: TIBDATASETUPDATEOBJECT);
+    procedure TRHANDLE_R(var T: PISC_TR_HANDLE);
+    procedure DBHANDLE_R(var T: PISC_DB_HANDLE);
+  end;
+
+procedure TIBCUSTOMDATASET_PSHelper.FORCEDREFRESH_W(const T: BOOLEAN);
+begin Self.FORCEDREFRESH := T; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.FORCEDREFRESH_R(var T: BOOLEAN);
+begin T := Self.FORCEDREFRESH; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.TRANSACTION_W(const T: TIBTRANSACTION);
+begin Self.TRANSACTION := T; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.TRANSACTION_R(var T: TIBTRANSACTION);
+begin T := Self.TRANSACTION; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.DATABASE_W(const T: TIBDATABASE);
+begin Self.DATABASE := T; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.DATABASE_R(var T: TIBDATABASE);
+begin T := Self.DATABASE; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.PLAN_R(var T: STRING);
+begin T := Self.PLAN; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.ROWSAFFECTED_R(var T: INTEGER);
+begin T := Self.ROWSAFFECTED; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.UPDATERECORDTYPES_W(const T: TIBUPDATERECORDTYPES);
+begin Self.UPDATERECORDTYPES := T; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.UPDATERECORDTYPES_R(var T: TIBUPDATERECORDTYPES);
+begin T := Self.UPDATERECORDTYPES; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.UPDATESPENDING_R(var T: BOOLEAN);
+begin T := Self.UPDATESPENDING; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.UPDATEOBJECT_W(const T: TIBDATASETUPDATEOBJECT);
+begin Self.UPDATEOBJECT := T; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.UPDATEOBJECT_R(var T: TIBDATASETUPDATEOBJECT);
+begin T := Self.UPDATEOBJECT; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.TRHANDLE_R(var T: PISC_TR_HANDLE);
+begin T := Self.TRHANDLE; end;
+
+
+procedure TIBCUSTOMDATASET_PSHelper.DBHANDLE_R(var T: PISC_DB_HANDLE);
+begin T := Self.DBHANDLE; end;
+
+procedure RIRegister_TIBCUSTOMDATASET(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBCUSTOMDATASET) do
+  begin
+    RegisterMethod(@TIBCUSTOMDATASET.APPLYUPDATES, 'ApplyUpdates');
+    RegisterMethod(@TIBCUSTOMDATASET.CACHEDUPDATESTATUS, 'CachedUpdateStatus');
+    RegisterMethod(@TIBCUSTOMDATASET.CANCELUPDATES, 'CancelUpdates');
+    RegisterMethod(@TIBCUSTOMDATASET.FETCHALL, 'FetchAll');
+    RegisterMethod(@TIBCUSTOMDATASET.LOCATENEXT, 'LocateNext');
+//    RegisterMethod(@TIBCUSTOMDATASET.LOCATE, 'Locate');
+    RegisterMethod(@TIBCUSTOMDATASET.RECORDMODIFIED, 'RecordModified');
+    RegisterMethod(@TIBCUSTOMDATASET.REVERTRECORD, 'RevertRecord');
+    RegisterMethod(@TIBCUSTOMDATASET.UNDELETE, 'Undelete');
+    RegisterMethod(@TIBCUSTOMDATASET.CURRENT, 'Current');
+    RegisterMethod(@TIBCUSTOMDATASET.SQLTYPE, 'SqlType');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.DBHANDLE_R,nil,'DBHandle');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.TRHANDLE_R,nil,'TRHandle');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.UPDATEOBJECT_R,@TIBCUSTOMDATASET.UPDATEOBJECT_W,'UpdateObject');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.UPDATESPENDING_R,nil,'UpdatesPending');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.UPDATERECORDTYPES_R,@TIBCUSTOMDATASET.UPDATERECORDTYPES_W,'UpdateRecordTypes');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.ROWSAFFECTED_R,nil,'RowsAffected');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.PLAN_R,nil,'Plan');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.DATABASE_R,@TIBCUSTOMDATASET.DATABASE_W,'Database');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.TRANSACTION_R,@TIBCUSTOMDATASET.TRANSACTION_W,'Transaction');
+    RegisterPropertyHelper(@TIBCUSTOMDATASET.FORCEDREFRESH_R,@TIBCUSTOMDATASET.FORCEDREFRESH_W,'ForcedRefresh');
+  end;
+end;
+
+{$ELSE}
 procedure TIBCUSTOMDATASETFORCEDREFRESH_W(Self: TIBCUSTOMDATASET; const T: BOOLEAN);
 begin Self.FORCEDREFRESH := T; end;
 
@@ -688,8 +1468,98 @@ begin T := Self.TRHANDLE; end;
 (*----------------------------------------------------------------------------*)
 procedure TIBCUSTOMDATASETDBHANDLE_R(Self: TIBCUSTOMDATASET; var T: PISC_DB_HANDLE);
 begin T := Self.DBHANDLE; end;
+procedure RIRegister_TIBCUSTOMDATASET(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBCUSTOMDATASET) do
+  begin
+    RegisterMethod(@TIBCUSTOMDATASET.APPLYUPDATES, 'ApplyUpdates');
+    RegisterMethod(@TIBCUSTOMDATASET.CACHEDUPDATESTATUS, 'CachedUpdateStatus');
+    RegisterMethod(@TIBCUSTOMDATASET.CANCELUPDATES, 'CancelUpdates');
+    RegisterMethod(@TIBCUSTOMDATASET.FETCHALL, 'FetchAll');
+    RegisterMethod(@TIBCUSTOMDATASET.LOCATENEXT, 'LocateNext');
+//    RegisterMethod(@TIBCUSTOMDATASET.LOCATE, 'Locate');
+    RegisterMethod(@TIBCUSTOMDATASET.RECORDMODIFIED, 'RecordModified');
+    RegisterMethod(@TIBCUSTOMDATASET.REVERTRECORD, 'RevertRecord');
+    RegisterMethod(@TIBCUSTOMDATASET.UNDELETE, 'Undelete');
+    RegisterMethod(@TIBCUSTOMDATASET.CURRENT, 'Current');
+    RegisterMethod(@TIBCUSTOMDATASET.SQLTYPE, 'SqlType');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETDBHANDLE_R,nil,'DBHandle');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETTRHANDLE_R,nil,'TRHandle');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETUPDATEOBJECT_R,@TIBCUSTOMDATASETUPDATEOBJECT_W,'UpdateObject');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETUPDATESPENDING_R,nil,'UpdatesPending');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETUPDATERECORDTYPES_R,@TIBCUSTOMDATASETUPDATERECORDTYPES_W,'UpdateRecordTypes');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETROWSAFFECTED_R,nil,'RowsAffected');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETPLAN_R,nil,'Plan');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETDATABASE_R,@TIBCUSTOMDATASETDATABASE_W,'Database');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETTRANSACTION_R,@TIBCUSTOMDATASETTRANSACTION_W,'Transaction');
+    RegisterPropertyHelper(@TIBCUSTOMDATASETFORCEDREFRESH_R,@TIBCUSTOMDATASETFORCEDREFRESH_W,'ForcedRefresh');
+  end;
+end;
 
-(*----------------------------------------------------------------------------*)
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBGENERATORFIELD'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBGENERATORFIELD_PSHelper = class helper for TIBGENERATORFIELD
+  public
+    procedure APPLYEVENT_W(const T: TIBGENERATORAPPLYEVENT);
+    procedure APPLYEVENT_R(var T: TIBGENERATORAPPLYEVENT);
+    procedure INCREMENTBY_W(const T: INTEGER);
+    procedure INCREMENTBY_R(var T: INTEGER);
+    procedure GENERATOR_W(const T: STRING);
+    procedure GENERATOR_R(var T: STRING);
+    procedure FIELD_W(const T: STRING);
+    procedure FIELD_R(var T: STRING);
+  end;
+
+procedure TIBGENERATORFIELD_PSHelper.APPLYEVENT_W(const T: TIBGENERATORAPPLYEVENT);
+begin Self.APPLYEVENT := T; end;
+
+
+procedure TIBGENERATORFIELD_PSHelper.APPLYEVENT_R(var T: TIBGENERATORAPPLYEVENT);
+begin T := Self.APPLYEVENT; end;
+
+
+procedure TIBGENERATORFIELD_PSHelper.INCREMENTBY_W(const T: INTEGER);
+begin Self.INCREMENTBY := T; end;
+
+
+procedure TIBGENERATORFIELD_PSHelper.INCREMENTBY_R(var T: INTEGER);
+begin T := Self.INCREMENTBY; end;
+
+
+procedure TIBGENERATORFIELD_PSHelper.GENERATOR_W(const T: STRING);
+begin Self.GENERATOR := T; end;
+
+
+procedure TIBGENERATORFIELD_PSHelper.GENERATOR_R(var T: STRING);
+begin T := Self.GENERATOR; end;
+
+
+procedure TIBGENERATORFIELD_PSHelper.FIELD_W(const T: STRING);
+begin Self.FIELD := T; end;
+
+
+procedure TIBGENERATORFIELD_PSHelper.FIELD_R(var T: STRING);
+begin T := Self.FIELD; end;
+
+procedure RIRegister_TIBGENERATORFIELD(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBGENERATORFIELD) do
+  begin
+    RegisterConstructor(@TIBGENERATORFIELD.CREATE, 'Create');
+    RegisterMethod(@TIBGENERATORFIELD.VALUENAME, 'ValueName');
+    RegisterMethod(@TIBGENERATORFIELD.APPLY, 'Apply');
+    RegisterPropertyHelper(@TIBGENERATORFIELDFIELD_R,@TIBGENERATORFIELDFIELD_W,'Field');
+    RegisterPropertyHelper(@TIBGENERATORFIELDGENERATOR_R,@TIBGENERATORFIELDGENERATOR_W,'Generator');
+    RegisterPropertyHelper(@TIBGENERATORFIELDINCREMENTBY_R,@TIBGENERATORFIELDINCREMENTBY_W,'IncrementBy');
+    RegisterPropertyHelper(@TIBGENERATORFIELDAPPLYEVENT_R,@TIBGENERATORFIELDAPPLYEVENT_W,'ApplyEvent');
+  end;
+end;
+
+{$ELSE}
 procedure TIBGENERATORFIELDAPPLYEVENT_W(Self: TIBGENERATORFIELD; const T: TIBGENERATORAPPLYEVENT);
 begin Self.APPLYEVENT := T; end;
 
@@ -720,60 +1590,6 @@ begin Self.FIELD := T; end;
 (*----------------------------------------------------------------------------*)
 procedure TIBGENERATORFIELDFIELD_R(Self: TIBGENERATORFIELD; var T: STRING);
 begin T := Self.FIELD; end;
-
-(*----------------------------------------------------------------------------*)
-procedure TIBDATASETUPDATEOBJECTREFRESHSQL_W(Self: TIBDATASETUPDATEOBJECT; const T: TSTRINGS);
-begin Self.REFRESHSQL := T; end;
-
-(*----------------------------------------------------------------------------*)
-procedure TIBDATASETUPDATEOBJECTREFRESHSQL_R(Self: TIBDATASETUPDATEOBJECT; var T: TSTRINGS);
-begin T := Self.REFRESHSQL; end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBDATASET(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBDATASET) do
-  begin
-    RegisterMethod(@TIBDATASET.PREPARE, 'Prepare');
-    RegisterMethod(@TIBDATASET.UNPREPARE, 'UnPrepare');
-    RegisterMethod(@TIBDATASET.BATCHINPUT, 'BatchInput');
-    RegisterMethod(@TIBDATASET.BATCHOUTPUT, 'BatchOutput');
-    RegisterMethod(@TIBDATASET.EXECSQL, 'ExecSQL');
-    RegisterMethod(@TIBDATASET.PARAMBYNAME, 'ParamByName');
-    RegisterPropertyHelper(@TIBDATASETPREPARED_R,nil,'Prepared');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBCUSTOMDATASET(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBCUSTOMDATASET) do
-  begin
-    RegisterMethod(@TIBCUSTOMDATASET.APPLYUPDATES, 'ApplyUpdates');
-    RegisterMethod(@TIBCUSTOMDATASET.CACHEDUPDATESTATUS, 'CachedUpdateStatus');
-    RegisterMethod(@TIBCUSTOMDATASET.CANCELUPDATES, 'CancelUpdates');
-    RegisterMethod(@TIBCUSTOMDATASET.FETCHALL, 'FetchAll');
-    RegisterMethod(@TIBCUSTOMDATASET.LOCATENEXT, 'LocateNext');
-//    RegisterMethod(@TIBCUSTOMDATASET.LOCATE, 'Locate');
-    RegisterMethod(@TIBCUSTOMDATASET.RECORDMODIFIED, 'RecordModified');
-    RegisterMethod(@TIBCUSTOMDATASET.REVERTRECORD, 'RevertRecord');
-    RegisterMethod(@TIBCUSTOMDATASET.UNDELETE, 'Undelete');
-    RegisterMethod(@TIBCUSTOMDATASET.CURRENT, 'Current');
-    RegisterMethod(@TIBCUSTOMDATASET.SQLTYPE, 'SqlType');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETDBHANDLE_R,nil,'DBHandle');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETTRHANDLE_R,nil,'TRHandle');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETUPDATEOBJECT_R,@TIBCUSTOMDATASETUPDATEOBJECT_W,'UpdateObject');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETUPDATESPENDING_R,nil,'UpdatesPending');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETUPDATERECORDTYPES_R,@TIBCUSTOMDATASETUPDATERECORDTYPES_W,'UpdateRecordTypes');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETROWSAFFECTED_R,nil,'RowsAffected');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETPLAN_R,nil,'Plan');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETDATABASE_R,@TIBCUSTOMDATASETDATABASE_W,'Database');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETTRANSACTION_R,@TIBCUSTOMDATASETTRANSACTION_W,'Transaction');
-    RegisterPropertyHelper(@TIBCUSTOMDATASETFORCEDREFRESH_R,@TIBCUSTOMDATASETFORCEDREFRESH_W,'ForcedRefresh');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
 procedure RIRegister_TIBGENERATORFIELD(CL: TPSRuntimeClassImporter);
 begin
   with CL.Add(TIBGENERATORFIELD) do
@@ -787,6 +1603,53 @@ begin
     RegisterPropertyHelper(@TIBGENERATORFIELDAPPLYEVENT_R,@TIBGENERATORFIELDAPPLYEVENT_W,'ApplyEvent');
   end;
 end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBDATASETUPDATEOBJECT'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBDATASETUPDATEOBJECT_PSHelper = class helper for TIBDATASETUPDATEOBJECT
+  public
+    procedure REFRESHSQL_W(const T: TSTRINGS);
+    procedure REFRESHSQL_R(var T: TSTRINGS);
+  end;
+
+procedure TIBDATASETUPDATEOBJECT_PSHelper.REFRESHSQL_W(const T: TSTRINGS);
+begin Self.REFRESHSQL := T; end;
+
+procedure TIBDATASETUPDATEOBJECT_PSHelper.REFRESHSQL_R(var T: TSTRINGS);
+begin T := Self.REFRESHSQL; end;
+
+procedure RIRegister_TIBDATASETUPDATEOBJECT(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBDATASETUPDATEOBJECT) do
+  begin
+    RegisterPropertyHelper(@TIBDATASETUPDATEOBJECT.REFRESHSQL_R,@TIBDATASETUPDATEOBJECT.REFRESHSQL_W,'RefreshSQL');
+  end;
+end;
+
+{$ELSE}
+procedure TIBDATASETUPDATEOBJECTREFRESHSQL_W(Self: TIBDATASETUPDATEOBJECT; const T: TSTRINGS);
+begin Self.REFRESHSQL := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TIBDATASETUPDATEOBJECTREFRESHSQL_R(Self: TIBDATASETUPDATEOBJECT; var T: TSTRINGS);
+begin T := Self.REFRESHSQL; end;
+
+procedure RIRegister_TIBDATASETUPDATEOBJECT(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBDATASETUPDATEOBJECT) do
+  begin
+    RegisterPropertyHelper(@TIBDATASETUPDATEOBJECTREFRESHSQL_R,@TIBDATASETUPDATEOBJECTREFRESHSQL_W,'RefreshSQL');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+(* === run-time registration functions === *)
 
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_TIBDATALINK(CL: TPSRuntimeClassImporter);
@@ -815,13 +1678,6 @@ begin
 end;
 
 (*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBDATASETUPDATEOBJECT(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBDATASETUPDATEOBJECT) do
-  begin
-    RegisterPropertyHelper(@TIBDATASETUPDATEOBJECTREFRESHSQL_R,@TIBDATASETUPDATEOBJECTREFRESHSQL_W,'RefreshSQL');
-  end;
-end;
 
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_IBCustomDataSet(CL: TPSRuntimeClassImporter);
@@ -835,122 +1691,6 @@ begin
   RIRegister_TIBGENERATORFIELD(CL);
   RIRegister_TIBCUSTOMDATASET(CL);
   RIRegister_TIBDATASET(CL);
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBBASE(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBBASE) do
-  begin
-    RegisterConstructor(@TIBBASE.CREATE, 'Create');
-    RegisterVirtualMethod(@TIBBASE.CHECKDATABASE, 'CheckDatabase');
-    RegisterVirtualMethod(@TIBBASE.CHECKTRANSACTION, 'CheckTransaction');
-    RegisterPropertyHelper(@TIBBASEBEFOREDATABASEDISCONNECT_R,@TIBBASEBEFOREDATABASEDISCONNECT_W,'BeforeDatabaseDisconnect');
-    RegisterPropertyHelper(@TIBBASEAFTERDATABASEDISCONNECT_R,@TIBBASEAFTERDATABASEDISCONNECT_W,'AfterDatabaseDisconnect');
-    RegisterEventPropertyHelper(@TIBBASEONDATABASEFREE_R,@TIBBASEONDATABASEFREE_W,'OnDatabaseFree');
-    RegisterPropertyHelper(@TIBBASEBEFORETRANSACTIONEND_R,@TIBBASEBEFORETRANSACTIONEND_W,'BeforeTransactionEnd');
-    RegisterPropertyHelper(@TIBBASEAFTERTRANSACTIONEND_R,@TIBBASEAFTERTRANSACTIONEND_W,'AfterTransactionEnd');
-    RegisterEventPropertyHelper(@TIBBASEONTRANSACTIONFREE_R,@TIBBASEONTRANSACTIONFREE_W,'OnTransactionFree');
-    RegisterPropertyHelper(@TIBBASEDATABASE_R,@TIBBASEDATABASE_W,'Database');
-    RegisterPropertyHelper(@TIBBASEDBHANDLE_R,nil,'DBHandle');
-    RegisterPropertyHelper(@TIBBASEOWNER_R,nil,'Owner');
-    RegisterPropertyHelper(@TIBBASETRHANDLE_R,nil,'TRHandle');
-    RegisterPropertyHelper(@TIBBASETRANSACTION_R,@TIBBASETRANSACTION_W,'Transaction');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBTRANSACTION(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBTRANSACTION) do
-  begin
-    RegisterMethod(@TIBTRANSACTION.CALL, 'Call');
-    RegisterMethod(@TIBTRANSACTION.COMMIT, 'Commit');
-    RegisterMethod(@TIBTRANSACTION.COMMITRETAINING, 'CommitRetaining');
-    RegisterMethod(@TIBTRANSACTION.ROLLBACK, 'Rollback');
-    RegisterMethod(@TIBTRANSACTION.ROLLBACKRETAINING, 'RollbackRetaining');
-    RegisterMethod(@TIBTRANSACTION.STARTTRANSACTION, 'StartTransaction');
-    RegisterMethod(@TIBTRANSACTION.CHECKINTRANSACTION, 'CheckInTransaction');
-    RegisterMethod(@TIBTRANSACTION.CHECKNOTINTRANSACTION, 'CheckNotInTransaction');
-    RegisterMethod(@TIBTRANSACTION.CHECKAUTOSTOP, 'CheckAutoStop');
-    RegisterMethod(@TIBTRANSACTION.ADDDATABASE, 'AddDatabase');
-    RegisterMethod(@TIBTRANSACTION.FINDDATABASE, 'FindDatabase');
-    RegisterMethod(@TIBTRANSACTION.FINDDEFAULTDATABASE, 'FindDefaultDatabase');
-    RegisterMethod(@TIBTRANSACTION.REMOVEDATABASE, 'RemoveDatabase');
-    RegisterMethod(@TIBTRANSACTION.REMOVEDATABASES, 'RemoveDatabases');
-    RegisterMethod(@TIBTRANSACTION.CHECKDATABASESINLIST, 'CheckDatabasesInList');
-    RegisterPropertyHelper(@TIBTRANSACTIONDATABASECOUNT_R,nil,'DatabaseCount');
-    RegisterPropertyHelper(@TIBTRANSACTIONDATABASES_R,nil,'Databases');
-    RegisterPropertyHelper(@TIBTRANSACTIONSQLOBJECTCOUNT_R,nil,'SQLObjectCount');
-    RegisterPropertyHelper(@TIBTRANSACTIONSQLOBJECTS_R,nil,'SQLObjects');
-    RegisterPropertyHelper(@TIBTRANSACTIONHANDLE_R,nil,'Handle');
-    RegisterPropertyHelper(@TIBTRANSACTIONHANDLEISSHARED_R,nil,'HandleIsShared');
-    RegisterPropertyHelper(@TIBTRANSACTIONINTRANSACTION_R,nil,'InTransaction');
-    RegisterPropertyHelper(@TIBTRANSACTIONTPB_R,nil,'TPB');
-    RegisterPropertyHelper(@TIBTRANSACTIONTPBLENGTH_R,nil,'TPBLength');
-    RegisterPropertyHelper(@TIBTRANSACTIONACTIVE_R,@TIBTRANSACTIONACTIVE_W,'Active');
-    RegisterPropertyHelper(@TIBTRANSACTIONDEFAULTDATABASE_R,@TIBTRANSACTIONDEFAULTDATABASE_W,'DefaultDatabase');
-    RegisterPropertyHelper(@TIBTRANSACTIONIDLETIMER_R,@TIBTRANSACTIONIDLETIMER_W,'IdleTimer');
-    RegisterPropertyHelper(@TIBTRANSACTIONDEFAULTACTION_R,@TIBTRANSACTIONDEFAULTACTION_W,'DefaultAction');
-    RegisterPropertyHelper(@TIBTRANSACTIONPARAMS_R,@TIBTRANSACTIONPARAMS_W,'Params');
-    RegisterPropertyHelper(@TIBTRANSACTIONAUTOSTOPACTION_R,@TIBTRANSACTIONAUTOSTOPACTION_W,'AutoStopAction');
-    RegisterEventPropertyHelper(@TIBTRANSACTIONONIDLETIMER_R,@TIBTRANSACTIONONIDLETIMER_W,'OnIdleTimer');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBDATABASE(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBDATABASE) do
-  begin
-    RegisterMethod(@TIBDATABASE.ADDEVENTNOTIFIER, 'AddEventNotifier');
-    RegisterMethod(@TIBDATABASE.REMOVEEVENTNOTIFIER, 'RemoveEventNotifier');
-    RegisterMethod(@TIBDATABASE.APPLYUPDATES, 'ApplyUpdates');
-    RegisterMethod(@TIBDATABASE.CLOSEDATASETS, 'CloseDataSets');
-    RegisterMethod(@TIBDATABASE.CHECKACTIVE, 'CheckActive');
-    RegisterMethod(@TIBDATABASE.CHECKINACTIVE, 'CheckInactive');
-    RegisterMethod(@TIBDATABASE.CREATEDATABASE, 'CreateDatabase');
-    RegisterMethod(@TIBDATABASE.DROPDATABASE, 'DropDatabase');
-    RegisterMethod(@TIBDATABASE.FORCECLOSE, 'ForceClose');
-    RegisterMethod(@TIBDATABASE.GETFIELDNAMES, 'GetFieldNames');
-    RegisterMethod(@TIBDATABASE.GETTABLENAMES, 'GetTableNames');
-    RegisterMethod(@TIBDATABASE.INDEXOFDBCONST, 'IndexOfDBConst');
-    RegisterMethod(@TIBDATABASE.TESTCONNECTED, 'TestConnected');
-    RegisterMethod(@TIBDATABASE.CHECKDATABASENAME, 'CheckDatabaseName');
-    RegisterMethod(@TIBDATABASE.CALL, 'Call');
-    RegisterMethod(@TIBDATABASE.Open, 'Open');
-    RegisterMethod(@TIBDATABASE.Close, 'Close');
-    RegisterMethod(@TIBDATABASE.ADDTRANSACTION, 'AddTransaction');
-    RegisterMethod(@TIBDATABASE.FINDTRANSACTION, 'FindTransaction');
-    RegisterMethod(@TIBDATABASE.FINDDEFAULTTRANSACTION, 'FindDefaultTransaction');
-    RegisterMethod(@TIBDATABASE.REMOVETRANSACTION, 'RemoveTransaction');
-    RegisterMethod(@TIBDATABASE.REMOVETRANSACTIONS, 'RemoveTransactions');
-    RegisterMethod(@TIBDATABASE.SETHANDLE, 'SetHandle');
-    RegisterPropertyHelper(@TIBDATABASEHANDLE_R,nil,'Handle');
-    RegisterPropertyHelper(@TIBDATABASEISREADONLY_R,nil,'IsReadOnly');
-    RegisterPropertyHelper(@TIBDATABASEDBPARAMBYDPB_R,@TIBDATABASEDBPARAMBYDPB_W,'DBParamByDPB');
-    RegisterPropertyHelper(@TIBDATABASESQLOBJECTCOUNT_R,nil,'SQLObjectCount');
-    RegisterPropertyHelper(@TIBDATABASESQLOBJECTS_R,nil,'SQLObjects');
-    RegisterPropertyHelper(@TIBDATABASEHANDLEISSHARED_R,nil,'HandleIsShared');
-    RegisterPropertyHelper(@TIBDATABASETRANSACTIONCOUNT_R,nil,'TransactionCount');
-    RegisterPropertyHelper(@TIBDATABASETRANSACTIONS_R,nil,'Transactions');
-    RegisterPropertyHelper(@TIBDATABASEINTERNALTRANSACTION_R,nil,'InternalTransaction');
-    RegisterMethod(@TIBDATABASE.HAS_DEFAULT_VALUE, 'Has_DEFAULT_VALUE');
-    RegisterMethod(@TIBDATABASE.HAS_COMPUTED_BLR, 'Has_COMPUTED_BLR');
-    RegisterMethod(@TIBDATABASE.FLUSHSCHEMA, 'FlushSchema');
-    RegisterPropertyHelper(@TIBDATABASEDATABASENAME_R,@TIBDATABASEDATABASENAME_W,'DatabaseName');
-    RegisterPropertyHelper(@TIBDATABASECONNECTED_R,@TIBDATABASECONNECTED_W,'Connected');
-    RegisterPropertyHelper(@TIBDATABASEPARAMS_R,@TIBDATABASEPARAMS_W,'Params');
-    RegisterPropertyHelper(@TIBDATABASEDEFAULTTRANSACTION_R,@TIBDATABASEDEFAULTTRANSACTION_W,'DefaultTransaction');
-    RegisterPropertyHelper(@TIBDATABASEIDLETIMER_R,@TIBDATABASEIDLETIMER_W,'IdleTimer');
-    RegisterPropertyHelper(@TIBDATABASESQLDIALECT_R,@TIBDATABASESQLDIALECT_W,'SQLDialect');
-    RegisterPropertyHelper(@TIBDATABASEDBSQLDIALECT_R,nil,'DBSQLDialect');
-    RegisterPropertyHelper(@TIBDATABASETRACEFLAGS_R,@TIBDATABASETRACEFLAGS_W,'TraceFlags');
-    RegisterPropertyHelper(@TIBDATABASEALLOWSTREAMEDCONNECTED_R,@TIBDATABASEALLOWSTREAMEDCONNECTED_W,'AllowStreamedConnected');
-    RegisterEventPropertyHelper(@TIBDATABASEONLOGIN_R,@TIBDATABASEONLOGIN_W,'OnLogin');
-    RegisterEventPropertyHelper(@TIBDATABASEONIDLETIMER_R,@TIBDATABASEONIDLETIMER_W,'OnIdleTimer');
-    RegisterEventPropertyHelper(@TIBDATABASEONDIALECTDOWNGRADEWARNING_R,@TIBDATABASEONDIALECTDOWNGRADEWARNING_W,'OnDialectDowngradeWarning');
-  end;
 end;
 
 (*----------------------------------------------------------------------------*)
@@ -1006,8 +1746,173 @@ begin
   SIRegister_TIBTABLE(CL);
 end;
 
-(* === run-time registration functions === *)
-(*----------------------------------------------------------------------------*)
+{$IFDEF DELPHI10UP}{$REGION 'TIBTABLE'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBTABLE_PSHelper = class helper for TIBTABLE
+  public
+    procedure TABLETYPES_W(const T: TIBTABLETYPES);
+    procedure TABLETYPES_R(var T: TIBTABLETYPES);
+    procedure TABLENAME_W(const T: STRING);
+    procedure TABLENAME_R(var T: STRING);
+    procedure STOREDEFS_W(const T: BOOLEAN);
+    procedure STOREDEFS_R(var T: BOOLEAN);
+    procedure READONLY_W(const T: BOOLEAN);
+    procedure READONLY_R(var T: BOOLEAN);
+    procedure MASTERSOURCE_W(const T: TDATASOURCE);
+    procedure MASTERSOURCE_R(var T: TDATASOURCE);
+    procedure MASTERFIELDS_W(const T: STRING);
+    procedure MASTERFIELDS_R(var T: STRING);
+    procedure INDEXNAME_W(const T: STRING);
+    procedure INDEXNAME_R(var T: STRING);
+    procedure INDEXFIELDNAMES_W(const T: STRING);
+    procedure INDEXFIELDNAMES_R(var T: STRING);
+    procedure INDEXDEFS_W(const T: TINDEXDEFS);
+    procedure INDEXDEFS_R(var T: TINDEXDEFS);
+    procedure DEFAULTINDEX_W(const T: BOOLEAN);
+    procedure DEFAULTINDEX_R(var T: BOOLEAN);
+    procedure TABLENAMES_R(var T: TSTRINGS);
+    procedure INDEXFIELDS_W(const T: TFIELD; const t1: INTEGER);
+    procedure INDEXFIELDS_R(var T: TFIELD; const t1: INTEGER);
+    procedure INDEXFIELDCOUNT_R(var T: INTEGER);
+    procedure EXISTS_R(var T: BOOLEAN);
+    procedure CURRENTDBKEY_R(var T: TIBDBKEY);
+  end;
+
+procedure TIBTABLE_PSHelper.TABLETYPES_W(const T: TIBTABLETYPES);
+begin Self.TABLETYPES := T; end;
+
+
+procedure TIBTABLE_PSHelper.TABLETYPES_R(var T: TIBTABLETYPES);
+begin T := Self.TABLETYPES; end;
+
+
+procedure TIBTABLE_PSHelper.TABLENAME_W(const T: STRING);
+begin Self.TABLENAME := T; end;
+
+
+procedure TIBTABLE_PSHelper.TABLENAME_R(var T: STRING);
+begin T := Self.TABLENAME; end;
+
+
+procedure TIBTABLE_PSHelper.STOREDEFS_W(const T: BOOLEAN);
+begin Self.STOREDEFS := T; end;
+
+
+procedure TIBTABLE_PSHelper.STOREDEFS_R(var T: BOOLEAN);
+begin T := Self.STOREDEFS; end;
+
+
+procedure TIBTABLE_PSHelper.READONLY_W(const T: BOOLEAN);
+begin Self.READONLY := T; end;
+
+
+procedure TIBTABLE_PSHelper.READONLY_R(var T: BOOLEAN);
+begin T := Self.READONLY; end;
+
+
+procedure TIBTABLE_PSHelper.MASTERSOURCE_W(const T: TDATASOURCE);
+begin Self.MASTERSOURCE := T; end;
+
+
+procedure TIBTABLE_PSHelper.MASTERSOURCE_R(var T: TDATASOURCE);
+begin T := Self.MASTERSOURCE; end;
+
+
+procedure TIBTABLE_PSHelper.MASTERFIELDS_W(const T: STRING);
+begin Self.MASTERFIELDS := T; end;
+
+
+procedure TIBTABLE_PSHelper.MASTERFIELDS_R(var T: STRING);
+begin T := Self.MASTERFIELDS; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXNAME_W(const T: STRING);
+begin Self.INDEXNAME := T; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXNAME_R(var T: STRING);
+begin T := Self.INDEXNAME; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXFIELDNAMES_W(const T: STRING);
+begin Self.INDEXFIELDNAMES := T; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXFIELDNAMES_R(var T: STRING);
+begin T := Self.INDEXFIELDNAMES; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXDEFS_W(const T: TINDEXDEFS);
+begin Self.INDEXDEFS := T; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXDEFS_R(var T: TINDEXDEFS);
+begin T := Self.INDEXDEFS; end;
+
+
+procedure TIBTABLE_PSHelper.DEFAULTINDEX_W(const T: BOOLEAN);
+begin Self.DEFAULTINDEX := T; end;
+
+
+procedure TIBTABLE_PSHelper.DEFAULTINDEX_R(var T: BOOLEAN);
+begin T := Self.DEFAULTINDEX; end;
+
+
+procedure TIBTABLE_PSHelper.TABLENAMES_R(var T: TSTRINGS);
+begin T := Self.TABLENAMES; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXFIELDS_W(const T: TFIELD; const t1: INTEGER);
+begin Self.INDEXFIELDS[t1] := T; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXFIELDS_R(var T: TFIELD; const t1: INTEGER);
+begin T := Self.INDEXFIELDS[t1]; end;
+
+
+procedure TIBTABLE_PSHelper.INDEXFIELDCOUNT_R(var T: INTEGER);
+begin T := Self.INDEXFIELDCOUNT; end;
+
+
+procedure TIBTABLE_PSHelper.EXISTS_R(var T: BOOLEAN);
+begin T := Self.EXISTS; end;
+
+
+procedure TIBTABLE_PSHelper.CURRENTDBKEY_R(var T: TIBDBKEY);
+begin T := Self.CURRENTDBKEY; end;
+
+
+procedure RIRegister_TIBTABLE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBTABLE) do
+  begin
+    RegisterMethod(@TIBTABLE.ADDINDEX, 'AddIndex');
+    RegisterMethod(@TIBTABLE.CREATETABLE, 'CreateTable');
+    RegisterMethod(@TIBTABLE.DELETEINDEX, 'DeleteIndex');
+    RegisterMethod(@TIBTABLE.DELETETABLE, 'DeleteTable');
+    RegisterMethod(@TIBTABLE.EMPTYTABLE, 'EmptyTable');
+    RegisterMethod(@TIBTABLE.GETINDEXNAMES, 'GetIndexNames');
+    RegisterMethod(@TIBTABLE.GOTOCURRENT, 'GotoCurrent');
+    RegisterPropertyHelper(@TIBTABLE.CURRENTDBKEY_R,nil,'CurrentDBKey');
+    RegisterPropertyHelper(@TIBTABLE.EXISTS_R,nil,'Exists');
+    RegisterPropertyHelper(@TIBTABLE.INDEXFIELDCOUNT_R,nil,'IndexFieldCount');
+    RegisterPropertyHelper(@TIBTABLE.INDEXFIELDS_R,@TIBTABLE.INDEXFIELDS_W,'IndexFields');
+    RegisterPropertyHelper(@TIBTABLE.TABLENAMES_R,nil,'TableNames');
+    RegisterPropertyHelper(@TIBTABLE.DEFAULTINDEX_R,@TIBTABLE.DEFAULTINDEX_W,'DefaultIndex');
+    RegisterPropertyHelper(@TIBTABLE.INDEXDEFS_R,@TIBTABLE.INDEXDEFS_W,'IndexDefs');
+    RegisterPropertyHelper(@TIBTABLE.INDEXFIELDNAMES_R,@TIBTABLE.INDEXFIELDNAMES_W,'IndexFieldNames');
+    RegisterPropertyHelper(@TIBTABLE.INDEXNAME_R,@TIBTABLE.INDEXNAME_W,'IndexName');
+    RegisterPropertyHelper(@TIBTABLE.MASTERFIELDS_R,@TIBTABLE.MASTERFIELDS_W,'MasterFields');
+    RegisterPropertyHelper(@TIBTABLE.MASTERSOURCE_R,@TIBTABLE.MASTERSOURCE_W,'MasterSource');
+    RegisterPropertyHelper(@TIBTABLE.READONLY_R,@TIBTABLE.READONLY_W,'ReadOnly');
+    RegisterPropertyHelper(@TIBTABLE.STOREDEFS_R,@TIBTABLE.STOREDEFS_W,'StoreDefs');
+    RegisterPropertyHelper(@TIBTABLE.TABLENAME_R,@TIBTABLE.TABLENAME_W,'TableName');
+    RegisterPropertyHelper(@TIBTABLE.TABLETYPES_R,@TIBTABLE.TABLETYPES_W,'TableTypes');
+  end;
+end;
+
+{$ELSE}
 procedure TIBTABLETABLETYPES_W(Self: TIBTABLE; const T: TIBTABLETYPES);
 begin Self.TABLETYPES := T; end;
 
@@ -1140,6 +2045,11 @@ begin
     RegisterPropertyHelper(@TIBTABLETABLETYPES_R,@TIBTABLETABLETYPES_W,'TableTypes');
   end;
 end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+(* === run-time registration functions === *)
 
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_IBTable(CL: TPSRuntimeClassImporter);
@@ -1374,8 +2284,202 @@ begin
  CL.AddDelphiFunction('procedure OutputXML(SQLObject: TIBSQL; OutputObject: TIBOutputXML)');
 end;
 
-(* === run-time registration functions === *)
-(*----------------------------------------------------------------------------*)
+{$IFDEF DELPHI10UP}{$REGION 'TIBSQL'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBSQL_PSHelper = class helper for TIBSQL
+  public
+    procedure BOF_R(var T: BOOLEAN);
+    procedure DATABASE_R(var T: TIBDATABASE);
+    procedure DATABASE_W(const T: TIBDATABASE);
+    procedure DBHANDLE_R(var T: PISC_DB_HANDLE);
+    procedure EOF_R(var T: BOOLEAN);
+    procedure FIELDINDEX_R(var T: INTEGER; const t1: STRING);
+    procedure FIELDS_R(var T: TIBXSQLVAR; const t1: INTEGER);
+    procedure GENERATEPARAMNAMES_R(var T: BOOLEAN);
+    procedure GENERATEPARAMNAMES_W(const T: BOOLEAN);
+    procedure GOTOFIRSTRECORDONEXECUTE_R(var T: BOOLEAN);
+    procedure GOTOFIRSTRECORDONEXECUTE_W(const T: BOOLEAN);
+    procedure HANDLE_R(var T: TISC_STMT_HANDLE);
+    procedure ONSQLCHANGING_R(var T: TNOTIFYEVENT);
+    procedure ONSQLCHANGING_W(const T: TNOTIFYEVENT);
+    procedure OPEN_R(var T: BOOLEAN);
+    procedure PARAMCHECK_R(var T: BOOLEAN);
+    procedure PARAMCHECK_W(const T: BOOLEAN);
+    procedure PARAMS_R(var T: TIBXSQLDA);
+    procedure PLAN_R(var T: STRING);
+    procedure PREPARED_R(var T: BOOLEAN);
+    procedure RECORDCOUNT_R(var T: INTEGER);
+    procedure ROWSAFFECTED_R(var T: INTEGER);
+    procedure SQL_R(var T: TSTRINGS);
+    procedure SQL_W(const T: TSTRINGS);
+    procedure SQLTYPE_R(var T: TIBSQLTYPES);
+    procedure TRANSACTION_R(var T: TIBTRANSACTION);
+    procedure TRANSACTION_W(const T: TIBTRANSACTION);
+    procedure TRHANDLE_R(var T: PISC_TR_HANDLE);
+    procedure UNIQUERELATIONNAME_R(var T: STRING);
+  end;
+
+procedure TIBSQL_PSHelper.ONSQLCHANGING_W(const T: TNOTIFYEVENT);
+begin Self.ONSQLCHANGING := T; end;
+
+
+procedure TIBSQL_PSHelper.ONSQLCHANGING_R(var T: TNOTIFYEVENT);
+begin T := Self.ONSQLCHANGING; end;
+
+
+procedure TIBSQL_PSHelper.TRANSACTION_W(const T: TIBTRANSACTION);
+begin Self.TRANSACTION := T; end;
+
+
+procedure TIBSQL_PSHelper.TRANSACTION_R(var T: TIBTRANSACTION);
+begin T := Self.TRANSACTION; end;
+
+
+procedure TIBSQL_PSHelper.SQL_W(const T: TSTRINGS);
+begin Self.SQL := T; end;
+
+
+procedure TIBSQL_PSHelper.SQL_R(var T: TSTRINGS);
+begin T := Self.SQL; end;
+
+
+procedure TIBSQL_PSHelper.PARAMCHECK_W(const T: BOOLEAN);
+begin Self.PARAMCHECK := T; end;
+
+
+procedure TIBSQL_PSHelper.PARAMCHECK_R(var T: BOOLEAN);
+begin T := Self.PARAMCHECK; end;
+
+
+procedure TIBSQL_PSHelper.GOTOFIRSTRECORDONEXECUTE_W(const T: BOOLEAN);
+begin Self.GOTOFIRSTRECORDONEXECUTE := T; end;
+
+
+procedure TIBSQL_PSHelper.GOTOFIRSTRECORDONEXECUTE_R(var T: BOOLEAN);
+begin T := Self.GOTOFIRSTRECORDONEXECUTE; end;
+
+
+procedure TIBSQL_PSHelper.DATABASE_W(const T: TIBDATABASE);
+begin Self.DATABASE := T; end;
+
+
+procedure TIBSQL_PSHelper.DATABASE_R(var T: TIBDATABASE);
+begin T := Self.DATABASE; end;
+
+
+procedure TIBSQL_PSHelper.UNIQUERELATIONNAME_R(var T: STRING);
+begin T := Self.UNIQUERELATIONNAME; end;
+
+
+procedure TIBSQL_PSHelper.GENERATEPARAMNAMES_W(const T: BOOLEAN);
+begin Self.GENERATEPARAMNAMES := T; end;
+
+
+procedure TIBSQL_PSHelper.GENERATEPARAMNAMES_R(var T: BOOLEAN);
+begin T := Self.GENERATEPARAMNAMES; end;
+
+
+procedure TIBSQL_PSHelper.HANDLE_R(var T: TISC_STMT_HANDLE);
+begin T := Self.HANDLE; end;
+
+
+procedure TIBSQL_PSHelper.TRHANDLE_R(var T: PISC_TR_HANDLE);
+begin T := Self.TRHANDLE; end;
+
+
+procedure TIBSQL_PSHelper.SQLTYPE_R(var T: TIBSQLTYPES);
+begin T := Self.SQLTYPE; end;
+
+
+procedure TIBSQL_PSHelper.ROWSAFFECTED_R(var T: INTEGER);
+begin T := Self.ROWSAFFECTED; end;
+
+
+procedure TIBSQL_PSHelper.RECORDCOUNT_R(var T: INTEGER);
+begin T := Self.RECORDCOUNT; end;
+
+
+procedure TIBSQL_PSHelper.PREPARED_R(var T: BOOLEAN);
+begin T := Self.PREPARED; end;
+
+
+procedure TIBSQL_PSHelper.PLAN_R(var T: STRING);
+begin T := Self.PLAN; end;
+
+
+procedure TIBSQL_PSHelper.PARAMS_R(var T: TIBXSQLDA);
+begin T := Self.PARAMS; end;
+
+
+procedure TIBSQL_PSHelper.OPEN_R(var T: BOOLEAN);
+begin T := Self.OPEN; end;
+
+
+procedure TIBSQL_PSHelper.FIELDINDEX_R(var T: INTEGER; const t1: STRING);
+begin T := Self.FIELDINDEX[t1]; end;
+
+
+procedure TIBSQL_PSHelper.FIELDS_R(var T: TIBXSQLVAR; const t1: INTEGER);
+begin T := Self.FIELDS[t1]; end;
+
+
+procedure TIBSQL_PSHelper.EOF_R(var T: BOOLEAN);
+begin T := Self.EOF; end;
+
+
+procedure TIBSQL_PSHelper.DBHANDLE_R(var T: PISC_DB_HANDLE);
+begin T := Self.DBHANDLE; end;
+
+
+procedure TIBSQL_PSHelper.BOF_R(var T: BOOLEAN);
+begin T := Self.BOF; end;
+
+procedure RIRegister_TIBSQL(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBSQL) do
+  begin
+    RegisterMethod(@TIBSQL.BATCHINPUT, 'BatchInput');
+    RegisterMethod(@TIBSQL.BATCHOUTPUT, 'BatchOutput');
+    RegisterMethod(@TIBSQL.CALL, 'Call');
+    RegisterMethod(@TIBSQL.CHECKCLOSED, 'CheckClosed');
+    RegisterMethod(@TIBSQL.CHECKOPEN, 'CheckOpen');
+    RegisterMethod(@TIBSQL.CHECKVALIDSTATEMENT, 'CheckValidStatement');
+    RegisterMethod(@TIBSQL.CLOSE, 'Close');
+    RegisterMethod(@TIBSQL.CURRENT, 'Current');
+    RegisterMethod(@TIBSQL.EXECQUERY, 'ExecQuery');
+    RegisterMethod(@TIBSQL.FIELDBYNAME, 'FieldByName');
+    RegisterMethod(@TIBSQL.FREEHANDLE, 'FreeHandle');
+    RegisterMethod(@TIBSQL.NEXT, 'Next');
+    RegisterMethod(@TIBSQL.PREPARE, 'Prepare');
+    RegisterMethod(@TIBSQL.GETUNIQUERELATIONNAME, 'GetUniqueRelationName');
+    RegisterMethod(@TIBSQL.PARAMBYNAME, 'ParamByName');
+    RegisterPropertyHelper(@TIBSQL.BOF_R,nil,'BOF');
+    RegisterPropertyHelper(@TIBSQL.DBHANDLE_R,nil,'DBHandle');
+    RegisterPropertyHelper(@TIBSQL.EOF_R,nil,'EOF');
+    RegisterPropertyHelper(@TIBSQL.FIELDS_R,nil,'Fields');
+    RegisterPropertyHelper(@TIBSQL.FIELDINDEX_R,nil,'FieldIndex');
+    RegisterPropertyHelper(@TIBSQL.OPEN_R,nil,'Open');
+    RegisterPropertyHelper(@TIBSQL.PARAMS_R,nil,'Params');
+    RegisterPropertyHelper(@TIBSQL.PLAN_R,nil,'Plan');
+    RegisterPropertyHelper(@TIBSQL.PREPARED_R,nil,'Prepared');
+    RegisterPropertyHelper(@TIBSQL.RECORDCOUNT_R,nil,'RecordCount');
+    RegisterPropertyHelper(@TIBSQL.ROWSAFFECTED_R,nil,'RowsAffected');
+    RegisterPropertyHelper(@TIBSQL.SQLTYPE_R,nil,'SqlType');
+    RegisterPropertyHelper(@TIBSQL.TRHANDLE_R,nil,'TRHandle');
+    RegisterPropertyHelper(@TIBSQL.HANDLE_R,nil,'Handle');
+    RegisterPropertyHelper(@TIBSQL.GENERATEPARAMNAMES_R,@TIBSQL.GENERATEPARAMNAMES_W,'GenerateParamNames');
+    RegisterPropertyHelper(@TIBSQL.UNIQUERELATIONNAME_R,nil,'UniqueRelationName');
+    RegisterPropertyHelper(@TIBSQL.DATABASE_R,@TIBSQL.DATABASE_W,'Database');
+    RegisterPropertyHelper(@TIBSQL.GOTOFIRSTRECORDONEXECUTE_R,@TIBSQL.GOTOFIRSTRECORDONEXECUTE_W,'GoToFirstRecordOnExecute');
+    RegisterPropertyHelper(@TIBSQL.PARAMCHECK_R,@TIBSQL.PARAMCHECK_W,'ParamCheck');
+    RegisterPropertyHelper(@TIBSQL.SQL_R,@TIBSQL.SQL_W,'SQL');
+    RegisterPropertyHelper(@TIBSQL.TRANSACTION_R,@TIBSQL.TRANSACTION_W,'Transaction');
+    RegisterEventPropertyHelper(@TIBSQL.ONSQLCHANGING_R,@TIBSQL.ONSQLCHANGING_W,'OnSQLChanging');
+  end;
+end;
+
+{$ELSE}
 procedure TIBSQLONSQLCHANGING_W(Self: TIBSQL; const T: TNOTIFYEVENT);
 begin Self.ONSQLCHANGING := T; end;
 
@@ -1490,8 +2594,134 @@ begin T := Self.DBHANDLE; end;
 (*----------------------------------------------------------------------------*)
 procedure TIBSQLBOF_R(Self: TIBSQL; var T: BOOLEAN);
 begin T := Self.BOF; end;
+procedure RIRegister_TIBSQL(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBSQL) do
+  begin
+    RegisterMethod(@TIBSQL.BATCHINPUT, 'BatchInput');
+    RegisterMethod(@TIBSQL.BATCHOUTPUT, 'BatchOutput');
+    RegisterMethod(@TIBSQL.CALL, 'Call');
+    RegisterMethod(@TIBSQL.CHECKCLOSED, 'CheckClosed');
+    RegisterMethod(@TIBSQL.CHECKOPEN, 'CheckOpen');
+    RegisterMethod(@TIBSQL.CHECKVALIDSTATEMENT, 'CheckValidStatement');
+    RegisterMethod(@TIBSQL.CLOSE, 'Close');
+    RegisterMethod(@TIBSQL.CURRENT, 'Current');
+    RegisterMethod(@TIBSQL.EXECQUERY, 'ExecQuery');
+    RegisterMethod(@TIBSQL.FIELDBYNAME, 'FieldByName');
+    RegisterMethod(@TIBSQL.FREEHANDLE, 'FreeHandle');
+    RegisterMethod(@TIBSQL.NEXT, 'Next');
+    RegisterMethod(@TIBSQL.PREPARE, 'Prepare');
+    RegisterMethod(@TIBSQL.GETUNIQUERELATIONNAME, 'GetUniqueRelationName');
+    RegisterMethod(@TIBSQL.PARAMBYNAME, 'ParamByName');
+    RegisterPropertyHelper(@TIBSQLBOF_R,nil,'BOF');
+    RegisterPropertyHelper(@TIBSQLDBHANDLE_R,nil,'DBHandle');
+    RegisterPropertyHelper(@TIBSQLEOF_R,nil,'EOF');
+    RegisterPropertyHelper(@TIBSQLFIELDS_R,nil,'Fields');
+    RegisterPropertyHelper(@TIBSQLFIELDINDEX_R,nil,'FieldIndex');
+    RegisterPropertyHelper(@TIBSQLOPEN_R,nil,'Open');
+    RegisterPropertyHelper(@TIBSQLPARAMS_R,nil,'Params');
+    RegisterPropertyHelper(@TIBSQLPLAN_R,nil,'Plan');
+    RegisterPropertyHelper(@TIBSQLPREPARED_R,nil,'Prepared');
+    RegisterPropertyHelper(@TIBSQLRECORDCOUNT_R,nil,'RecordCount');
+    RegisterPropertyHelper(@TIBSQLROWSAFFECTED_R,nil,'RowsAffected');
+    RegisterPropertyHelper(@TIBSQLSQLTYPE_R,nil,'SqlType');
+    RegisterPropertyHelper(@TIBSQLTRHANDLE_R,nil,'TRHandle');
+    RegisterPropertyHelper(@TIBSQLHANDLE_R,nil,'Handle');
+    RegisterPropertyHelper(@TIBSQLGENERATEPARAMNAMES_R,@TIBSQLGENERATEPARAMNAMES_W,'GenerateParamNames');
+    RegisterPropertyHelper(@TIBSQLUNIQUERELATIONNAME_R,nil,'UniqueRelationName');
+    RegisterPropertyHelper(@TIBSQLDATABASE_R,@TIBSQLDATABASE_W,'Database');
+    RegisterPropertyHelper(@TIBSQLGOTOFIRSTRECORDONEXECUTE_R,@TIBSQLGOTOFIRSTRECORDONEXECUTE_W,'GoToFirstRecordOnExecute');
+    RegisterPropertyHelper(@TIBSQLPARAMCHECK_R,@TIBSQLPARAMCHECK_W,'ParamCheck');
+    RegisterPropertyHelper(@TIBSQLSQL_R,@TIBSQLSQL_W,'SQL');
+    RegisterPropertyHelper(@TIBSQLTRANSACTION_R,@TIBSQLTRANSACTION_W,'Transaction');
+    RegisterEventPropertyHelper(@TIBSQLONSQLCHANGING_R,@TIBSQLONSQLCHANGING_W,'OnSQLChanging');
+  end;
+end;
 
-(*----------------------------------------------------------------------------*)
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBOUTPUTXML'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBOUTPUTXML_PSHelper = class helper for TIBOUTPUTXML
+  public
+    procedure DATABASETAG_R(var T: STRING);
+    procedure DATABASETAG_W(const T: STRING);
+    procedure FLAGS_R(var T: TIBXMLFLAGS);
+    procedure FLAGS_W(const T: TIBXMLFLAGS);
+    procedure HEADERTAG_R(var T: STRING);
+    procedure HEADERTAG_W(const T: STRING);
+    procedure ROWTAG_R(var T: STRING);
+    procedure ROWTAG_W(const T: STRING);
+    procedure STREAM_R(var T: TSTREAM);
+    procedure STREAM_W(const T: TSTREAM);
+    procedure TABLETAG_R(var T: STRING);
+    procedure TABLETAG_W(const T: STRING);
+  end;
+
+procedure TIBOUTPUTXML_PSHelper.FLAGS_W(const T: TIBXMLFLAGS);
+begin Self.FLAGS := T; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.FLAGS_R(var T: TIBXMLFLAGS);
+begin T := Self.FLAGS; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.ROWTAG_W(const T: STRING);
+begin Self.ROWTAG := T; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.ROWTAG_R(var T: STRING);
+begin T := Self.ROWTAG; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.TABLETAG_W(const T: STRING);
+begin Self.TABLETAG := T; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.TABLETAG_R(var T: STRING);
+begin T := Self.TABLETAG; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.STREAM_W(const T: TSTREAM);
+begin Self.STREAM := T; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.STREAM_R(var T: TSTREAM);
+begin T := Self.STREAM; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.DATABASETAG_W(const T: STRING);
+begin Self.DATABASETAG := T; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.DATABASETAG_R(var T: STRING);
+begin T := Self.DATABASETAG; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.HEADERTAG_W(const T: STRING);
+begin Self.HEADERTAG := T; end;
+
+
+procedure TIBOUTPUTXML_PSHelper.HEADERTAG_R(var T: STRING);
+begin T := Self.HEADERTAG; end;
+
+procedure RIRegister_TIBOUTPUTXML(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBOUTPUTXML) do
+  begin
+    RegisterMethod(@TIBOUTPUTXML.WRITEXML, 'WriteXML');
+    RegisterPropertyHelper(@TIBOUTPUTXML.HEADERTAG_R,@TIBOUTPUTXML.HEADERTAG_W,'HeaderTag');
+    RegisterPropertyHelper(@TIBOUTPUTXML.DATABASETAG_R,@TIBOUTPUTXML.DATABASETAG_W,'DatabaseTag');
+    RegisterPropertyHelper(@TIBOUTPUTXML.STREAM_R,@TIBOUTPUTXML.STREAM_W,'Stream');
+    RegisterPropertyHelper(@TIBOUTPUTXML.TABLETAG_R,@TIBOUTPUTXML.TABLETAG_W,'TableTag');
+    RegisterPropertyHelper(@TIBOUTPUTXML.ROWTAG_R,@TIBOUTPUTXML.ROWTAG_W,'RowTag');
+    RegisterPropertyHelper(@TIBOUTPUTXML.FLAGS_R,@TIBOUTPUTXML.FLAGS_W,'Flags');
+  end;
+end;
+
+{$ELSE}
 procedure TIBOUTPUTXMLFLAGS_W(Self: TIBOUTPUTXML; const T: TIBXMLFLAGS);
 begin Self.FLAGS := T; end;
 
@@ -1539,7 +2769,82 @@ begin Self.HEADERTAG := T; end;
 procedure TIBOUTPUTXMLHEADERTAG_R(Self: TIBOUTPUTXML; var T: STRING);
 begin T := Self.HEADERTAG; end;
 
-(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBOUTPUTXML(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBOUTPUTXML) do
+  begin
+    RegisterMethod(@TIBOUTPUTXML.WRITEXML, 'WriteXML');
+    RegisterPropertyHelper(@TIBOUTPUTXMLHEADERTAG_R,@TIBOUTPUTXMLHEADERTAG_W,'HeaderTag');
+    RegisterPropertyHelper(@TIBOUTPUTXMLDATABASETAG_R,@TIBOUTPUTXMLDATABASETAG_W,'DatabaseTag');
+    RegisterPropertyHelper(@TIBOUTPUTXMLSTREAM_R,@TIBOUTPUTXMLSTREAM_W,'Stream');
+    RegisterPropertyHelper(@TIBOUTPUTXMLTABLETAG_R,@TIBOUTPUTXMLTABLETAG_W,'TableTag');
+    RegisterPropertyHelper(@TIBOUTPUTXMLROWTAG_R,@TIBOUTPUTXMLROWTAG_W,'RowTag');
+    RegisterPropertyHelper(@TIBOUTPUTXMLFLAGS_R,@TIBOUTPUTXMLFLAGS_W,'Flags');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBINPUTDELIMITEDFILE'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBINPUTDELIMITEDFILE_PSHelper = class helper for TIBINPUTDELIMITEDFILE
+  public
+    procedure COLDELIMITER_R(var T: STRING);
+    procedure COLDELIMITER_W(const T: STRING);
+    procedure READBLANKSASNULL_R(var T: BOOLEAN);
+    procedure READBLANKSASNULL_W(const T: BOOLEAN);
+    procedure ROWDELIMITER_R(var T: STRING);
+    procedure ROWDELIMITER_W(const T: STRING);
+    procedure SKIPTITLES_R(var T: BOOLEAN);
+    procedure SKIPTITLES_W(const T: BOOLEAN);
+  end;
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.SKIPTITLES_W(const T: BOOLEAN);
+begin Self.SKIPTITLES := T; end;
+
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.SKIPTITLES_R(var T: BOOLEAN);
+begin T := Self.SKIPTITLES; end;
+
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.ROWDELIMITER_W(const T: STRING);
+begin Self.ROWDELIMITER := T; end;
+
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.ROWDELIMITER_R(var T: STRING);
+begin T := Self.ROWDELIMITER; end;
+
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.READBLANKSASNULL_W(const T: BOOLEAN);
+begin Self.READBLANKSASNULL := T; end;
+
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.READBLANKSASNULL_R(var T: BOOLEAN);
+begin T := Self.READBLANKSASNULL; end;
+
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.COLDELIMITER_W(const T: STRING);
+begin Self.COLDELIMITER := T; end;
+
+
+procedure TIBINPUTDELIMITEDFILE_PSHelper.COLDELIMITER_R(var T: STRING);
+begin T := Self.COLDELIMITER; end;
+
+procedure RIRegister_TIBINPUTDELIMITEDFILE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBINPUTDELIMITEDFILE) do
+  begin
+    RegisterMethod(@TIBINPUTDELIMITEDFILE.GETCOLUMN, 'GetColumn');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILE.COLDELIMITER_R,@TIBINPUTDELIMITEDFILE.COLDELIMITER_W,'ColDelimiter');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILE.READBLANKSASNULL_R,@TIBINPUTDELIMITEDFILE.READBLANKSASNULL_W,'ReadBlanksAsNull');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILE.ROWDELIMITER_R,@TIBINPUTDELIMITEDFILE.ROWDELIMITER_W,'RowDelimiter');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILE.SKIPTITLES_R,@TIBINPUTDELIMITEDFILE.SKIPTITLES_W,'SkipTitles');
+  end;
+end;
+
+{$ELSE}
 procedure TIBINPUTDELIMITEDFILESKIPTITLES_W(Self: TIBINPUTDELIMITEDFILE; const T: BOOLEAN);
 begin Self.SKIPTITLES := T; end;
 
@@ -1571,6 +2876,68 @@ begin Self.COLDELIMITER := T; end;
 procedure TIBINPUTDELIMITEDFILECOLDELIMITER_R(Self: TIBINPUTDELIMITEDFILE; var T: STRING);
 begin T := Self.COLDELIMITER; end;
 
+procedure RIRegister_TIBINPUTDELIMITEDFILE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBINPUTDELIMITEDFILE) do
+  begin
+    RegisterMethod(@TIBINPUTDELIMITEDFILE.GETCOLUMN, 'GetColumn');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILECOLDELIMITER_R,@TIBINPUTDELIMITEDFILECOLDELIMITER_W,'ColDelimiter');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILEREADBLANKSASNULL_R,@TIBINPUTDELIMITEDFILEREADBLANKSASNULL_W,'ReadBlanksAsNull');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILEROWDELIMITER_R,@TIBINPUTDELIMITEDFILEROWDELIMITER_W,'RowDelimiter');
+    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILESKIPTITLES_R,@TIBINPUTDELIMITEDFILESKIPTITLES_W,'SkipTitles');
+  end;
+end;
+(*----------------------------------------------------------------------------*)
+
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBOUTPUTDELIMITEDFILE'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBOUTPUTDELIMITEDFILE_PSHelper = class helper for TIBOUTPUTDELIMITEDFILE
+  public
+    procedure COLDELIMITER_R(var T: STRING);
+    procedure COLDELIMITER_W(const T: STRING);
+    procedure OUTPUTTITLES_R(var T: BOOLEAN);
+    procedure OUTPUTTITLES_W(const T: BOOLEAN);
+    procedure ROWDELIMITER_R(var T: STRING);
+    procedure ROWDELIMITER_W(const T: STRING);
+  end;
+
+procedure TIBOUTPUTDELIMITEDFILE_PSHelper.ROWDELIMITER_W(const T: STRING);
+begin Self.ROWDELIMITER := T; end;
+
+
+procedure TIBOUTPUTDELIMITEDFILE_PSHelper.ROWDELIMITER_R(var T: STRING);
+begin T := Self.ROWDELIMITER; end;
+
+
+procedure TIBOUTPUTDELIMITEDFILE_PSHelper.OUTPUTTITLES_W(const T: BOOLEAN);
+begin Self.OUTPUTTITLES := T; end;
+
+
+procedure TIBOUTPUTDELIMITEDFILE_PSHelper.OUTPUTTITLES_R(var T: BOOLEAN);
+begin T := Self.OUTPUTTITLES; end;
+
+procedure TIBOUTPUTDELIMITEDFILE_PSHelper.COLDELIMITER_W(const T: STRING);
+begin Self.COLDELIMITER := T; end;
+
+procedure TIBOUTPUTDELIMITEDFILE_PSHelper.COLDELIMITER_R(var T: STRING);
+begin T := Self.COLDELIMITER; end;
+
+procedure RIRegister_TIBOUTPUTDELIMITEDFILE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBOUTPUTDELIMITEDFILE) do
+  begin
+    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILECOLDELIMITER_R,@TIBOUTPUTDELIMITEDFILECOLDELIMITER_W,'ColDelimiter');
+    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILEOUTPUTTITLES_R,@TIBOUTPUTDELIMITEDFILEOUTPUTTITLES_W,'OutputTitles');
+    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILEROWDELIMITER_R,@TIBOUTPUTDELIMITEDFILEROWDELIMITER_W,'RowDelimiter');
+  end;
+end;
+
+{$ELSE}
 (*----------------------------------------------------------------------------*)
 procedure TIBOUTPUTDELIMITEDFILEROWDELIMITER_W(Self: TIBOUTPUTDELIMITEDFILE; const T: STRING);
 begin Self.ROWDELIMITER := T; end;
@@ -1591,11 +2958,86 @@ begin T := Self.OUTPUTTITLES; end;
 procedure TIBOUTPUTDELIMITEDFILECOLDELIMITER_W(Self: TIBOUTPUTDELIMITEDFILE; const T: STRING);
 begin Self.COLDELIMITER := T; end;
 
-(*----------------------------------------------------------------------------*)
 procedure TIBOUTPUTDELIMITEDFILECOLDELIMITER_R(Self: TIBOUTPUTDELIMITEDFILE; var T: STRING);
 begin T := Self.COLDELIMITER; end;
 
-(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBOUTPUTDELIMITEDFILE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBOUTPUTDELIMITEDFILE) do
+  begin
+    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILECOLDELIMITER_R,@TIBOUTPUTDELIMITEDFILECOLDELIMITER_W,'ColDelimiter');
+    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILEOUTPUTTITLES_R,@TIBOUTPUTDELIMITEDFILEOUTPUTTITLES_W,'OutputTitles');
+    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILEROWDELIMITER_R,@TIBOUTPUTDELIMITEDFILEROWDELIMITER_W,'RowDelimiter');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBXSQLDA'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBXSQLDA_PSHelper = class helper for TIBXSQLDA
+  public
+    procedure ASXSQLDA_R( var T: PXSQLDA);
+    procedure COUNT_R( var T: INTEGER);
+    procedure COUNT_W( const T: INTEGER);
+    procedure MODIFIED_R( var T: BOOLEAN);
+    procedure NAMES_R( var T: STRING);
+    procedure RECORDSIZE_R( var T: INTEGER);
+    procedure UNIQUERELATIONNAME_R( var T: STRING);
+    procedure VARS_R( var T: TIBXSQLVAR; const t1: INTEGER);
+  end;
+
+procedure TIBXSQLDA_PSHelper.UNIQUERELATIONNAME_R( var T: STRING);
+begin T := Self.UNIQUERELATIONNAME; end;
+
+
+procedure TIBXSQLDA_PSHelper.VARS_R( var T: TIBXSQLVAR; const t1: INTEGER);
+begin T := Self.VARS[t1]; end;
+
+
+procedure TIBXSQLDA_PSHelper.RECORDSIZE_R( var T: INTEGER);
+begin T := Self.RECORDSIZE; end;
+
+
+procedure TIBXSQLDA_PSHelper.NAMES_R( var T: STRING);
+begin T := Self.NAMES; end;
+
+
+procedure TIBXSQLDA_PSHelper.MODIFIED_R( var T: BOOLEAN);
+begin T := Self.MODIFIED; end;
+
+
+procedure TIBXSQLDA_PSHelper.COUNT_W( const T: INTEGER);
+begin Self.COUNT := T; end;
+
+
+procedure TIBXSQLDA_PSHelper.COUNT_R( var T: INTEGER);
+begin T := Self.COUNT; end;
+
+
+procedure TIBXSQLDA_PSHelper.ASXSQLDA_R( var T: PXSQLDA);
+begin T := Self.ASXSQLDA; end;
+
+procedure RIRegister_TIBXSQLDA(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBXSQLDA) do
+  begin
+    RegisterConstructor(@TIBXSQLDA.CREATE, 'Create');
+    RegisterMethod(@TIBXSQLDA.ADDNAME, 'AddName');
+    RegisterMethod(@TIBXSQLDA.BYNAME, 'ByName');
+    RegisterPropertyHelper(@TIBXSQLDA.ASXSQLDA_R,nil,'AsXSQLDA');
+    RegisterPropertyHelper(@TIBXSQLDA.COUNT_R,@TIBXSQLDA.COUNT_W,'Count');
+    RegisterPropertyHelper(@TIBXSQLDA.MODIFIED_R,nil,'Modified');
+    RegisterPropertyHelper(@TIBXSQLDA.NAMES_R,nil,'Names');
+    RegisterPropertyHelper(@TIBXSQLDA.RECORDSIZE_R,nil,'RecordSize');
+    RegisterPropertyHelper(@TIBXSQLDA.VARS_R,nil,'Vars');
+    RegisterPropertyHelper(@TIBXSQLDA.UNIQUERELATIONNAME_R,nil,'UniqueRelationName');
+  end;
+end;
+
+{$ELSE}
 procedure TIBXSQLDAUNIQUERELATIONNAME_R(Self: TIBXSQLDA; var T: STRING);
 begin T := Self.UNIQUERELATIONNAME; end;
 
@@ -1627,7 +3069,302 @@ begin T := Self.COUNT; end;
 procedure TIBXSQLDAASXSQLDA_R(Self: TIBXSQLDA; var T: PXSQLDA);
 begin T := Self.ASXSQLDA; end;
 
-(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBXSQLDA(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBXSQLDA) do
+  begin
+    RegisterConstructor(@TIBXSQLDA.CREATE, 'Create');
+    RegisterMethod(@TIBXSQLDA.ADDNAME, 'AddName');
+    RegisterMethod(@TIBXSQLDA.BYNAME, 'ByName');
+    RegisterPropertyHelper(@TIBXSQLDAASXSQLDA_R,nil,'AsXSQLDA');
+    RegisterPropertyHelper(@TIBXSQLDACOUNT_R,@TIBXSQLDACOUNT_W,'Count');
+    RegisterPropertyHelper(@TIBXSQLDAMODIFIED_R,nil,'Modified');
+    RegisterPropertyHelper(@TIBXSQLDANAMES_R,nil,'Names');
+    RegisterPropertyHelper(@TIBXSQLDARECORDSIZE_R,nil,'RecordSize');
+    RegisterPropertyHelper(@TIBXSQLDAVARS_R,nil,'Vars');
+    RegisterPropertyHelper(@TIBXSQLDAUNIQUERELATIONNAME_R,nil,'UniqueRelationName');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF DELPHI10UP}{$REGION 'TIBXSQLVAR'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBXSQLVAR_PSHelper = class helper for TIBXSQLVAR
+  public
+    procedure ASCURRENCY_R(var T: CURRENCY);
+    procedure ASCURRENCY_W(const T: CURRENCY);
+    procedure ASDATE_R(var T: TDATETIME);
+    procedure ASDATE_W(const T: TDATETIME);
+    procedure ASDATETIME_R(var T: TDATETIME);
+    procedure ASDATETIME_W(const T: TDATETIME);
+    procedure ASDOUBLE_R(var T: DOUBLE);
+    procedure ASDOUBLE_W(const T: DOUBLE);
+    procedure ASFLOAT_R(var T: FLOAT);
+    procedure ASFLOAT_W(const T: FLOAT);
+    procedure ASINT64_R(var T: INT64);
+    procedure ASINT64_W(const T: INT64);
+    procedure ASINTEGER_R(var T: INTEGER);
+    procedure ASINTEGER_W(const T: INTEGER);
+    procedure ASLONG_R(var T: LONG);
+    procedure ASLONG_W(const T: LONG);
+    procedure ASPOINTER_R(var T: POINTER);
+    procedure ASPOINTER_W(const T: POINTER);
+    procedure ASQUAD_R(var T: TISC_QUAD);
+    procedure ASQUAD_W(const T: TISC_QUAD);
+    procedure ASSHORT_R(var T: SHORT);
+    procedure ASSHORT_W(const T: SHORT);
+    procedure ASSTRING_R(var T: STRING);
+    procedure ASSTRING_W(const T: STRING);
+    procedure ASTIME_R(var T: TDATETIME);
+    procedure ASTIME_W(const T: TDATETIME);
+    procedure ASTRIMSTRING_R(var T: STRING);
+    procedure ASTRIMSTRING_W(const T: STRING);
+    procedure ASVARIANT_R(var T: VARIANT);
+    procedure ASVARIANT_W(const T: VARIANT);
+    procedure ASXSQLVAR_R(var T: PXSQLVAR);
+    procedure ASXSQLVAR_W(const T: PXSQLVAR);
+    procedure DATA_R(var T: PXSQLVAR);
+    procedure DATA_W(const T: PXSQLVAR);
+    procedure INDEX_R(var T: INTEGER);
+    procedure ISNULL_R(var T: BOOLEAN);
+    procedure ISNULL_W(const T: BOOLEAN);
+    procedure ISNULLABLE_R(var T: BOOLEAN);
+    procedure ISNULLABLE_W(const T: BOOLEAN);
+    procedure MODIFIED_R(var T: BOOLEAN);
+    procedure MODIFIED_W(const T: BOOLEAN);
+    procedure NAME_R(var T: STRING);
+    procedure SIZE_R(var T: INTEGER);
+    procedure SQLTYPE_R(var T: INTEGER);
+    procedure VALUE_R(var T: VARIANT);
+    procedure VALUE_W(const T: VARIANT);
+  end;
+
+procedure TIBXSQLVAR_PSHelper.VALUE_W(const T: VARIANT);
+begin Self.VALUE := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.VALUE_R(var T: VARIANT);
+begin T := Self.VALUE; end;
+
+
+procedure TIBXSQLVAR_PSHelper.SQLTYPE_R(var T: INTEGER);
+begin T := Self.SQLTYPE; end;
+
+
+procedure TIBXSQLVAR_PSHelper.SIZE_R(var T: INTEGER);
+begin T := Self.SIZE; end;
+
+
+procedure TIBXSQLVAR_PSHelper.NAME_R(var T: STRING);
+begin T := Self.NAME; end;
+
+
+procedure TIBXSQLVAR_PSHelper.MODIFIED_W(const T: BOOLEAN);
+begin Self.MODIFIED := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.MODIFIED_R(var T: BOOLEAN);
+begin T := Self.MODIFIED; end;
+
+
+procedure TIBXSQLVAR_PSHelper.INDEX_R(var T: INTEGER);
+begin T := Self.INDEX; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ISNULLABLE_W(const T: BOOLEAN);
+begin Self.ISNULLABLE := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ISNULLABLE_R(var T: BOOLEAN);
+begin T := Self.ISNULLABLE; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ISNULL_W(const T: BOOLEAN);
+begin Self.ISNULL := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ISNULL_R(var T: BOOLEAN);
+begin T := Self.ISNULL; end;
+
+
+procedure TIBXSQLVAR_PSHelper.DATA_W(const T: PXSQLVAR);
+begin Self.DATA := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.DATA_R(var T: PXSQLVAR);
+begin T := Self.DATA; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASXSQLVAR_W(const T: PXSQLVAR);
+begin Self.ASXSQLVAR := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASXSQLVAR_R(var T: PXSQLVAR);
+begin T := Self.ASXSQLVAR; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASVARIANT_W(const T: VARIANT);
+begin Self.ASVARIANT := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASVARIANT_R(var T: VARIANT);
+begin T := Self.ASVARIANT; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASTRIMSTRING_W(const T: STRING);
+begin Self.ASTRIMSTRING := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASTRIMSTRING_R(var T: STRING);
+begin T := Self.ASTRIMSTRING; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASSTRING_W(const T: STRING);
+begin Self.ASSTRING := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASSTRING_R(var T: STRING);
+begin T := Self.ASSTRING; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASSHORT_W(const T: SHORT);
+begin Self.ASSHORT := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASSHORT_R(var T: SHORT);
+begin T := Self.ASSHORT; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASQUAD_W(const T: TISC_QUAD);
+begin Self.ASQUAD := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASQUAD_R(var T: TISC_QUAD);
+begin T := Self.ASQUAD; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASPOINTER_W(const T: POINTER);
+begin Self.ASPOINTER := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASPOINTER_R(var T: POINTER);
+begin T := Self.ASPOINTER; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASLONG_W(const T: LONG);
+begin Self.ASLONG := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASLONG_R(var T: LONG);
+begin T := Self.ASLONG; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASINTEGER_W(const T: INTEGER);
+begin Self.ASINTEGER := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASINTEGER_R(var T: INTEGER);
+begin T := Self.ASINTEGER; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASINT64_W(const T: INT64);
+begin Self.ASINT64 := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASINT64_R(var T: INT64);
+begin T := Self.ASINT64; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASCURRENCY_W(const T: CURRENCY);
+begin Self.ASCURRENCY := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASCURRENCY_R(var T: CURRENCY);
+begin T := Self.ASCURRENCY; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASFLOAT_W(const T: FLOAT);
+begin Self.ASFLOAT := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASFLOAT_R(var T: FLOAT);
+begin T := Self.ASFLOAT; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASDOUBLE_W(const T: DOUBLE);
+begin Self.ASDOUBLE := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASDOUBLE_R(var T: DOUBLE);
+begin T := Self.ASDOUBLE; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASDATETIME_W(const T: TDATETIME);
+begin Self.ASDATETIME := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASDATETIME_R(var T: TDATETIME);
+begin T := Self.ASDATETIME; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASTIME_W(const T: TDATETIME);
+begin Self.ASTIME := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASTIME_R(var T: TDATETIME);
+begin T := Self.ASTIME; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASDATE_W(const T: TDATETIME);
+begin Self.ASDATE := T; end;
+
+
+procedure TIBXSQLVAR_PSHelper.ASDATE_R(var T: TDATETIME);
+begin T := Self.ASDATE; end;
+
+procedure RIRegister_TIBXSQLVAR(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBXSQLVAR) do
+  begin
+    RegisterConstructor(@TIBXSQLVAR.CREATE, 'Create');
+    RegisterMethod(@TIBXSQLVAR.ASSIGN, 'Assign');
+    RegisterMethod(@TIBXSQLVAR.LOADFROMFILE, 'LoadFromFile');
+    RegisterMethod(@TIBXSQLVAR.LOADFROMSTREAM, 'LoadFromStream');
+    RegisterMethod(@TIBXSQLVAR.SAVETOFILE, 'SaveToFile');
+    RegisterMethod(@TIBXSQLVAR.SAVETOSTREAM, 'SaveToStream');
+    RegisterMethod(@TIBXSQLVAR.CLEAR, 'Clear');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASDATE_R,@TIBXSQLVAR.ASDATE_W,'AsDate');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASTIME_R,@TIBXSQLVAR.ASTIME_W,'AsTime');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASDATETIME_R,@TIBXSQLVAR.ASDATETIME_W,'AsDateTime');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASDOUBLE_R,@TIBXSQLVAR.ASDOUBLE_W,'AsDouble');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASFLOAT_R,@TIBXSQLVAR.ASFLOAT_W,'AsFloat');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASCURRENCY_R,@TIBXSQLVAR.ASCURRENCY_W,'AsCurrency');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASINT64_R,@TIBXSQLVAR.ASINT64_W,'ASINT64');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASINTEGER_R,@TIBXSQLVAR.ASINTEGER_W,'AsInteger');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASLONG_R,@TIBXSQLVAR.ASLONG_W,'AsLong');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASPOINTER_R,@TIBXSQLVAR.ASPOINTER_W,'AsPointer');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASQUAD_R,@TIBXSQLVAR.ASQUAD_W,'AsQuad');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASSHORT_R,@TIBXSQLVAR.ASSHORT_W,'AsShort');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASSTRING_R,@TIBXSQLVAR.ASSTRING_W,'AsString');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASTRIMSTRING_R,@TIBXSQLVAR.ASTRIMSTRING_W,'AsTrimString');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASVARIANT_R,@TIBXSQLVAR.ASVARIANT_W,'AsVariant');
+    RegisterPropertyHelper(@TIBXSQLVAR.ASXSQLVAR_R,@TIBXSQLVAR.ASXSQLVAR_W,'AsXSQLVAR');
+    RegisterPropertyHelper(@TIBXSQLVAR.DATA_R,@TIBXSQLVAR.DATA_W,'Data');
+    RegisterPropertyHelper(@TIBXSQLVAR.ISNULL_R,@TIBXSQLVAR.ISNULL_W,'IsNull');
+    RegisterPropertyHelper(@TIBXSQLVAR.ISNULLABLE_R,@TIBXSQLVAR.ISNULLABLE_W,'IsNullable');
+    RegisterPropertyHelper(@TIBXSQLVAR.INDEX_R,nil,'Index');
+    RegisterPropertyHelper(@TIBXSQLVAR.MODIFIED_R,@TIBXSQLVAR.MODIFIED_W,'Modified');
+    RegisterPropertyHelper(@TIBXSQLVAR.NAME_R,nil,'Name');
+    RegisterPropertyHelper(@TIBXSQLVAR.SIZE_R,nil,'Size');
+    RegisterPropertyHelper(@TIBXSQLVAR.SQLTYPE_R,nil,'SqlType');
+    RegisterPropertyHelper(@TIBXSQLVAR.VALUE_R,@TIBXSQLVAR.VALUE_W,'Value');
+  end;
+end;
+
+{$ELSE}
 procedure TIBXSQLVARVALUE_W(Self: TIBXSQLVAR; const T: VARIANT);
 begin Self.VALUE := T; end;
 
@@ -1811,132 +3548,6 @@ begin Self.ASDATE := T; end;
 procedure TIBXSQLVARASDATE_R(Self: TIBXSQLVAR; var T: TDATETIME);
 begin T := Self.ASDATE; end;
 
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_IBSQL_Routines(S: TIFPSExec);
-begin
- S.RegisterDelphiFunction(@OUTPUTXML, 'OutputXML', cdRegister);
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBSQL(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBSQL) do
-  begin
-    RegisterMethod(@TIBSQL.BATCHINPUT, 'BatchInput');
-    RegisterMethod(@TIBSQL.BATCHOUTPUT, 'BatchOutput');
-    RegisterMethod(@TIBSQL.CALL, 'Call');
-    RegisterMethod(@TIBSQL.CHECKCLOSED, 'CheckClosed');
-    RegisterMethod(@TIBSQL.CHECKOPEN, 'CheckOpen');
-    RegisterMethod(@TIBSQL.CHECKVALIDSTATEMENT, 'CheckValidStatement');
-    RegisterMethod(@TIBSQL.CLOSE, 'Close');
-    RegisterMethod(@TIBSQL.CURRENT, 'Current');
-    RegisterMethod(@TIBSQL.EXECQUERY, 'ExecQuery');
-    RegisterMethod(@TIBSQL.FIELDBYNAME, 'FieldByName');
-    RegisterMethod(@TIBSQL.FREEHANDLE, 'FreeHandle');
-    RegisterMethod(@TIBSQL.NEXT, 'Next');
-    RegisterMethod(@TIBSQL.PREPARE, 'Prepare');
-    RegisterMethod(@TIBSQL.GETUNIQUERELATIONNAME, 'GetUniqueRelationName');
-    RegisterMethod(@TIBSQL.PARAMBYNAME, 'ParamByName');
-    RegisterPropertyHelper(@TIBSQLBOF_R,nil,'BOF');
-    RegisterPropertyHelper(@TIBSQLDBHANDLE_R,nil,'DBHandle');
-    RegisterPropertyHelper(@TIBSQLEOF_R,nil,'EOF');
-    RegisterPropertyHelper(@TIBSQLFIELDS_R,nil,'Fields');
-    RegisterPropertyHelper(@TIBSQLFIELDINDEX_R,nil,'FieldIndex');
-    RegisterPropertyHelper(@TIBSQLOPEN_R,nil,'Open');
-    RegisterPropertyHelper(@TIBSQLPARAMS_R,nil,'Params');
-    RegisterPropertyHelper(@TIBSQLPLAN_R,nil,'Plan');
-    RegisterPropertyHelper(@TIBSQLPREPARED_R,nil,'Prepared');
-    RegisterPropertyHelper(@TIBSQLRECORDCOUNT_R,nil,'RecordCount');
-    RegisterPropertyHelper(@TIBSQLROWSAFFECTED_R,nil,'RowsAffected');
-    RegisterPropertyHelper(@TIBSQLSQLTYPE_R,nil,'SqlType');
-    RegisterPropertyHelper(@TIBSQLTRHANDLE_R,nil,'TRHandle');
-    RegisterPropertyHelper(@TIBSQLHANDLE_R,nil,'Handle');
-    RegisterPropertyHelper(@TIBSQLGENERATEPARAMNAMES_R,@TIBSQLGENERATEPARAMNAMES_W,'GenerateParamNames');
-    RegisterPropertyHelper(@TIBSQLUNIQUERELATIONNAME_R,nil,'UniqueRelationName');
-    RegisterPropertyHelper(@TIBSQLDATABASE_R,@TIBSQLDATABASE_W,'Database');
-    RegisterPropertyHelper(@TIBSQLGOTOFIRSTRECORDONEXECUTE_R,@TIBSQLGOTOFIRSTRECORDONEXECUTE_W,'GoToFirstRecordOnExecute');
-    RegisterPropertyHelper(@TIBSQLPARAMCHECK_R,@TIBSQLPARAMCHECK_W,'ParamCheck');
-    RegisterPropertyHelper(@TIBSQLSQL_R,@TIBSQLSQL_W,'SQL');
-    RegisterPropertyHelper(@TIBSQLTRANSACTION_R,@TIBSQLTRANSACTION_W,'Transaction');
-    RegisterEventPropertyHelper(@TIBSQLONSQLCHANGING_R,@TIBSQLONSQLCHANGING_W,'OnSQLChanging');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBOUTPUTXML(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBOUTPUTXML) do
-  begin
-    RegisterMethod(@TIBOUTPUTXML.WRITEXML, 'WriteXML');
-    RegisterPropertyHelper(@TIBOUTPUTXMLHEADERTAG_R,@TIBOUTPUTXMLHEADERTAG_W,'HeaderTag');
-    RegisterPropertyHelper(@TIBOUTPUTXMLDATABASETAG_R,@TIBOUTPUTXMLDATABASETAG_W,'DatabaseTag');
-    RegisterPropertyHelper(@TIBOUTPUTXMLSTREAM_R,@TIBOUTPUTXMLSTREAM_W,'Stream');
-    RegisterPropertyHelper(@TIBOUTPUTXMLTABLETAG_R,@TIBOUTPUTXMLTABLETAG_W,'TableTag');
-    RegisterPropertyHelper(@TIBOUTPUTXMLROWTAG_R,@TIBOUTPUTXMLROWTAG_W,'RowTag');
-    RegisterPropertyHelper(@TIBOUTPUTXMLFLAGS_R,@TIBOUTPUTXMLFLAGS_W,'Flags');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBINPUTRAWFILE(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBINPUTRAWFILE) do
-  begin
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBOUTPUTRAWFILE(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBOUTPUTRAWFILE) do
-  begin
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBINPUTDELIMITEDFILE(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBINPUTDELIMITEDFILE) do
-  begin
-    RegisterMethod(@TIBINPUTDELIMITEDFILE.GETCOLUMN, 'GetColumn');
-    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILECOLDELIMITER_R,@TIBINPUTDELIMITEDFILECOLDELIMITER_W,'ColDelimiter');
-    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILEREADBLANKSASNULL_R,@TIBINPUTDELIMITEDFILEREADBLANKSASNULL_W,'ReadBlanksAsNull');
-    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILEROWDELIMITER_R,@TIBINPUTDELIMITEDFILEROWDELIMITER_W,'RowDelimiter');
-    RegisterPropertyHelper(@TIBINPUTDELIMITEDFILESKIPTITLES_R,@TIBINPUTDELIMITEDFILESKIPTITLES_W,'SkipTitles');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBOUTPUTDELIMITEDFILE(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBOUTPUTDELIMITEDFILE) do
-  begin
-    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILECOLDELIMITER_R,@TIBOUTPUTDELIMITEDFILECOLDELIMITER_W,'ColDelimiter');
-    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILEOUTPUTTITLES_R,@TIBOUTPUTDELIMITEDFILEOUTPUTTITLES_W,'OutputTitles');
-    RegisterPropertyHelper(@TIBOUTPUTDELIMITEDFILEROWDELIMITER_R,@TIBOUTPUTDELIMITEDFILEROWDELIMITER_W,'RowDelimiter');
-  end;
-end;
-
-
-(*----------------------------------------------------------------------------*)
-procedure RIRegister_TIBXSQLDA(CL: TPSRuntimeClassImporter);
-begin
-  with CL.Add(TIBXSQLDA) do
-  begin
-    RegisterConstructor(@TIBXSQLDA.CREATE, 'Create');
-    RegisterMethod(@TIBXSQLDA.ADDNAME, 'AddName');
-    RegisterMethod(@TIBXSQLDA.BYNAME, 'ByName');
-    RegisterPropertyHelper(@TIBXSQLDAASXSQLDA_R,nil,'AsXSQLDA');
-    RegisterPropertyHelper(@TIBXSQLDACOUNT_R,@TIBXSQLDACOUNT_W,'Count');
-    RegisterPropertyHelper(@TIBXSQLDAMODIFIED_R,nil,'Modified');
-    RegisterPropertyHelper(@TIBXSQLDANAMES_R,nil,'Names');
-    RegisterPropertyHelper(@TIBXSQLDARECORDSIZE_R,nil,'RecordSize');
-    RegisterPropertyHelper(@TIBXSQLDAVARS_R,nil,'Vars');
-    RegisterPropertyHelper(@TIBXSQLDAUNIQUERELATIONNAME_R,nil,'UniqueRelationName');
-  end;
-end;
-
-(*----------------------------------------------------------------------------*)
 procedure RIRegister_TIBXSQLVAR(CL: TPSRuntimeClassImporter);
 begin
   with CL.Add(TIBXSQLVAR) do
@@ -1973,6 +3584,33 @@ begin
     RegisterPropertyHelper(@TIBXSQLVARSIZE_R,nil,'Size');
     RegisterPropertyHelper(@TIBXSQLVARSQLTYPE_R,nil,'SqlType');
     RegisterPropertyHelper(@TIBXSQLVARVALUE_R,@TIBXSQLVARVALUE_W,'Value');
+  end;
+end;
+
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+(* === run-time registration functions === *)
+
+(*----------------------------------------------------------------------------*)
+procedure RIRegister_IBSQL_Routines(S: TIFPSExec);
+begin
+ S.RegisterDelphiFunction(@OUTPUTXML, 'OutputXML', cdRegister);
+end;
+
+(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBINPUTRAWFILE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBINPUTRAWFILE) do
+  begin
+  end;
+end;
+
+(*----------------------------------------------------------------------------*)
+procedure RIRegister_TIBOUTPUTRAWFILE(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBOUTPUTRAWFILE) do
+  begin
   end;
 end;
 
@@ -2022,8 +3660,105 @@ begin
   SIRegister_TIBQuery(CL);
 end;
 
-(* === run-time registration functions === *)
-(*----------------------------------------------------------------------------*)
+{$IFDEF DELPHI10UP}{$REGION 'TIBQuery'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TIBQuery_PSHelper = class helper for TIBQuery
+  public
+    procedure DataSource_R(var T: TDatasource);
+    procedure DataSource_W(const T: TDatasource);
+    procedure GenerateParamNames_R(var T: Boolean);
+    procedure GenerateParamNames_W(const T: Boolean);
+    procedure ParamCount_R(var T: Word);
+    procedure Params_R(var T: TParams);
+    procedure Params_W(const T: TParams);
+    procedure Prepared_R(var T: Boolean);
+    procedure Prepared_W(const T: Boolean);
+    procedure RowsAffected_R(var T: Integer);
+    procedure SQL_R(var T: TStrings);
+    procedure SQL_W(const T: TStrings);
+    procedure StmtHandle_R(var T: TISC_STMT_HANDLE);
+    procedure Text_R(var T: string);
+  end;
+
+procedure TIBQuery_PSHelper.Params_W(const T: TParams);
+begin Self.Params := T; end;
+
+procedure TIBQuery_PSHelper.Params_R(var T: TParams);
+begin T := Self.Params; end;
+
+
+procedure TIBQuery_PSHelper.SQL_W(const T: TStrings);
+begin Self.SQL := T; end;
+
+
+procedure TIBQuery_PSHelper.SQL_R(var T: TStrings);
+begin T := Self.SQL; end;
+
+
+procedure TIBQuery_PSHelper.DataSource_W(const T: TDatasource);
+begin Self.DataSource := T; end;
+
+
+procedure TIBQuery_PSHelper.DataSource_R(var T: TDatasource);
+begin T := Self.DataSource; end;
+
+
+procedure TIBQuery_PSHelper.GenerateParamNames_W(const T: Boolean);
+begin Self.GenerateParamNames := T; end;
+
+
+procedure TIBQuery_PSHelper.GenerateParamNames_R(var T: Boolean);
+begin T := Self.GenerateParamNames; end;
+
+
+procedure TIBQuery_PSHelper.RowsAffected_R(var T: Integer);
+begin T := Self.RowsAffected; end;
+
+
+procedure TIBQuery_PSHelper.Text_R(var T: string);
+begin T := Self.Text; end;
+
+
+procedure TIBQuery_PSHelper.StmtHandle_R(var T: TISC_STMT_HANDLE);
+begin T := Self.StmtHandle; end;
+
+
+procedure TIBQuery_PSHelper.ParamCount_R(var T: Word);
+begin T := Self.ParamCount; end;
+
+
+procedure TIBQuery_PSHelper.Prepared_W(const T: Boolean);
+begin Self.Prepared := T; end;
+
+
+procedure TIBQuery_PSHelper.Prepared_R(var T: Boolean);
+begin T := Self.Prepared; end;
+
+
+procedure RIRegister_TIBQuery(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TIBQuery) do
+  begin
+    RegisterMethod(@TIBQuery.BatchInput, 'BatchInput');
+    RegisterMethod(@TIBQuery.BatchOutput, 'BatchOutput');
+    RegisterMethod(@TIBQuery.ExecSQL, 'ExecSQL');
+    RegisterMethod(@TIBQuery.ParamByName, 'ParamByName');
+    RegisterMethod(@TIBQuery.Prepare, 'Prepare');
+    RegisterMethod(@TIBQuery.UnPrepare, 'UnPrepare');
+    RegisterPropertyHelper(@TIBQuery.Prepared_R,@TIBQuery.Prepared_W,'Prepared');
+    RegisterPropertyHelper(@TIBQuery.ParamCount_R,nil,'ParamCount');
+    RegisterPropertyHelper(@TIBQuery.StmtHandle_R,nil,'StmtHandle');
+    RegisterPropertyHelper(@TIBQuery.Text_R,nil,'Text');
+    RegisterPropertyHelper(@TIBQuery.RowsAffected_R,nil,'RowsAffected');
+    RegisterPropertyHelper(@TIBQuery.GenerateParamNames_R,@TIBQuery.GenerateParamNames_W,'GenerateParamNames');
+    RegisterPropertyHelper(@TIBQuery.DataSource_R,@TIBQuery.DataSource_W,'DataSource');
+    RegisterPropertyHelper(@TIBQuery.SQL_R,@TIBQuery.SQL_W,'SQL');
+    RegisterPropertyHelper(@TIBQuery.Params_R,@TIBQuery.Params_W,'Params');
+  end;
+end;
+
+{$ELSE}
 procedure TIBQueryParams_W(Self: TIBQuery; const T: TParams);
 begin Self.Params := T; end;
 
@@ -2102,13 +3837,16 @@ begin
   end;
 end;
 
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+(* === run-time registration functions === *)
+
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_IBQuery(CL: TPSRuntimeClassImporter);
 begin
   RIRegister_TIBQuery(CL);
 end;
-
-
 
 { TIFPS3CE_IBCustomDataSet }
 (*----------------------------------------------------------------------------*)

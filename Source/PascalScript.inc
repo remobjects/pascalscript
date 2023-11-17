@@ -64,3 +64,11 @@ Defines:
 {$IFDEF FPC}
   {$I PascalScriptFPC.inc}
 {$ENDIF}
+
+{$IFDEF DELPHI2005UP}
+  {$DEFINE class_helper_present}
+{$ENDIF}
+{$IFDEF FPC}
+  {$DEFINE class_helper_present}
+{$ENDIF}
+

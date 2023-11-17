@@ -10476,7 +10476,6 @@ var
   CurrStack: Cardinal;
   cc: TPSCallingConvention;
   s: tbtString;
-  dx: Integer;
 begin
   s := p.Decl;
   if length(S) < 2 then

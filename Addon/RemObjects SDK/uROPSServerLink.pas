@@ -1,5 +1,11 @@
 unit uROPSServerLink;
 
+{$IFDEF MSWINDOWS}
+{$I ..\..\Source\PascalScript.inc}
+{$ELSE}
+{$I ../../Source/PascalScript.inc}
+{$ENDIF}
+
 interface
 uses
   {$IFDEF WIN32}Windows,{$ELSE}Types,{$ENDIF}
@@ -85,7 +91,40 @@ With cl.AddClassN(cl.FindClass('TComponent'),'TROMESSAGE') do
   end;
 end;
 
-procedure TROMESSAGEINTERFACENAME_W(Self: TROMESSAGE; const T: STRING);
+{$IFDEF DELPHI10UP}{$REGION 'TROMessage'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TROMessage_PSHelper = class helper for TROMessage
+  public
+    procedure INTERFACENAME_R(var T: STRING);
+    procedure INTERFACENAME_W(const T: STRING);
+    procedure MESSAGENAME_R(var T: STRING);
+    procedure MESSAGENAME_W(const T: STRING);
+  end;
+
+procedure TROMessage_PSHelper.INTERFACENAME_W(const T: STRING);
+begin Self.INTERFACENAME := T; end;
+
+procedure TROMessage_PSHelper.INTERFACENAME_R(var T: STRING);
+begin T := Self.INTERFACENAME; end;
+
+procedure TROMessage_PSHelper.MESSAGENAME_W(const T: STRING);
+begin Self.MESSAGENAME := T; end;
+
+procedure TROMessage_PSHelper.MESSAGENAME_R(var T: STRING);
+begin T := Self.MESSAGENAME; end;
+
+procedure RIRegisterTROMESSAGE(Cl: TPSRuntimeClassImporter);
+Begin
+with Cl.Add(TROMessage) do
+  begin
+  RegisterVirtualConstructor(@TROMessage.CREATE, 'CREATE');
+  RegisterPropertyHelper(@TROMessage.MESSAGENAME_R,@TROMessage.MESSAGENAME_W,'MESSAGENAME');
+  RegisterPropertyHelper(@TROMessage.INTERFACENAME_R,@TROMessage.INTERFACENAME_W,'INTERFACENAME');
+  end;
+end;
+{$ELSE}
+procedure TROMESSAGEINTERFACENAME_W(Self: TROMessage; const T: STRING);
 begin Self.INTERFACENAME := T; end;
 
 procedure TROMESSAGEINTERFACENAME_R(Self: TROMESSAGE; var T: STRING);
@@ -97,14 +136,6 @@ begin Self.MESSAGENAME := T; end;
 procedure TROMESSAGEMESSAGENAME_R(Self: TROMESSAGE; var T: STRING);
 begin T := Self.MESSAGENAME; end;
 
-procedure RIRegisterTROTRANSPORTCHANNEL(Cl: TPSRuntimeClassImporter);
-Begin
-with Cl.Add(TROTRANSPORTCHANNEL) do
-  begin
-  RegisterVirtualConstructor(@TROTRANSPORTCHANNEL.CREATE, 'CREATE');
-  end;
-end;
-
 procedure RIRegisterTROMESSAGE(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TROMESSAGE) do
@@ -114,7 +145,16 @@ with Cl.Add(TROMESSAGE) do
   RegisterPropertyHelper(@TROMESSAGEINTERFACENAME_R,@TROMESSAGEINTERFACENAME_W,'INTERFACENAME');
   end;
 end;
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
+procedure RIRegisterTROTRANSPORTCHANNEL(Cl: TPSRuntimeClassImporter);
+Begin
+with Cl.Add(TROTRANSPORTCHANNEL) do
+  begin
+  RegisterVirtualConstructor(@TROTRANSPORTCHANNEL.CREATE, 'CREATE');
+  end;
+end;
  
 (*----------------------------------------------------------------------------*)
 procedure SIRegister_TROBinaryMemoryStream(CL: TPSPascalCompiler);
@@ -143,6 +183,53 @@ begin
 end;
 
 (* === run-time registration functions === *)
+{$IFDEF DELPHI10UP}{$REGION 'TROBinaryMemoryStream'}{$ENDIF}
+{$IFDEF class_helper_present}
+type
+  TROBinaryMemoryStream_PSHelper = class helper for TROBinaryMemoryStream
+  public
+    Function Create2_P(CreateNewInstance: Boolean;  const iString : Ansistring):TObject;
+    Function Create_P(CreateNewInstance: Boolean):TObject;
+    procedure CapacityIncrement_R(var T: integer);
+    procedure CapacityIncrement_W(const T: integer);
+  end;
+
+(*----------------------------------------------------------------------------*)
+procedure TROBinaryMemoryStream_PSHelper.CapacityIncrement_W(const T: integer);
+begin Self.CapacityIncrement := T; end;
+
+(*----------------------------------------------------------------------------*)
+procedure TROBinaryMemoryStream_PSHelper.CapacityIncrement_R(var T: integer);
+begin T := Self.CapacityIncrement; end;
+
+(*----------------------------------------------------------------------------*)
+Function TROBinaryMemoryStream_PSHelper.Create_P(CreateNewInstance: Boolean):TObject;
+Begin Result := TROBinaryMemoryStream.Create; END;
+
+(*----------------------------------------------------------------------------*)
+Function TROBinaryMemoryStream_PSHelper.Create2_P(CreateNewInstance: Boolean;  const iString : Ansistring):TObject;
+Begin Result := TROBinaryMemoryStream.Create(iString); END;
+
+(*----------------------------------------------------------------------------*)
+procedure RIRegister_TROBinaryMemoryStream(CL: TPSRuntimeClassImporter);
+begin
+  with CL.Add(TROBinaryMemoryStream) do
+  begin
+    RegisterConstructor(@TROBinaryMemoryStream.Create2_P, 'Create2');
+    RegisterConstructor(@TROBinaryMemoryStream.Create_P, 'Create');
+    RegisterMethod(@TROBinaryMemoryStream.Assign, 'Assign');
+    RegisterMethod(@TROBinaryMemoryStream.Clone, 'Clone');
+    RegisterMethod(@TROBinaryMemoryStream.LoadFromString, 'LoadFromString');
+    RegisterMethod(@TROBinaryMemoryStream.LoadFromHexString, 'LoadFromHexString');
+    RegisterMethod(@TROBinaryMemoryStream.ToString, 'ToString');
+    RegisterMethod(@TROBinaryMemoryStream.ToHexString, 'ToHexString');
+    RegisterMethod(@TROBinaryMemoryStream.ToReadableString, 'ToReadableString');
+    RegisterMethod(@TROBinaryMemoryStream.WriteAnsiString, 'WriteAnsiString');
+    RegisterPropertyHelper(@TROBinaryMemoryStream.CapacityIncrement_R,@TROBinaryMemoryStream.CapacityIncrement_W,'CapacityIncrement');
+  end;
+end;
+
+{$ELSE}
 (*----------------------------------------------------------------------------*)
 procedure TROBinaryMemoryStreamCapacityIncrement_W(Self: TROBinaryMemoryStream; const T: integer);
 begin Self.CapacityIncrement := T; end;
@@ -178,12 +265,15 @@ begin
   end;
 end;
 
+{$ENDIF class_helper_present}
+{$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+
 (*----------------------------------------------------------------------------*)
 procedure RIRegister_uROClasses(CL: TPSRuntimeClassImporter);
 begin
   RIRegister_TROBinaryMemoryStream(CL);
 end;
-
  
 
 (*----------------------------------------------------------------------------*)

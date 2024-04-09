@@ -5405,6 +5405,7 @@ begin
   try
     Result := True;
     case CalcType of
+      {$IFDEF DELPHI10UP}{$REGION '+'}{$ENDIF}
       0: begin { + }
           case var1Type.BaseType of
             btU8: tbtU8(var1^) := tbtU8(var1^) + PSGetUInt(Var2, var2type);
@@ -5588,6 +5589,8 @@ begin
             exit;
           end;
         end;
+      {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+      {$IFDEF DELPHI10UP}{$REGION '-'}{$ENDIF}
       1: begin { - }
           case var1Type.BaseType of
             btU8: tbtU8(var1^) := tbtU8(var1^) - PSGetUInt(Var2, var2type);
@@ -5766,6 +5769,8 @@ begin
             exit;
           end;
         end;
+      {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+      {$IFDEF DELPHI10UP}{$REGION '*'}{$ENDIF}
       2: begin { * }
           case var1Type.BaseType of
             btU8: tbtU8(var1^) := tbtU8(var1^) * PSGetUInt(Var2, var2type);
@@ -5940,6 +5945,8 @@ begin
             exit;
           end;
         end;
+      {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+      {$IFDEF DELPHI10UP}{$REGION '/'}{$ENDIF}
       3: begin { / }
           case var1Type.BaseType of
             btU8: tbtU8(var1^) := tbtU8(var1^) div PSGetUInt(Var2, var2type);
@@ -6112,6 +6119,8 @@ begin
             exit;
           end;
         end;
+      {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+      {$IFDEF DELPHI10UP}{$REGION 'MOD'}{$ENDIF}
       4: begin { MOD }
           case var1Type.BaseType of
             btU8: tbtU8(var1^) := tbtU8(var1^) mod PSGetUInt(Var2, var2type);
@@ -6357,6 +6366,7 @@ begin
             exit;
           end;
         end;
+      {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
     else begin
         Result := False;
         CMD_Err(erInvalidOpcodeParameter);
@@ -11949,13 +11959,13 @@ procedure MyAllMethodsHandler;
 //  RCX = Self pointer
 //  - function:
 //    * RDX - result
-//    * R8, R9 = param1 .. param -
+//    * R8, R9 = param1 .. param2
 //    * STACK = param3... paramcount
 //  - procedure
 //    * RDX, R8, R9 - param1 - param3
 //    * STACK = param4... paramcount
 asm
-  PUSH 0
+  PUSH RBP
   MOVQ RAX, XMM3
   PUSH RAX
   MOVQ RAX, XMM2

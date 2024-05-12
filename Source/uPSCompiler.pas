@@ -2746,6 +2746,15 @@ begin
   end;
 end;
 
+function IsCharType(b: TPSBaseType): Boolean;
+begin
+  case b of
+    btChar{$IFNDEF PS_NOWIDESTRING}, btWideChar{$ENDIF}: Result := True;
+  else
+    Result := False;
+  end;
+end;
+
 function IsRealType(b: TPSBaseType): Boolean;
 begin
   case b of
@@ -6091,7 +6100,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       for i := 0 to arr.count -1 do
       begin
         mType := GetTypeNo(BlockInfo, arr.Item[i]);
-        if (mType <> SetType.SetType) and not (IsIntType(mType.FBaseType) and IsIntType(SetType.SetType.BaseType)) then
+        if (mType <> SetType.SetType) and
+           not (IsIntType(mType.FBaseType) and IsIntType(SetType.SetType.BaseType)) and
+           not (IsCharType(mType.FBaseType) and IsCharType(SetType.SetType.BaseType)) then
         begin
           with MakeError('', ecTypeMismatch, '') do
           begin

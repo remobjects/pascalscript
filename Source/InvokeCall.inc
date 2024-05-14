@@ -1,3 +1,68 @@
+function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>): Boolean;
+var
+  l_len: Integer;
+  i: Integer;
+  arr: TArray<TValue>;
+  arr_varrec: TArray<TVarRec>;
+
+begin
+  Result := True;
+  case aValue^.aType.BaseType of
+    {$IFNDEF PS_NOWIDESTRING}
+    btWidestring,
+    btUnicodestring,
+    {$ENDIF}
+    btString:                          aValues := aValues + [TValue.From<String>(pstring(aValue^.dta)^)];
+    btU8, btS8:                        aValues := aValues + [TValue.From<Byte>(pbyte(aValue^.dta)^)];
+    btU16, BtS16:                      aValues := aValues + [TValue.From<Word>(pword(aValue^.dta)^)];
+    btU32, btS32:                      aValues := aValues + [TValue.From<Cardinal>(pCardinal(aValue^.dta)^)];
+    {$IFNDEF PS_NOINT64}bts64:{$ENDIF} aValues := aValues + [TValue.From<Int64>(pint64(aValue^.dta)^)];
+    btSingle:                          aValues := aValues + [TValue.From<Single>(PSingle(aValue^.dta)^)];
+    btDouble:                          aValues := aValues + [TValue.From<Double>(PDouble(aValue^.dta)^)];
+    btExtended:                        aValues := aValues + [TValue.From<Extended>(PExtended(aValue^.dta)^)];
+    btPChar:                           aValues := aValues + [TValue.From<PChar>(ppchar(aValue^.dta)^)];
+    btChar:                            aValues := aValues + [TValue.From<Char>(pchar(aValue^.dta)^)];
+    btClass:                           aValues := aValues + [TValue.From<TObject>(TObject(aValue^.dta^))];
+    btRecord:                          aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+    btStaticArray:                     aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+    btVariant:
+      aValues := aValues + [TValue.From(Variant(aValue^.dta^))];
+    btArray:
+      begin
+         if Copy(aValue^.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
+           l_len := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
+           SetLength(arr, 0);
+           for i := 0 to l_len do begin
+             if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr) then begin
+               Result := False;
+               Exit;
+             end;
+           end;
+           arr_varrec := TValueArrayToArrayOfConst(arr);
+           //in case of openarray we should provide TWO params: first is pointer to array,
+           aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
+           //2nd - integer with arraylength - 1 (high)
+           aValues := aValues + [TValue.From<Integer>(l_len)];// = High of OpenArray
+         end
+         else //dynarray = just push pointer
+           aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+      end;
+    btSet:
+      begin
+        case TPSTypeRec_Set(aValue^.aType).aByteSize  of
+          1: aValues := aValues + [TValue.From<Byte>(pbyte(aValue^.dta)^)];
+          2: aValues := aValues + [TValue.From<Word>(pWord(aValue^.dta)^)];
+          3,
+          4: aValues := aValues + [TValue.From<Cardinal>(pCardinal(aValue^.dta)^)];
+        else
+          aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+        end;
+      end;
+  else
+    Result := False;
+  end;  { case }
+end;
+
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var SysCalConv : TCallConv;
     Args: TArray<TValue>;
@@ -48,59 +113,11 @@ begin
             Exit;
           end;
       end;
+      Args := Args + [Arg];
     end
-    else
-    begin  { not a var param }
-      case fvar.aType.BaseType of
-        { add normal params here }
-        {$IFNDEF PS_NOWIDESTRING}
-        btWidestring,
-        btUnicodestring,
-        {$ENDIF}
-        btString:                          Arg := TValue.From<String>(pstring(fvar.dta)^);
-        btU8, btS8:                        Arg := TValue.From<Byte>(pbyte(fvar.dta)^);
-        btU16, BtS16:                      Arg := TValue.From<Word>(pword(fvar.dta)^);
-        btU32, btS32:                      Arg := TValue.From<Cardinal>(pCardinal(fvar.dta)^);
-        {$IFNDEF PS_NOINT64}bts64:{$ENDIF} Arg := TValue.From<Int64>(pint64(fvar.dta)^);
-        btSingle:                          Arg := TValue.From<Single>(PSingle(fvar.dta)^);
-        btDouble:                          Arg := TValue.From<Double>(PDouble(fvar.dta)^);
-        btExtended:                        Arg := TValue.From<Extended>(PExtended(fvar.dta)^);
-        btPChar:                           Arg := TValue.From<PChar>(ppchar(fvar.dta)^);
-        btChar:                            Arg := TValue.From<Char>(pchar(fvar.dta)^);
-        btClass:                           Arg := TValue.From<TObject>(TObject(fvar.dta^));
-        btRecord:                          Arg := TValue.From<Pointer>(fvar.dta);
-        btStaticArray:                     Arg := TValue.From<Pointer>(fvar.dta);
-        btVariant:
-          Arg := TValue.From(Variant(fvar.dta^));
-        btArray:
-          begin
-             if Copy(fvar.aType.ExportName, 1, 10) = '!OPENARRAY' then
-             begin  //openarray
-               //in case of openarray we should provide TWO params: first is pointer to array,
-               Args := Args + [TValue.From<Pointer>(Pointer(fvar.Dta^))];
-               //2nd - integer with arraylength - 1 (high)
-               Arg := TValue.From<Integer>(PSDynArrayGetLength(Pointer(fvar.Dta^), fvar.aType)-1);// = High of OpenArray
-             end
-             else //dynarray = just push pointer
-               Arg := TValue.From<Pointer>(fvar.dta);
-          end;
-        btSet:
-          begin
-            case TPSTypeRec_Set(fvar.aType).aByteSize  of
-              1: Arg := TValue.From<Byte>(pbyte(fvar.dta)^);
-              2: Arg := TValue.From<Word>(pWord(fvar.dta)^);
-              3,
-              4: Arg := TValue.From<Cardinal>(pCardinal(fvar.dta)^);
-              else
-                Arg := TValue.From<Pointer>(fvar.dta);
-            end;
-          end;
-        else
-//            writeln(stderr, 'Parameter type not implemented!');
-          Exit;
-      end;  { case }
+    else begin
+      if not PSVariantIFCToTValue(fvar, Args) then Exit;
     end;
-    Args := Args + [Arg];
   end;
 
   {$IFDEF CPUX86}

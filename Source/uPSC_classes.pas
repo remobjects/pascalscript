@@ -134,9 +134,11 @@ procedure SIRegisterTSTREAM(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TObject'), 'TStream') do
   begin
+    {$IFNDEF DELPHI_SYDNEY_UP}
     IsAbstract := True;
-    RegisterMethod('function Read(Buffer: string; Count: LongInt): LongInt');
-    RegisterMethod('function Write(Buffer: string; Count: LongInt): LongInt');
+    {$ENDIF}
+    RegisterMethod('function Read(Buffer: const; Count: LongInt): LongInt');
+    RegisterMethod('function Write(Buffer: const; Count: LongInt): LongInt');
     {$IFDEF DELPHI_TOKYO_UP}
     {$IFNDEF PS_NOINT64}
     RegisterMethod('function Seek(Offset: Int64; Origin: Word): Int64');
@@ -144,8 +146,8 @@ begin
     {$ELSE}
     RegisterMethod('function Seek(Offset: LongInt; Origin: Word): LongInt');
     {$ENDIF}
-    RegisterMethod('procedure ReadBuffer(Buffer: string; Count: LongInt)');
-    RegisterMethod('procedure WriteBuffer(Buffer: string; Count: LongInt)');
+    RegisterMethod('procedure ReadBuffer(Buffer: const; Count: LongInt)');
+    RegisterMethod('procedure WriteBuffer(Buffer: const; Count: LongInt)');
     {$IFDEF DELPHI4UP}
     {$IFNDEF PS_NOINT64}
     RegisterMethod('function CopyFrom(Source: TStream; Count: Int64): Int64');

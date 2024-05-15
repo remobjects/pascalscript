@@ -137,8 +137,8 @@ begin
     {$IFNDEF DELPHI_SYDNEY_UP}
     IsAbstract := True;
     {$ENDIF}
-    RegisterMethod('function Read(Buffer: const; Count: LongInt): LongInt');
-    RegisterMethod('function Write(Buffer: const; Count: LongInt): LongInt');
+    RegisterMethod('function Read(Buffer: AnyString; Count: LongInt): LongInt');
+    RegisterMethod('function Write(Buffer: AnyString; Count: LongInt): LongInt');
     {$IFDEF DELPHI_TOKYO_UP}
     {$IFNDEF PS_NOINT64}
     RegisterMethod('function Seek(Offset: Int64; Origin: Word): Int64');
@@ -146,8 +146,8 @@ begin
     {$ELSE}
     RegisterMethod('function Seek(Offset: LongInt; Origin: Word): LongInt');
     {$ENDIF}
-    RegisterMethod('procedure ReadBuffer(Buffer: const; Count: LongInt)');
-    RegisterMethod('procedure WriteBuffer(Buffer: const; Count: LongInt)');
+    RegisterMethod('procedure ReadBuffer(Buffer: AnyString; Count: LongInt)');
+    RegisterMethod('procedure WriteBuffer(Buffer: AnyString; Count: LongInt)');
     {$IFDEF DELPHI4UP}
     {$IFNDEF PS_NOINT64}
     RegisterMethod('function CopyFrom(Source: TStream; Count: Int64): Int64');

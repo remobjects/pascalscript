@@ -44,6 +44,9 @@ begin
     {$IFDEF DELPHI4UP}
     RegisterProperty('Anchors', 'TAnchors', iptrw);
     {$ENDIF}
+    {$IFDEF FPC}
+    RegisterProperty('Anchors', 'TAnchors', iptrw);
+    {$ENDIF}
     RegisterProperty('Brush', 'TBrush', iptrw);
     RegisterProperty('Pen', 'TPen', iptrw);
     RegisterProperty('Shape', 'TShapeType', iptrw);
@@ -69,6 +72,9 @@ begin
   with Cl.AddClassN(cl.FindClass('TGraphicControl'), 'TImage') do
   begin
     {$IFDEF DELPHI4UP}
+    RegisterProperty('Anchors', 'TAnchors', iptrw);
+    {$ENDIF}
+    {$IFDEF FPC}
     RegisterProperty('Anchors', 'TAnchors', iptrw);
     {$ENDIF}
     RegisterProperty('Canvas', 'TCanvas', iptr);
@@ -102,6 +108,9 @@ begin
     {$IFDEF DELPHI4UP}
     RegisterProperty('Anchors', 'TAnchors', iptrw);
     {$ENDIF}
+    {$IFDEF FPC}
+    RegisterProperty('Anchors', 'TAnchors', iptrw);
+    {$ENDIF}
     RegisterProperty('Canvas', 'TCanvas', iptr);
     RegisterProperty('Color', 'TColor', iptrw);
     RegisterProperty('Font', 'TFont', iptrw);
@@ -132,6 +141,9 @@ begin
   with Cl.AddClassN(cl.FindClass('TGraphicControl'), 'TBevel') do
   begin
     {$IFDEF DELPHI4UP}
+    RegisterProperty('Anchors', 'TAnchors', iptrw);
+    {$ENDIF}
+    {$IFDEF FPC}
     RegisterProperty('Anchors', 'TAnchors', iptrw);
     {$ENDIF}
     RegisterProperty('Shape', 'TBevelShape', iptrw);

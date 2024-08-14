@@ -150,7 +150,11 @@ begin
     RegisterMethod('procedure WriteBuffer(Buffer: AnyString; Count: LongInt)');
     {$IFDEF DELPHI4UP}
     {$IFNDEF PS_NOINT64}
+    {$IFDEF DELPHI_SYDNEY_UP}
+    RegisterMethod('function CopyFrom(Source: TStream; Count: Int64; BufferSize: Integer): Int64');
+    {$ELSE}
     RegisterMethod('function CopyFrom(Source: TStream; Count: Int64): Int64');
+    {$ENDIF}
     {$ENDIF}
     {$ELSE}
     RegisterMethod('function CopyFrom(Source: TStream; Count: Integer): LongInt');

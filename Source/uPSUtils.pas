@@ -351,8 +351,8 @@ type
 
     FCheckCount: Cardinal;
   private
-    function GetItem(Nr: Cardinal): Pointer;
-    procedure SetItem(Nr: Cardinal; P: Pointer);
+    function GetItem(Nr: Longint): Pointer;
+    procedure SetItem(Nr: Longint; P: Pointer);
   public
     {$IFNDEF PS_NOSMARTLIST}
 
@@ -369,7 +369,7 @@ type
 
     property Count: Cardinal read FCount;
 
-    property Items[nr: Cardinal]: Pointer read GetItem write SetItem; default;
+    property Items[nr: Longint]: Pointer read GetItem write SetItem; default;
 
     function Add(P: Pointer): Longint;
 
@@ -921,17 +921,17 @@ begin
 end;
 //-------------------------------------------------------------------
 
-procedure TPSList.SetItem(Nr: Cardinal; P: Pointer);
+procedure TPSList.SetItem(Nr: Longint; P: Pointer);
 begin
-  if (FCount = 0) or (Nr >= FCount) then
+  if (FCount = 0) or (Cardinal(Nr) >= FCount) then
     Exit;
   FData[Nr] := P;
 end;
 //-------------------------------------------------------------------
 
-function TPSList.GetItem(Nr: Cardinal): Pointer;  {12}
+function TPSList.GetItem(Nr: Longint): Pointer;  {12}
 begin
-  if Nr < FCount then
+  if Cardinal(Nr) < FCount then
      GetItem := FData[Nr]
   else
     GetItem := nil;

@@ -1,3 +1,4 @@
+type pTbtString = ^TbtString;
 function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>): Boolean;
 var
   l_len: Integer;
@@ -10,9 +11,9 @@ begin
   case aValue^.aType.BaseType of
     {$IFNDEF PS_NOWIDESTRING}
     btWidestring,
-    btUnicodestring,
+    btUnicodestring:                   aValues := aValues + [TValue.From<String>(pstring(aValue^.dta)^)];
     {$ENDIF}
-    btString:                          aValues := aValues + [TValue.From<String>(pstring(aValue^.dta)^)];
+    btString:                          aValues := aValues + [TValue.From<String>(pTbtString(aValue^.dta)^)];
     btU8, btS8:                        aValues := aValues + [TValue.From<Byte>(pbyte(aValue^.dta)^)];
     btU16, BtS16:                      aValues := aValues + [TValue.From<Word>(pword(aValue^.dta)^)];
     btU32, btS32:                      aValues := aValues + [TValue.From<Cardinal>(pCardinal(aValue^.dta)^)];
@@ -25,8 +26,7 @@ begin
     btClass:                           aValues := aValues + [TValue.From<TObject>(TObject(aValue^.dta^))];
     btRecord:                          aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
     btStaticArray:                     aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
-    btVariant:
-      aValues := aValues + [TValue.From(Variant(aValue^.dta^))];
+    btVariant:                         aValues := aValues + [TValue.From(Variant(aValue^.dta^))];
     btArray:
       begin
          if Copy(aValue^.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
@@ -226,6 +226,6 @@ begin
         Exit;
     end;  { case }
   end; //assigned(res)
-
+  SetLength(Args, 0);
   Result := True;
 end;

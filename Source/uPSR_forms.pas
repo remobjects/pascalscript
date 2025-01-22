@@ -82,7 +82,11 @@ begin
     RegisterMethod(@TFORM.CLOSE, 'Close');
     RegisterMethod(@TFORM.HIDE, 'Hide');
     RegisterMethod(@TFORM.SHOW, 'Show');
+    {$IFDEF DELPHI_SEATTLE_UP}
+    RegisterVirtualMethod(@TFORM.SHOWMODAL, 'ShowModal');
+    {$ELSE}
     RegisterMethod(@TFORM.SHOWMODAL, 'ShowModal');
+    {$ENDIF}
     RegisterMethod(@TFORM.RELEASE, 'Release');
     RegisterPropertyHelper(@TFORMACTIVE_R, nil, 'Active');
 

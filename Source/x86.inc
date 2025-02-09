@@ -291,6 +291,8 @@ var
             begin
               p := CreateOpenArray(True, Self, FVar);
               if p = nil then exit;
+              if CallData = nil then
+                CallData := TPSList.Create();
               CallData.Add(p);
               case RegUsage of
                 0: begin EAX := Longint(POpenArray(p)^.Data); Inc(RegUsage); end;
@@ -365,6 +367,8 @@ var
             begin
               p := CreateOpenArray(False, SElf, FVar);
               if p =nil then exit;
+              if CallData = nil then
+                CallData := TPSList.Create();
               CallData.Add(p);
               case RegUsage of
                 0: begin EAX := Longint(POpenArray(p)^.Data); Inc(RegUsage); end;
@@ -526,7 +530,7 @@ begin
   if Address = nil then
     exit; // need address
   Stack := '';
-  CallData := TPSList.Create;
+  CallData := nil;
   res := rp(res);
   if res <> nil then
     res.VarParam := true;
@@ -771,14 +775,17 @@ begin
         end;
     end;
   finally
-    for i := CallData.Count -1 downto 0 do
+    if CallData<>nil then
     begin
-      pp := CallData[i];
-      case pp^ of
-        0: DestroyOpenArray(Self, Pointer(pp));
+      for i := CallData.Count -1 downto 0 do
+      begin
+        pp := CallData[i];
+        case pp^ of
+          0: DestroyOpenArray(Self, Pointer(pp));
+        end;
       end;
+      CallData.Free;
     end;
-    CallData.Free;
   end;
 end;
 

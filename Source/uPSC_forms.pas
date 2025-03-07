@@ -117,6 +117,10 @@ begin
     RegisterProperty('Font', 'TFont', iptrw);
     RegisterProperty('FormStyle', 'TFormStyle', iptrw);
     RegisterProperty('KeyPreview', 'Boolean', iptrw);
+    {$IFDEF DELPHI_SEATTLE_UP}
+    RegisterProperty('PopupMode', 'TPopupMode', iptrw);
+    RegisterProperty('PopupParent', 'TForm', iptrw);
+    {$ENDIF}
     RegisterProperty('Position', 'TPosition', iptrw);
     RegisterProperty('OnActivate', 'TNotifyEvent', iptrw);
     RegisterProperty('OnClick', 'TNotifyEvent', iptrw);
@@ -257,6 +261,9 @@ begin
   cl.AddTypeS('TBorderStyle', 'TFormBorderStyle');
   cl.AddTypeS('TWindowState', '(wsNormal, wsMinimized, wsMaximized)');
   cl.AddTypeS('TFormStyle', '(fsNormal, fsMDIChild, fsMDIForm, fsStayOnTop)');
+  {$IFDEF DELPHI_SEATTLE_UP}
+  cl.AddTypeS('TPopupMode', '(pmNone, pmAuto, pmExplicit)');
+  {$ENDIF}
   cl.AddTypeS('TPosition', '(poDesigned, poDefault, poDefaultPosOnly, poDefaultSizeOnly, poScreenCenter, poDesktopCenter, poMainFormCenter, poOwnerFormCenter)');
   cl.AddTypeS('TPrintScale', '(poNone, poProportional, poPrintToFit)');
   cl.AddTypeS('TCloseAction', '(caNone, caHide, caFree, caMinimize)');

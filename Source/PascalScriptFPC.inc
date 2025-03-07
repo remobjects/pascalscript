@@ -1,3 +1,12 @@
+  {.$DEFINE FPC_UNICODE}
+
+  {$IFDEF FPC_UNICODE}
+    {$MODE DELPHIUNICODE}
+    {$DEFINE UNICODE}
+  {$ELSE}
+    {$MODE DELPHI}
+  {$ENDIF}
+
   {$IF (defined(cpuaarch64) or defined(cpuarm))}
     {$DEFINE USEINVOKECALL}
   {$IFEND}

@@ -7,13 +7,12 @@ type
   ptbtUnicodeString = ^tbtunicodestring;
   PIInterface = ^IInterface;
 
-function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; aSelf: TPSExec): Boolean;
+function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TValue>; aSelf: TPSExec): Boolean;
 var
   l_len: Integer;
   i: Integer;
   arr: TArray<TValue>;
   arr_varrec: TArray<TVarRec>;
-
 begin
   Result := True;
   case aValue^.aType.BaseType of
@@ -40,11 +39,12 @@ begin
            l_len := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
            SetLength(arr, 0);
            for i := 0 to l_len do begin
-             if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aSelf) then begin
+             if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aSelf) then begin
                Result := False;
                Exit;
              end;
            end;
+           aValues1 := aValues1 + arr;
            arr_varrec := TValueArrayToArrayOfConst(arr);
            //in case of openarray we should provide TWO params: first is pointer to array,
            aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
@@ -116,6 +116,7 @@ end;
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var SysCalConv : TCallConv;
     Args: TArray<TValue>;
+    old_Args: TArray<TValue>;
     Arg : TValue;
     i : Integer;
     fvar: PPSVariantIFC;
@@ -144,6 +145,7 @@ begin
       Args := Args + [TValue.From<Pointer>( _Self )];
   end;
 
+  old_Args := [];
   for I := 0 to Params.Count - 1 do
   begin
     if Params[i] = nil
@@ -166,7 +168,7 @@ begin
       Args := Args + [Arg];
     end
     else begin
-      if not PSVariantIFCToTValue(fvar, Args, Self) then Exit;
+      if not PSVariantIFCToTValue(fvar, Args, old_Args, Self) then Exit;
     end;
   end;
 
@@ -341,5 +343,6 @@ begin
     end;  { case }
   end; //assigned(res)
   SetLength(Args, 0);
+  SetLength(old_Args, 0);
   Result := True;
 end;

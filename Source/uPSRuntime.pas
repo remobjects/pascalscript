@@ -855,14 +855,15 @@ type
     procedure SetCurrency(ItemNo: Longint; const Data: Currency);
     procedure SetBool(ItemNo: Longint; const Data: Boolean);
     procedure SetClass(ItemNo: Longint; const Data: TObject);
-{$IFDEF DELPHI29UP}{$WARN OVERLOADING_ARRAY_PROPERTY OFF}{$ENDIF}
+{$WARNINGS OFF}
 { ^ TPSStack has *two* Items properties: one indexed with a Cardinal (defined by TPSList) and the
     one below indexed with a Longint. Delphi 12.3 or 12.2 introduced a warning about this. Disable
     this warning since fixing the issue breaks callers: the return types of the two properties are
-    different (Pointer vs PPSVariant). }
+    different (Pointer vs PPSVariant). There's a specific directive to turn off this warning as well
+    ($WARN OVERLOADING_ARRAY_PROPERTY OFF) but Delphi 12.1 doesnt know about it, so using it is hard. }
     property Items[I: Longint]: PPSVariant read GetItem; default;
   end;
-{$IFDEF DELPHI29UP}{$WARN OVERLOADING_ARRAY_PROPERTY ON}{$ENDIF}
+{$WARNINGS ON}
 
 function PSErrorToString(x: TPSError; const Param: tbtstring): tbtstring;
 function TIFErrorToString(x: TPSError; const Param: tbtstring): tbtstring;

@@ -7,7 +7,7 @@ type
   ptbtUnicodeString = ^tbtunicodestring;
   PIInterface = ^IInterface;
 
-function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TVarRec>; aSelf: TPSExec): Boolean;
+function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TValue>; var aValues2: TArray<TVarRec>; aSelf: TPSExec): Boolean;
 var
   l_len: Integer;
   i: Integer;
@@ -39,14 +39,14 @@ begin
            l_len := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
            SetLength(arr, 0);
            for i := 0 to l_len do begin
-             if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aSelf) then begin
+             if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aValues2, aSelf) then begin
                Result := False;
                Exit;
              end;
            end;
-
+           aValues1 := aValues1 + arr;
            arr_varrec := TValueArrayToArrayOfConst(arr);
-           aValues1 := aValues1 + arr_varrec;
+           aValues2 := aValues2 + arr_varrec;
            //in case of openarray we should provide TWO params: first is pointer to array,
            aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
            //2nd - integer with arraylength - 1 (high)
@@ -117,7 +117,8 @@ end;
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var SysCalConv : TCallConv;
     Args: TArray<TValue>;
-    old_Args: TArray<TVarRec>;
+    old_Args: TArray<TValue>;
+    old_Args2: TArray<TVarRec>;
     Arg : TValue;
     i : Integer;
     fvar: PPSVariantIFC;
@@ -169,7 +170,7 @@ begin
       Args := Args + [Arg];
     end
     else begin
-      if not PSVariantIFCToTValue(fvar, Args, old_Args, Self) then Exit;
+      if not PSVariantIFCToTValue(fvar, Args, old_Args, old_Args2, Self) then Exit;
     end;
   end;
 
@@ -345,5 +346,6 @@ begin
   end; //assigned(res)
   SetLength(Args, 0);
   SetLength(old_Args, 0);
+  SetLength(old_Args2, 0);
   Result := True;
 end;

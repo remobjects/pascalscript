@@ -7,7 +7,7 @@ type
   ptbtUnicodeString = ^tbtunicodestring;
   PIInterface = ^IInterface;
 
-function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TValue>; aSelf: TPSExec): Boolean;
+function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TVarRec>; aSelf: TPSExec): Boolean;
 var
   l_len: Integer;
   i: Integer;
@@ -44,8 +44,9 @@ begin
                Exit;
              end;
            end;
-           aValues1 := aValues1 + arr;
+
            arr_varrec := TValueArrayToArrayOfConst(arr);
+           aValues1 := aValues1 + arr_varrec;
            //in case of openarray we should provide TWO params: first is pointer to array,
            aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
            //2nd - integer with arraylength - 1 (high)
@@ -116,7 +117,7 @@ end;
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var SysCalConv : TCallConv;
     Args: TArray<TValue>;
-    old_Args: TArray<TValue>;
+    old_Args: TArray<TVarRec>;
     Arg : TValue;
     i : Integer;
     fvar: PPSVariantIFC;

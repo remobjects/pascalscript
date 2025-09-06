@@ -393,6 +393,12 @@ begin
     RegisterProperty('OnEnter', 'TNotifyEvent', iptrw);
     RegisterProperty('OnExit', 'TNotifyEvent', iptrw);
 
+    {$IFDEF DELPHI23UP}
+    RegisterProperty('CommandLinkHint', 'string', iptrw);
+    RegisterProperty('ElevationRequired', 'Boolean', iptrw);
+    RegisterProperty('Style', 'TButtonStyle', iptrw);
+    {$ENDIF}
+
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('DragCursor', 'LongInt', iptrw);
     RegisterProperty('DragMode', 'TDragMode', iptrw);
@@ -642,6 +648,9 @@ begin
   cl.AddTypeS('TComboBoxStyle', '(csDropDown, csSimple, csDropDownList, csOwnerDrawFixed, csOwnerDrawVariable)');
   cl.AddTypeS('TDrawItemEvent', 'procedure(Control: TWinControl; Index: Integer; Rect: TRect; State: Byte)');
   cl.AddTypeS('TMeasureItemEvent', 'procedure(Control: TWinControl; Index: Integer; var Height: Integer)');
+  {$IFDEF DELPHI23UP}
+  cl.AddTypeS('TButtonStyle', '(bsPushButton, bsCommandLink, bsSplitButton)');
+  {$ENDIF}
   cl.AddTypeS('TCheckBoxState', '(cbUnchecked, cbChecked, cbGrayed)');
   cl.AddTypeS('TListBoxStyle', '(lbStandard, lbOwnerDrawFixed, lbOwnerDrawVariable)');
   cl.AddTypeS('TScrollCode', '(scLineUp, scLineDown, scPageUp, scPageDown, scPosition, scTrack, scTop, scBottom, scEndScroll)');

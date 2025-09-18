@@ -122,6 +122,17 @@
 { DARWIN64        64bit Mac OS X                                             }
 {----------------------------------------------------------------------------}
 
+{ defines for Delphi XE16 (Delphi 13) }
+{$IFDEF VER370}
+  {$DEFINE BDS37}{$DEFINE DELPHIXE16}{$DEFINE DELPHI37}
+  {$DEFINE DELPHI37UP}
+{$ENDIF}
+
+{$IFDEF DELPHI37UP}
+  {$DEFINE DELPHI29UP}
+  {$DEFINE BDS37UP}{$DEFINE DELPHIXE16UP}
+{$ENDIF}
+
 { defines for Delphi XE15 (Delphi 12) }
 {$IFDEF VER360}
   {$DEFINE BDS23}{$DEFINE DELPHIXE15}{$DEFINE DELPHI_YUKON}{$DEFINE DELPHI29}

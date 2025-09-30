@@ -53,6 +53,12 @@ procedure TCONTROLSHOWHINT_R(Self: TCONTROL; var T: BOOLEAN); begin T := Self.SH
 procedure TCONTROLENABLED_W(Self: TCONTROL; T: BOOLEAN); begin Self.ENABLED := T; end;
 procedure TCONTROLENABLED_R(Self: TCONTROL; var T: BOOLEAN); begin T := Self.ENABLED; end;
 
+procedure TControlStyleElementsR(Self: TControl; var T: TStyleElements); begin T := Self.StyleElements; end;
+procedure TControlStyleElementsW(Self: TControl; T: TStyleElements); begin Self.StyleElements:= T; end;
+
+procedure TControlStyleNameR(Self: TControl; var T: string); begin T := Self.StyleName; end;
+procedure TControlStyleNameW(Self: TControl; T: string); begin Self.StyleName:= T; end;
+
 procedure RIRegisterTControl(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TControl) do
@@ -74,6 +80,13 @@ begin
     RegisterPropertyHelper(@TControlClientWidthR, @TControlClientWidthW, 'ClientWidth');
     RegisterPropertyHelper(@TControlVisibleR, @TControlVisibleW, 'Visible');
     RegisterPropertyHelper(@TCONTROLENABLED_R, @TCONTROLENABLED_W, 'Enabled');
+
+    {$IFDEF DELPHI23UP}
+    RegisterPropertyHelper(@TControlStyleElementsR, @TControlStyleElementsW, 'StyleElements');
+    {$ENDIF}
+    {$IFDEF DELPHI26UP}
+    RegisterPropertyHelper(@TControlStyleNameR, @TControlStyleNameW, 'StyleName');
+    {$ENDIF}
 
     RegisterPropertyHelper(@TControlParentR, @TControlParentW, 'Parent');
 

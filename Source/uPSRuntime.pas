@@ -922,6 +922,7 @@ procedure PSSetUnicodeString(Src: Pointer; aType: TPSTypeRec; var Ok: Boolean; c
 
 procedure VNSetPointerTo(const Src: TPSVariantIFC; Data: Pointer; aType: TPSTypeRec);
 
+function VNGetObject(const Src: TPSVariantIFC): TObject;
 function VNGetUInt(const Src: TPSVariantIFC): Cardinal;
 {$IFNDEF PS_NOINT64}
 function VNGetInt64(const Src: TPSVariantIFC): Int64;
@@ -936,6 +937,7 @@ function VNGetWideString(const Src: TPSVariantIFC): tbtWideString;
 function VNGetUnicodeString(const Src: TPSVariantIFC): tbtunicodestring;
 {$ENDIF}
 
+procedure VNSetObject(const Src: TPSVariantIFC; const Val: TObject);
 procedure VNSetUInt(const Src: TPSVariantIFC; const Val: Cardinal);
 {$IFNDEF PS_NOINT64}
 procedure VNSetInt64(const Src: TPSVariantIFC; const Val: Int64);
@@ -3073,6 +3075,11 @@ begin
   end;
 end;
 
+function VNGetObject(const Src: TPSVariantIFC): TObject;
+begin
+  Result := PSGetObject(Src.Dta, Src.aType);
+end;
+
 function VNGetUInt(const Src: TPSVariantIFC): Cardinal;
 begin
   Result := PSGetUInt(Src.Dta, Src.aType);
@@ -3116,6 +3123,13 @@ begin
   Result := PSGetUnicodeString(Src.Dta, Src.aType);
 end;
 {$ENDIF}
+
+procedure VNSetObject(const Src: TPSVariantIFC; const Val: TObject);
+var
+  Dummy: Boolean;
+begin
+  PSSetObject(Src.Dta, Src.aType, Dummy, Val);
+end;
 
 procedure VNSetUInt(const Src: TPSVariantIFC; const Val: Cardinal);
 var

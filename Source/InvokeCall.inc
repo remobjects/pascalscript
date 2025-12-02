@@ -14,104 +14,105 @@ var
   arr: TArray<TValue>;
   arr_varrec: TArray<TVarRec>;
 begin
-  Result := True;
-  case aValue^.aType.BaseType of
-    //1,2
-    btU8, btS8:                        aValues := aValues + [TValue.From<Byte>(PByte(aValue^.dta)^)];
-    //3,4
-    btU16, BtS16:                      aValues := aValues + [TValue.From<Word>(PWord(aValue^.dta)^)];
-    //5,6
-    btU32, btS32:                      aValues := aValues + [TValue.From<Cardinal>(PCardinal(aValue^.dta)^)];
-    //7
-    btSingle:                          aValues := aValues + [TValue.From<Single>(PSingle(aValue^.dta)^)];
-    //8
-    btDouble:                          aValues := aValues + [TValue.From<Double>(PDouble(aValue^.dta)^)];
-    //9
-    btExtended:                        aValues := aValues + [TValue.From<Extended>(PExtended(aValue^.dta)^)];
-    //10
-    btString:                          aValues := aValues + [TValue.From<TbtString>(pTbtString(aValue^.dta)^)];
-    //11
-    btRecord:                          aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
-    //12
-    btArray:
-      begin
-         if Copy(aValue^.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
-           l_len := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
-           SetLength(arr, 0);
-           for i := 0 to l_len do begin
-             if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aValues2, aSelf) then begin
-               Result := False;
-               Exit;
+  Result := Assigned(aValue^.aType) and (IPointer(aValue^.aType) > $FFFF);
+  if Result then
+    case aValue^.aType.BaseType of
+      //1,2
+      btU8, btS8:                        aValues := aValues + [TValue.From<Byte>(PByte(aValue^.dta)^)];
+      //3,4
+      btU16, BtS16:                      aValues := aValues + [TValue.From<Word>(PWord(aValue^.dta)^)];
+      //5,6
+      btU32, btS32:                      aValues := aValues + [TValue.From<Cardinal>(PCardinal(aValue^.dta)^)];
+      //7
+      btSingle:                          aValues := aValues + [TValue.From<Single>(PSingle(aValue^.dta)^)];
+      //8
+      btDouble:                          aValues := aValues + [TValue.From<Double>(PDouble(aValue^.dta)^)];
+      //9
+      btExtended:                        aValues := aValues + [TValue.From<Extended>(PExtended(aValue^.dta)^)];
+      //10
+      btString:                          aValues := aValues + [TValue.From<TbtString>(pTbtString(aValue^.dta)^)];
+      //11
+      btRecord:                          aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+      //12
+      btArray:
+        begin
+           if Copy(aValue^.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
+             l_len := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
+             SetLength(arr, 0);
+             for i := 0 to l_len do begin
+               if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aValues2, aSelf) then begin
+                 Result := False;
+                 Exit;
+               end;
              end;
-           end;
-           aValues1 := aValues1 + arr;
-           arr_varrec := TValueArrayToArrayOfConst(arr);
-           aValues2 := aValues2 + arr_varrec;
-           //in case of openarray we should provide TWO params: first is pointer to array,
-           aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
-           //2nd - integer with arraylength - 1 (high)
-           aValues := aValues + [TValue.From<Integer>(l_len)];// = High of OpenArray
-         end
-         else //dynarray = just push pointer
-           aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
-      end;
-    //13
-    btPointer:                        aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
-    //14
-    btPChar:                          aValues := aValues + [TValue.From<tbtPChar>(PtbtPChar(aValue^.dta)^)];
-    //15
-    //btResourcePointer
-    //16
-    btVariant:                        aValues := aValues + [TValue.From(Variant(aValue^.dta^))];
-    {$IFNDEF PS_NOINT64}
-    //17
-    btS64:                            aValues := aValues + [TValue.From<Int64>(PInt64(aValue^.dta)^)];
-    {$ENDIF}
-    //18
-    btChar:                            aValues := aValues + [TValue.From<tbtchar>(ptbtchar(aValue^.dta)^)];
-    {$IFNDEF PS_NOWIDESTRING}
-    //19
-    btWideString:                      aValues := aValues + [TValue.From<tbtWideString>(ptbtWideString(aValue^.dta)^)];
-    //20
-    btWideChar:                        aValues := aValues + [TValue.From<tbtWideChar>(ptbtWideChar(aValue^.dta)^)];
-    {$ENDIF}
-    //21
-    btProcPtr:                         aValues := aValues + [TValue.From<TMethod>(MKMethod(aSelf, Longint(aValue^.dta^)))];
-    //22
-    btStaticArray:                     aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
-    //23
-    btSet:
-      begin
-        case TPSTypeRec_Set(aValue^.aType).aByteSize  of
-          1: aValues := aValues + [TValue.From<Byte>(pbyte(aValue^.dta)^)];
-          2: aValues := aValues + [TValue.From<Word>(pWord(aValue^.dta)^)];
-          3,
-          4: aValues := aValues + [TValue.From<Cardinal>(pCardinal(aValue^.dta)^)];
-        else
-          aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+             aValues1 := aValues1 + arr;
+             arr_varrec := TValueArrayToArrayOfConst(arr);
+             aValues2 := aValues2 + arr_varrec;
+             //in case of openarray we should provide TWO params: first is pointer to array,
+             aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
+             //2nd - integer with arraylength - 1 (high)
+             aValues := aValues + [TValue.From<Integer>(l_len)];// = High of OpenArray
+           end
+           else //dynarray = just push pointer
+             aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
         end;
-      end;
-    //24
-    btCurrency:                        aValues := aValues + [TValue.From<Currency>(PCurrency(aValue^.dta)^)];
-    //25
-    btClass:                           aValues := aValues + [TValue.From<TObject>(TObject(aValue^.dta^))];
-    //26
-    btInterface:                       aValues := aValues + [TValue.From<IInterface>(IInterface(aValue^.dta^))];
-    //27, the same as btVariant
-    btNotificationVariant:             aValues := aValues + [TValue.From(Variant(aValue^.dta^))];
-    {$IFNDEF PS_NOWIDESTRING}
-    //28
-    btUnicodestring:                   aValues := aValues + [TValue.From<tbtUnicodeString>(ptbtUnicodeString(aValue^.dta)^)];
-    {$ENDIF}
-    //131
-    //btExtClass
-    //129
-    //btEnum
-    //130
-    //btType
-  else
-    Result := False;
-  end;  { case }
+      //13
+      btPointer:                        aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+      //14
+      btPChar:                          aValues := aValues + [TValue.From<tbtPChar>(PtbtPChar(aValue^.dta)^)];
+      //15
+      //btResourcePointer
+      //16
+      btVariant:                        aValues := aValues + [TValue.From(Variant(aValue^.dta^))];
+      {$IFNDEF PS_NOINT64}
+      //17
+      btS64:                            aValues := aValues + [TValue.From<Int64>(PInt64(aValue^.dta)^)];
+      {$ENDIF}
+      //18
+      btChar:                            aValues := aValues + [TValue.From<tbtchar>(ptbtchar(aValue^.dta)^)];
+      {$IFNDEF PS_NOWIDESTRING}
+      //19
+      btWideString:                      aValues := aValues + [TValue.From<tbtWideString>(ptbtWideString(aValue^.dta)^)];
+      //20
+      btWideChar:                        aValues := aValues + [TValue.From<tbtWideChar>(ptbtWideChar(aValue^.dta)^)];
+      {$ENDIF}
+      //21
+      btProcPtr:                         aValues := aValues + [TValue.From<TMethod>(MKMethod(aSelf, Longint(aValue^.dta^)))];
+      //22
+      btStaticArray:                     aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+      //23
+      btSet:
+        begin
+          case TPSTypeRec_Set(aValue^.aType).aByteSize  of
+            1: aValues := aValues + [TValue.From<Byte>(pbyte(aValue^.dta)^)];
+            2: aValues := aValues + [TValue.From<Word>(pWord(aValue^.dta)^)];
+            3,
+            4: aValues := aValues + [TValue.From<Cardinal>(pCardinal(aValue^.dta)^)];
+          else
+            aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+          end;
+        end;
+      //24
+      btCurrency:                        aValues := aValues + [TValue.From<Currency>(PCurrency(aValue^.dta)^)];
+      //25
+      btClass:                           aValues := aValues + [TValue.From<TObject>(TObject(aValue^.dta^))];
+      //26
+      btInterface:                       aValues := aValues + [TValue.From<IInterface>(IInterface(aValue^.dta^))];
+      //27, the same as btVariant
+      btNotificationVariant:             aValues := aValues + [TValue.From(Variant(aValue^.dta^))];
+      {$IFNDEF PS_NOWIDESTRING}
+      //28
+      btUnicodestring:                   aValues := aValues + [TValue.From<tbtUnicodeString>(ptbtUnicodeString(aValue^.dta)^)];
+      {$ENDIF}
+      //131
+      //btExtClass
+      //129
+      //btEnum
+      //130
+      //btType
+    else
+      Result := False;
+    end;  { case }
 end;
 
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;

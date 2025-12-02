@@ -55,6 +55,13 @@ begin
     RegisterProperty('Visible', 'Boolean', iptRW);
     RegisterProperty('Enabled', 'Boolean', iptrw);
     RegisterProperty('Cursor', 'TCursor', iptrw);
+  
+    {$IFDEF DELPHI23UP}
+    RegisterProperty('StyleElements', 'TStyleElements', iptrw);
+    {$ENDIF}
+    {$IFDEF DELPHI26UP}
+    RegisterProperty('StyleName', 'string', iptrw);
+    {$ENDIF}
 
     {$IFNDEF PS_MINIVCL}
     RegisterMethod('function Dragging: Boolean;');
@@ -151,6 +158,11 @@ begin
   cl.AddTypeS('TEndDragEvent', 'procedure(Sender, Target: TObject; X, Y: Integer)');
 
   cl.addTypeS('TAlign', '(alNone, alTop, alBottom, alLeft, alRight, alClient)');
+
+  {$IFDEF DELPHI23UP}
+  cl.addTypeS('TStyleElement', '(seFont, seClient, seBorder)');
+  cl.addTypeS('TStyleElements', 'set of TStyleElement');
+  {$ENDIF}
 
   {$IFDEF DELPHI4UP}
   cl.addTypeS('TAnchorKind', '(akLeft, akTop, akRight, akBottom)');

@@ -1105,7 +1105,7 @@ function MakeWString(const s: tbtunicodestring): tbtstring;
 {$ENDIF}
 
 {$IFNDEF PS_NOIDISPATCH}
-function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
+function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: {$ifdef Win32}array of {$ifdef PS_USECLASSICINVOKE}Variant{$else}TValue{$endif}{$endif}{$ifdef Win64}TArray<{$ifdef PS_USECLASSICINVOKE}Variant{$else}TValue{$endif}>{$endif}): Variant;
 {$ENDIF}
 
 
@@ -13164,7 +13164,7 @@ var
 const
   LOCALE_SYSTEM_DEFAULT = 2 shl 10; // Delphi 2 doesn't define this
 
-function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
+function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: {$ifdef Win32}array of {$ifdef PS_USECLASSICINVOKE}Variant{$else}TValue{$endif}{$endif}{$ifdef Win64}TArray<{$ifdef PS_USECLASSICINVOKE}Variant{$else}TValue{$endif}>{$endif}): Variant;
 var
   Param: Word;
   i, ArgErr: Longint;
@@ -13210,16 +13210,16 @@ begin
     try
       for i := 0 to High(Par)  do
       begin
-        if PVarData(@Par[High(Par)-i]).VType = varString then
+        if (PVarData(PPSVariantIFC(@Par[High(Par)-i]).Dta).VType = varString) then
         begin
           DispParam.rgvarg[i].vt := VT_BSTR;
-          DispParam.rgvarg[i].bstrVal := StringToOleStr(AnsiString(Par[High(Par)-i]));
+          DispParam.rgvarg[i].bstrVal := StringToOleStr(Variant(PVarData(PPSVariantIFC(@Par[High(Par)-i]).Dta)^));
           WSFreeList.Add(DispParam.rgvarg[i].bstrVal);
         {$IFDEF UNICODE}
-        end else if (PVarData(@Par[High(Par)-i]).VType = varOleStr) or (PVarData(@Par[High(Par)-i]).VType = varUString) then
+        end else if (PVarData(PPSVariantIFC(@Par[High(Par)-i]).Dta).VType = varOleStr) or (PVarData(PPSVariantIFC(@Par[High(Par)-i]).Dta).VType = varUString) then
         begin
           DispParam.rgvarg[i].vt := VT_BSTR;
-          DispParam.rgvarg[i].bstrVal := StringToOleStr(UnicodeString(Par[High(Par)-i]));
+          DispParam.rgvarg[i].bstrVal := StringToOleStr(Variant(PVarData(PPSVariantIFC(@Par[High(Par)-i]).Dta)^));
           WSFreeList.Add(DispParam.rgvarg[i].bstrVal);
         {$ENDIF}
         end else

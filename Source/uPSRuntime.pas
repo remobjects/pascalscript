@@ -13240,7 +13240,7 @@ begin
           {$ENDIF}
            (DispParam.rgvarg[i].pvarVal)^ := Par[High(Par)-i];
           *)
-          Move(Par[High(Par)-i],Pointer(DispParam.rgvarg[i].pvarVal)^,
+          Move(PVarData(PPSVariantIFC(@Par[High(Par)-i]).Dta)^,Pointer(DispParam.rgvarg[i].pvarVal)^,
            Sizeof({$IFDEF DELPHI4UP}OleVariant{$ELSE}Variant{$ENDIF}));
 
         end;

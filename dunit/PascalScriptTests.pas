@@ -22,6 +22,7 @@ type
   published
     procedure Test_Format;
     procedure Test_CreateOleObject;
+    procedure Test_BadVariableType;
   end;
 
 implementation
@@ -103,6 +104,37 @@ begin
     function Execute: string;
     begin
       Result := Format('Print %s %d', ['Hello World', 123456]);
+    end;
+    ''')
+  );
+end;
+
+procedure TPascalScriptTests.Test_BadVariableType;
+begin
+  CheckNotEquals(
+    ''
+  , Execute<string>('''
+    function Execute: string;
+    var o, F, T: Variant;
+        R: string;
+    begin
+      o := CreateOleObject('Schedule.Service.1');
+      o.Connect;
+
+      F := o.GetFolder('\');
+      T := F.GetTasks(0);
+
+      R := T.Item[1].NextRunTime;
+      Result := R;
+
+      R := T.Item[1].Name;
+      Result := Result + #13#10 + R;
+
+      R := T.Item[1].NumberOfMissedRuns;
+      Result := Result + #13#10 + R;
+
+      R := T.Item[1].Enabled;
+      Result := Result + #13#10 + R;
     end;
     ''')
   );

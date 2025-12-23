@@ -7671,6 +7671,11 @@ begin
       Inc(FCurrentPosition);
         case Cmd of
           CM_A:
+              { Script internal command: Assign command<br>
+                  Command: TPSCommand;<br>
+                  VarDest, // no data<br>
+                  VarSrc: TPSVariable;<br>
+              }
             begin
               if not ReadVariable(vd, True) then
                 break;
@@ -7732,6 +7737,25 @@ begin
               end;
             end;
           CM_CA:
+            { Script internal command: Calculate Command<br>
+                Command: TPSCommand; <br>
+                CalcType: Byte;<br>
+                <i><br>
+                  0 = +<br>
+                  1 = -<br>
+                  2 = *<br>
+                  3 = /<br>
+                  4 = MOD<br>
+                  5 = SHL<br>
+                  6 = SHR<br>
+                  7 = AND<br>
+                  8 = OR<br>
+                  9 = XOR<br>
+                </i><br>
+                VarDest, // no data<br>
+                VarSrc: TPSVariable;<br>
+            <br>
+            }
             begin
               if FCurrentPosition >= FDataLength then
               begin
@@ -7791,6 +7815,10 @@ begin
               end;
             end;
           CM_P:
+                { Script internal command: Push<br>
+                    Command: TPSCommand; <br>
+                    Var: TPSVariable;<br>
+                }
             begin
               if not ReadVariable(vs, True) then
                 Break;
@@ -7830,6 +7858,10 @@ begin
               end;
             end;
           CM_PV:
+              { Script internal command: Push Var<br>
+                  Command: TPSCommand; <br>
+                  Var: TPSVariable;<br>
+              }
             begin
               if not ReadVariable(vs, True) then
                 Break;
@@ -7854,6 +7886,9 @@ begin
               end;
             end;
           CM_PO: begin
+              { Script internal command: Pop<br>
+                  Command: TPSCommand; <br>
+              }
               if FStack.Count = 0 then
               begin
                 CMD_Err(erOutOfStackRange);
@@ -7877,16 +7912,20 @@ begin
               if ((FStack.FCapacity - FStack.FLength) shr 12) > 2 then FStack.AdjustLength;*)
             end;
           Cm_C: begin
+              { Script internal command: Call<br>
+                  Command: TPSCommand; <br>
+                  ProcNo: Longword;<br>
+              }
               if FCurrentPosition + 3 >= FDataLength then
               begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
-	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+              {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
               p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
-	      {$else}
+              {$else}
               p := Cardinal((@FData^[FCurrentPosition])^);
-	      {$endif}
+              {$endif}
               Inc(FCurrentPosition, 4);
               if p >= FProcs.Count then begin
                 CMD_Err(erOutOfProcRange);
@@ -7957,6 +7996,10 @@ begin
               end;
             end;
           CM_PG:
+            { Script internal command: Pop and Goto<br>
+                Command: TPSCommand; <br>
+                NewPosition: Longint; //relative to end of this instruction<br>
+            }
             begin
               FStack.Pop;
               if FCurrentPosition + 3 >= FDataLength then
@@ -7973,6 +8016,10 @@ begin
               FCurrentPosition := FCurrentPosition + p;
             end;
           CM_P2G:
+            { Script internal command: Pop*2 and Goto<br>
+                Command: TPSCommand; <br>
+                NewPosition: Longint; //relative to end of this instruction<br>
+            }
             begin
               FStack.Pop;
               FStack.Pop;
@@ -7990,6 +8037,10 @@ begin
               FCurrentPosition := FCurrentPosition + p;
             end;
           Cm_G:
+            { Script internal command: Goto<br>
+                Command: TPSCommand; <br>
+                NewPosition: Longint; //relative to end of this instruction<br>
+            }
             begin
               if FCurrentPosition + 3 >= FDataLength then
               begin
@@ -8005,6 +8056,11 @@ begin
               FCurrentPosition := FCurrentPosition + p;
             end;
           Cm_CG:
+            { Script internal command: Conditional Goto<br>
+                Command: TPSCommand; <br>
+                NewPosition: LongWord; //relative to end of this instruction<br>
+                Var: TPSVariable; // no data<br>
+            }
             begin
               if FCurrentPosition + 3 >= FDataLength then
               begin
@@ -8040,6 +8096,11 @@ begin
                 FCurrentPosition := FCurrentPosition + p;
             end;
           Cm_CNG:
+            { Script internal command: Conditional NOT Goto<br>
+                Command: TPSCommand; <br>
+                NewPosition: LongWord; // relative to end of this instruction<br>
+                Var: TPSVariable; // no data<br>
+            }
             begin
               if FCurrentPosition + 3 >= FDataLength then
               begin
@@ -8075,6 +8136,9 @@ begin
                 FCurrentPosition := FCurrentPosition + p;
             end;
           Cm_R: begin
+              { Script internal command: Ret<br>
+                  Command: TPSCommand; <br>
+              }
               FExitPoint := FCurrentPosition -1;
               P2 := 0;
               if FExceptionStack.Count > 0 then
@@ -8138,6 +8202,10 @@ begin
               end;
             end;
           Cm_Pt: begin
+              { Script internal command: Push Type<br>
+                  Command: TPSCommand; <br>
+                  FType: LongWord;<br>
+              }
               if FCurrentPosition + 3 >= FDataLength then
               begin
                 Cmd_Err(erOutOfRange);
@@ -8157,6 +8225,10 @@ begin
               FStack.PushType(FTypes.Data^[p]);
             end;
           cm_bn:
+            { Script internal command: Boolean NOT<br>
+                Command: TPSCommand; <br>
+                Var: TPSVariable;<br>
+            }
             begin
               if not ReadVariable(vd, True) then
                 Break;
@@ -8166,6 +8238,10 @@ begin
                 break;
             end;
           cm_in:
+            { Script internal command: Integer NOT<br>
+                Command: TPSCommand; <br>
+                Where: Cardinal;<br>
+            }
             begin
               if not ReadVariable(vd, True) then
                 Break;
@@ -8175,6 +8251,10 @@ begin
                 break;
             end;
           cm_vm:
+            { Script internal command: Var Minus<br>
+                Command: TPSCommand; <br>
+                Var: TPSVariable;
+            }
             begin
               if not ReadVariable(vd, True) then
                 Break;
@@ -8184,6 +8264,11 @@ begin
                 break;
             end;
           cm_sf:
+            { Script internal command: Set Flag<br>
+                Command: TPSCommand; <br>
+                Var: TPSVariable;<br>
+                DoNot: Boolean;<br>
+            }
             begin
               if not ReadVariable(vd, True) then
                 Break;
@@ -8216,6 +8301,10 @@ begin
                 FTempVars.Pop;
             end;
           cm_fg:
+            { Script internal command: Flag Goto<br>
+                Command: TPSCommand; <br>
+                Where: Cardinal;<br>
+            }
             begin
               if FCurrentPosition + 3 >= FDataLength then
               begin
@@ -8232,6 +8321,15 @@ begin
                 FCurrentPosition := FCurrentPosition + p;
             end;
           cm_puexh:
+              { Script internal command: Pop Exception Handler<br>
+                  Command:TPSCommand; <br>
+                  Position: Byte;<br>
+                  <i> 0 = end of try/finally/exception block;<br>
+                    1 = end of first finally<br>
+                    2 = end of except<br>
+                    3 = end of second finally<br>
+                  </i><br>
+              }
             begin
               pp := TPSExceptionHandler.Create;
               pp.CurrProc := FCurrProc;
@@ -8277,6 +8375,15 @@ begin
                 FExceptionStack.Add(pp);
             end;
           cm_poexh:
+            { Script internal command: Pop Exception Handler<br>
+                Command:TPSCommand; <br>
+                Position: Byte;<br>
+                <i> 0 = end of try/finally/exception block;<br>
+                  1 = end of first finally<br>
+                  2 = end of except<br>
+                  3 = end of second finally<br>
+                </i><br>
+            }
             begin
               if FCurrentPosition >= FDataLength then
               begin
@@ -8412,6 +8519,10 @@ begin
               end;
             end;
           cm_spc:
+            {Script internal command: Set Stack Pointer To Copy<br>
+                Command: TPSCommand; <br>
+              Where: Cardinal;<br>
+            }
             begin
               if not ReadVariable(vd, False) then
                 Break;
@@ -8466,8 +8577,13 @@ begin
                 FTempVars.Pop;
 
             end;
-          cm_nop:;
+          cm_nop:  {Script internal command: nop<br>
+                      Command: TPSCommand; <br>};
           cm_dec:
+            {Script internal command: Dec<br>
+                Command: TPSCommand; <br>
+              Var: TPSVariable;<br>
+            }
             begin
               if not ReadVariable(vd, True) then
                 Break;
@@ -8495,6 +8611,10 @@ begin
               end;
             end;
           cm_inc:
+            {Script internal command: Inc<br>
+              Command: TPSCommand; <br>
+              Var: TPSVariable;<br>
+            }
             begin
               if not ReadVariable(vd, True) then
                 Break;
@@ -8522,6 +8642,11 @@ begin
               end;
             end;
           cm_sp:
+            { Script internal command: Set Pointer<br>
+                Command: TPSCommand; <br>
+                VarDest: TPSVariable;<br>
+                VarSrc: TPSVariable;<br>
+            }
             begin
               if not ReadVariable(vd, False) then
                 Break;
@@ -8556,6 +8681,10 @@ begin
               end;
             end;
           Cm_cv:
+            { Script internal command: Call Var<br>
+                Command: TPSCommand; <br>
+                Var: TPSVariable;<br>
+            }
             begin
               if not ReadVariable(vd, True) then
                 Break;
@@ -8640,6 +8769,20 @@ begin
               end;
             end;
           CM_CO:
+            { Script internal command: Compare<br>
+                Command: TPSCommand; <br>
+                CompareType: Byte;<br>
+                <i><br>
+                 0 = &gt;=<br>
+                 1 = &lt;=<br>
+                 2 = &gt;<br>
+                 3 = &lt;<br>
+                 4 = &lt;&gt<br>
+                 5 = =<br>
+                <i><br>
+                IntoVar: TPSAssignment;<br>
+                Compare1, Compare2: TPSAssigment;<br>
+            }
             begin
               if FCurrentPosition >= FDataLength then
               begin
@@ -10653,7 +10796,7 @@ begin
         btExtended: SetFloatProp(TObject(FSelf), p.Ext1, tbtextended(n.Dta^));
         btString: SetStrProp(TObject(FSelf), p.Ext1, string(tbtString(n.Dta^)));
         btPChar: SetStrProp(TObject(FSelf), p.Ext1, string(pansichar(n.Dta^)));
-        btClass: SetOrdProp(TObject(FSelf), P.Ext1, Longint(n.Dta^));
+        btClass: SetOrdProp(TObject(FSelf), P.Ext1, IPointer(n.Dta^));
 	  {$IFDEF DELPHI6UP}
 {$IFNDEF PS_NOWIDESTRING}
 {$IFNDEF DELPHI2009UP}btUnicodeString,{$ENDIF}
@@ -10712,7 +10855,7 @@ begin
         btDouble: tbtdouble(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);
         btExtended: tbtextended(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);
         btString: tbtString(n.Dta^) := tbtString(GetStrProp(TObject(FSelf), p.Ext1));
-        btClass: Longint(n.dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
+        btClass: IPointer(n.dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
 	  {$IFDEF DELPHI6UP}
 {$IFNDEF PS_NOWIDESTRING}
         {$IFDEF DELPHI2009UP}
@@ -11786,10 +11929,6 @@ begin
             PPSVariantPointer(tmp).DataDest := Pointer(_ECX);
             inc(regno);
           end;
-(*        else begin
-            PPSVariantPointer(tmp).DataDest := Pointer(FStack^);
-            FStack := Pointer(IPointer(FStack) + 4);
-          end;*)
       end;
     end
     else if SupportsRegister(cpt) and (RegNo < 2) then
@@ -11805,17 +11944,7 @@ begin
             CopyArrayContents(@PPSVariantData(tmp)^.Data, @_ECX, 1, cpt);
             inc(regno);
           end;
-(*        else begin
-            CopyArrayContents(@PPSVariantData(tmp)^.Data, Pointer(FStack), 1, cpt);
-            FStack := Pointer(IPointer(FStack) + 4);
-          end;*)
       end;
-(*    end else
-    begin
-      tmp := CreateHeapVariant(cpt);
-      Params[i] := tmp;
-      CopyArrayContents(@PPSVariantData(tmp)^.Data, Pointer(FStack), 1, cpt);
-      FStack := Pointer(IPointer(FStack) + cpt.RealSize + 3 and not 3);*)
     end;
   end;
   s := decl;
@@ -11918,8 +12047,7 @@ begin
 {$IFNDEF PS_NOINT64}
         if res^.FType.BaseType <> btS64 then
 {$ENDIF}
-          //CopyArrayContents(Pointer(Longint(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
-          CopyArrayContents(Pointer(Longint(Stack)-Longint(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
+          CopyArrayContents(Pointer(IPointer(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
       end;
     end;
     DestroyHeapVariant(res);

@@ -6783,7 +6783,9 @@ begin
             begin
               if Param >= Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Array index out of bounds (%d). Length is %d.',
+                                [Param, Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType))])));
                 Result := False;
                 exit;
               end;
@@ -6794,7 +6796,9 @@ begin
             begin
               if Param >= Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Static array index out of bounds (%d). Length is %d.',
+                                [Param, Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size)])));
                 Result := False;
                 exit;
               end;
@@ -6935,7 +6939,9 @@ begin
             begin
               if Cardinal(Param) >= Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType)) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Array index out of bounds (%d). Length is %d.',
+                                [Param, Cardinal(PSDynArrayGetLength(Pointer(Dest.P^), dest.aType))])));
                 Result := False;
                 exit;
               end;
@@ -6946,7 +6952,9 @@ begin
             begin
               if Param >= Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size) then
               begin
-                CMD_Err(erOutOfRange);
+                CMD_Err2(erCustomError,
+                         tbtstring(Format('Static array index out of bounds (%d). Length is %d.',
+                                [Param, Cardinal(TPSTypeRec_StaticArray(Dest.aType).Size)])));
                 Result := False;
                 exit;
               end;

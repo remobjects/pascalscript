@@ -11765,23 +11765,44 @@ end;
 {$else}
 
 
+{$IFNDEF CPU64}
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
-
+{$ELSE}
+function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer): Integer; forward;
+{$ENDIF}
 procedure MyAllMethodsHandler;
-{$ifdef CPUX64}
+{$ifdef CPU64}
 //  On entry:
 //  RCX = Self pointer
-//  RDX, R8, R9 = param1 .. param3
-//  STACK = param4... paramcount
+//  - function:
+//    * RDX - result
+//    * R8, R9 = param1 .. param2
+//    * STACK = param3... paramcount
+//  - procedure
+//    * RDX, R8, R9 - param1 - param3
+//    * STACK = param4... paramcount
 asm
-  PUSH  R9
-  MOV   R9,R8     // R9:=_ECX
-  MOV   R8,RDX    // R8:=_EDX
-  MOV   RDX, RSP  // RDX:=Stack
-  SUB   RSP, 20h
-  CALL MyAllMethodsHandler2
+  PUSH RBP
+  MOVQ RAX, XMM3
+  PUSH RAX
+  MOVQ RAX, XMM2
+  PUSH RAX
+  MOVQ RAX, XMM1
+  PUSH RAX
+  MOV RAX, RSP
+  ADD RAX, 20h+28h   //48h
+  PUSH RAX  // stack
+  // R9 - 3rd param
+  // R8 - 2nd param
+  // Rdx -1st param
+  // Rcx - Self
+  SUB RSP, 20h
+  CALL MyAllMethodsHandler3
   ADD   RSP, 20h  //Restore stack
-  POP   R9
+  ADD   RSP, 40h
+  POP RAX
+  SUB RSP, 40h
+  ADD RSP, 4*8
 end;
 {$else}
 //  On entry:
@@ -11802,7 +11823,7 @@ asm
   mov [esp], edx
   mov eax, ecx
 end;
-{$endif}
+{$endif empty_methods_handler}
 
 function ResultAsRegister(b: TPSTypeRec): Boolean;
 begin
@@ -11861,6 +11882,10 @@ begin
     btEnum: Result := true;
     btSet: Result := b.RealSize <= PointerSize;
     btStaticArray: Result := b.RealSize <= PointerSize;
+{$IFDEF CPU64}
+    btSingle,
+    btDouble: Result := True;
+{$ENDIF}
   else
     Result := false;
   end;
@@ -11878,15 +11903,192 @@ begin
   end;
 end;
 
-
 procedure PutOnFPUStackExtended(ft: extended);
 asm
 //  fstp tbyte ptr [ft]
   fld tbyte ptr [ft]
 
 end;
+{$IFDEF CPU64}
+function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer): Integer;
+var
+  Decl: tbtString;
+  I, C, regno: Integer;
+  Params: TPSList;
+  Res, Tmp: PIFVariant;
+  cpt: PIFTypeRec;
+  fmod: tbtchar;
+  s,e: tbtString;
+  FStack: pointer;
+  ex: TPSExceptionHandler;
+begin
+  Decl := TPSInternalProcRec(Self^.Se.FProcs[Self^.ProcNo]).ExportDecl;
+
+  FStack := Stack;
+  Params := TPSList.Create;
+  s := decl;
+  grfw(s);
+  while s <> '' do begin
+    Params.Add(nil);
+    grfw(s);
+  end;
+  c := Params.Count;
+  regno := 0;
+  Result := 0;
+
+  s := decl;
+  e := grfw(s);
+
+  if e <> '-1' then begin
+    cpt := Self.Se.GetTypeNo(StrToInt(e));
+    if not ResultAsRegister(cpt) then begin
+      Res := CreateHeapVariant(Self.Se.FindType2(btPointer));
+      PPSVariantPointer(Res).DestType := cpt;
+      Params.Add(Res);
+      PPSVariantPointer(Res).DataDest := Pointer(_RDX);
+      inc(regno);
+    end
+    else begin
+      Res := CreateHeapVariant(cpt);
+      Params.Add(Res);
+    end;
+  end
+  else
+    Res := nil;
 
 
+  s := decl;
+  grfw(s);
+
+  for i := c-1 downto 0 do
+  begin
+    e := grfw(s);
+    fmod := e[1];
+    delete(e, 1, 1);
+    cpt := Self.Se.GetTypeNo(StrToInt(e));
+    if ((fmod = '%') or (fmod = '!') or (AlwaysAsVariable(cpt))) and (RegNo < 3) then
+    begin
+      tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
+      PPSVariantPointer(tmp).DestType := cpt;
+      Params[i] := tmp;
+      case regno of
+        0: begin
+            PPSVariantPointer(tmp).DataDest := Pointer(_RDX);
+            inc(regno);
+          end;
+        1: begin
+            PPSVariantPointer(tmp).DataDest := Pointer(_R8);
+            inc(regno);
+          end;
+        2: begin
+            PPSVariantPointer(tmp).DataDest := Pointer(_R9);
+            inc(regno);
+          end;
+      end;
+    end
+    else if SupportsRegister(cpt) and (RegNo < 3) then
+    begin
+      tmp := CreateHeapVariant(cpt);
+      Params[i] := tmp;
+      case regno of
+        0: begin
+            if cpt.BaseType in [btSingle, btDouble] then
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM1, 1, cpt)
+            else
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_RDX, 1, cpt);
+            inc(regno);
+          end;
+        1: begin
+            if cpt.BaseType in [btSingle, btDouble] then
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM2, 1, cpt)
+            else
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R8, 1, cpt);
+            inc(regno);
+          end;
+        2: begin
+            if cpt.BaseType in [btSingle, btDouble] then
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM3, 1, cpt)
+            else
+              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R9, 1, cpt);
+            inc(regno);
+          end;
+      end;
+    end;
+  end;
+
+  s := decl;
+  grfw(s);
+  for i := c-1 downto 0 do begin
+    e := grfw(s);
+    fmod := e[1];
+    delete(e, 1, 1);
+    if Params[i] <> nil then Continue;
+    cpt := Self.Se.GetTypeNo(StrToInt(e));
+    if (fmod = '%') or (fmod = '!') or (AlwaysAsVariable(cpt)) then begin
+      tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
+      PPSVariantPointer(tmp).DestType := cpt;
+      Params[i] := tmp;
+      PPSVariantPointer(tmp).DataDest := Pointer(FStack^);
+      FStack := Pointer(IPointer(FStack) + PointerSize);
+      Inc(Result, PointerSize);
+    end
+    else begin
+      tmp := CreateHeapVariant(cpt);
+      Params[i] := tmp;
+      CopyArrayContents(@PPSVariantData(tmp)^.Data, Pointer(FStack), 1, cpt);
+      FStack := Pointer((IPointer(FStack) + cpt.RealSize + 3) and not 3);
+      Inc(Result, (cpt.RealSize + 3) and not 3);
+    end;
+  end;
+  ex := TPSExceptionHandler.Create;
+  ex.FinallyOffset := InvalidVal;
+  ex.ExceptOffset := InvalidVal;
+  ex.Finally2Offset := InvalidVal;
+  ex.EndOfBlock := InvalidVal;
+  ex.CurrProc := nil;
+  ex.BasePtr := Self.Se.FCurrStackBase;
+  Ex.StackSize := Self.Se.FStack.Count;
+  i :=  Self.Se.FExceptionStack.Add(ex);
+  Self.Se.RunProc(Params, Self.ProcNo);
+  if Self.Se.FExceptionStack[i] = ex then begin
+    Self.Se.FExceptionStack.Remove(ex);
+    ex.Free;
+  end;
+
+  if (Res <> nil) then begin
+    Params.DeleteLast;
+    if (ResultAsRegister(Res.FType)) then begin
+      if (res^.FType.BaseType = btSingle) or (res^.FType.BaseType = btDouble) or
+      (res^.FType.BaseType = btCurrency) or (res^.Ftype.BaseType = btExtended) then begin
+        case Res^.FType.BaseType of
+          btSingle: PutOnFPUStackExtended(PPSVariantSingle(res).Data);
+          btDouble: PutOnFPUStackExtended(PPSVariantDouble(res).Data);
+          btExtended: PutOnFPUStackExtended(PPSVariantExtended(res).Data);
+          btCurrency: PutOnFPUStackExtended(PPSVariantCurrency(res).Data);
+        end;
+        DestroyHeapVariant(Res);
+        Res := nil;
+      end
+      else begin
+        CopyArrayContents(Pointer(IPointer(Stack)-IPointer(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
+      end;
+    end;
+    DestroyHeapVariant(res);
+  end;
+  for i := 0 to Params.Count - 1 do
+    DestroyHeapVariant(Params[i]);
+  Params.Free;
+  if Self.Se.ExEx <> erNoError then begin
+    if Self.Se.ExObject <> nil then begin
+      FStack := Self.Se.ExObject;
+      Self.Se.ExObject := nil;
+      raise TObject(FStack);
+    end
+    else
+      raise EPSException.Create(PSErrorToString(Self.SE.ExceptionCode, Self.Se.ExceptionString), Self.Se, Self.Se.ExProc, Self.Se.ExPos);
+  end;
+end;
+{$ELSE}
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer;
 var
   Decl: tbtString;
@@ -11967,16 +12169,12 @@ begin
       PPSVariantPointer(Res).DestType := cpt;
       Params.Add(Res);
       case regno of
-        0: begin
-            PPSVariantPointer(Res).DataDest := Pointer(_EDX);
-          end;
-        1: begin
-            PPSVariantPointer(Res).DataDest := Pointer(_ECX);
-          end;
-        else begin
-            PPSVariantPointer(Res).DataDest := Pointer(FStack^);
-            Inc(Result, PointerSize);
-          end;
+        0: PPSVariantPointer(Res).DataDest := Pointer(_EDX);
+        1: PPSVariantPointer(Res).DataDest := Pointer(_ECX);
+      else
+        PPSVariantPointer(Res).DataDest := Pointer(FStack^);
+        Inc(Result, PointerSize);
+        FStack := Pointer(IPointer(FStack) + PointerSize);
       end;
     end else
     begin
@@ -12074,6 +12272,7 @@ begin
       raise EPSException.Create(PSErrorToString(Self.SE.ExceptionCode, Self.Se.ExceptionString), Self.Se, Self.Se.ExProc, Self.Se.ExPos);
   end;
 end;
+{$ENDIF}
 {$endif}
 function TPSRuntimeClassImporter.FindClass(const Name: tbtString): TPSRuntimeClass;
 var

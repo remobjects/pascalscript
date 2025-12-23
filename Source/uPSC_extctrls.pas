@@ -333,7 +333,6 @@ begin
     RegisterProperty('Alignment', 'TAlignment', iptrw); //actual type: taLeftJustify..taRightJustify
     RegisterProperty('AutoSize', 'Boolean', iptrw);
     RegisterProperty('UseVisualStyle', 'Boolean', iptrw);
-    RegisterProperty('OnLinkClick', 'TSysLinkEvent', iptrw);  
   end;
 end;
 
@@ -347,6 +346,7 @@ begin
     RegisterProperty('Font', 'TFont', iptrw);
     RegisterProperty('ParentColor', 'Boolean', iptrw);
     RegisterProperty('ParentFont', 'Boolean', iptrw);
+    RegisterProperty('OnLinkClick', 'TSysLinkEvent', iptrw);  
 
     {$IFNDEF PS_MINIVCL}
     RegisterProperty('DragCursor', 'LongInt', iptrw);

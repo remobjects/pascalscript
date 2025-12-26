@@ -225,7 +225,7 @@ type
   TWinControl_PSHelper = class helper for TWinControl
   public
     {$IFNDEF CLX}
-    procedure HandleR(var T: Longint);
+    procedure HandleR(var T: HWND);
     {$ENDIF}
     procedure ShowingR(var T: Boolean);
     procedure TabOrderR(var T: Longint);
@@ -238,7 +238,7 @@ type
   end;
 
 {$IFNDEF CLX}
-procedure TWinControl_PSHelper.HandleR(var T: Longint); begin T := Self.Handle; end;
+procedure TWinControl_PSHelper.HandleR(var T: HWND); begin T := Self.Handle; end;
 {$ENDIF}
 procedure TWinControl_PSHelper.ShowingR(var T: Boolean); begin T := Self.Showing; end;
 
@@ -291,7 +291,7 @@ end;
 
 {$ELSE}
 {$IFNDEF CLX}
-procedure TWinControlHandleR(Self: TWinControl; var T: Longint); begin T := Self.Handle; end;
+procedure TWinControlHandleR(Self: TWinControl; var T: HWND); begin T := Self.Handle; end;
 {$ENDIF}
 procedure TWinControlShowingR(Self: TWinControl; var T: Boolean); begin T := Self.Showing; end;
 

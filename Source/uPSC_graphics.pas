@@ -47,7 +47,7 @@ begin
   begin
     RegisterMethod('constructor Create;');
 {$IFNDEF CLX}
-    RegisterProperty('Handle', 'Integer', iptRW);
+    RegisterProperty('Handle', 'HFONT', iptRW);
 {$ENDIF}
     RegisterProperty('Color', 'TColor', iptRW);
     RegisterProperty('Height', 'Integer', iptRW);
@@ -81,7 +81,7 @@ begin
     RegisterMethod('procedure TextOut(X, Y: Integer; Text: string);');
     RegisterMethod('function TextWidth(Text: string): Integer;');
 {$IFNDEF CLX}
-    RegisterProperty('Handle', 'Integer', iptRw);
+    RegisterProperty('Handle', 'HDC', iptRw);
 {$ENDIF}
     RegisterProperty('Pixels', 'Integer Integer Integer', iptRW);
     RegisterProperty('Brush', 'TBrush', iptR);
@@ -205,8 +205,14 @@ begin
   cl.addTypeS('TColor', 'Integer');
 
 {$IFNDEF CLX}
-  cl.addTypeS('HBITMAP', 'Integer');
-  cl.addTypeS('HPALETTE', 'Integer');
+  if cl.FindType('HBITMAP') = nil then
+    cl.AddTypeS('HBITMAP', 'NativeUInt');
+  if cl.FindType('HPALETTE') = nil then
+    cl.AddTypeS('HPALETTE', 'NativeUInt');
+  if cl.FindType('HFONT') = nil then
+    cl.AddTypeS('HFONT', 'NativeUInt');
+  if cl.FindType('HDC') = nil then
+    cl.AddTypeS('HDC', 'NativeUInt');
 {$ENDIF}
 end;
 

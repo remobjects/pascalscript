@@ -146,7 +146,7 @@ begin
     RegisterMethod('procedure SendCancelMode(Sender: TControl)');
     RegisterProperty('ActiveOleControl', 'TWinControl', iptrw);
     RegisterProperty('OleFormObject', 'TOLEFormObject', iptrw);
-    RegisterProperty('ClientHandle', 'LongInt', iptr);
+    RegisterProperty('ClientHandle', 'HWND', iptr);
     RegisterProperty('TileMode', 'TTileMode', iptrw);
     {$ENDIF}
     RegisterMethod('procedure Cascade');
@@ -189,12 +189,12 @@ begin
   begin
     RegisterMethod('procedure BringToFront');
 {$IFDEF PS_PANSICHAR}
-    RegisterMethod('function MessageBox(Text,Caption: PAnsiChar; Flags: Word): Integer');
+    RegisterMethod('function MessageBox(Text,Caption: PAnsiChar; Flags: Longint): Integer');
 {$ELSE}
 {$IFDEF UNICODE}
-    RegisterMethod('function MessageBox(Text,Caption: string; Flags: Word): Integer');
+    RegisterMethod('function MessageBox(Text,Caption: string; Flags: Longint): Integer');
   {$ELSE}
-    RegisterMethod('function MessageBox(Text,Caption: PChar; Flags: Word): Integer');
+    RegisterMethod('function MessageBox(Text,Caption: PChar; Flags: Longint): Integer');
   {$ENDIF}
 {$ENDIF}
     RegisterMethod('procedure Minimize');
@@ -204,7 +204,7 @@ begin
     RegisterProperty('Active', 'Boolean', iptr);
     RegisterProperty('ExeName', 'NativeString', iptr);
     {$IFNDEF CLX}
-    RegisterProperty('Handle', 'LongInt', iptrw);
+    RegisterProperty('Handle', 'HWND', iptrw);
     RegisterProperty('UpdateFormatSettings', 'Boolean', iptrw);
     {$ENDIF}
     RegisterProperty('Hint', 'NativeString', iptrw);
@@ -233,10 +233,10 @@ begin
     RegisterMethod('procedure Run');
 //    RegisterMethod('procedure ShowException(E: Exception)');
     {$IFNDEF CLX}
-    RegisterMethod('function HelpCommand(Command: Integer; Data: LongInt): Boolean');
+    RegisterMethod('function HelpCommand(Command: Integer; Data: NativeInt): Boolean');
     RegisterMethod('function HelpContext(Context: THelpContext): Boolean');
     RegisterMethod('function HelpJump(JumpID: NativeString): Boolean');
-    RegisterProperty('DialogHandle', 'LongInt', iptrw);
+    RegisterProperty('DialogHandle', 'HWND', iptrw);
     RegisterMethod('procedure CreateHandle');
 //    RegisterMethod('procedure HookMainWindow(Hook: TWindowHook)');
 //    RegisterMethod('procedure UnhookMainWindow(Hook: TWindowHook)');

@@ -16,7 +16,7 @@ procedure RIRegister_Forms(Cl: TPSRuntimeClassImporter);
 
 implementation
 uses
-  sysutils, classes, {$IFDEF CLX}QControls, QForms, QGraphics{$ELSE}Controls, Forms, Graphics{$ENDIF};
+  sysutils, classes, {$IFDEF CLX}QControls, QForms, QGraphics{$ELSE}Windows, Controls, Forms, Graphics{$ENDIF};
 
 {$IFDEF DELPHI10UP}{$REGION 'TControlScrollBar'}{$ENDIF}
 {$IFDEF class_helper_present}
@@ -98,7 +98,7 @@ type
     procedure ACTIVE_R(var T: BOOLEAN);
     procedure CANVAS_R(var T: TCANVAS);
     {$IFNDEF CLX}
-    procedure CLIENTHANDLE_R(var T: Longint);
+    procedure CLIENTHANDLE_R(var T: HWND);
     {$ENDIF}
   end;
 
@@ -123,7 +123,7 @@ procedure TForm_PSHelper.MODALRESULT_R(var T: TMODALRESULT); begin T := Self.MOD
 procedure TForm_PSHelper.ACTIVE_R(var T: BOOLEAN); begin T := Self.ACTIVE; end;
 procedure TForm_PSHelper.CANVAS_R(var T: TCANVAS); begin T := Self.CANVAS; end;
 {$IFNDEF CLX}
-procedure TForm_PSHelper.CLIENTHANDLE_R(var T: Longint); begin T := Self.CLIENTHANDLE; end;
+procedure TForm_PSHelper.CLIENTHANDLE_R(var T: HWND); begin T := Self.CLIENTHANDLE; end;
 {$ENDIF}
 
 { Innerfuse Pascal Script Class Import Utility (runtime) }
@@ -196,7 +196,7 @@ procedure TFORMMODALRESULT_R(Self: TFORM; var T: TMODALRESULT); begin T := Self.
 procedure TFORMACTIVE_R(Self: TFORM; var T: BOOLEAN); begin T := Self.ACTIVE; end;
 procedure TFORMCANVAS_R(Self: TFORM; var T: TCANVAS); begin T := Self.CANVAS; end;
 {$IFNDEF CLX}
-procedure TFORMCLIENTHANDLE_R(Self: TFORM; var T: Longint); begin T := Self.CLIENTHANDLE; end;
+procedure TFORMCLIENTHANDLE_R(Self: TFORM; var T: HWND); begin T := Self.CLIENTHANDLE; end;
 {$ENDIF}
 
 { Innerfuse Pascal Script Class Import Utility (runtime) }
@@ -262,10 +262,10 @@ type
     {$IFNDEF FPC}
     procedure ACTIVE_R(var T: BOOLEAN);
     {$IFNDEF CLX}
-    procedure DIALOGHANDLE_R(var T: Longint);
-    procedure DIALOGHANDLE_W(T: Longint);
-    procedure HANDLE_R(var T: Longint);
-    procedure HANDLE_W(T: Longint);
+    procedure DIALOGHANDLE_R(var T: HWND);
+    procedure DIALOGHANDLE_W(T: HWND);
+    procedure HANDLE_R(var T: HWND);
+    procedure HANDLE_W(T: HWND);
     procedure UPDATEFORMATSETTINGS_R(var T: BOOLEAN);
     procedure UPDATEFORMATSETTINGS_W(T: BOOLEAN);
     {$ENDIF}
@@ -320,10 +320,10 @@ type
 {$IFNDEF FPC}
 procedure TApplication_PSHelper.ACTIVE_R(var T: BOOLEAN); begin T := Self.ACTIVE; end;
 {$IFNDEF CLX}
-procedure TApplication_PSHelper.DIALOGHANDLE_R(var T: Longint); begin T := Self.DIALOGHANDLE; end;
-procedure TApplication_PSHelper.DIALOGHANDLE_W(T: Longint); begin Self.DIALOGHANDLE := T; end;
-procedure TApplication_PSHelper.HANDLE_R(var T: Longint); begin T := Self.HANDLE; end;
-procedure TApplication_PSHelper.HANDLE_W(T: Longint); begin Self.HANDLE := T; end;
+procedure TApplication_PSHelper.DIALOGHANDLE_R(var T: HWND); begin T := Self.DIALOGHANDLE; end;
+procedure TApplication_PSHelper.DIALOGHANDLE_W(T: HWND); begin Self.DIALOGHANDLE := T; end;
+procedure TApplication_PSHelper.HANDLE_R(var T: HWND); begin T := Self.HANDLE; end;
+procedure TApplication_PSHelper.HANDLE_W(T: HWND); begin Self.HANDLE := T; end;
 procedure TApplication_PSHelper.UPDATEFORMATSETTINGS_R(var T: BOOLEAN); begin T := Self.UPDATEFORMATSETTINGS; end;
 procedure TApplication_PSHelper.UPDATEFORMATSETTINGS_W(T: BOOLEAN); begin Self.UPDATEFORMATSETTINGS := T; end;
 {$ENDIF}
@@ -444,10 +444,10 @@ end;
 {$IFNDEF FPC}
 procedure TAPPLICATIONACTIVE_R(Self: TApplication; var T: BOOLEAN); begin T := Self.ACTIVE; end;
 {$IFNDEF CLX}
-procedure TAPPLICATIONDIALOGHANDLE_R(Self: TAPPLICATION; var T: Longint); begin T := Self.DIALOGHANDLE; end;
-procedure TAPPLICATIONDIALOGHANDLE_W(Self: TAPPLICATION; T: Longint); begin Self.DIALOGHANDLE := T; end;
-procedure TAPPLICATIONHANDLE_R(Self: TAPPLICATION; var T: Longint); begin T := Self.HANDLE; end;
-procedure TAPPLICATIONHANDLE_W(Self: TAPPLICATION; T: Longint); begin Self.HANDLE := T; end;
+procedure TAPPLICATIONDIALOGHANDLE_R(Self: TAPPLICATION; var T: HWND); begin T := Self.DIALOGHANDLE; end;
+procedure TAPPLICATIONDIALOGHANDLE_W(Self: TAPPLICATION; T: HWND); begin Self.DIALOGHANDLE := T; end;
+procedure TAPPLICATIONHANDLE_R(Self: TAPPLICATION; var T: HWND); begin T := Self.HANDLE; end;
+procedure TAPPLICATIONHANDLE_W(Self: TAPPLICATION; T: HWND); begin Self.HANDLE := T; end;
 procedure TAPPLICATIONUPDATEFORMATSETTINGS_R(Self: TAPPLICATION; var T: BOOLEAN); begin T := Self.UPDATEFORMATSETTINGS; end;
 procedure TAPPLICATIONUPDATEFORMATSETTINGS_W(Self: TAPPLICATION; T: BOOLEAN); begin Self.UPDATEFORMATSETTINGS := T; end;
 {$ENDIF}

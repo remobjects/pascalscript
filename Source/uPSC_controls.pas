@@ -73,7 +73,7 @@ begin
     RegisterMethod('function GetTextBuf(Buffer: PChar; BufSize: Integer): Integer');
     RegisterMethod('function GetTextLen: Integer');
     RegisterMethod('procedure SetTextBuf(Buffer: PChar)');
-    RegisterMethod('function Perform(Msg: Cardinal; WPARAM,LPARAM: LongInt): LongInt');
+    RegisterMethod('function Perform(Msg: Cardinal; WParam: NativeUInt; LParam: NativeInt): NativeInt');
     {$ENDIF}
     RegisterMethod('function ScreenToClient(Point: TPoint): TPoint');
     {$ENDIF}
@@ -91,7 +91,7 @@ begin
     end;
 
     {$IFNDEF CLX}
-    RegisterProperty('Handle', 'LongInt', iptR);
+    RegisterProperty('Handle', 'HWND', iptR);
     {$ENDIF}
     RegisterProperty('Showing', 'Boolean', iptR);
     RegisterProperty('TabOrder', 'Integer', iptRW);
@@ -112,7 +112,7 @@ begin
     RegisterMethod('procedure ScrollBy(DeltaX, DeltaY: Integer);');
     RegisterMethod('procedure SetFocus; virtual;');
     {$IFNDEF CLX}
-    RegisterMethod('procedure PaintTo(DC: LongInt; X,Y: Integer)');
+    RegisterMethod('procedure PaintTo(DC: HDC; X,Y: Integer)');
     {$ENDIF}
 
     RegisterMethod('function ContainsControl(Control: TControl): Boolean');
@@ -153,7 +153,10 @@ begin
   cl.AddTypeS('TKeyPressEvent', 'procedure(Sender: TObject; var Key: Char);');
   cl.AddTypeS('TDragOverEvent', 'procedure(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean)');
   cl.AddTypeS('TDragDropEvent', 'procedure(Sender, Source: TObject; X, Y: Integer)');
-  cl.AddTypeS('HWND', 'LongInt');
+  if cl.FindType('HWND') = nil then
+    cl.AddTypeS('HWND', 'NativeUInt');
+  if cl.FindType('HDC') = nil then
+    cl.AddTypeS('HDC', 'NativeUInt');
 
   cl.AddTypeS('TEndDragEvent', 'procedure(Sender, Target: TObject; X, Y: Integer)');
 
@@ -228,13 +231,13 @@ begin
 {$ENDIF}
 {$IFNDEF FPC}
     RegisterMethod('function GetName: string');
-    RegisterMethod('function Instance: LongInt');
+    RegisterMethod('function Instance: THandle');
 {$ENDIF}
     RegisterMethod('procedure HideDragImage');
     RegisterMethod('procedure ShowDragImage');
 {$IFDEF DELPHI4UP}
     RegisterProperty('Cancelling', 'Boolean', iptrw);
-    RegisterProperty('DragHandle', 'LongInt', iptrw);
+    RegisterProperty('DragHandle', 'HWND', iptrw);
     RegisterProperty('DragPos', 'TPoint', iptrw);
     RegisterProperty('DragTargetPos', 'TPoint', iptrw);
     RegisterProperty('MouseDeltaX', 'Double', iptr);

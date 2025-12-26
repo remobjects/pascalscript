@@ -33,8 +33,8 @@ type
   TFont_PSHelper = class helper for TFont
   public
     {$IFNDEF CLX}
-    procedure HandleR(var T: Longint);
-    procedure HandleW(T: Longint);
+    procedure HandleR(var T: HFONT);
+    procedure HandleW(T: HFONT);
     {$ENDIF}
     procedure PixelsPerInchR(var T: Longint);
     procedure PixelsPerInchW(T: Longint);
@@ -42,8 +42,8 @@ type
     procedure StyleW(T: TFontStyles);
   end;
 {$IFNDEF CLX}
-procedure TFont_PSHelper.HandleR(var T: Longint); begin T := Self.Handle; end;
-procedure TFont_PSHelper.HandleW(T: Longint); begin Self.Handle := T; end;
+procedure TFont_PSHelper.HandleR(var T: HFONT); begin T := Self.Handle; end;
+procedure TFont_PSHelper.HandleW(T: HFONT); begin Self.Handle := T; end;
 {$ENDIF}
 procedure TFont_PSHelper.PixelsPerInchR(var T: Longint); begin T := Self.PixelsPerInch; end;
 procedure TFont_PSHelper.PixelsPerInchW(T: Longint); begin {$IFNDEF FPC} Self.PixelsPerInch := T;{$ENDIF} end;
@@ -64,8 +64,8 @@ begin
 end;
 {$ELSE}
 {$IFNDEF CLX}
-procedure TFontHandleR(Self: TFont; var T: Longint); begin T := Self.Handle; end;
-procedure TFontHandleW(Self: TFont; T: Longint); begin Self.Handle := T; end;
+procedure TFontHandleR(Self: TFont; var T: HFONT); begin T := Self.Handle; end;
+procedure TFontHandleW(Self: TFont; T: HFONT); begin Self.Handle := T; end;
 {$ENDIF}
 procedure TFontPixelsPerInchR(Self: TFont; var T: Longint); begin T := Self.PixelsPerInch; end;
 procedure TFontPixelsPerInchW(Self: TFont; T: Longint); begin {$IFNDEF FPC} Self.PixelsPerInch := T;{$ENDIF} end;
@@ -93,8 +93,8 @@ type
   TCanvas_PSHelper = class helper for TCanvas
   public
     {$IFNDEF CLX}
-    procedure HandleR(var T: Longint);
-    procedure HandleW(T: Longint);
+    procedure HandleR(var T: HDC);
+    procedure HandleW(T: HDC);
     {$ENDIF}
 
     procedure PixelsR(var T: Longint; X,Y: Longint);
@@ -113,8 +113,8 @@ type
   end;
 
 {$IFNDEF CLX}
-procedure TCanvas_PSHelper.HandleR(var T: Longint); begin T := Self.Handle; end;
-procedure TCanvas_PSHelper.HandleW(T: Longint); begin Self.Handle:= T; end;
+procedure TCanvas_PSHelper.HandleR(var T: HDC); begin T := Self.Handle; end;
+procedure TCanvas_PSHelper.HandleW(T: HDC); begin Self.Handle:= T; end;
 {$ENDIF}
 
 procedure TCanvas_PSHelper.PixelsR(var T: Longint; X,Y: Longint); begin T := Self.Pixels[X,Y]; end;
@@ -167,8 +167,8 @@ end;
 {$ELSE}
 
 {$IFNDEF CLX}
-procedure TCanvasHandleR(Self: TCanvas; var T: Longint); begin T := Self.Handle; end;
-procedure TCanvasHandleW(Self: TCanvas; T: Longint); begin Self.Handle:= T; end;
+procedure TCanvasHandleR(Self: TCanvas; var T: HDC); begin T := Self.Handle; end;
+procedure TCanvasHandleW(Self: TCanvas; T: HDC); begin Self.Handle:= T; end;
 {$ENDIF}
 
 procedure TCanvasPixelsR(Self: TCanvas; var T: Longint; X,Y: Longint); begin T := Self.Pixels[X,Y]; end;

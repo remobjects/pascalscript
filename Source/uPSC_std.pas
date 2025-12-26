@@ -57,7 +57,7 @@ begin
     RegisterProperty('ComponentState', 'Byte', iptr);
     RegisterProperty('DesignInfo', 'LongInt', iptrw);
     RegisterProperty('Name', 'string', iptrw);
-    RegisterProperty('Tag', 'LongInt', iptrw);
+    RegisterProperty('Tag', 'NativeInt', iptrw);
   end;
 end;
 

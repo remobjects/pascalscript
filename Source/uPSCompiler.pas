@@ -967,6 +967,9 @@ type
     FOnFunctionStart: TPSOnFunction;
     FOnFunctionEnd: TPSOnFunction;
     FAttributesOpenTokenID, FAttributesCloseTokenID: TPsPasToken;
+    {$IFNDEF PS_NOINT64}
+    FExecIs64Bit: Boolean;
+    {$ENDIF}
 
 		FWithCount: Integer;
 		FTryCount: Integer;
@@ -1220,6 +1223,10 @@ type
     property AttributesOpenTokenID: TPSPasToken read FAttributesOpenTokenID write FAttributesOpenTokenID;
 
     property AttributesCloseTokenID: TPSPasToken read FAttributesCloseTokenID write FAttributesCloseTokenID;
+
+    {$IFNDEF PS_NOINT64}
+    property ExecIs64Bit: Boolean read FExecIs64Bit write FExecIs64Bit;
+    {$ENDIF}
 
     {$WARNINGS OFF}
     property UnitName: tbtString read FUnitName;
@@ -12483,6 +12490,9 @@ begin
   FMessages := TPSList.Create;
   FAttributesOpenTokenID := CSTI_OpenBlock;
   FAttributesCloseTokenID := CSTI_CloseBlock;
+  {$IFNDEF PS_NOINT64}
+  FExecIs64Bit := {$IFDEF CPU64} True {$ELSE} False {$ENDIF};
+  {$ENDIF}
 end;
 
 destructor TPSPascalCompiler.Destroy;
@@ -12572,6 +12582,13 @@ begin
   {$IFNDEF PS_NOINT64}
   AddType('Int64', btS64);
   AddType('UInt64', btU64);
+  if FExecIs64Bit then begin
+    AddType('NativeInt', btS64);
+    AddType('NativeUInt', btU64);
+  end else begin
+    AddType('NativeInt', btS32);
+    AddType('NativeUInt', btU32);
+  end;
   {$ENDIF}
   AddType('Single', btSingle);
   AddType('Double', btDouble);

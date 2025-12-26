@@ -168,8 +168,8 @@ procedure SIRegisterTHANDLESTREAM(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TStream'), 'THandleStream') do
   begin
-    RegisterMethod('constructor Create(AHandle: Integer)');
-    RegisterProperty('Handle', 'Integer', iptr);
+    RegisterMethod('constructor Create(AHandle: THandle)');
+    RegisterProperty('Handle', 'THandle', iptr);
   end;
 end;
 
@@ -314,11 +314,11 @@ begin
   cl.AddConstantN('MSecPerDay', 'LongInt').Value.ts32 := 86400000;
   cl.AddConstantN('DateDelta', 'LongInt').Value.ts32 := 693594;
   cl.AddTypeS('TAlignment', '(taLeftJustify, taRightJustify, taCenter)');
-  cl.AddTypeS('THelpEvent', 'function (Command: Word; Data: LongInt; var CallHelp: Boolean): Boolean');
+  cl.AddTypeS('THelpEvent', 'function (Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean');
   cl.AddTypeS('TGetStrProc', 'procedure(const S: string)');
   cl.AddTypeS('TDuplicates', '(dupIgnore, dupAccept, dupError)');
   cl.AddTypeS('TOperation', '(opInsert, opRemove)');
-  cl.AddTypeS('THandle', 'LongInt');
+  cl.AddTypeS('THandle', 'NativeUInt');
 
   cl.AddTypeS('TNotifyEvent', 'procedure (Sender: TObject)');
 end;

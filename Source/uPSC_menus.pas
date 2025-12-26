@@ -152,8 +152,8 @@ end;
 
 procedure SIRegister_Menus(Cl: TPSPascalCompiler);
 begin
-  Cl.AddTypeS('HMENU', 'Cardinal');
-  Cl.AddTypeS('HACCEL', 'Cardinal');
+  Cl.AddTypeS('HMENU', 'NativeUInt');
+  Cl.AddTypeS('HACCEL', 'NativeUInt');
 
   cl.addClassN(cl.FindClass('Exception'),'EMenuError');
   Cl.addTypeS('TMenuBreak', '(mbNone, mbBreak, mbBarBreak)');

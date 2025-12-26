@@ -16,7 +16,7 @@ procedure RIRegister_Forms(Cl: TPSRuntimeClassImporter);
 
 implementation
 uses
-  sysutils, classes, {$IFDEF CLX}QControls, QForms, QGraphics{$ELSE}Controls, Forms, Graphics{$ENDIF};
+  sysutils, classes, {$IFDEF CLX}QControls, QForms, QGraphics{$ELSE}Windows, Controls, Forms, Graphics{$ENDIF};
 
 procedure TCONTROLSCROLLBARKIND_R(Self: TCONTROLSCROLLBAR; var T: TSCROLLBARKIND); begin T := Self.KIND; end;
 procedure TCONTROLSCROLLBARSCROLLPOS_R(Self: TCONTROLSCROLLBAR; var T: INTEGER); begin t := Self.SCROLLPOS; end;
@@ -65,7 +65,7 @@ procedure TFORMMODALRESULT_R(Self: TFORM; var T: TMODALRESULT); begin T := Self.
 procedure TFORMACTIVE_R(Self: TFORM; var T: BOOLEAN); begin T := Self.ACTIVE; end;
 procedure TFORMCANVAS_R(Self: TFORM; var T: TCANVAS); begin T := Self.CANVAS; end;
 {$IFNDEF CLX}
-procedure TFORMCLIENTHANDLE_R(Self: TFORM; var T: Longint); begin T := Self.CLIENTHANDLE; end;
+procedure TFORMCLIENTHANDLE_R(Self: TFORM; var T: HWND); begin T := Self.CLIENTHANDLE; end;
 {$ENDIF}
 
 { Innerfuse Pascal Script Class Import Utility (runtime) }
@@ -120,13 +120,13 @@ begin
   end;
 end;
 
- {$IFNDEF FPC}
+{$IFNDEF FPC}
 procedure TAPPLICATIONACTIVE_R(Self: TAPPLICATION; var T: BOOLEAN); begin T := Self.ACTIVE; end;
 {$IFNDEF CLX}
-procedure TAPPLICATIONDIALOGHANDLE_R(Self: TAPPLICATION; var T: Longint); begin T := Self.DIALOGHANDLE; end;
-procedure TAPPLICATIONDIALOGHANDLE_W(Self: TAPPLICATION; T: Longint); begin Self.DIALOGHANDLE := T; end;
-procedure TAPPLICATIONHANDLE_R(Self: TAPPLICATION; var T: Longint); begin T := Self.HANDLE; end;
-procedure TAPPLICATIONHANDLE_W(Self: TAPPLICATION; T: Longint); begin Self.HANDLE := T; end;
+procedure TAPPLICATIONDIALOGHANDLE_R(Self: TAPPLICATION; var T: HWND); begin T := Self.DIALOGHANDLE; end;
+procedure TAPPLICATIONDIALOGHANDLE_W(Self: TAPPLICATION; T: HWND); begin Self.DIALOGHANDLE := T; end;
+procedure TAPPLICATIONHANDLE_R(Self: TAPPLICATION; var T: HWND); begin T := Self.HANDLE; end;
+procedure TAPPLICATIONHANDLE_W(Self: TAPPLICATION; T: HWND); begin Self.HANDLE := T; end;
 procedure TAPPLICATIONUPDATEFORMATSETTINGS_R(Self: TAPPLICATION; var T: BOOLEAN); begin T := Self.UPDATEFORMATSETTINGS; end;
 procedure TAPPLICATIONUPDATEFORMATSETTINGS_W(Self: TAPPLICATION; T: BOOLEAN); begin Self.UPDATEFORMATSETTINGS := T; end;
 {$ENDIF}

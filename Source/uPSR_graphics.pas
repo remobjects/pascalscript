@@ -28,8 +28,8 @@ uses
 {$ENDIF}
 
 {$IFNDEF CLX}
-procedure TFontHandleR(Self: TFont; var T: Longint); begin T := Self.Handle; end;
-procedure TFontHandleW(Self: TFont; T: Longint); begin Self.Handle := T; end;
+procedure TFontHandleR(Self: TFont; var T: HFONT); begin T := Self.Handle; end;
+procedure TFontHandleW(Self: TFont; T: HFONT); begin Self.Handle := T; end;
 {$ENDIF}
 procedure TFontPixelsPerInchR(Self: TFont; var T: Longint); begin T := Self.PixelsPerInch; end;
 procedure TFontPixelsPerInchW(Self: TFont; T: Longint); begin {$IFNDEF FPC} Self.PixelsPerInch := T;{$ENDIF} end;
@@ -49,8 +49,8 @@ begin
   end;
 end;
 {$IFNDEF CLX}
-procedure TCanvasHandleR(Self: TCanvas; var T: Longint); begin T := Self.Handle; end;
-procedure TCanvasHandleW(Self: TCanvas; T: Longint); begin Self.Handle:= T; end;
+procedure TCanvasHandleR(Self: TCanvas; var T: HDC); begin T := Self.Handle; end;
+procedure TCanvasHandleW(Self: TCanvas; T: HDC); begin Self.Handle:= T; end;
 {$ENDIF}
 
 procedure TCanvasPixelsR(Self: TCanvas; var T: Longint; X,Y: Longint); begin T := Self.Pixels[X,Y]; end;

@@ -110,7 +110,7 @@ begin
   end;
 end;
 {$IFNDEF CLX}
-procedure TWinControlHandleR(Self: TWinControl; var T: Longint); begin T := Self.Handle; end;
+procedure TWinControlHandleR(Self: TWinControl; var T: HWND); begin T := Self.Handle; end;
 {$ENDIF}
 procedure TWinControlShowingR(Self: TWinControl; var T: Boolean); begin T := Self.Showing; end;
 

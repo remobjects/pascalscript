@@ -105,7 +105,11 @@ const
 
   btNotificationVariant = 27;
 
-  btUnicodeString = 28;
+  btUnicodeString   = 28;
+
+{$IFNDEF PS_NOINT64}
+  btU64             = 29;
+{$ENDIF}
 
   btType = 130;
 
@@ -318,6 +322,7 @@ type
 {$IFNDEF PS_NOINT64}
 
   tbts64 = int64;
+  tbtu64 = uint64;
 {$ENDIF}
 
 

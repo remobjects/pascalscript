@@ -307,7 +307,7 @@ begin
           { add var params here }
           btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
           btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-          {$IFNDEF PS_NOINT64}, bts64{$ENDIF}: addgen(dword(fvar.dta));  { TODO: test all }
+          {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}: addgen(dword(fvar.dta));  { TODO: test all }
           else begin
             writeln(stderr, 'Parameter type not recognised!');
             Exit;
@@ -328,10 +328,14 @@ begin
           btDouble, btExtended:                addfloat(fvar.dta, 2);
           btPChar:                             addgen(dword(ppchar(fvar.dta)^));
           btChar:                              addgen(dword(pchar(fvar.dta)^));
-          {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   begin
+          {$IFNDEF PS_NOINT64}bts64:           begin
                                                  addgen(dword(pint64(fvar.dta)^ shr 32));
                                                  addgen(dword(pint64(fvar.dta)^ and $ffffffff));
                                                end;
+          btU64:                               begin
+                                                 addgen(dword(puint64(fvar.dta)^ shr 32));
+                                                 addgen(dword(puint64(fvar.dta)^ and $ffffffff));
+                                               end;{$ENDIF}
           btStaticArray:                       addgen(dword(fvar.dta));
           btRecord:                            for j := 0 to (fvar.atype.realsize div 4)-1 do
                                                  addgen(pdword(fvar.dta + j*4)^);

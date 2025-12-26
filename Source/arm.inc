@@ -297,7 +297,7 @@ begin
           { add var params here }
           btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF}
           btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-          {$IFNDEF PS_NOINT64}, bts64{$ENDIF}: addgen(dword(fvar.dta));
+          {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}: addgen(dword(fvar.dta));
           else begin
             writeln(stderr, 'Parameter type not recognised!');
             Exit;
@@ -333,7 +333,7 @@ begin
 					       {$endif}
           btPChar:                             addgen(dword(ppchar(fvar.dta)^));
           btChar:                              addgen(dword(pchar(fvar.dta)^));
-          {$IFNDEF PS_NOINT64}bts64:{$ENDIF}   begin
+          {$IFNDEF PS_NOINT64}bts64:           begin
                                                  {$IFDEF FPC_abi_eabi}
                                                  addgend(qword(pint64(fvar.dta)^));
                                                  {$ELSE}
@@ -341,6 +341,14 @@ begin
                                                  addgen(dword(pint64(fvar.dta)^ shr 32));
                                                  {$ENDIF}
                                                end;
+          btU64:                               begin
+                                                 {$IFDEF FPC_abi_eabi}
+                                                 addgend(qword(puint64(fvar.dta)^));
+                                                 {$ELSE}
+                                                 addgen(dword(puint64(fvar.dta)^ and $ffffffff));
+                                                 addgen(dword(puint64(fvar.dta)^ shr 32));
+                                                 {$ENDIF}
+                                               end;{$ENDIF}
           btStaticArray:                       addgen(dword(fvar.dta));
           btRecord:                            for j := 0 to (fvar.atype.realsize div 4)-1 do
                                                  addgen(pdword(fvar.dta + j*4)^);
@@ -366,7 +374,10 @@ begin
         btU8, btS8, btChar:      pbyte(res.dta)^ := lo(lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT))));
         btU16, btS16:            pword(res.dta)^ := lo(lo(armasmcall(rint, rfloat, address, st, stindex, rtINT)));
         btU32, btS32,btPChar:    pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtINT));
+{$IFNDEF PS_NOINT64}
         btS64:                   pqword(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex,rtINT);
+        btU64:                   puint64(res.dta)^ := armasmcall(rint, rfloat, address, st, stindex,rtINT);
+{$ENDIF}
 {$IFDEF FPC_abi_eabi}
         btSingle:                pdword(res.dta)^ := lo(armasmcall(rint, rfloat, address, st, stindex, rtFLOAT));
 {$ELSE}

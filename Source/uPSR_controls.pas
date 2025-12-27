@@ -47,10 +47,14 @@ type
     procedure SHOWHINT_R( var T: BOOLEAN);
     procedure ENABLED_W( T: BOOLEAN);
     procedure ENABLED_R( var T: BOOLEAN);
+    {$IFDEF DELPHI23UP}
     procedure StyleElementsR(  var T: TStyleElements);
     procedure StyleElementsW( T: TStyleElements);
+    {$ENDIF}
+    {$IFDEF DELPHI26UP}
     procedure StyleNameR( var T: string);
     procedure StyleNameW( T: string);
+    {$ENDIF}
   end;
 
 procedure TControl_PSHelper.AlignR( var T: Byte); begin T := Byte(Self.Align); end;
@@ -77,11 +81,15 @@ procedure TControl_PSHelper.SHOWHINT_R( var T: BOOLEAN); begin T := Self.SHOWHIN
 procedure TControl_PSHelper.ENABLED_W( T: BOOLEAN); begin Self.ENABLED := T; end;
 procedure TControl_PSHelper.ENABLED_R( var T: BOOLEAN); begin T := Self.ENABLED; end;
 
+{$IFDEF DELPHI23UP}
 procedure TControl_PSHelper.StyleElementsR( var T: TStyleElements); begin T := Self.StyleElements; end;
 procedure TControl_PSHelper.StyleElementsW( T: TStyleElements); begin Self.StyleElements:= T; end;
+{$ENDIF}
 
+{$IFDEF DELPHI26UP}
 procedure TControl_PSHelper.StyleNameR( var T: string); begin T := Self.StyleName; end;
 procedure TControl_PSHelper.StyleNameW( T: string); begin Self.StyleName:= T; end;
+{$ENDIF}
 
 procedure RIRegisterTControl(Cl: TPSRuntimeClassImporter);
 begin
@@ -159,11 +167,15 @@ procedure TCONTROLSHOWHINT_R(Self: TCONTROL; var T: BOOLEAN); begin T := Self.SH
 procedure TCONTROLENABLED_W(Self: TCONTROL; T: BOOLEAN); begin Self.ENABLED := T; end;
 procedure TCONTROLENABLED_R(Self: TCONTROL; var T: BOOLEAN); begin T := Self.ENABLED; end;
 
+{$IFDEF DELPHI23UP}
 procedure TControlStyleElementsR(Self: TControl; var T: TStyleElements); begin T := Self.StyleElements; end;
 procedure TControlStyleElementsW(Self: TControl; T: TStyleElements); begin Self.StyleElements:= T; end;
+{$ENDIF}
 
+{$IFDEF DELPHI26UP}
 procedure TControlStyleNameR(Self: TControl; var T: string); begin T := Self.StyleName; end;
 procedure TControlStyleNameW(Self: TControl; T: string); begin Self.StyleName:= T; end;
+{$ENDIF}
 
 procedure RIRegisterTControl(Cl: TPSRuntimeClassImporter);
 begin

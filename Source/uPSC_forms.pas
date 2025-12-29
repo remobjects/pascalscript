@@ -272,6 +272,10 @@ begin
   cl.AddTypeS('TBorderIcon' ,'(biSystemMenu, biMinimize, biMaximize, biHelp)');
   cl.AddTypeS('TBorderIcons', 'set of TBorderIcon');
   cl.AddTypeS('THelpContext', 'LongInt');
+  {$IFNDEF CLX}
+  if cl.FindType('HWND') = nil then
+    cl.AddTypeS('HWND', 'NativeUInt');
+  {$ENDIF}
 end;
 
 procedure SIRegister_Forms(Cl: TPSPascalCompiler);

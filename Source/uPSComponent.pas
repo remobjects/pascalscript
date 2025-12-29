@@ -1329,15 +1329,18 @@ begin
     s := '';
   end;
   pv := nil;
-  for i := 0 to Exec.CurrentProcVars.Count -1 do
+  if Exec.CurrentProcVars <> nil then
   begin
-    if Uppercase(Exec.CurrentProcVars[i]) =  s1 then
+    for i := 0 to Exec.CurrentProcVars.Count -1 do
     begin
-      pv := Exec.GetProcVar(i);
-      break;
+      if Uppercase(Exec.CurrentProcVars[i]) =  s1 then
+      begin
+        pv := Exec.GetProcVar(i);
+        break;
+      end;
     end;
   end;
-  if pv = nil then
+  if (pv = nil) and (Exec.CurrentProcParams <> nil) then
   begin
     for i := 0 to Exec.CurrentProcParams.Count -1 do
     begin
@@ -1348,7 +1351,7 @@ begin
       end;
     end;
   end;
-  if pv = nil then
+  if (pv = nil) and (Exec.GlobalVarNames <> nil) then
   begin
     for i := 0 to Exec.GlobalVarNames.Count -1 do
     begin

@@ -318,7 +318,8 @@ begin
   cl.AddTypeS('TGetStrProc', 'procedure(const S: string)');
   cl.AddTypeS('TDuplicates', '(dupIgnore, dupAccept, dupError)');
   cl.AddTypeS('TOperation', '(opInsert, opRemove)');
-  cl.AddTypeS('THandle', 'NativeUInt');
+  if cl.FindType('THandle') = nil then
+    cl.AddTypeS('THandle', 'NativeUInt');
 
   cl.AddTypeS('TNotifyEvent', 'procedure (Sender: TObject)');
 end;

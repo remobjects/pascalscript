@@ -157,6 +157,12 @@ begin
     cl.AddTypeS('HWND', 'NativeUInt');
   if cl.FindType('HDC') = nil then
     cl.AddTypeS('HDC', 'NativeUInt');
+  {$IFNDEF PS_MINIVCL}
+  {$IFNDEF FPC}
+  if cl.FindType('THandle') = nil then
+    cl.AddTypeS('THandle', 'NativeUInt');
+  {$ENDIF}
+  {$ENDIF}
 
   cl.AddTypeS('TEndDragEvent', 'procedure(Sender, Target: TObject; X, Y: Integer)');
 

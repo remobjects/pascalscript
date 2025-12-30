@@ -227,7 +227,7 @@ begin
   end;
 end;
 
-procedure THANDLESTREAMHANDLE_R(Self: THANDLESTREAM; var T: INTEGER); begin T := Self.HANDLE; end;
+procedure THANDLESTREAMHANDLE_R(Self: THANDLESTREAM; var T: THandle); begin T := Self.HANDLE; end;
 
 procedure RIRegisterTHANDLESTREAM(Cl: TPSRuntimeClassImporter);
 begin

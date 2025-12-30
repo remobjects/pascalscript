@@ -4544,6 +4544,10 @@ begin
             btChar: tbtu32(Dest^) := Ord(tbtchar(Src^));
         {$IFNDEF PS_NOWIDESTRING}    btWideChar: tbtu32(Dest^) := Ord(tbtwidechar(Src^));{$ENDIF}
             btVariant: tbtu32(Dest^) := Variant(src^);
+            {$IFNDEF CPU64}
+            // see below
+            btClass: tbtu32(Dest^) := tbtu32(src^);
+            {$ENDIF}
             else raise Exception.Create(RPS_TypeMismatch);
           end;
         end;
@@ -4569,15 +4573,69 @@ begin
             btChar: tbts32(Dest^) := Ord(tbtchar(Src^));
         {$IFNDEF PS_NOWIDESTRING}  btWideChar: tbts32(Dest^) := Ord(tbtwidechar(Src^));{$ENDIF}
             btVariant: tbts32(Dest^) := Variant(src^);
+            {$IFNDEF CPU64}
             // nx change start - allow assignment of class
-            btClass: tbtu32(Dest^) := tbtu32(src^);
-            // nx change start
+            btClass: tbts32(Dest^) := tbts32(src^);
+            // nx change end
+            {$ENDIF}
             else raise Exception.Create(RPS_TypeMismatch);
           end;
         end;
       {$IFNDEF PS_NOINT64}
-      btS64: tbts64(Dest^) := PSGetInt64(Src, srctype);
-      btU64: tbtu64(Dest^) := PSGetUInt64(Src, srctype);
+      btS64:
+        begin
+          if srctype.BaseType = btPointer then
+          begin
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
+            Src := Pointer(Src^);
+            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+          end;
+          case srctype.BaseType of
+            btU8: tbts64(Dest^) := tbtu8(src^);
+            btS8: tbts64(Dest^) := tbts8(src^);
+            btU16: tbts64(Dest^) := tbtu16(src^);
+            btS16: tbts64(Dest^) := tbts16(src^);
+            btU32: tbts64(Dest^) := tbtu32(src^);
+            btS32: tbts64(Dest^) := tbts32(src^);
+            btS64: tbts64(Dest^) := tbts64(src^);
+            btU64: tbts64(Dest^) := tbtu64(src^);
+            btChar: tbts64(Dest^) := Ord(tbtchar(Src^));
+        {$IFNDEF PS_NOWIDESTRING}  btWideChar: tbts64(Dest^) := Ord(tbtwidechar(Src^));{$ENDIF}
+            btVariant: tbts64(Dest^) := Variant(src^);
+            {$IFDEF CPU64}
+            // see above
+            btClass: tbts64(Dest^) := tbtu64(src^);
+            {$ENDIF}
+            else raise Exception.Create(RPS_TypeMismatch);
+          end;
+        end;
+      btU64:
+        begin
+          if srctype.BaseType = btPointer then
+          begin
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
+            Src := Pointer(Src^);
+            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+          end;
+          case srctype.BaseType of
+            btU8: tbtu64(Dest^) := tbtu8(src^);
+            btS8: tbtu64(Dest^) := tbts8(src^);
+            btU16: tbtu64(Dest^) := tbtu16(src^);
+            btS16: tbtu64(Dest^) := tbts16(src^);
+            btU32: tbtu64(Dest^) := tbtu32(src^);
+            btS32: tbtu64(Dest^) := tbts32(src^);
+            btS64: tbtu64(Dest^) := tbts64(src^);
+            btU64: tbtu64(Dest^) := tbtu64(src^);
+            btChar: tbtu64(Dest^) := Ord(tbtchar(Src^));
+        {$IFNDEF PS_NOWIDESTRING}  btWideChar: tbtu64(Dest^) := Ord(tbtwidechar(Src^));{$ENDIF}
+            btVariant: tbtu64(Dest^) := Variant(src^);
+            {$IFDEF CPU64}
+            // see above
+            btClass: tbtu64(Dest^) := tbtu64(src^);
+            {$ENDIF}
+            else raise Exception.Create(RPS_TypeMismatch);
+          end;
+        end;
       {$ENDIF}
       btSingle:
         begin
@@ -4728,8 +4786,8 @@ begin
             TObject(Dest^) := TObject(Src^)
           else
           // nx change start
-          if (srctype.BaseType in [btS32, btU32]) then
-            TbtU32(Dest^) := TbtU32(Src^)
+          if (srctype.BaseType in {$IFDEF CPU64} [btU64, btS64] {$ELSE} [btU32, btS32] {$ENDIF}) then
+            {$IFDEF CPU64} TbtU64(Dest^) := TbtU64(Src^) {$ELSE} TbtU32(Dest^) := TbtU32(Src^) {$ENDIF}
           else
           // nx change end
             Result := False;
@@ -7977,14 +8035,14 @@ begin
               end;
               if not ReadVariable(vs, True) then
                 Break;
-              // nx change end
+              // nx change start
 {              if (vd.aType.BaseType = btClass) and (vs.aType.BaseType in [btS32]) then
                 DWord(vd.P^):=Dword(vs.P^)
               else
               if (vd.aType.BaseType in [btS32]) and (vs.aType.BaseType = btClass) then
                 DWord(vd.P^):=Dword(vs.P^)
               else}
-              // nx change start
+              // nx change end
               if not SetVariantValue(vd.P, vs.P, vd.aType, vs.aType) then
               begin
                 if vs.FreeType <> vtNone then

@@ -3185,6 +3185,8 @@ end;
 
 
 function TPSPascalCompiler.IsCompatibleType(p1, p2: TPSType; Cast: Boolean): Boolean;
+var
+  ClassAsIntTypes: set of TPSBaseType;
 begin
   if
     ((p1.BaseType = btProcPtr) and (p2 = p1)) or
@@ -3222,22 +3224,27 @@ begin
     (Cast and (p1.baseType = btEnum) and IsIntType(P2.BaseType))
     then
     Result := True
-  // nx change start - allow casting class -> integer and vice versa
-  else if p1.BaseType = btclass then
-    Result := TPSClassType(p1).cl.IsCompatibleWith(p2) or (p2.BaseType in [btU32, btS32])
-  else if (p1.BaseType in [btU32, btS32]) then
-    Result := (p2.BaseType = btClass)
-  // nx change end
+  else begin
+    if FExecIs64Bit then
+      ClassAsIntTypes := [btU64, btS64]
+    else
+      ClassAsIntTypes := [btU32, btS32];
+    if p1.BaseType = btclass then
+      Result := TPSClassType(p1).cl.IsCompatibleWith(p2) or (p2.BaseType in ClassAsIntTypes)
+    else if (p1.BaseType in ClassAsIntTypes) then
+      Result := (p2.BaseType = btClass)
+    // nx change end
 {$IFNDEF PS_NOINTERFACES}
-  else if p1.BaseType = btInterface then
-    Result := TPSInterfaceType(p1).Intf.IsCompatibleWith(p2)
+    else if p1.BaseType = btInterface then
+      Result := TPSInterfaceType(p1).Intf.IsCompatibleWith(p2)
 {$ENDIF}
-  else if ((p1.BaseType = btExtClass) and (p2.BaseType = btExtClass)) then
-  begin
-    Result := TPSUndefinedClassType(p1).ExtClass.IsCompatibleWith(TPSUndefinedClassType(p2).ExtClass);
-  end
-  else
-    Result := False;
+    else if ((p1.BaseType = btExtClass) and (p2.BaseType = btExtClass)) then
+    begin
+      Result := TPSUndefinedClassType(p1).ExtClass.IsCompatibleWith(TPSUndefinedClassType(p2).ExtClass);
+    end
+    else
+      Result := False;
+  end;
 end;
 
 

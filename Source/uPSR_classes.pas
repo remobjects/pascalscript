@@ -645,10 +645,10 @@ end;
 type
   THandleStream_PSHelper = class helper for THandleStream
   public
-    procedure HANDLE_R(var T: INTEGER);
+    procedure HANDLE_R(var T: THandle);
   end;
 
-procedure THandleStream_PSHelper.HANDLE_R(var T: INTEGER);
+procedure THandleStream_PSHelper.HANDLE_R(var T: THandle);
 begin
   T := Self.HANDLE;
 end;
@@ -663,7 +663,7 @@ begin
 end;
 
 {$ELSE}
-procedure THANDLESTREAMHANDLE_R(Self: THANDLESTREAM; var T: INTEGER); begin T := Self.HANDLE; end;
+procedure THANDLESTREAMHANDLE_R(Self: THANDLESTREAM; var T: THandle); begin T := Self.HANDLE; end;
 
 procedure RIRegisterTHANDLESTREAM(Cl: TPSRuntimeClassImporter);
 begin

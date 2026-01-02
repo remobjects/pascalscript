@@ -2455,7 +2455,7 @@ var
               Result := False;
               exit;
             end;
-          btCurrency: if not read(PPSVariantExtended(varp)^.Data, SizeOf(tbtCurrency))
+          btCurrency: if not read(PPSVariantCurrency(varp)^.Data, SizeOf(tbtCurrency))
             then begin
               CMD_Err(erOutOfRange);
               DestroyHeapVariant(VarP);

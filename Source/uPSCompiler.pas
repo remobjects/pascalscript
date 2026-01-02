@@ -11489,7 +11489,7 @@ var
       WriteData(l, 4);
     end;
 
-    procedure WriteVariant(p: PIfRVariant);
+    procedure WriteAttributeValue(p: PIfRVariant);
     begin
       WriteLong(p^.FType.FinalTypeNo);
       case p.FType.BaseType of
@@ -11508,9 +11508,9 @@ var
       btWideChar: WriteData(p^.twidechar, 2);
       {$ENDIF}
       btSingle: WriteData(p^.tsingle, sizeof(tbtSingle));
-      btDouble: WriteData(p^.tsingle, sizeof(tbtDouble));
-      btExtended: WriteData(p^.tsingle, sizeof(tbtExtended));
-      btCurrency: WriteData(p^.tsingle, sizeof(tbtCurrency));
+      btDouble: WriteData(p^.tdouble, sizeof(tbtDouble));
+      btExtended: WriteData(p^.textended, sizeof(tbtExtended));
+      btCurrency: WriteData(p^.tcurrency, sizeof(tbtCurrency));
       btChar: WriteData(p^.tchar, 1);
       btSet:
         begin
@@ -11558,7 +11558,7 @@ var
         WriteLong(Attr[i].Count);
         for j := 0 to Attr[i].Count -1 do
         begin
-          WriteVariant(Attr[i][j]);
+          WriteAttributeValue(Attr[i][j]);
         end;
       end;
     end;

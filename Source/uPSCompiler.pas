@@ -1895,10 +1895,17 @@ begin
   BlockWriteData(BlockInfo, l, 4);
 end;
 
-procedure BlockWriteVariant(BlockInfo: TPSBlockInfo; p: PIfRVariant);
+procedure BlockWriteVariant(BlockInfo: TPSBlockInfo; p: PIfRVariant{$IFNDEF PS_NOINT64}; const ExecIs64Bit: Boolean{$ENDIF});
 var
   du8: tbtu8;
   du16: tbtu16;
+  {$IFNDEF PS_NOINT64}
+  {$IFDEF CPU64}
+  TempReallyExtended: TExtended80Rec;
+  {$ELSE}
+  TempDouble: Double;
+  {$ENDIF}
+  {$ENDIF}
 begin
   BlockWriteLong(BlockInfo, p^.FType.FinalTypeNo);
   case p.FType.BaseType of
@@ -1918,7 +1925,30 @@ begin
   {$ENDIF}
   btSingle: BlockWriteData(BlockInfo, p^.tsingle, sizeof(tbtSingle));
   btDouble: BlockWriteData(BlockInfo, p^.tdouble, sizeof(tbtDouble));
-  btExtended: BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
+  btExtended:
+    begin
+      {$IFNDEF PS_NOINT64}
+      if ExecIs64Bit then begin
+        {$IFNDEF CPU64}
+        { On 64-bit Exec, Extended is an alias for Double, so write a Double instead }
+        TempDouble := tbtDouble(p^.textended);
+        BlockWriteData(BlockInfo, TempDouble, sizeof(tbtDouble));
+        {$ELSE}
+        BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
+        {$ENDIF}
+      end else begin
+        {$IFDEF CPU64}
+        { On 32-bit Exec, Extended is not an alias for Double, so write a real Extended instead, using TExtended80Rec }
+        TempReallyExtended := TExtended80Rec(p^.textended);
+        BlockWriteData(BlockInfo, TempReallyExtended, sizeof(TExtended80Rec));
+        {$ELSE}
+        BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
+        {$ENDIF}
+      end;
+      {$ELSE}
+      BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
+      {$ENDIF}
+    end;
   btCurrency: BlockWriteData(BlockInfo, p^.tcurrency, sizeof(tbtCurrency));
   btChar: BlockWriteData(BlockInfo, p^.tchar, 1);
   btSet:
@@ -6520,7 +6550,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       if AllowData then
       begin
         BlockWriteByte(BlockInfo, 1);
-        BlockWriteVariant(BlockInfo, TPSValueData(x).Data)
+        BlockWriteVariant(BlockInfo, TPSValueData(x).Data{$IFNDEF PS_NOINT64}, FExecIs64Bit{$ENDIF})
       end
       else
       begin
@@ -11490,9 +11520,19 @@ var
     end;
 
     procedure WriteAttributeValue(p: PIfRVariant);
+    var
+      BaseType: TPSBaseType; { Just so we can't end up with an empty var block }
+      {$IFNDEF PS_NOINT64}
+      {$IFDEF CPU64}
+      TempReallyExtended: TExtended80Rec;
+      {$ELSE}
+      TempDouble: Double;
+      {$ENDIF}
+      {$ENDIF}
     begin
       WriteLong(p^.FType.FinalTypeNo);
-      case p.FType.BaseType of
+      BaseType := p.FType.BaseType;
+      case BaseType of
       btType: WriteLong(p^.ttype.FinalTypeNo);
       {$IFNDEF PS_NOWIDESTRING}
       btWideString:
@@ -11509,7 +11549,30 @@ var
       {$ENDIF}
       btSingle: WriteData(p^.tsingle, sizeof(tbtSingle));
       btDouble: WriteData(p^.tdouble, sizeof(tbtDouble));
-      btExtended: WriteData(p^.textended, sizeof(tbtExtended));
+      btExtended:
+        begin
+          {$IFNDEF PS_NOINT64}
+          if ExecIs64Bit then begin
+            {$IFNDEF CPU64}
+            { On 64-bit Exec, Extended is an alias for Double, so write a Double instead }
+            TempDouble := tbtDouble(p^.textended);
+            WriteData(TempDouble, sizeof(tbtDouble));
+            {$ELSE}
+            WriteData(p^.textended, sizeof(tbtExtended));
+            {$ENDIF}
+          end else begin
+            {$IFDEF CPU64}
+            { On 32-bit Exec, Extended is not an alias for Double, so write a real Extended instead, using TExtended80Rec }
+            TempReallyExtended := TExtended80Rec(p^.textended);
+            WriteData(TempReallyExtended, sizeof(TExtended80Rec));
+            {$ELSE}
+            WriteData(p^.textended, sizeof(tbtExtended));
+            {$ENDIF}
+          end;
+          {$ELSE}
+          WriteData(p^.textended, sizeof(tbtExtended));
+          {$ENDIF}
+        end;
       btCurrency: WriteData(p^.tcurrency, sizeof(tbtCurrency));
       btChar: WriteData(p^.tchar, 1);
       btSet:

@@ -40,7 +40,9 @@ begin
              l_len := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
              SetLength(arr, 0);
              for i := 0 to l_len do begin
-               if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aValues2, aSelf) then begin
+               if aValue^.aType.ExportName = '!OPENARRAYOFVARIANT' then
+                 arr := arr + [TValue.From<Variant>(PVariant(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer))^)]
+               else if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aValues2, aSelf) then begin
                  Result := False;
                  Exit;
                end;

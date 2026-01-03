@@ -3225,9 +3225,9 @@ begin
     then
     Result := True
   else begin
-    if FExecIs64Bit then
+    {$IFNDEF PS_NOINT64} if FExecIs64Bit then
       ClassAsIntTypes := [btU64, btS64]
-    else
+    else {$ENDIF}
       ClassAsIntTypes := [btU32, btS32];
     if p1.BaseType = btclass then
       Result := TPSClassType(p1).cl.IsCompatibleWith(p2) or (p2.BaseType in ClassAsIntTypes)
@@ -13880,64 +13880,6 @@ begin
     end;
   end;
   Result := nil;
-end;
-
-
-
-{  }
-
-function TransDoubleToStr(D: Double): tbtString;
-begin
-  SetLength(Result, SizeOf(Double));
-  Double((@Result[1])^) := D;
-end;
-
-function TransSingleToStr(D: Single): tbtString;
-begin
-  SetLength(Result, SizeOf(Single));
-  Single((@Result[1])^) := D;
-end;
-
-function TransExtendedToStr(D: Extended): tbtString;
-begin
-  SetLength(Result, SizeOf(Extended));
-  Extended((@Result[1])^) := D;
-end;
-
-function TransLongintToStr(D: Longint): tbtString;
-begin
-  SetLength(Result, SizeOf(Longint));
-  Longint((@Result[1])^) := D;
-end;
-
-function TransCardinalToStr(D: Cardinal): tbtString;
-begin
-  SetLength(Result, SizeOf(Cardinal));
-  Cardinal((@Result[1])^) := D;
-end;
-
-function TransWordToStr(D: Word): tbtString;
-begin
-  SetLength(Result, SizeOf(Word));
-  Word((@Result[1])^) := D;
-end;
-
-function TransSmallIntToStr(D: SmallInt): tbtString;
-begin
-  SetLength(Result, SizeOf(SmallInt));
-  SmallInt((@Result[1])^) := D;
-end;
-
-function TransByteToStr(D: Byte): tbtString;
-begin
-  SetLength(Result, SizeOf(Byte));
-  Byte((@Result[1])^) := D;
-end;
-
-function TransShortIntToStr(D: ShortInt): tbtString;
-begin
-  SetLength(Result, SizeOf(ShortInt));
-  ShortInt((@Result[1])^) := D;
 end;
 
 function TPSPascalCompiler.GetConstant(const Name: tbtString): TPSConstant;

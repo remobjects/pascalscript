@@ -5531,7 +5531,15 @@ function TPSPascalCompiler.ReadString: PIfRVariant;
       Delete(s, 1, 1); {First char : #}
       w := StrToInt(s);
       Result := {$IFNDEF PS_NOWIDESTRING}widechar{$ELSE}tbtchar{$ENDIF}(w);
-      {$IFNDEF PS_NOWIDESTRING}if w > $FF then wchar := true;{$ENDIF}
+      {$IFNDEF PS_NOWIDESTRING}
+        if w > $FF then
+          wchar := true
+        else if w >= $80 then begin
+          s := tbtstring(Result);
+          if (Length(s) <> 1) or (tbtunicodestring(s)[1] <> Result) then
+            wchar := true;
+        end;
+      {$ENDIF}
     end;
 
     function PString(s: tbtString): tbtString;

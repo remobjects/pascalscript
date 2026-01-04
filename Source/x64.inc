@@ -577,6 +577,7 @@ _XMM0: Double;
   end;
 {$ENDIF}
 
+{$IFNDEF DELPHI}
   procedure StoreStack(const aData; Len: Integer);
   var
     p: Pointer;
@@ -589,6 +590,7 @@ _XMM0: Double;
     p := @Stack[Length(Stack)-Len];
     Move(aData, p^, Len);
   end;
+{$ENDIF}
 
 {$IFDEF WINDOWS}
   procedure StoreReg(data: Double); overload;
@@ -661,6 +663,16 @@ _XMM0: Double;
     end;
   end;
   {$ENDIF}
+  
+  {$IFDEF DELPHI}
+  type
+    TMethodCallData = record
+      AType: Byte; { Must be first field, matching uPSRuntime's TOpenArray }
+      Data: TMethod;
+    end;
+    PMethodCallData = ^TMethodCallData;
+  {$ENDIF}
+
   function GetPtr(fVar: PPSVariantIFC): Boolean;
   var
     varPtr: Pointer;
@@ -679,6 +691,8 @@ _XMM0: Double;
             begin
               p := CreateOpenArray(True, Self, FVar);
               if p = nil then exit;
+              if CallData = nil then
+                CallData := TPSList.Create;
               CallData.Add(p);
               StoreReg(IPointer(POpenArray(p)^.Data));
               StoreReg(IPointer(POpenArray(p)^.ItemCount -1));
@@ -727,6 +741,8 @@ _XMM0: Double;
             begin
               p := CreateOpenArray(False, SElf, FVar);
               if p =nil then exit;
+              if CallData = nil then
+                CallData := TPSList.Create;
               CallData.Add(p);
               StoreReg(IPointer(POpenArray(p)^.Data));
               StoreReg(IPointer(POpenArray(p)^.ItemCount -1));
@@ -794,10 +810,23 @@ _XMM0: Double;
 
         btProcPtr:
           begin
-            GetMem(p, PointerSize2);
-            TMethod(p^) := MKMethod(Self, Longint(FVar.Dta^));
-            StoreStack(p^, Pointersize2);
-            FreeMem(p);
+            {$IFDEF DELPHI}
+              p := New(PMethodCallData);
+              TMethodCallData(p^).AType := 255;
+              if CallData = nil then
+                CallData := TPSList.Create;
+              CallData.Add(p);
+              // Uncomment when Handler will be implemented
+              //TMethodCallData(p^).Data.Code:=nil;
+              //TMethodCallData(p^).Data.Data:=nil;
+              TMethodCallData(p^).Data := MKMethod(Self, Longint(fvar.dta^)); // It requires the implementation of "Handled"
+              StoreReg(IPointer(@TMethodCallData(p^).Data));
+            {$ELSE}
+              GetMem(p, PointerSize2);
+              TMethod(p^) := MKMethod(Self, Longint(FVar.Dta^));
+              StoreStack(p^, Pointersize2);
+              FreeMem(p);
+            {$ENDIF}
           end;
 {$IFNDEF PS_NOINT64}
         bts64:
@@ -831,7 +860,7 @@ begin
   if Address = nil then
     exit; // need address
   SetLength(Stack, 0);
-  CallData := TPSList.Create;
+  CallData := nil;
   res := rp(res);
   if res <> nil then
     res.VarParam := true;
@@ -963,14 +992,17 @@ begin
     end;
     Result := True;
   finally
-    for i := CallData.Count -1 downto 0 do
-    begin
-      pp := CallData[i];
-      case pp^ of
-        0: DestroyOpenArray(Self, Pointer(pp));
+    if CallData <> nil then begin
+      for i := CallData.Count -1 downto 0 do
+      begin
+        pp := CallData[i];
+        case pp^ of
+          0: DestroyOpenArray(Self, Pointer(pp));
+          {$IFDEF DELPHI} 255: Dispose(PMethodCallData(pp)); {$ENDIF}
+        end;
       end;
+      CallData.Free;
     end;
-    CallData.Free;
   end;
 end;
 

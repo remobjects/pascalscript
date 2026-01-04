@@ -10207,7 +10207,7 @@ end;
 type
   POpenArray = ^TOpenArray;
   TOpenArray = record
-    AType: Byte; {0}
+    AType: Byte; {0} { Must be first field, matching x64.inc's TMethodCallData }
     OrgVar: PPSVariantIFC;
     FreeIt: Boolean;
     ElementSize,

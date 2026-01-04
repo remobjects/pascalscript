@@ -12,6 +12,8 @@ const
 {$ENDIF}
 {$IFDEF MSWINDOWS}{$DEFINE WINDOWS}{$ENDIF}
 
+{$UNDEF REG_STACK_PTR_OFFSET0}
+
 {$IFDEF WINDOWS}
 type
   TRegisters = packed record
@@ -26,6 +28,180 @@ type
     Items: {$IFDEF FPC}PtrUInt{$ELSE}IntPtr{$ENDIF}; // 64
     SingleBits: Integer; // 72
   end;
+
+{$IFDEF DELPHI}
+  {$DEFINE REG_STACK_PTR_OFFSET0}
+{$ENDIF}
+
+{$IFDEF REG_STACK_PTR_OFFSET0} // ! NEW asm-win-x64 version for Delphi, no GPF on exception !
+type
+  EInvocationError = class(Exception);
+
+procedure x64call({RCX}Address: Pointer;out {RDX}_RAX: IPointer;var {R8}_XMM0: Double; var {R9}RegInfo: TRegisters);
+assembler; {$ifdef FPC}nostackframe;{$endif}
+
+  procedure InvokeErrorParamCount; // The number of parameters exceeded 64 (c_par_max_count)
+  begin
+    raise EInvocationError.Create('Internal: Parameter count exceeded 64');
+  end;
+
+const
+  c_par_max_count    = 64;                                   // == $40
+
+  c_sz_ptr           = SizeOf(Pointer);                      // == 8
+  c_arg_count        = 4;                                    // == 4
+  c_arg_size         = c_arg_count * c_sz_ptr;               // == 32
+  c_loc_count        = c_par_max_count + 4;                  // == 68
+  c_params           = c_loc_count - c_arg_count + 1;        // == 65
+
+  c_loc_offs_adress  = c_loc_count * c_sz_ptr + c_arg_size;  // == 576
+  c_loc_offs__rax    = c_loc_offs_adress + 1*c_sz_ptr;       // == 584
+  c_loc_offs__xmm0   = c_loc_offs_adress + 2*c_sz_ptr;       // == 592
+  c_loc_offs_reginfo = c_loc_offs_adress + 4*c_sz_ptr;       // == 608
+
+  //c_reg_packed = ((SizeOf(TRegisters) mod c_sz_ptr) + c_sz_ptr - 1) div c_sz_ptr; // 1 - packed records; 0 - aligned
+asm
+{$ifdef DELPHI}
+  .params c_params // There's actually room for c_loc_count, assembler is saving locals for "Address,_RAX,_XMM0,RegInfo"
+{$else} // TODO: FPC: GPF on exception
+  push    rbp
+  sub     rsp, $210  // ? $268
+  mov     rbp, rsp
+{$endif}
+                                             //                         dbg: in:  TRegisters(pointer(R9)^),r
+  mov     [rbp+c_loc_offs_adress], Address   // save: rcx (@Address)    dbg: loc: qword(pointer(rbp+c_loc_offs_adress)^)   ; in: qword(pointer(RCX))
+  mov     [rbp+c_loc_offs__rax], _RAX        // save: rdx (@_RDX)       dbg: loc: qword(pointer(rbp+c_loc_offs__rax)^)     ; in: qword(pointer(RDX))
+  mov     [rbp+c_loc_offs__xmm0], _XMM0      // save: r8  (@_XMM0)      dbg: loc: qword(pointer(rbp+c_loc_offs__xmm0)^)    ; in: qword(pointer(R8))
+  mov     [rbp+c_loc_offs_reginfo], RegInfo  // save: r9  (@RegInfo)    dbg: loc: qword(pointer(rbp+c_loc_offs_reginfo)^)  ; in: qword(pointer(R9))
+                                             //                         dbg:      TRegisters(pointer(pointer(rbp+c_loc_offs_reginfo)^)^),r
+  //                                                                    dbg:      tdatetime(pointer(pointer(rbp+c_loc_offs__xmm0)^)^)
+  // check Registers.Items (param count limitation)
+  //
+  mov     rcx, [RegInfo].TRegisters.Items
+  test    rcx, rcx
+  jz      @@skip_items
+
+  cmp     rcx, c_par_max_count-2
+  jbe     @@frame_is_try
+
+  call    InvokeErrorParamCount
+
+@@frame_is_try:
+  //
+  // copy registers:
+  //   source  :  [RegInfo].TRegisters.Stack
+  //   dest    :  [rbp + c_arg_count*c_sz_ptr]
+  //   count   :  rcx
+  //   note    :  All items on stack should be 16 byte aligned. Caller should have handled that, just copy data here.
+  //
+  mov     r8, [RegInfo].TRegisters.Stack    // source
+  lea     rdx, [rbp + c_arg_count*c_sz_ptr] // dest
+@copy_loop:
+  // copy pointer:
+  mov     rax, [r8]
+  mov     [rdx], rax
+  // next:
+  add     r8, c_sz_ptr
+  add     rdx, c_sz_ptr
+  dec     rcx
+  or      rcx, rcx
+  jnz     @copy_loop
+  // next.
+  //
+  // copy registers.
+
+@@skip_items:
+
+  // copy registers
+
+  //{ #1
+  movsd   xmm1,[RegInfo].TRegisters._XMM1
+  movsd   xmm2,[RegInfo].TRegisters._XMM2
+  movsd   xmm3,[RegInfo].TRegisters._XMM3
+
+  // _XMM0 => xmm0
+  mov     rax, [rbp+c_loc_offs__xmm0]      // dbg: tdatetime(pointer(pointer(rbp+c_loc_offs__xmm0)^)^)
+  movsd   xmm0,[rax]                       // dbg: tdatetime(pointer(pointer(xmm0))^)
+  //}
+
+  { #2: handle SingleBits
+  mov rcx, [RegInfo + offset(TRegisters.SingleBits)]
+
+  // fill: _XMM1
+  bt rcx, 1
+  jnc @g1
+  cvtsd2ss xmm1, [RegInfo + offset(TRegisters._XMM1)]
+  jmp @g1e
+  @g1:
+  movsd xmm1, [RegInfo + offset(TRegisters._XMM1)]
+  @g1e:
+
+  // fill: _XMM2
+  bt rcx, 2
+  jnc @g2
+  cvtsd2ss xmm2, [RegInfo + offset(TRegisters._XMM2)]
+  jmp @g2e
+  @g2:
+  movsd xmm2, [RegInfo + offset(TRegisters._XMM2)]
+  @g2e:
+
+  // fill: _XMM3
+  bt rcx, 3
+  jnc @g3
+  cvtsd2ss xmm3, [RegInfo + offset(TRegisters._XMM3)]
+  jmp @g3e
+  @g3:
+  movsd xmm3, [RegInfo + offset(TRegisters._XMM3)]
+  @g3e:
+
+  // fill: _XMM0
+  bt rcx, 0
+  jnc @g0
+  mov rdx, [rbp+c_loc_offs__xmm0]
+  cvtsd2ss xmm0, [rdx]
+  jmp @g0e
+  @g0:
+  mov rdx, [rbp+c_loc_offs__xmm0]
+  movsd xmm0, [rdx]
+  @g0e:
+  //}
+
+  // mov *, [r9].*    ;    [r9] == [RegInfo]
+  mov     rcx, [RegInfo].TRegisters._RCX
+  mov     rdx, [RegInfo].TRegisters._RDX
+  mov     r8,  [RegInfo].TRegisters._R8
+
+  mov     r9,  [RegInfo].TRegisters._R9  // !!! Overwritten RegInfo (r9)
+
+  call    [rbp+c_loc_offs_adress]
+
+  // make result
+  mov     rdx, [rbp+c_loc_offs__rax] // restore: rdx (@_RDX)
+  mov     [rdx], RAX              // fill: _RAX
+
+  //movsd   [rdx+c_sz_ptr], XMM0  // fill: _XMM0
+  mov     rdx, [rbp+c_loc_offs__xmm0] // restore: r8 (@_RMM0)
+
+  // handle SingleBits result
+  mov     rax, [rbp+c_loc_offs_reginfo] // restore: RegInfo pointer from stack
+  bt      qword ptr [rax + offset(TRegisters.SingleBits)], 8
+  jnc     @no_single_res
+  cvtss2sd xmm1, xmm0
+  movsd   [rdx], xmm1            // fill: _XMM0 for single result
+  jmp     @res_done
+@no_single_res:
+  movsd   [rdx], XMM0            // fill: _XMM0
+@res_done:
+
+{$ifndef DELPHI}
+  lea     rsp, [rbp+$210]
+  pop     rbp
+
+  ret
+{$endif}
+end;
+
+{$ELSE} // ! OLD asm-win-x64 version ! GPF on exception !
 
 procedure x64call(
   Address: Pointer;
@@ -147,7 +323,9 @@ asm
   leave
   ret
 end;
-{$ELSE}
+{$ENDIF}
+
+{$ELSE} //not MSWINDOWS
 type
   TRegisters = packed record
     _RDI,               //  0
@@ -351,7 +529,7 @@ _XMM0: Double;
 
   function rp(p: PPSVariantIFC): PPSVariantIFC;
   begin
-    if p = nil then
+    if (p = nil) or (p.aType = nil) then
     begin
       result := nil;
       exit;
@@ -724,7 +902,7 @@ begin
         SetLength(Stack, Length(Stack)+16 - (Length(Stack) mod 16));
       end;
       {$ENDIF} 
-      if Stack = nil then pp := nil else pp := @Stack[Length(Stack) -8];
+      if Stack = nil then pp := nil else pp := @Stack[{$IFDEF REG_STACK_PTR_OFFSET0}0{$ELSE}Length(Stack) -8{$ENDIF}];
 {$IFDEF WINDOWS}
       Registers.Stack := pp;
       Registers.Items := Length(Stack) div 8;
@@ -774,7 +952,7 @@ begin
         SetLength(Stack, Length(Stack)+16 - (Length(Stack) mod 16));
       end;
       {$ENDIF} 
-	if Stack = nil then pp := nil else pp := @Stack[Length(Stack) -8];
+	if Stack = nil then pp := nil else pp := @Stack[{$IFDEF REG_STACK_PTR_OFFSET0}0{$ELSE}Length(Stack) -8{$ENDIF}];
 {$IFDEF WINDOWS}
         Registers.Stack := pp;
         Registers.Items := Length(Stack) div 8;

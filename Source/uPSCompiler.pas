@@ -8213,7 +8213,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             NewVarU := TPSUnValueOp.Create;
             NewVarU.SetParserPos(FParser);
             NewVarU.Operator := otCast;
-            NewVarU.FType := at2ut(FindBaseType(btChar));
+            NewVarU.FType := at2ut(FindBaseType({$IFNDEF PS_NOWIDESTRING}btWideChar{$ELSE}btChar{$ENDIF}));
             NewVarU.Val1 := NewVar;
             NewVar := NewVarU;
             FParser.Next;
@@ -9191,6 +9191,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                     begin
                       case TPSValueData(TPSUnValueOp(p).FVal1).Data.Ftype.basetype of
                         btchar: TPSValueData(preplace).Data.tchar := TPSValueData(TPSUnValueOp(p).FVal1).Data^.tchar;
+                        {$IFNDEF PS_NOWIDESTRING}
+                        btwidechar: TPSValueData(preplace).Data.tchar := tbtchar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.twidechar);
+                        {$ENDIF}
                         btU8: TPSValueData(preplace).Data.tchar := tbtchar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tu8);
                         btS8: TPSValueData(preplace).Data.tchar := tbtchar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tS8);
                         btU16: TPSValueData(preplace).Data.tchar := tbtchar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tu16);
@@ -9210,6 +9213,32 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                         end;
                       end;
                     end;
+                  {$IFNDEF PS_NOWIDESTRING}
+                  btWideChar:
+                    begin
+                      case TPSValueData(TPSUnValueOp(p).FVal1).Data.Ftype.basetype of
+                        btchar: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tchar);
+                        btwidechar: TPSValueData(preplace).Data.twidechar := TPSValueData(TPSUnValueOp(p).FVal1).Data^.twidechar;
+                        btU8: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tu8);
+                        btS8: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tS8);
+                        btU16: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tu16);
+                        btS16: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tS16);
+                        btU32: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tU32);
+                        btS32: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tS32);
+                        {$IFNDEF PS_NOINT64}
+                        btS64: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.ts64);
+                        btU64: TPSValueData(preplace).Data.twidechar := tbtwidechar(TPSValueData(TPSUnValueOp(p).FVal1).Data^.tu64);
+                        {$ENDIF}
+                      else
+                        begin
+                          MakeError('', ecTypeMismatch, '');
+                          Result := False;
+                          preplace.Free;
+                          exit;
+                        end;
+                      end;
+                    end;
+                  {$ENDIF}
                 else
                   begin
                     MakeError('', ecTypeMismatch, '');

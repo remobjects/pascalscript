@@ -3259,6 +3259,7 @@ begin
     then
     Result := True
   else begin
+    // nx change start - allow casting class -> nativeint and vice versa
     {$IFNDEF PS_NOINT64} if FExecIs64Bit then
       ClassAsIntTypes := [btU64, btS64]
     else {$ENDIF}
@@ -11556,7 +11557,7 @@ var
       btExtended:
         begin
           {$IFNDEF PS_NOINT64}
-          if ExecIs64Bit then begin
+          if FExecIs64Bit then begin
             {$IFNDEF CPU64}
             { On 64-bit Exec, Extended is an alias for Double, so write a Double instead }
             TempDouble := tbtDouble(p^.textended);

@@ -9729,7 +9729,7 @@ begin
           Tmp.ExpectedType := GetTypeNo(BlockInfo, tmp.Val)
         else if Tmp.ExpectedType = FAnyString then begin
           Tmp.ExpectedType := GetTypeNo(BlockInfo, tmp.Val);
-          if not IsStringOrCharType(Tmp.ExpectedType.BaseType) then
+          if not IsStringOrCharType(Tmp.ExpectedType.BaseType) and (Tmp.ExpectedType.BaseType <> btVariant) then
           begin
             MakeError('', ecTypeMismatch, '');
             Cleanup;

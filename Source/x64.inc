@@ -767,7 +767,7 @@ _XMM0: Double;
         btS8: begin
             StoreReg(IPointer(byte(fVar^.dta^)));
           end;
-        btWideChar,
+        {$IFNDEF PS_NOWIDESTRING} btWideChar, {$ENDIF}
         btu16, btS16: begin
             StoreReg(IPointer(word(fVar^.dta^)));
           end;
@@ -925,7 +925,7 @@ begin
         btDouble:      tbtdouble(res.Dta^) := _XMM0;
         btExtended:    tbtextended(res.Dta^) := _XMM0;
         btchar,btU8, btS8:    tbtu8(res.dta^) := _RAX;
-        btWideChar, btu16, bts16:  tbtu16(res.dta^) := _RAX;
+        {$IFNDEF PS_NOWIDESTRING} btWideChar, {$ENDIF} btu16, bts16:  tbtu16(res.dta^) := _RAX;
         btClass : IPointer(res.dta^) := _RAX;
         btu32,bts32:   tbtu32(res.dta^) := _RAX;
         btPChar:       pansichar(res.dta^) := Pansichar(_RAX);

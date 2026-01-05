@@ -758,16 +758,13 @@ var
   s: tbtstring;
 begin
   Str(i, s);
-  IntToStr := s;
+  Result := s;
 end;
 //-------------------------------------------------------------------
 
 function FloatToStr(E: Extended): TbtString;
-var
-  s: tbtstring;
 begin
-  Str(e:0:12, s);
-  result := s;
+  Result := TbtString(SysUtils.FloatToStr(E));
 end;
 
 function StrToInt(const S: TbtString): LongInt;

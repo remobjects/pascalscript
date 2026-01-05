@@ -1603,6 +1603,7 @@ end;
 function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: tbtString): tbtString;
 var
   i, n: Longint;
+  b: Boolean;
 begin
   if p.Dta = nil then
   begin
@@ -1672,6 +1673,20 @@ begin
           if Result <> '' then
             Result := Result + ', ';
           Result := Result + PSVariantToString(PSGetArrayField(p, i), '');
+        end;
+        Result := '[' + Result + ']';
+      end;
+    btSet:
+      begin
+        Result := '';
+        n := TPSTypeRec_Set(p.aType).aBitSize;
+        for i := 0 to n-1 do begin
+          Set_membership(i, PByteArray(p.Dta), b);
+          if b then begin
+            if Result <> '' then
+              Result := Result + ', ';
+            Result := Result + IntToStr(i+1);
+          end;
         end;
         Result := '[' + Result + ']';
       end;

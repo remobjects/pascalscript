@@ -8175,7 +8175,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             NewVarU := TPSUnValueOp.Create;
             NewVarU.SetParserPos(FParser);
             NewVarU.Operator := otCast;
-            NewVarU.FType := at2ut(FindBaseType(btu32));
+            NewVarU.FType := at2ut(FindBaseType({$IFNDEF PS_NOINT64} btu64 {$ELSE} btu32 {$ENDIF}));
             NewVarU.Val1 := NewVar;
             NewVar := NewVarU;
             FParser.Next;

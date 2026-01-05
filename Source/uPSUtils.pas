@@ -1500,13 +1500,7 @@ var
               (FText[ci] <> #10) do begin
               Inc(ci);
             end;
-            if (FText[ci] = #0) then
-            begin
-              CurrTokenId := CSTIINT_Comment;
-            end else
-            begin
-              CurrTokenId := CSTIINT_Comment;
-            end;
+            CurrTokenId := CSTIINT_Comment;
             CurrTokenLen := ci - ct;
           end else
           begin

@@ -19,7 +19,11 @@ uses
   {$IFDEF UNIX}
   Unix, baseunix, dynlibs, termio, sockets;
   {$ELSE}
-  {$IFDEF KYLIX}SysUtils;{$ELSE}Windows;{$ENDIF}
+  {$IFDEF WINDOWS}
+  SysUtils, Windows;
+  {$ELSE}
+  SysUtils;
+  {$ENDIF}
   {$ENDIF}
 
 {
@@ -75,6 +79,8 @@ begin
 end;
 
 function LoadDll(Caller: TPSExec; P: TPSExternalProcRec; var ErrorCode: LongInt): Boolean;
+const
+  ERROR_MOD_NOT_FOUND = 126;
 var
   s, s2, s3: tbtstring;
   h, i: Longint;
@@ -134,7 +140,7 @@ begin
       if dllhandle = 0 then
       begin
         p.Ext2 := Pointer(1);
-        ErrorCode := GetLastError;
+        ErrorCode := {$IFDEF WINDOWS}GetLastError{$ELSE}{$IFDEF FPC}GetLastOSError{$ELSE}ERROR_MOD_NOT_FOUND+1{$ENDIF}{$ENDIF};
         Result := False;
         exit;
       end;
@@ -153,7 +159,7 @@ begin
   if p.Ext1 = nil then
   begin
     p.Ext2 := Pointer(1);
-    ErrorCode := GetLastError;
+    ErrorCode := {$IFDEF WINDOWS}GetLastError{$ELSE}{$IFDEF FPC}GetLastOSError{$ELSE}ERROR_MOD_NOT_FOUND+2{$ENDIF}{$ENDIF};
     Result := false;
     exit;
   end;

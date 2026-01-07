@@ -11354,6 +11354,12 @@ begin
       exit;
     end;
     FSelf := Tobject(n.dta^);
+    if FSelf = nil then
+    begin
+      Caller.CMD_Err(erCouldNotCallProc);
+      Result := False;
+      exit;
+    end;
     Params := TPSList.Create;
     Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 1], True));
     for i := Stack.Count -3 downto Longint(Stack.Count) - ParamCount -2 do
@@ -11379,8 +11385,14 @@ begin
       exit;
     end;
     FSelf := Tobject(n.dta^);
+    if FSelf = nil then
+    begin
+      Caller.CMD_Err(erCouldNotCallProc);
+      Result := False;
+      exit;
+    end;
     Params := TPSList.Create;
-    Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - 2], True));
+    Params.Add(NewPPSVariantIFC(Stack[Longint(Stack.Count) - ParamCount - 2], False));
 
     for i := Stack.Count -2 downto Longint(Stack.Count) - ParamCount -1 do
     begin

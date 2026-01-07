@@ -178,7 +178,7 @@ begin
   cl.addTypeS('TAnchors','set of TAnchorKind');
   {$ENDIF}
   {$IFDEF FPC}
-  cl.addTypeS('TAnchorKind', '(akLeft, akTop, akRight, akBottom)');
+  cl.addTypeS('TAnchorKind', '(akTop, akLeft, akRight, akBottom)');
   cl.addTypeS('TAnchors','set of TAnchorKind');
   {$ENDIF}
   cl.AddTypeS('TModalResult', 'Integer');

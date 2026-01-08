@@ -23,7 +23,7 @@ uses
   Unix, baseunix, dynlibs, termio, sockets;
   {$ENDIF}
   {$ELSE}
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
   SysUtils, Windows;
   {$ELSE}
   SysUtils;
@@ -144,7 +144,7 @@ begin
       if dllhandle = 0 then
       begin
         p.Ext2 := Pointer(1);
-        ErrorCode := {$IFDEF WINDOWS}GetLastError{$ELSE}{$IFDEF FPC}GetLastOSError{$ELSE}ERROR_MOD_NOT_FOUND+1{$ENDIF}{$ENDIF};
+        ErrorCode := {$IFDEF MSWINDOWS}GetLastError{$ELSE}{$IFDEF FPC}GetLastOSError{$ELSE}ERROR_MOD_NOT_FOUND+1{$ENDIF}{$ENDIF};
         Result := False;
         exit;
       end;
@@ -163,7 +163,7 @@ begin
   if p.Ext1 = nil then
   begin
     p.Ext2 := Pointer(1);
-    ErrorCode := {$IFDEF WINDOWS}GetLastError{$ELSE}{$IFDEF FPC}GetLastOSError{$ELSE}ERROR_MOD_NOT_FOUND+2{$ENDIF}{$ENDIF};
+    ErrorCode := {$IFDEF MSWINDOWS}GetLastError{$ELSE}{$IFDEF FPC}GetLastOSError{$ELSE}ERROR_MOD_NOT_FOUND+2{$ENDIF}{$ENDIF};
     Result := false;
     exit;
   end;

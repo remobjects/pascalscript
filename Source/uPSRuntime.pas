@@ -12347,7 +12347,7 @@ end;
 
 
 {$IFDEF CPU64}
-function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer): Integer; forward;
+function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer; {$IFDEF DELPHI} ResPtr: Pointer {$ENDIF}): Integer; forward;
 {$ELSE}
 function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
 {$ENDIF}
@@ -12362,6 +12362,42 @@ procedure MyAllMethodsHandler;
 //  - procedure
 //    * RDX, R8, R9 - param1 - param3
 //    * STACK = param4... paramcount
+{$IFDEF DELPHI}
+asm
+  // SEH-compatible frame: .params 4 = 32 bytes local storage
+  // Layout: XMM1(8) + XMM2(8) + XMM3(8) + ResPtr(8) = 32 bytes
+  // Stack: [rbp+0..31]=local, [rbp+32]=saved RBP, [rbp+40]=ret addr,
+  //        [rbp+48..76]=shadow, [rbp+80+]=caller's 5th+ params
+  .params 4
+
+  movq    [rbp+0], xmm1         // Save XMM1-3 (passed as pointers to handler)
+  movq    [rbp+8], xmm2
+  movq    [rbp+16], xmm3
+  xor     rax, rax              // Clear ResPtr (same as push 0 by 32-bit code)
+  mov     [rbp+24], rax
+
+  sub     rsp, 80               // 9 params(72) + alignment(8)
+
+  // Call MyAllMethodsHandler3(Self, _RDX, _R8, _R9, Stack, _XMM1, _XMM2, _XMM3, ResPtr)
+  // RCX (Self), RDX, R8, R9 already contain the values we need
+  lea     rax, [rbp+80]         // Stack ptr
+  mov     [rsp+32], rax
+  lea     rax, [rbp+0]          // XMM1 ptr
+  mov     [rsp+40], rax
+  lea     rax, [rbp+8]          // XMM2 ptr
+  mov     [rsp+48], rax
+  lea     rax, [rbp+16]         // XMM3 ptr
+  mov     [rsp+56], rax
+  lea     rax, [rbp+24]         // ResPtr
+  mov     [rsp+64], rax         // 64+8 = 72
+
+  call    MyAllMethodsHandler3
+
+  add     rsp, 80
+
+  mov     rax, [rbp+24]         // Return ResPtr
+end;
+{$ELSE}
 asm
   PUSH RBP
   MOVQ RAX, XMM3
@@ -12385,6 +12421,7 @@ asm
   SUB RSP, 40h
   ADD RSP, 4*8
 end;
+{$ENDIF}
 {$else}
 //  On entry:
 //     EAX = Self pointer
@@ -12492,7 +12529,7 @@ asm
 
 end;
 {$IFDEF CPU64}
-function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer): Integer;
+function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer; {$IFDEF DELPHI} ResPtr: Pointer {$ENDIF}): Integer;
 var
   Decl: tbtString;
   I, C, regno: Integer;
@@ -12661,7 +12698,7 @@ begin
         Res := nil;
       end
       else begin
-        CopyArrayContents(Pointer(IPointer(Stack)-IPointer(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
+        CopyArrayContents({$IFDEF DELPHI} ResPtr {$ELSE} Pointer(IPointer(Stack)-IPointer(PointerSize2)) {$ENDIF}, @PPSVariantData(res)^.Data, 1, Res^.FType);
       end;
     end;
     DestroyHeapVariant(res);

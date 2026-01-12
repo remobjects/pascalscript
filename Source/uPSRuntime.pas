@@ -12282,6 +12282,12 @@ begin
     btu16,
     bts32,
     btu32,
+{$IFDEF CPU64} 
+{$IFNDEF PS_NOINT64}
+    bts64,
+    btU64,
+{$ENDIF}
+{$ENDIF}
     btstring,
     btclass,
 {$IFNDEF PS_NOINTERFACES}

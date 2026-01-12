@@ -12125,11 +12125,6 @@ begin
   s := '';
 end;
 
-{$ifdef CPUX64}
-
-{.$DEFINE empty_methods_handler}
-{$ENDIF}
-
 {$ifdef fpc}
   {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
     {$define empty_methods_handler}
@@ -12144,10 +12139,11 @@ end;
 
 
 {$IFDEF CPU64}
-function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer; {$IFDEF DELPHI} ResPtr: Pointer {$ENDIF}): Integer; forward;
+function MyAllMethodsHandler64(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer; {$IFDEF DELPHI} ResPtr: Pointer {$ENDIF}): Integer; forward;
 {$ELSE}
-function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
+function MyAllMethodsHandler32(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer; forward;
 {$ENDIF}
+
 procedure MyAllMethodsHandler;
 {$ifdef CPU64}
 //  On entry:
@@ -12175,7 +12171,7 @@ asm
 
   sub     rsp, 80               // 9 params(72) + alignment(8)
 
-  // Call MyAllMethodsHandler3(Self, _RDX, _R8, _R9, Stack, _XMM1, _XMM2, _XMM3, ResPtr)
+  // Call MyAllMethodsHandler64(Self, _RDX, _R8, _R9, Stack, _XMM1, _XMM2, _XMM3, ResPtr)
   // RCX (Self), RDX, R8, R9 already contain the values we need
   lea     rax, [rbp+80]         // Stack ptr
   mov     [rsp+32], rax
@@ -12188,7 +12184,7 @@ asm
   lea     rax, [rbp+24]         // ResPtr
   mov     [rsp+64], rax         // 64+8 = 72
 
-  call    MyAllMethodsHandler3
+  call    MyAllMethodsHandler64
 
   add     rsp, 80
 
@@ -12211,7 +12207,7 @@ asm
   // Rdx -1st param
   // Rcx - Self
   SUB RSP, 20h
-  CALL MyAllMethodsHandler3
+  CALL MyAllMethodsHandler64
   ADD   RSP, 20h  //Restore stack
   ADD   RSP, 40h
   POP RAX
@@ -12231,14 +12227,14 @@ asm
   mov edx, esp
   add edx, 16 // was 12
   pop ecx
-  call MyAllMethodsHandler2
+  call MyAllMethodsHandler32
   pop ecx
   mov edx, [esp]
   add esp, eax
   mov [esp], edx
   mov eax, ecx
 end;
-{$endif empty_methods_handler}
+{$endif CPU64}
 
 function ResultAsRegister(b: TPSTypeRec): Boolean;
 begin
@@ -12332,7 +12328,7 @@ asm
 
 end;
 {$IFDEF CPU64}
-function MyAllMethodsHandler3(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer; {$IFDEF DELPHI} ResPtr: Pointer {$ENDIF}): Integer;
+function MyAllMethodsHandler64(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer; {$IFDEF DELPHI} ResPtr: Pointer {$ENDIF}): Integer;
 var
   Decl: tbtString;
   I, C, regno: Integer;
@@ -12511,7 +12507,7 @@ begin
   end;
 end;
 {$ELSE}
-function MyAllMethodsHandler2(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer;
+function MyAllMethodsHandler32(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer): Integer;
 var
   Decl: tbtString;
   I, C, regno: Integer;
@@ -12694,8 +12690,9 @@ begin
       raise EPSException.Create(PSErrorToString(Self.SE.ExceptionCode, Self.Se.ExceptionString), Self.Se, Self.Se.ExProc, Self.Se.ExPos);
   end;
 end;
-{$ENDIF}
-{$endif}
+{$ENDIF CPU64}
+{$endif empty_methods_handler}
+
 function TPSRuntimeClassImporter.FindClass(const Name: tbtString): TPSRuntimeClass;
 var
   h, i: Longint;

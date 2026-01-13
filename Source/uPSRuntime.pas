@@ -12372,7 +12372,9 @@ asm
   xor     rax, rax              // Clear ResPtr (same as push 0 by 32-bit code)
   mov     [rbp+24], rax
 
-  sub     rsp, 80               // 9 params(72) + alignment(8)
+  // MyAllMethodsHandler64 has 9 parameters: 4 via registers, 5 via stack
+  // shadow space for callee(32) + 5 stack params(40) + alignment to 16 bytes(8) = 72+8 = 80 bytes
+  sub     rsp, 80
 
   // Call MyAllMethodsHandler64(Self, _RDX, _R8, _R9, Stack, _XMM1, _XMM2, _XMM3, ResPtr)
   // RCX (Self), RDX, R8, R9 already contain the values we need

@@ -526,6 +526,7 @@ _XMM0: Double;
   CallData: TPSList;
   I: Integer;
   pp: ^Byte;
+  IsSafeCall: Boolean;
 
   function rp(p: PPSVariantIFC): PPSVariantIFC;
   begin
@@ -855,6 +856,7 @@ begin
   end else
     IsConstructor := false;
   {$ENDIF}
+  IsSafeCall := CallingConv = cdSafeCall;
 
   InnerfuseCall := False;
   if Address = nil then
@@ -888,30 +890,32 @@ begin
     if assigned(_Self) then begin
       StoreReg(IPointer(_Self));
     end;
-    if assigned(res) and (res^.atype.basetype = btSingle) then begin
+    if assigned(res) and not IsSafeCall and (res^.atype.basetype = btSingle) then begin
       Registers.Singlebits  := Registers.Singlebits or 256;
     end;
 {$IFDEF PS_RESBEFOREPARAMETERS}
-   if assigned(res) then begin
-    case res^.aType.BaseType of
-      {$IFDEF x64_string_result_as_varparameter}
-      btstring, btWideString, btUnicodeString,
-      {$ENDIF}
-      btInterface, btArray, btVariant, btStaticArray:
-        GetPtr(res);
-      btRecord,
-      btSet:
-        begin
-          if res.aType.RealSize > PointerSize then GetPtr(res);
-        end;
-    end;
-   end;
+    if assigned(res) and not IsSafeCall then begin
+      case res^.aType.BaseType of
+        {$IFDEF x64_string_result_as_varparameter}
+        btstring, btWideString, btUnicodeString,
+        {$ENDIF}
+        btInterface, btArray, btVariant, btStaticArray:
+          GetPtr(res);
+        btRecord,
+        btSet:
+          begin
+            if res.aType.RealSize > PointerSize then GetPtr(res);
+          end;
+      end;
+     end;
 {$ENDIF}
     for I := 0 to Params.Count - 1 do
     begin
       if not GetPtr(rp(Params[I])) then Exit;
     end;
-    if assigned(res) then begin
+    if assigned(res) and IsSafeCall then
+      GetPtr(res); { SafeCall: res is actually passed as last parameter }
+    if assigned(res) and not IsSafeCall then begin
 {$IFNDEF PS_RESBEFOREPARAMETERS}
       case res^.aType.BaseType of
         {$IFDEF x64_string_result_as_varparameter}
@@ -981,7 +985,7 @@ begin
         SetLength(Stack, Length(Stack)+16 - (Length(Stack) mod 16));
       end;
       {$ENDIF} 
-	if Stack = nil then pp := nil else pp := @Stack[{$IFDEF REG_STACK_PTR_OFFSET0}0{$ELSE}Length(Stack) -8{$ENDIF}];
+      if Stack = nil then pp := nil else pp := @Stack[{$IFDEF REG_STACK_PTR_OFFSET0}0{$ELSE}Length(Stack) -8{$ENDIF}];
 {$IFDEF WINDOWS}
         Registers.Stack := pp;
         Registers.Items := Length(Stack) div 8;
@@ -989,6 +993,8 @@ begin
 {$ELSE}
        x64call(Address, _RAX, Registers, pp, Length(Stack) div 8, _XMM0);
 {$ENDIF}
+      if IsSafeCall then
+        OleCheck(_RAX);
     end;
     Result := True;
   finally

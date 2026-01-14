@@ -894,20 +894,20 @@ begin
       Registers.Singlebits  := Registers.Singlebits or 256;
     end;
 {$IFDEF PS_RESBEFOREPARAMETERS}
-    if assigned(res) and not IsSafeCall then begin
-      case res^.aType.BaseType of
-        {$IFDEF x64_string_result_as_varparameter}
-        btstring, btWideString, btUnicodeString,
-        {$ENDIF}
-        btInterface, btArray, btVariant, btStaticArray:
-          GetPtr(res);
-        btRecord,
-        btSet:
-          begin
-            if res.aType.RealSize > PointerSize then GetPtr(res);
-          end;
-      end;
-     end;
+   if assigned(res) and not IsSafeCall then begin
+    case res^.aType.BaseType of
+      {$IFDEF x64_string_result_as_varparameter}
+      btstring, btWideString, btUnicodeString,
+      {$ENDIF}
+      btInterface, btArray, btVariant, btStaticArray:
+        GetPtr(res);
+      btRecord,
+      btSet:
+        begin
+          if res.aType.RealSize > PointerSize then GetPtr(res);
+        end;
+    end;
+   end;
 {$ENDIF}
     for I := 0 to Params.Count - 1 do
     begin
@@ -985,7 +985,7 @@ begin
         SetLength(Stack, Length(Stack)+16 - (Length(Stack) mod 16));
       end;
       {$ENDIF} 
-      if Stack = nil then pp := nil else pp := @Stack[{$IFDEF REG_STACK_PTR_OFFSET0}0{$ELSE}Length(Stack) -8{$ENDIF}];
+	if Stack = nil then pp := nil else pp := @Stack[{$IFDEF REG_STACK_PTR_OFFSET0}0{$ELSE}Length(Stack) -8{$ENDIF}];
 {$IFDEF WINDOWS}
         Registers.Stack := pp;
         Registers.Items := Length(Stack) div 8;

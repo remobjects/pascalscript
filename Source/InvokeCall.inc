@@ -13,6 +13,11 @@ var
   i: Integer;
   arr: TArray<TValue>;
   arr_varrec: TArray<TVarRec>;
+  procPtr: PPSVariantProcPtr;
+  method: TMethod;
+  ctx: TRttiContext;
+  methodValue: TValue;
+  rttiType: TRttiType;
 begin
   Result := Assigned(aValue^.aType) and (IPointer(aValue^.aType) > $FFFF);
   if Result then
@@ -78,7 +83,26 @@ begin
       btWideChar:                        aValues := aValues + [TValue.From<tbtWideChar>(ptbtWideChar(aValue^.dta)^)];
       {$ENDIF}
       //21
-      btProcPtr:                         aValues := aValues + [TValue.From<TMethod>(MKMethod(aSelf, Longint(aValue^.dta^)))];
+      btProcPtr:
+        begin
+          procPtr := PPSVariantProcPtr(Pointer(IPointer(aValue^.dta) - SizeOf(TPSVariant)));
+          if procPtr^.ProcNo <> 0 then
+            method := MKMethod(aSelf, procPtr^.ProcNo)
+          else begin
+            method.Data := procPtr^.Self;
+            method.Code := procPtr^.Ptr;
+          end;
+
+          Result := False;
+          for rttiType in ctx.GetTypes do
+            if (rttiType.TypeKind = tkMethod) and (rttiType.Name.ToUpper = String(aValue^.aType.ExportName)) then
+            begin
+              TValue.Make(@method, rttiType.Handle, methodValue);
+              aValues := aValues + [methodValue];
+              Result := True;
+              Break;
+            end;
+        end;
       //22
       btStaticArray:                     aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
       //23

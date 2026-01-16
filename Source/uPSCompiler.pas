@@ -1895,18 +1895,28 @@ begin
   BlockWriteData(BlockInfo, l, 4);
 end;
 
-procedure BlockWriteVariant(BlockInfo: TPSBlockInfo; p: PIfRVariant{$IFNDEF PS_NOINT64}; const ExecIs64Bit: Boolean{$ENDIF});
+{$IFDEF CPU64}
+{$IFDEF TExtended80Rec_present}
+  { ^ This combination is not True on FPC }
+  {$DEFINE CPU64_and_TExtended80Rec_present}
+{$ENDIF}
+{$ENDIF}
+
+function BlockWriteVariant(BlockInfo: TPSBlockInfo; p: PIfRVariant{$IFNDEF PS_NOINT64}; const ExecIs64Bit: Boolean{$ENDIF}): Boolean;
 var
   du8: tbtu8;
   du16: tbtu16;
   {$IFNDEF PS_NOINT64}
-  {$IFDEF CPU64}
+  {$IFDEF CPU64_and_TExtended80Rec_present}
   TempReallyExtended: TExtended80Rec;
-  {$ELSE}
+  {$ENDIF}
+  {$IFNDEF CPU64}
   TempDouble: Double;
   {$ENDIF}
   {$ENDIF}
 begin
+  Result := True;
+
   BlockWriteLong(BlockInfo, p^.FType.FinalTypeNo);
   case p.FType.BaseType of
   btType: BlockWriteData(BlockInfo, p^.ttype.FinalTypeno, 4);
@@ -1937,12 +1947,16 @@ begin
         BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
         {$ENDIF}
       end else begin
-        {$IFDEF CPU64}
+        {$IFDEF CPU64_and_TExtended80Rec_present}
         { On 32-bit Exec, Extended is not an alias for Double, so write a real Extended instead, using TExtended80Rec }
         TempReallyExtended := TExtended80Rec(p^.textended);
         BlockWriteData(BlockInfo, TempReallyExtended, sizeof(TExtended80Rec));
         {$ELSE}
-        BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
+        {$IFDEF CPU64}
+          Result := False; { 64-bit compiler cannot write 10 byte Extended for 32-bit exec without having TExtended80Rec }
+        {$ELSE}
+          BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
+        {$ENDIF}
         {$ENDIF}
       end;
       {$ELSE}
@@ -6563,13 +6577,11 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       if AllowData then
       begin
         BlockWriteByte(BlockInfo, 1);
-        BlockWriteVariant(BlockInfo, TPSValueData(x).Data{$IFNDEF PS_NOINT64}, FExecIs64Bit{$ENDIF})
+        if not BlockWriteVariant(BlockInfo, TPSValueData(x).Data{$IFNDEF PS_NOINT64}, FExecIs64Bit{$ENDIF}) then
+          Result := False;
       end
       else
-      begin
         Result := False;
-        exit;
-      end;
     end else
       Result := False;
   end;
@@ -11561,17 +11573,20 @@ var
       WriteData(l, 4);
     end;
 
-    procedure WriteAttributeValue(p: PIfRVariant);
+    function WriteAttributeValue(p: PIfRVariant): Boolean;
     var
       BaseType: TPSBaseType; { Just so we can't end up with an empty var block }
       {$IFNDEF PS_NOINT64}
-      {$IFDEF CPU64}
+      {$IFDEF CPU64_and_TExtended80Rec_present}
       TempReallyExtended: TExtended80Rec;
-      {$ELSE}
+      {$ENDIF}
+      {$IFNDEF CPU64}
       TempDouble: Double;
       {$ENDIF}
       {$ENDIF}
     begin
+      Result := True;
+
       WriteLong(p^.FType.FinalTypeNo);
       BaseType := p.FType.BaseType;
       case BaseType of
@@ -11603,12 +11618,16 @@ var
             WriteData(p^.textended, sizeof(tbtExtended));
             {$ENDIF}
           end else begin
-            {$IFDEF CPU64}
+            {$IFDEF CPU64_and_TExtended80Rec_present}
             { On 32-bit Exec, Extended is not an alias for Double, so write a real Extended instead, using TExtended80Rec }
             TempReallyExtended := TExtended80Rec(p^.textended);
             WriteData(TempReallyExtended, sizeof(TExtended80Rec));
             {$ELSE}
-            WriteData(p^.textended, sizeof(tbtExtended));
+            {$IFDEF CPU64}
+              Result := False;
+            {$ELSE}
+              WriteData(p^.textended, sizeof(tbtExtended));
+            {$ENDIF}
             {$ENDIF}
           end;
           {$ELSE}
@@ -11650,10 +11669,12 @@ var
       end;
     end;
 
-    procedure WriteAttributes(attr: TPSAttributes);
+    function WriteAttributes(attr: TPSAttributes): Boolean;
     var
       i, j: Longint;
     begin
+      Result := True;
+
       WriteLong(attr.Count);
       for i := 0 to Attr.Count -1 do
       begin
@@ -11663,12 +11684,15 @@ var
         WriteLong(Attr[i].Count);
         for j := 0 to Attr[i].Count -1 do
         begin
-          WriteAttributeValue(Attr[i][j]);
+          if not WriteAttributeValue(Attr[i][j]) then begin
+            Result := False;
+            exit;
+          end;
         end;
       end;
     end;
 
-    procedure WriteTypes;
+    function WriteTypes: Boolean;
     var
       l, n: Longint;
       bt: TPSBaseType;
@@ -11681,6 +11705,8 @@ var
         WriteData(TypeNo, 4);
       end;
     begin
+      Result := True;
+
       Items := TPSList.Create;
       try
         for l := 0 to FCurrUsedTypeNo -1 do
@@ -11758,7 +11784,10 @@ var
             WriteLong(Length(FExportName));
             WriteData(FExportName[1], length(FExportName));
           end;
-          WriteAttributes(x.Attributes);
+          if not WriteAttributes(x.Attributes) then begin
+            Result := False;
+            exit;
+          end;
         end;
       finally
         Items.Free;
@@ -11795,7 +11824,7 @@ var
       end;
     end;
 
-    procedure WriteProcs;
+    function WriteProcs: Boolean;
     var
       l: Longint;
       xp: TPSProcedure;
@@ -11804,6 +11833,7 @@ var
       s: tbtString;
       att: Byte;
     begin
+      Result := True;
       for l := 0 to FProcs.Count - 1 do
       begin
         xp := FProcs[l];
@@ -11843,7 +11873,10 @@ var
           end;
         end;
         if xp.Attributes.Count <> 0 then
-          WriteAttributes(xp.Attributes);
+          if not WriteAttributes(xp.Attributes) then begin
+            Result := False;
+            exit;
+          end;
       end;
     end;
 
@@ -11985,8 +12018,10 @@ var
     WriteLong(FVars.Count);
     WriteLong(MainProc);  //nvds
     WriteLong(0);
-    WriteTypes;
-    WriteProcs;
+    if not WriteTypes or not WriteProcs then begin
+      Result := False;
+      exit;
+    end;
     WriteVars;
     WriteProcs2;
 

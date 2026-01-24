@@ -767,6 +767,11 @@ begin
   Result := TbtString(SysUtils.FloatToStr(E));
 end;
 
+function CurrToStr(C: Currency): TbtString;
+begin
+  Result := TbtString(SysUtils.CurrToStr(C));
+end;
+
 function StrToInt(const S: TbtString): LongInt;
 var
   e: Integer;

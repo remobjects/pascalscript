@@ -966,7 +966,7 @@ begin
         bts64: tbts64(res.dta^) := Int64(_RAX);
         btU64: tbtu64(res.dta^) := UInt64(_RAX);
 {$ENDIF}
-        btCurrency:    tbts64(res.Dta^) := Int64(_RAX);
+        btCurrency:    tbts64(res.Dta^) := Int64(_RAX); { Do not change to tbtCurrency: see 08d2743a }
         btInterface,
         btVariant,
         {$IFDEF x64_string_result_as_varparameter}

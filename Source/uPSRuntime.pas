@@ -1641,9 +1641,10 @@ begin
     btS16: str(tbts16(p.dta^), Result);
     btU32: str(tbtu32(p.dta^), Result);
     btS32: str(tbts32(p.dta^), Result);
-    btSingle: str(tbtsingle(p.dta^), Result);
-    btDouble: str(tbtdouble(p.dta^), Result);
-    btExtended: str(tbtextended(p.dta^), Result);
+    btSingle: Result := FloatToStr(tbtsingle(p.dta^));
+    btDouble: Result := FloatToStr(tbtdouble(p.dta^));
+    btExtended: Result := FloatToStr(tbtextended(p.dta^));
+    btCurrency: Result := CurrToStr(tbtcurrency(p.dta^));
     btString: Result := makestring(tbtString(p.dta^));
     btPChar:
       begin

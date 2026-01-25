@@ -624,6 +624,8 @@ type
 
 function FloatToStr(E: Extended): TbtString;
 
+function CurrToStr(C: Currency): TbtString;
+
 function FastLowerCase(const s: TbtString): TbtString;
 
 function Fw(const S: TbtString): TbtString;

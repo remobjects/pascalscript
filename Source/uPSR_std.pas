@@ -49,6 +49,8 @@ type
     procedure COMPONENTSTATE_R(var T: TCOMPONENTSTATE);
     procedure DESIGNINFO_R(var T: LONGINT);
     procedure DESIGNINFO_W(T: LONGINT);
+    procedure TAG_R(var T: NativeInt);
+    procedure TAG_W(T: NativeInt);
   end;
 
 procedure TComponent_PSHelper.OwnerR(var T: TComponent); begin T := Self.Owner; end;
@@ -59,6 +61,8 @@ procedure TComponent_PSHelper.COMPONENTINDEX_W(T: INTEGER); begin Self.COMPONENT
 procedure TComponent_PSHelper.COMPONENTSTATE_R(var T: TCOMPONENTSTATE); begin t := Self.COMPONENTSTATE; end;
 procedure TComponent_PSHelper.DESIGNINFO_R(var T: LONGINT); begin t := Self.DESIGNINFO; end;
 procedure TComponent_PSHelper.DESIGNINFO_W(T: LONGINT); begin Self.DESIGNINFO := t; end;
+procedure TComponent_PSHelper.TAG_R(var T: NativeInt); begin t := Self.Tag ; end;
+procedure TComponent_PSHelper.TAG_W(T: NativeInt); begin Self.Tag := t; end;
 
 
 procedure RIRegisterTComponent(Cl: TPSRuntimeClassImporter);
@@ -75,6 +79,7 @@ begin
     RegisterPropertyHelper(@TComponent.COMPONENTINDEX_R, @TComponent.COMPONENTINDEX_W, 'ComponentIndex');
     RegisterPropertyHelper(@TComponent.COMPONENTSTATE_R, nil, 'ComponentState');
     RegisterPropertyHelper(@TComponent.DESIGNINFO_R, @TComponent.DESIGNINFO_W, 'DesignInfo');
+    RegisterPropertyHelper(@TComponent.TAG_R, @TComponent.TAG_W, 'Tag');
   end;
 end;
 

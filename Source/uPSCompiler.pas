@@ -6980,6 +6980,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               if not WriteCalculation(tmp,TPSValueReplace(tmpn).NewValue) then
               begin
                 {MakeError('',ecInternalError,'');}
+                tmpn.Free;
                 x.Free;
                 x := nil;
                 exit;

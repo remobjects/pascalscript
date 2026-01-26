@@ -1566,6 +1566,9 @@ begin
       tkInteger: begin Result := IntToStr(GetOrdProp(Instance, pp)); exit; end;
       tkChar: begin Result := '#'+IntToStr(GetOrdProp(Instance, pp)); exit; end;
       tkEnumeration: begin Result := tbtstring(GetEnumName(pp^.PropType{$IFNDEF FPC}{$IFDEF DELPHI3UP}^{$ENDIF}{$ENDIF}, GetOrdProp(Instance, pp))); exit; end;
+      {$IFNDEF PS_NOINT64}
+      tkInt64: begin Result := IntToStr(GetInt64Prop(Instance, pp)); exit; end;
+     {$ENDIF}
       tkFloat: begin Result := FloatToStr(GetFloatProp(Instance, PP)); exit; end;
       tkString, tkLString: begin Result := ''''+tbtString(GetStrProp(Instance, PP))+''''; exit; end;
       tkSet: begin Result := '[Set]'; exit; end;
@@ -11362,6 +11365,10 @@ begin
         btS16: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbts16(n.Dta^));
         btU32: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbtu32(n.Dta^));
         btS32: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbts32(n.Dta^));
+        {$IFNDEF PS_NOINT64}
+        btS64: SetInt64Prop(TObject(FSelf), PPropInfo(p.Ext1), tbts64(n.Dta^));
+        btU64: SetInt64Prop(TObject(FSelf), PPropInfo(p.Ext1), tbtu64(n.Dta^));
+        {$ENDIF}
         btSingle: SetFloatProp(TObject(FSelf), p.Ext1, tbtsingle(n.Dta^));
         btDouble: SetFloatProp(TObject(FSelf), p.Ext1, tbtdouble(n.Dta^));
         btExtended: SetFloatProp(TObject(FSelf), p.Ext1, tbtextended(n.Dta^));
@@ -11425,6 +11432,10 @@ begin
         btS16: tbts16(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
         btU32: tbtu32(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
         btS32: tbts32(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
+        {$IFNDEF PS_NOINT64}
+        btS64: tbts64(n.Dta^) := GetInt64Prop(TObject(FSelf), p.Ext1);
+        btU64: tbtu64(n.Dta^) := GetInt64Prop(TObject(FSelf), p.Ext1);
+        {$ENDIF}
         btSingle: tbtsingle(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);
         btDouble: tbtdouble(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);
         btExtended: tbtextended(n.Dta^) := GetFloatProp(TObject(FSelf), p.Ext1);

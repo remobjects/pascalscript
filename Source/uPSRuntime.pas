@@ -1194,6 +1194,7 @@ type
     CurrProc: TPSInternalProcRec;
     BasePtr, StackSize: Cardinal;
     FinallyOffset, ExceptOffset, Finally2Offset, EndOfBlock: Cardinal;
+    ExitPoint: Cardinal;
     ExceptionData: TPSError;
     ExceptionObject: TObject;
     ExceptionParam: tbtString;
@@ -7964,13 +7965,11 @@ var
   Cmd: Cardinal;
   I: Longint;
   pp: TPSExceptionHandler;
-  FExitPoint: Cardinal;
   FOldStatus: TPSStatus;
   Tmp: TObject;
   btemp: Boolean;
   CallRunline: TMyRunLine;
 begin
-  FExitPoint := InvalidVal;
   if FStatus = isLoaded then
   begin
     for i := FExceptionStack.Count -1 downto 0 do
@@ -8496,7 +8495,6 @@ begin
               { Script internal command: Ret<br>
                   Command: TPSCommand; <br>
               }
-              FExitPoint := FCurrentPosition -1;
               P2 := 0;
               if FExceptionStack.Count > 0 then
               begin
@@ -8511,12 +8509,14 @@ begin
                   FCurrStackBase := pp.BasePtr;
                   if pp.FinallyOffset <> InvalidVal then
                   begin
+                    pp.ExitPoint := FCurrentPosition -1;
                     FCurrentPosition := pp.FinallyOffset;
                     pp.FinallyOffset := InvalidVal;
                     p2 := 1;
                     break;
                   end else if pp.Finally2Offset <> InvalidVal then
                   begin
+                    pp.ExitPoint := FCurrentPosition -1;
                     FCurrentPosition := pp.Finally2Offset;
                     pp.Finally2Offset := InvalidVal;
                     p2 := 1;
@@ -8532,7 +8532,6 @@ begin
               end;
               if p2 = 0 then
               begin
-                FExitPoint := InvalidVal;
                 if FCurrStackBase = InvalidVal then
                 begin
                   FStatus := FOldStatus;
@@ -8692,6 +8691,7 @@ begin
               pp.CurrProc := FCurrProc;
               pp.BasePtr :=FCurrStackBase;
               pp.StackSize := FStack.Count;
+              pp.ExitPoint := InvalidVal;
               if not ReadLong(pp.FinallyOffset) then begin
                 CMD_Err(erOutOfRange);
                 pp.Free;
@@ -8768,15 +8768,13 @@ begin
                       FCurrentPosition := pp.Finally2Offset;
                       pp.Finally2Offset := InvalidVal;
                     end else begin
-                      p := pp.EndOfBlock;
+                      if pp.ExitPoint <> InvalidVal then
+                        p := pp.ExitPoint
+                      else
+                        p := pp.EndOfBlock;
                       pp.Free;
                       FExceptionStack.DeleteLast;
-                      if FExitPoint <> InvalidVal then
-                      begin
-                        FCurrentPosition := FExitPoint;
-                      end else begin
-                        FCurrentPosition := p;
-                      end;
+                      FCurrentPosition := p;
                     end;
                   end;
                 0:
@@ -8795,7 +8793,10 @@ begin
                        FCurrentPosition := pp.Finally2Offset;
                        pp.ExceptOffset := InvalidVal;
                     end else begin
-                      p := pp.EndOfBlock;
+                      if pp.ExitPoint <> InvalidVal then
+                        p := pp.ExitPoint
+                      else
+                        p := pp.EndOfBlock;
                       pp.Free;
                       FExceptionStack.DeleteLast;
                       if ExEx <> eNoError then
@@ -8804,12 +8805,7 @@ begin
                         ExObject := nil;
                         ExceptionProc(ExProc, ExPos, ExEx, ExParam, Tmp);
                       end else
-                      if FExitPoint <> InvalidVal then
-                      begin
-                        FCurrentPosition := FExitPoint;
-                      end else begin
                         FCurrentPosition := p;
-                      end;
                     end;
                   end;
                 1:
@@ -8833,7 +8829,10 @@ begin
                       FCurrentPosition := pp.Finally2Offset;
                       pp.Finally2Offset := InvalidVal;
                     end else begin
-                      p := pp.EndOfBlock;
+                      if pp.ExitPoint <> InvalidVal then
+                        p := pp.ExitPoint
+                      else
+                        p := pp.EndOfBlock;
                       pp.Free;
                       FExceptionStack.DeleteLast;
                       if (ExEx <> eNoError) and (p <> InvalidVal) then
@@ -8842,12 +8841,7 @@ begin
                         ExObject := nil;
                         ExceptionProc(ExProc, ExPos, ExEx, ExParam, Tmp);
                       end else
-                      if FExitPoint <> InvalidVal then
-                      begin
-                        FCurrentPosition := FExitPoint;
-                      end else begin
                         FCurrentPosition := p;
-                      end;
                     end;
                   end;
                 3:
@@ -8857,7 +8851,10 @@ begin
                       cmd_err(ErOutOfRange);
                       Break;
                     end;
-                    p := pp.EndOfBlock;
+                    if pp.ExitPoint <> InvalidVal then
+                      p := pp.ExitPoint
+                    else
+                      p := pp.EndOfBlock;
                     pp.Free;
                     FExceptionStack.DeleteLast;
                     if ExEx <> eNoError then
@@ -8866,12 +8863,7 @@ begin
                       ExObject := nil;
                       ExceptionProc(ExProc, ExPos, ExEx, ExParam, Tmp);
                     end else
-                    if FExitPoint <> InvalidVal then
-                    begin
-                      FCurrentPosition := FExitPoint;
-                    end else begin
                       FCurrentPosition := p;
-                    end;
                  end;
               end;
             end;

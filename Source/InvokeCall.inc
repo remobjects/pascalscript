@@ -57,8 +57,8 @@ begin
              aValues2 := aValues2 + arr_varrec;
              //in case of openarray we should provide TWO params: first is pointer to array,
              aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
-             //2nd - integer with arraylength - 1 (high)
-             aValues := aValues + [TValue.From<Integer>(l_high)];// = High of OpenArray
+             //2nd - NativeInt with arraylength - 1 (high)
+             aValues := aValues + [TValue.From<NativeInt>(l_high)];// = High of OpenArray
            end
            else //dynarray = just push pointer
              aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];

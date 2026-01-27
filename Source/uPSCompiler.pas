@@ -17,8 +17,8 @@ type
   TPSValue = class;
   TPSParameters = class;
 
-  TPSSubOptType = (tMainBegin, tProcBegin, tSubBegin, tOneLiner, tifOneliner, tRepeat, tTry, tTryEnd
-    {$IFDEF PS_USESSUPPORT},tUnitInit, tUnitFinish {$ENDIF}); //nvds
+  TPSSubOptType = (tMainBegin, tProcBegin, tSubBegin, tOneLiner, tifOneliner, tRepeat, tTry, tTryEnd,
+    tCaseElse {$IFDEF PS_USESSUPPORT},tUnitInit, tUnitFinish {$ENDIF}); //nvds
 
 
   {TPSExternalClass is used when external classes need to be called}
@@ -10762,7 +10762,7 @@ begin
       begin
         FParser.Next;
         Block := TPSBlockInfo.Create(BlockInfo);
-        Block.SubType := tOneliner;
+        Block.SubType := tCaseElse;
         if not ProcessSub(Block) then
         begin
           Block.Free;
@@ -11329,7 +11329,8 @@ begin
         begin
           if (BlockInfo.SubType = tTryEnd) or (BlockInfo.SubType = tMainBegin) or
              (BlockInfo.SubType = tSubBegin) or (BlockInfo.SubType = tifOneliner) or
-             (BlockInfo.SubType = tProcBegin) or (BlockInfo.SubType = TOneLiner)
+             (BlockInfo.SubType = tProcBegin) or (BlockInfo.SubType = TOneLiner) or
+             (BlockInfo.SubType = tCaseElse)
     {$IFDEF PS_USESSUPPORT} or (BlockInfo.SubType = tUnitInit) or (BlockInfo.SubType = tUnitFinish) {$endif} then //nvds
           begin
             break;

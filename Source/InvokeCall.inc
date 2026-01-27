@@ -77,7 +77,10 @@ begin
              //For array of const (BaseType = btPointer), we must build a TVarRec/TValueArrayToArrayOfConst array.
              //For other arrays, we must build a contiguous array of the actual element type, taking special care of 'array of variant'.
              //For all arrays we should provide TWO params: first is pointer to array, and second array length - 1 (high)
-             case TPSTypeRec_Array(aValue^.aType).ArrayType.BaseType of
+             if l_high < 0 then begin
+               aValues := aValues + [TValue.From<Pointer>(nil)];
+               aValues := aValues + [TValue.From<NativeInt>(l_high)];
+             end else case TPSTypeRec_Array(aValue^.aType).ArrayType.BaseType of
                btU8, btS8: begin
                  aOpenArrayData^.DataU8 := aOpenArrayData^.DataU8 + [[]];
                  SetLength(aOpenArrayData^.DataU8[High(aOpenArrayData^.DataU8)], l_high + 1);

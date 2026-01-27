@@ -10259,6 +10259,9 @@ begin
     Result.Data := datap;
     exit;
   end;
+
+  { BaseType is btPointer, which means array of const }
+
   Result.FreeIt := True;
   Result.ElementSize := sizeof(TVarRec);
   GetMem(Result.Data, Result.ItemCount * Result.ElementSize);

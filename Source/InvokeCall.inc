@@ -9,7 +9,7 @@ type
 
 function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TValue>; var aValues2: TArray<TVarRec>; aSelf: TPSExec): Boolean;
 var
-  l_len: Integer;
+  l_high: Integer;
   i: Integer;
   arr: TArray<TValue>;
   arr_varrec: TArray<TVarRec>;
@@ -18,6 +18,7 @@ var
   ctx: TRttiContext;
   methodValue: TValue;
   rttiType: TRttiType;
+  elemIFC: TPSVariantIFC;
 begin
   Result := Assigned(aValue^.aType) and (IPointer(aValue^.aType) > $FFFF);
   if Result then
@@ -42,10 +43,18 @@ begin
       btArray:
         begin
            if Copy(aValue^.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
-             l_len := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
+             l_high := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
              SetLength(arr, 0);
-             for i := 0 to l_len do begin
-               if not PSVariantIFCToTValue(PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer)), arr, aValues1, aValues2, aSelf) then begin
+             for i := 0 to l_high do begin
+               { For 'array of const', elements are stored as 3-pointer TPSVariantIFC-like
+                 structures (see CreateOpenArray for ArrayType.BaseType = btPointer). For
+                 typed open arrays like 'array of String' use PSGetArrayField which calculates
+                 offset based on the element type's RealSize. }
+               if aValue^.aType.ExportName = '!OPENARRAYOFCONST' then
+                 elemIFC := PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer))^
+               else
+                 elemIFC := PSGetArrayField(aValue^, i);
+               if not PSVariantIFCToTValue(@elemIFC, arr, aValues1, aValues2, aSelf) then begin
                  Result := False;
                  Exit;
                end;
@@ -56,7 +65,7 @@ begin
              //in case of openarray we should provide TWO params: first is pointer to array,
              aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
              //2nd - integer with arraylength - 1 (high)
-             aValues := aValues + [TValue.From<Integer>(l_len)];// = High of OpenArray
+             aValues := aValues + [TValue.From<Integer>(l_high)];// = High of OpenArray
            end
            else //dynarray = just push pointer
              aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];

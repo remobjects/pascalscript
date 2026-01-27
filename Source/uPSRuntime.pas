@@ -10808,6 +10808,13 @@ begin
       Result.aType := nil;
       exit;
     end;
+
+    if TPSTypeRec_Array(Result.aType).ArrayType.BaseType = btPointer then begin
+      { See CreateOpenArray }
+      Result := PPSVariantIFC(IPointer(Result.Dta^) + IPointer(Fieldno) * 3 * SizeOf(Pointer))^;
+      exit;
+    end;
+
     Offs := TPSTypeRec_Array(Result.aType).ArrayType.RealSize * Cardinal(FieldNo);
         if Result.aType.BaseType = btStaticArray then
           Result.Dta := Pointer(IPointer(Result.dta) + Offs)

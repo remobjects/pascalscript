@@ -46,14 +46,7 @@ begin
              l_high := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
              SetLength(arr, 0);
              for i := 0 to l_high do begin
-               { For 'array of const', elements are stored as 3-pointer TPSVariantIFC-like
-                 structures (see CreateOpenArray for ArrayType.BaseType = btPointer). For
-                 typed open arrays like 'array of String' use PSGetArrayField which calculates
-                 offset based on the element type's RealSize. }
-               if aValue^.aType.ExportName = '!OPENARRAYOFCONST' then
-                 elemIFC := PPSVariantIFC(IPointer(aValue^.Dta^) + IPointer(i) * 3 * SizeOf(Pointer))^
-               else
-                 elemIFC := PSGetArrayField(aValue^, i);
+               elemIFC := PSGetArrayField(aValue^, i);
                if not PSVariantIFCToTValue(@elemIFC, arr, aValues1, aValues2, aSelf) then begin
                  Result := False;
                  Exit;

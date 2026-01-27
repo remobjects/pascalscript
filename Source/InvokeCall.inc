@@ -7,7 +7,37 @@ type
   ptbtUnicodeString = ^tbtunicodestring;
   PIInterface = ^IInterface;
 
-function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TValue>; var aValues2: TArray<TVarRec>; aSelf: TPSExec): Boolean;
+type
+  TOpenArrayData = record
+    //Storage for typed open arrays - each can hold multiple contiguous arrays (one per open array parameter of that type)
+    DataU8: TArray<TArray<Byte>>;
+    DataU16: TArray<TArray<Word>>;
+    DataU32: TArray<TArray<Cardinal>>;
+    DataSingle: TArray<TArray<Single>>;
+    DataDouble: TArray<TArray<Double>>;
+    DataExtended: TArray<TArray<Extended>>;
+    DataString: TArray<TArray<tbtString>>;
+    DataPointer: TArray<TArray<Pointer>>;
+    DataPChar: TArray<TArray<tbtPChar>>;
+    DataVariant: TArray<TArray<Variant>>;
+    {$IFNDEF PS_NOINT64}
+    DataS64: TArray<TArray<Int64>>;
+    DataU64: TArray<TArray<UInt64>>;
+    {$ENDIF}
+    DataChar: TArray<TArray<tbtChar>>;
+    {$IFNDEF PS_NOWIDESTRING}
+    DataWideString: TArray<TArray<tbtWideString>>;
+    DataWideChar: TArray<TArray<tbtWideChar>>;
+    DataUnicodeString: TArray<TArray<tbtUnicodeString>>;
+    {$ENDIF}
+    DataCurrency: TArray<TArray<Currency>>;
+    DataClass: TArray<TArray<TObject>>;
+    DataInterface: TArray<TArray<IInterface>>;
+  end;
+  POpenArrayData = ^TOpenArrayData;
+
+function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TValue>; var aValues2: TArray<TVarRec>; aOpenArrayData: POpenArrayData; aSelf: TPSExec): Boolean;
+//aValues1, aValues2 and aOpenArrayData are just used to keep references alive when this function exits, you can put anything in them
 var
   l_high: Integer;
   i: Integer;
@@ -44,21 +74,218 @@ begin
         begin
            if Copy(aValue^.aType.ExportName, 1, 10) = '!OPENARRAY' then begin
              l_high := PSDynArrayGetLength(Pointer(aValue^.Dta^), aValue^.aType) - 1;
-             SetLength(arr, 0);
-             for i := 0 to l_high do begin
-               elemIFC := PSGetArrayField(aValue^, i);
-               if not PSVariantIFCToTValue(@elemIFC, arr, aValues1, aValues2, aSelf) then begin
-                 Result := False;
-                 Exit;
+             //For array of const (BaseType = btPointer), we must build a TVarRec/TValueArrayToArrayOfConst array.
+             //For other arrays, we must build a contiguous array of the actual element type, taking special care of 'array of variant'.
+             //For all arrays we should provide TWO params: first is pointer to array, and second array length - 1 (high)
+             case TPSTypeRec_Array(aValue^.aType).ArrayType.BaseType of
+               btU8, btS8: begin
+                 aOpenArrayData^.DataU8 := aOpenArrayData^.DataU8 + [[]];
+                 SetLength(aOpenArrayData^.DataU8[High(aOpenArrayData^.DataU8)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataU8[High(aOpenArrayData^.DataU8)][i] := PByte(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataU8[High(aOpenArrayData^.DataU8)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
                end;
+               btU16, btS16: begin
+                 aOpenArrayData^.DataU16 := aOpenArrayData^.DataU16 + [[]];
+                 SetLength(aOpenArrayData^.DataU16[High(aOpenArrayData^.DataU16)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataU16[High(aOpenArrayData^.DataU16)][i] := PWord(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataU16[High(aOpenArrayData^.DataU16)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btU32, btS32: begin
+                 aOpenArrayData^.DataU32 := aOpenArrayData^.DataU32 + [[]];
+                 SetLength(aOpenArrayData^.DataU32[High(aOpenArrayData^.DataU32)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataU32[High(aOpenArrayData^.DataU32)][i] := PCardinal(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataU32[High(aOpenArrayData^.DataU32)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btSingle: begin
+                 aOpenArrayData^.DataSingle := aOpenArrayData^.DataSingle + [[]];
+                 SetLength(aOpenArrayData^.DataSingle[High(aOpenArrayData^.DataSingle)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataSingle[High(aOpenArrayData^.DataSingle)][i] := PSingle(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataSingle[High(aOpenArrayData^.DataSingle)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btDouble: begin
+                 aOpenArrayData^.DataDouble := aOpenArrayData^.DataDouble + [[]];
+                 SetLength(aOpenArrayData^.DataDouble[High(aOpenArrayData^.DataDouble)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataDouble[High(aOpenArrayData^.DataDouble)][i] := PDouble(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataDouble[High(aOpenArrayData^.DataDouble)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btExtended: begin
+                 aOpenArrayData^.DataExtended := aOpenArrayData^.DataExtended + [[]];
+                 SetLength(aOpenArrayData^.DataExtended[High(aOpenArrayData^.DataExtended)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataExtended[High(aOpenArrayData^.DataExtended)][i] := PExtended(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataExtended[High(aOpenArrayData^.DataExtended)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btString: begin
+                 aOpenArrayData^.DataString := aOpenArrayData^.DataString + [[]];
+                 SetLength(aOpenArrayData^.DataString[High(aOpenArrayData^.DataString)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataString[High(aOpenArrayData^.DataString)][i] := ptbtString(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataString[High(aOpenArrayData^.DataString)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btPChar: begin
+                 aOpenArrayData^.DataPChar := aOpenArrayData^.DataPChar + [[]];
+                 SetLength(aOpenArrayData^.DataPChar[High(aOpenArrayData^.DataPChar)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataPChar[High(aOpenArrayData^.DataPChar)][i] := PtbtPChar(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataPChar[High(aOpenArrayData^.DataPChar)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btVariant, btNotificationVariant: begin
+                 //For array of variant we need IntPIFVariantToVariant to get actual Variant values
+                 aOpenArrayData^.DataVariant := aOpenArrayData^.DataVariant + [[]];
+                 SetLength(aOpenArrayData^.DataVariant[High(aOpenArrayData^.DataVariant)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   if not IntPIFVariantToVariant(elemIFC.Dta, elemIFC.aType, aOpenArrayData^.DataVariant[High(aOpenArrayData^.DataVariant)][i]) then begin
+                     Result := False;
+                     Exit;
+                   end;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataVariant[High(aOpenArrayData^.DataVariant)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               {$IFNDEF PS_NOINT64}
+               btS64: begin
+                 aOpenArrayData^.DataS64 := aOpenArrayData^.DataS64 + [[]];
+                 SetLength(aOpenArrayData^.DataS64[High(aOpenArrayData^.DataS64)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataS64[High(aOpenArrayData^.DataS64)][i] := PInt64(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataS64[High(aOpenArrayData^.DataS64)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btU64: begin
+                 aOpenArrayData^.DataU64 := aOpenArrayData^.DataU64 + [[]];
+                 SetLength(aOpenArrayData^.DataU64[High(aOpenArrayData^.DataU64)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataU64[High(aOpenArrayData^.DataU64)][i] := PUInt64(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataU64[High(aOpenArrayData^.DataU64)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               {$ENDIF}
+               btChar: begin
+                 aOpenArrayData^.DataChar := aOpenArrayData^.DataChar + [[]];
+                 SetLength(aOpenArrayData^.DataChar[High(aOpenArrayData^.DataChar)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataChar[High(aOpenArrayData^.DataChar)][i] := ptbtChar(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataChar[High(aOpenArrayData^.DataChar)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               {$IFNDEF PS_NOWIDESTRING}
+               btWideString: begin
+                 aOpenArrayData^.DataWideString := aOpenArrayData^.DataWideString + [[]];
+                 SetLength(aOpenArrayData^.DataWideString[High(aOpenArrayData^.DataWideString)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataWideString[High(aOpenArrayData^.DataWideString)][i] := ptbtWideString(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataWideString[High(aOpenArrayData^.DataWideString)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btWideChar: begin
+                 aOpenArrayData^.DataWideChar := aOpenArrayData^.DataWideChar + [[]];
+                 SetLength(aOpenArrayData^.DataWideChar[High(aOpenArrayData^.DataWideChar)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataWideChar[High(aOpenArrayData^.DataWideChar)][i] := ptbtWideChar(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataWideChar[High(aOpenArrayData^.DataWideChar)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btUnicodeString: begin
+                 aOpenArrayData^.DataUnicodeString := aOpenArrayData^.DataUnicodeString + [[]];
+                 SetLength(aOpenArrayData^.DataUnicodeString[High(aOpenArrayData^.DataUnicodeString)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataUnicodeString[High(aOpenArrayData^.DataUnicodeString)][i] := ptbtUnicodeString(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataUnicodeString[High(aOpenArrayData^.DataUnicodeString)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               {$ENDIF}
+               btCurrency: begin
+                 aOpenArrayData^.DataCurrency := aOpenArrayData^.DataCurrency + [[]];
+                 SetLength(aOpenArrayData^.DataCurrency[High(aOpenArrayData^.DataCurrency)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataCurrency[High(aOpenArrayData^.DataCurrency)][i] := PCurrency(elemIFC.Dta)^;
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataCurrency[High(aOpenArrayData^.DataCurrency)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btClass: begin
+                 aOpenArrayData^.DataClass := aOpenArrayData^.DataClass + [[]];
+                 SetLength(aOpenArrayData^.DataClass[High(aOpenArrayData^.DataClass)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataClass[High(aOpenArrayData^.DataClass)][i] := TObject(elemIFC.Dta^);
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataClass[High(aOpenArrayData^.DataClass)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btInterface: begin
+                 aOpenArrayData^.DataInterface := aOpenArrayData^.DataInterface + [[]];
+                 SetLength(aOpenArrayData^.DataInterface[High(aOpenArrayData^.DataInterface)], l_high + 1);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   aOpenArrayData^.DataInterface[High(aOpenArrayData^.DataInterface)][i] := IInterface(elemIFC.Dta^);
+                 end;
+                 aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataInterface[High(aOpenArrayData^.DataInterface)][0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+               btPointer: begin
+                 //For array of const we need TValueArrayToArrayOfConst to get a TVarRec array
+                 SetLength(arr, 0);
+                 for i := 0 to l_high do begin
+                   elemIFC := PSGetArrayField(aValue^, i);
+                   if not PSVariantIFCToTValue(@elemIFC, arr, aValues1, aValues2, aOpenArrayData, aSelf) then begin
+                     Result := False;
+                     Exit;
+                   end;
+                 end;
+                 aValues1 := aValues1 + arr;
+                 arr_varrec := TValueArrayToArrayOfConst(arr);
+                 aValues2 := aValues2 + arr_varrec;
+                 aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
+                 aValues := aValues + [TValue.From<NativeInt>(l_high)];
+               end;
+             else
+              Result := False;
+              exit;
              end;
-             aValues1 := aValues1 + arr;
-             arr_varrec := TValueArrayToArrayOfConst(arr);
-             aValues2 := aValues2 + arr_varrec;
-             //in case of openarray we should provide TWO params: first is pointer to array,
-             aValues := aValues + [TValue.From<Pointer>(@arr_varrec[0])];
-             //2nd - NativeInt with arraylength - 1 (high)
-             aValues := aValues + [TValue.From<NativeInt>(l_high)];// = High of OpenArray
            end
            else //dynarray = just push pointer
              aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
@@ -147,6 +374,7 @@ var SysCalConv : TCallConv;
     Args: TArray<TValue>;
     old_Args: TArray<TValue>;
     old_Args2: TArray<TVarRec>;
+    OpenArrayData: TOpenArrayData;
     Arg : TValue;
     i : Integer;
     fvar: PPSVariantIFC;
@@ -167,6 +395,8 @@ begin
   else
     SysCalConv := ccReg;//to prevent warning "W1036 Variable might not have been initialized"
   end;
+
+  FillChar(OpenArrayData, SizeOf(OpenArrayData), 0);
 
   if not IsStatic then begin
     {$IFDEF CPUX86}
@@ -198,7 +428,7 @@ begin
       Args := Args + [Arg];
     end
     else begin
-      if not PSVariantIFCToTValue(fvar, Args, old_Args, old_Args2, Self) then Exit;
+      if not PSVariantIFCToTValue(fvar, Args, old_Args, old_Args2, @OpenArrayData, Self) then Exit;
     end;
   end;
 
@@ -376,5 +606,6 @@ begin
   SetLength(Args, 0);
   SetLength(old_Args, 0);
   SetLength(old_Args2, 0);
+  //OpenArrayData arrays are cleaned up automatically when the record goes out of scope
   Result := True;
 end;

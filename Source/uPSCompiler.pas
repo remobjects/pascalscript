@@ -4420,7 +4420,22 @@ begin
         Result := nil;
         Exit;
       end;
+      if FParser.CurrTokenId <> CSTI_Semicolon then begin
+        MakeError('', ecSemicolonExpected, '');
+        Result := nil;
+        Exit;
+      end;
       FParser.Next;
+      if (FParser.CurrTokenID = CSTI_Identifier) and (FParser.GetToken = 'SAFECALL') then begin
+        TPSInterfaceMethod(Intf.FItems[Intf.FItems.Count-1]).FCC := cdSafeCall;
+        FParser.Next;
+        if FParser.CurrTokenID <> CSTI_SemiColon then begin
+          MakeError('', ecSemicolonExpected, '');
+          Result := nil;
+          Exit;
+        end;
+        FParser.Next;
+      end;
     until FParser.CurrTokenId = CSTII_End;
     FParser.Next; // skip CSTII_End
     Result := Intf.FType;

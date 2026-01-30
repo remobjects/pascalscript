@@ -4425,6 +4425,11 @@ begin
         Result := nil;
         Exit;
       end;
+      if FParser.CurrTokenId <> CSTI_Semicolon then begin
+        MakeError('', ecSemicolonExpected, '');
+        Result := nil;
+        Exit;
+      end;
       FParser.Next;
     until FParser.CurrTokenId = CSTII_End;
     FParser.Next; // skip CSTII_End

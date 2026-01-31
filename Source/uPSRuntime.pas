@@ -4793,7 +4793,12 @@ begin
           end else if (srctype.BaseType = btvariant) and VarIsArray(Variant(src^)) then
             Result := CreateArrayFromVariant(Self, dest, Variant(src^), desttype)
           else if (desttype <> srctype) and not ((desttype.BaseType = btarray) and (srctype.BaseType = btArray)
-            and (TPSTypeRec_Array(desttype).ArrayType = TPSTypeRec_Array(srctype).ArrayType)) then
+            and ((TPSTypeRec_Array(desttype).ArrayType.BaseType = TPSTypeRec_Array(srctype).ArrayType.BaseType) and
+                 not (TPSTypeRec_Array(desttype).ArrayType.BaseType in [btRecord, btSet, btStaticArray, btArray]))) then
+            { ^ Comparing BaseType is needed because the compiler doesn't merge open array types
+              and regular array types in ReadType (see the '!' check). Still it considers them
+              compatible in IsCompatibleType, so we should check ArrayType.BaseType instead of
+              only ArrayType. CopyArrayContents also doesn't require exact ArrayType match. }
             Result := False
           else
             CopyArrayContents(dest, src, 1, desttype);

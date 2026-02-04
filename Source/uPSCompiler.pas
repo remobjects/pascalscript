@@ -1383,6 +1383,7 @@ type
     FOldValue: TPSValue;
     FNewValue: TPSValue;
     FReplaceTimes: Longint;
+    FValuesAllocatedBeforeOutput: Boolean;
   public
 
     property OldValue: TPSValue read FOldValue write FOldValue;
@@ -1392,6 +1393,7 @@ type
     property FreeOldValue: Boolean read FFreeOldValue write FFreeOldValue;
     property FreeNewValue: Boolean read FFreeNewValue write FFreeNewValue;
     property PreWriteAllocated: Boolean read FPreWriteAllocated write FPreWriteAllocated;
+    property ValuesAllocatedBeforeOutput: Boolean read FValuesAllocatedBeforeOutput write FValuesAllocatedBeforeOutput;
 
     property ReplaceTimes: Longint read FReplaceTimes write FReplaceTimes;
 
@@ -6046,21 +6048,26 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         Result := False;
         exit;
       end;
-      // Don't call AfterWriteOutRec here for Val1/Val2 - it would generate CM_PO
-      // for temps before Output is freed, violating LIFO order (Output was allocated
-      // after those temps). Also don't unwrap TPSValueReplace - let the owner
-      // (TPSBinValueOp) handle cleanup when it's destroyed. This happens when
+      // Skip AfterWriteOutRec/unwrap when ValuesAllocatedBeforeOutput - see CheckFurther
+      // Instead let the owner (TPSBinValueOp) handle cleanup when it's destroyed. This happens when
       // vin.Free is called before vout.Free in the caller (e.g., ProcessIf).
+      if (BVal.Val1.ClassType <> TPSValueReplace) or not TPSValueReplace(BVal.Val1).ValuesAllocatedBeforeOutput then
+        AfterWriteOutRec(BVal.FVal1);
+      if (BVal.Val2.ClassType <> TPSValueReplace) or not TPSValueReplace(BVal.Val2).ValuesAllocatedBeforeOutput then
+        AfterWriteOutRec(BVal.FVal2);
       AfterWriteOutrec(Output);
-      // Since we skip AfterWriteOutRec for Val1/Val2, their TPSValueReplace wrappers
-      // remain. Normally AfterWriteOutRec would unwrap them, setting its var parameter
-      // to OldValue (which the caller would eventually free). Since we keep the
-      // wrappers in place we must set FreeOldValue now.
-      // Only do this when PreWriteAllocated is True, like AfterWriteOutRec
-      if (BVal.Val1.ClassType = TPSValueReplace) and TPSValueReplace(BVal.Val1).PreWriteAllocated then
-        TPSValueReplace(BVal.Val1).FreeOldValue := True;
-      if (BVal.Val2.ClassType = TPSValueReplace) and TPSValueReplace(BVal.Val2).PreWriteAllocated then
-        TPSValueReplace(BVal.Val2).FreeOldValue := True;
+      if (BVal.Val1.ClassType = TPSValueReplace) and not TPSValueReplace(BVal.Val1).ValuesAllocatedBeforeOutput then
+      begin
+        tmpp := TPSValueReplace(BVal.Val1).OldValue;
+        BVal.Val1.Free;
+        BVal.Val1 := tmpp;
+      end;
+      if (BVal.Val2.ClassType = TPSValueReplace) and not TPSValueReplace(BVal.Val2).ValuesAllocatedBeforeOutput then
+      begin
+        tmpp := TPSValueReplace(BVal.Val2).OldValue;
+        BVal.Val2.Free;
+        BVal.Val2 := tmpp;
+      end;
     end else begin
       if (BVal.aType <> nil) and (BVal.aType <> GetTypeNo(BlockInfo, Output)) then begin
         tmpp := AllocStackReg(BVal.aType);
@@ -6985,6 +6992,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
                 OldValue := tmp;
                 NewValue := AllocStackReg(u);
                 PreWriteAllocated := true;
+                ValuesAllocatedBeforeOutput := true;
               end;
 
               if not WriteCalculation(tmp,TPSValueReplace(tmpn).NewValue) then

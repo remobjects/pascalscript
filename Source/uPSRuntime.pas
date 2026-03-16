@@ -12689,16 +12689,14 @@ begin
       PPSVariantPointer(tmp).DestType := cpt;
       Params[i] := tmp;
       PPSVariantPointer(tmp).DataDest := Pointer(FStack^);
-      FStack := Pointer(IPointer(FStack) + PointerSize);
-      Inc(Result, PointerSize);
     end
     else begin
       tmp := CreateHeapVariant(cpt);
       Params[i] := tmp;
       CopyArrayContents(@PPSVariantData(tmp)^.Data, Pointer(FStack), 1, cpt);
-      FStack := Pointer((IPointer(FStack) + cpt.RealSize + 3) and not 3);
-      Inc(Result, (cpt.RealSize + 3) and not 3);
     end;
+    FStack := Pointer(IPointer(FStack) + PointerSize);
+    Inc(Result, PointerSize);
   end;
   ex := TPSExceptionHandler.Create;
   ex.FinallyOffset := InvalidVal;

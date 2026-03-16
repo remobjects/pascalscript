@@ -113,10 +113,10 @@ asm
 @@skip_items:
 
   // copy registers, handling SingleBits for Single parameters
-  mov rcx, [RegInfo + offset(TRegisters.SingleBits)]
+  mov ecx, dword ptr [RegInfo + offset(TRegisters.SingleBits)]
 
   // fill: _XMM1
-  bt rcx, 1
+  bt ecx, 1
   jnc @g1
   cvtsd2ss xmm1, [RegInfo + offset(TRegisters._XMM1)]
   jmp @g1e
@@ -125,7 +125,7 @@ asm
   @g1e:
 
   // fill: _XMM2
-  bt rcx, 2
+  bt ecx, 2
   jnc @g2
   cvtsd2ss xmm2, [RegInfo + offset(TRegisters._XMM2)]
   jmp @g2e
@@ -134,7 +134,7 @@ asm
   @g2e:
 
   // fill: _XMM3
-  bt rcx, 3
+  bt ecx, 3
   jnc @g3
   cvtsd2ss xmm3, [RegInfo + offset(TRegisters._XMM3)]
   jmp @g3e
@@ -143,7 +143,7 @@ asm
   @g3e:
 
   // fill: _XMM0
-  bt rcx, 0
+  bt ecx, 0
   jnc @g0
   mov rdx, [rbp+c_loc_offs__xmm0]
   cvtsd2ss xmm0, [rdx]
@@ -171,7 +171,7 @@ asm
 
   // handle SingleBits result
   mov     rax, [rbp+c_loc_offs_reginfo] // restore: RegInfo pointer from stack
-  bt      qword ptr [rax + offset(TRegisters.SingleBits)], 8
+  bt      dword ptr [rax + offset(TRegisters.SingleBits)], 8
   jnc     @no_single_res
   cvtss2sd xmm1, xmm0
   movsd   [rdx], xmm1            // fill: _XMM0 for single result

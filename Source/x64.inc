@@ -112,23 +112,11 @@ asm
 
 @@skip_items:
 
-  // copy registers
-
-  //{ #1
-  movsd   xmm1,[RegInfo].TRegisters._XMM1
-  movsd   xmm2,[RegInfo].TRegisters._XMM2
-  movsd   xmm3,[RegInfo].TRegisters._XMM3
-
-  // _XMM0 => xmm0
-  mov     rax, [rbp+c_loc_offs__xmm0]      // dbg: tdatetime(pointer(pointer(rbp+c_loc_offs__xmm0)^)^)
-  movsd   xmm0,[rax]                       // dbg: tdatetime(pointer(pointer(xmm0))^)
-  //}
-
-  { #2: handle SingleBits
-  mov rcx, [RegInfo + offset(TRegisters.SingleBits)]
+  // copy registers, handling SingleBits for Single parameters
+  mov ecx, dword ptr [RegInfo + offset(TRegisters.SingleBits)]
 
   // fill: _XMM1
-  bt rcx, 1
+  bt ecx, 1
   jnc @g1
   cvtsd2ss xmm1, [RegInfo + offset(TRegisters._XMM1)]
   jmp @g1e
@@ -137,7 +125,7 @@ asm
   @g1e:
 
   // fill: _XMM2
-  bt rcx, 2
+  bt ecx, 2
   jnc @g2
   cvtsd2ss xmm2, [RegInfo + offset(TRegisters._XMM2)]
   jmp @g2e
@@ -146,7 +134,7 @@ asm
   @g2e:
 
   // fill: _XMM3
-  bt rcx, 3
+  bt ecx, 3
   jnc @g3
   cvtsd2ss xmm3, [RegInfo + offset(TRegisters._XMM3)]
   jmp @g3e
@@ -155,7 +143,7 @@ asm
   @g3e:
 
   // fill: _XMM0
-  bt rcx, 0
+  bt ecx, 0
   jnc @g0
   mov rdx, [rbp+c_loc_offs__xmm0]
   cvtsd2ss xmm0, [rdx]
@@ -164,7 +152,6 @@ asm
   mov rdx, [rbp+c_loc_offs__xmm0]
   movsd xmm0, [rdx]
   @g0e:
-  //}
 
   // mov *, [r9].*    ;    [r9] == [RegInfo]
   mov     rcx, [RegInfo].TRegisters._RCX
@@ -184,7 +171,7 @@ asm
 
   // handle SingleBits result
   mov     rax, [rbp+c_loc_offs_reginfo] // restore: RegInfo pointer from stack
-  bt      qword ptr [rax + offset(TRegisters.SingleBits)], 8
+  bt      dword ptr [rax + offset(TRegisters.SingleBits)], 8
   jnc     @no_single_res
   cvtss2sd xmm1, xmm0
   movsd   [rdx], xmm1            // fill: _XMM0 for single result

@@ -607,7 +607,7 @@ _XMM0: Double;
     else begin
       SetLength(Stack, Length(Stack)+8);
       p := @Stack[LEngth(Stack)-8];
-      Double(p^) := data;
+      Single(p^) := data;
     end;
     end;
   end;
@@ -646,7 +646,7 @@ _XMM0: Double;
     else begin
       SetLength(Stack, Length(Stack)+8);
       p := @Stack[LEngth(Stack)-8];
-      Double(p^) := data;
+      Single(p^) := data;
     end;
     end;
   end;

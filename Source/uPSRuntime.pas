@@ -12383,7 +12383,7 @@ asm
   // SEH-compatible frame: .params 4 = 32 bytes local storage
   // Layout: XMM1(8) + XMM2(8) + XMM3(8) + ResPtr(8) = 32 bytes
   // Stack: [rbp+0..31]=local, [rbp+32]=saved RBP, [rbp+40]=ret addr,
-  //        [rbp+48..76]=shadow, [rbp+80+]=caller's 5th+ params
+  //        [rbp+48..79]=shadow, [rbp+80+]=caller's 5th+ params
   .params 4
 
   movq    [rbp+0], xmm1         // Save XMM1-3 (passed as pointers to handler)

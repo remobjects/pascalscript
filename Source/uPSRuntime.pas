@@ -12381,16 +12381,17 @@ procedure MyAllMethodsHandler;
 {$IFDEF DELPHI}
 asm
   // SEH-compatible frame: .params 4 = 32 bytes local storage
-  // Layout: XMM1(8) + XMM2(8) + XMM3(8) + ResPtr(8) = 32 bytes
+  // Layout: ResPtr(8) + 3*unused(8) = 32 bytes
   // Stack: [rbp+0..31]=local, [rbp+32]=saved RBP, [rbp+40]=ret addr,
   //        [rbp+48..79]=shadow, [rbp+80+]=caller's 5th+ params
   .params 4
+  // Note: Delphi x64 .params test results:
+  // .params 1..4: stack starts at [rbp+80]
+  // .params 5..6: stack starts at [rbp+96]
+  // .params 7..8: stack starts at [rbp+112]
 
-  movq    [rbp+0], xmm1         // Save XMM1-3 (passed as pointers to handler)
-  movq    [rbp+8], xmm2
-  movq    [rbp+16], xmm3
   xor     rax, rax              // Clear ResPtr (same as push 0 by 32-bit code)
-  mov     [rbp+24], rax
+  mov     [rbp+0], rax
 
   // MyAllMethodsHandler64 has 9 parameters: 4 via registers, 5 via stack
   // shadow space for callee(32) + 5 stack params(40) + alignment to 16 bytes(8) = 72+8 = 80 bytes
@@ -12400,13 +12401,13 @@ asm
   // RCX (Self), RDX, R8, R9 already contain the values we need
   lea     rax, [rbp+80]         // Stack ptr
   mov     [rsp+32], rax
-  lea     rax, [rbp+0]          // XMM1 ptr
+  movq    rax, xmm1             // XMM1 raw value
   mov     [rsp+40], rax
-  lea     rax, [rbp+8]          // XMM2 ptr
+  movq    rax, xmm2             // XMM2 raw value
   mov     [rsp+48], rax
-  lea     rax, [rbp+16]         // XMM3 ptr
+  movq    rax, xmm3             // XMM3 raw value
   mov     [rsp+56], rax
-  lea     rax, [rbp+24]         // ResPtr
+  lea     rax, [rbp+0]          // ResPtr
   mov     [rsp+64], rax         // 64+8 = 72
 
   call    MyAllMethodsHandler64
@@ -12414,8 +12415,8 @@ asm
   add     rsp, 80
 
   // Return ResPtr in both XMM0 and RAX, allowing the caller to choose correct one
-  movq    xmm0, [rbp+24]
-  mov     rax, [rbp+24]
+  movq    xmm0, [rbp+0]
+  mov     rax, [rbp+0]
 end;
 {$ELSE}
 asm

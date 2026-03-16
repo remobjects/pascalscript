@@ -12412,7 +12412,9 @@ asm
 
   add     rsp, 80
 
-  mov     rax, [rbp+24]         // Return ResPtr
+  // Return ResPtr in both XMM0 and RAX, allowing the caller to choose correct one
+  movq    xmm0, [rbp+24]
+  mov     rax, [rbp+24]
 end;
 {$ELSE}
 asm
@@ -12709,6 +12711,9 @@ begin
   if (Res <> nil) then begin
     Params.DeleteLast;
     if (ResultAsRegister(Res.FType)) then begin
+{$IFDEF DELPHI}
+      CopyArrayContents(ResPtr, @PPSVariantData(res)^.Data, 1, Res^.FType);
+{$ELSE}
       if (res^.FType.BaseType = btSingle) or (res^.FType.BaseType = btDouble) or
       (res^.FType.BaseType = btCurrency) or (res^.Ftype.BaseType = btExtended) then begin
         case Res^.FType.BaseType of
@@ -12721,8 +12726,9 @@ begin
         Res := nil;
       end
       else begin
-        CopyArrayContents({$IFDEF DELPHI} ResPtr {$ELSE} Pointer(IPointer(Stack)-IPointer(PointerSize2)) {$ENDIF}, @PPSVariantData(res)^.Data, 1, Res^.FType);
+        CopyArrayContents(Pointer(IPointer(Stack)-IPointer(PointerSize2)), @PPSVariantData(res)^.Data, 1, Res^.FType);
       end;
+{$ENDIF}
     end;
     DestroyHeapVariant(res);
   end;

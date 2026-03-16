@@ -888,6 +888,7 @@ const
 
 function PIFVariantToVariant(Src: PIFVariant; var Dest: Variant): Boolean;
 function VariantToPIFVariant(Exec: TPSExec; const Src: Variant; Dest: PIFVariant): Boolean;
+function ParamAsVariable(const Modifier: tbtchar; aType: TPSTypeRec): Boolean;
 
 function PSGetRecField(const avar: TPSVariantIFC; Fieldno: Longint): TPSVariantIFC;
 function PSGetArrayField(const avar: TPSVariantIFC; Fieldno: Longint): TPSVariantIFC;
@@ -12547,6 +12548,11 @@ begin
   end;
 end;
 
+function ParamAsVariable(const Modifier: tbtchar; aType: TPSTypeRec): Boolean;
+begin
+  Result := (Modifier = '%') or (Modifier = '!') or AlwaysAsVariable(aType);
+end;
+
 procedure PutOnFPUStackExtended(ft: extended);
 asm
 //  fstp tbyte ptr [ft]
@@ -12619,7 +12625,7 @@ begin
     fmod := e[1];
     delete(e, 1, 1);
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if ((fmod = '%') or (fmod = '!') or (AlwaysAsVariable(cpt))) and (RegNo < 3) then
+    if ParamAsVariable(fmod, cpt) and (RegNo < 3) then
     begin
       tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
       PPSVariantPointer(tmp).DestType := cpt;
@@ -12677,7 +12683,7 @@ begin
     delete(e, 1, 1);
     if Params[i] <> nil then Continue;
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if (fmod = '%') or (fmod = '!') or (AlwaysAsVariable(cpt)) then begin
+    if ParamAsVariable(fmod, cpt) then begin
       tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
       PPSVariantPointer(tmp).DestType := cpt;
       Params[i] := tmp;
@@ -12782,7 +12788,7 @@ begin
     fmod := e[1];
     delete(e, 1, 1);
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if ((fmod = '%') or (fmod = '!') or (AlwaysAsVariable(cpt))) and (RegNo < 2) then
+    if ParamAsVariable(fmod, cpt) and (RegNo < 2) then
     begin
       tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
       PPSVariantPointer(tmp).DestType := cpt;
@@ -12848,7 +12854,7 @@ begin
     delete(e, 1, 1);
     if Params[i] <> nil then Continue;
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if (fmod = '%') or (fmod = '!') or (AlwaysAsVariable(cpt)) then
+    if ParamAsVariable(fmod, cpt) then
     begin
       tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
       PPSVariantPointer(tmp).DestType := cpt;

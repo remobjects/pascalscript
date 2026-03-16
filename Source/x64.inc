@@ -112,19 +112,7 @@ asm
 
 @@skip_items:
 
-  // copy registers
-
-  //{ #1
-  movsd   xmm1,[RegInfo].TRegisters._XMM1
-  movsd   xmm2,[RegInfo].TRegisters._XMM2
-  movsd   xmm3,[RegInfo].TRegisters._XMM3
-
-  // _XMM0 => xmm0
-  mov     rax, [rbp+c_loc_offs__xmm0]      // dbg: tdatetime(pointer(pointer(rbp+c_loc_offs__xmm0)^)^)
-  movsd   xmm0,[rax]                       // dbg: tdatetime(pointer(pointer(xmm0))^)
-  //}
-
-  { #2: handle SingleBits
+  // copy registers, handling SingleBits for Single parameters
   mov rcx, [RegInfo + offset(TRegisters.SingleBits)]
 
   // fill: _XMM1
@@ -164,7 +152,6 @@ asm
   mov rdx, [rbp+c_loc_offs__xmm0]
   movsd xmm0, [rdx]
   @g0e:
-  //}
 
   // mov *, [r9].*    ;    [r9] == [RegInfo]
   mov     rcx, [RegInfo].TRegisters._RCX

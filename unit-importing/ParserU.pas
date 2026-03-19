@@ -1591,26 +1591,24 @@ begin
                   Include(result,IsCallHelper);
                   Include(Proc.ProcAttr, IsDone);
                   Writeln('New Name :''' + ProcName + '''');
-                  with Proc do
+
+                  ParamStr := '';
+                  if ParamNames.count <> 0 then
                   begin
-                    ParamStr := '';
-                    if ParamNames.count <> 0 then
-                    begin
-                      for Index := 0 to ParamNames.count - 1 do
-                        ParamStr := ParamStr + ', ' + ParamNames[Index];
-                    end;
-                    system.Delete(ParamStr,1,2);
-                    s := '';
-                    If (IsFunction in Result) then s := 'Result := ';
-                    If ParamStr <> '' then ParamStr := '('+ParamStr +')';
-                    If (IsConstructor in Result) then
-                      Add('Begin Result := '+OwnerClass+'.' + OldProcName+ParamStr+'; END;')
-                    else
-                    If (IsMethod in Options) then
-                      Add('Begin '+S+'Self.' + OldProcName+ParamStr+'; END;')
-                    else
-                      Add('Begin '+s+UnitName + '.' + OldProcName +ParamStr+ '; END;');
+                    for Index := 0 to ParamNames.count - 1 do
+                      ParamStr := ParamStr + ', ' + ParamNames[Index];
                   end;
+                  system.Delete(ParamStr,1,2);
+                  s := '';
+                  If (IsFunction in Result) then s := 'Result := ';
+                  If ParamStr <> '' then ParamStr := '('+ParamStr +')';
+                  If (IsConstructor in Result) then
+                    Proc.Add('Begin Result := '+OwnerClass+'.' + OldProcName+ParamStr+'; END;')
+                  else
+                  If (IsMethod in Options) then
+                    Proc.Add('Begin '+S+'Self.' + OldProcName+ParamStr+'; END;')
+                  else
+                    Proc.Add('Begin '+s+UnitName + '.' + OldProcName +ParamStr+ '; END;');
                 end;
                 NextToken;
                 Match(CSTI_Semicolon);

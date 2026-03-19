@@ -328,7 +328,8 @@ var
         btClass,
         {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-        {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
+        {$IFNDEF PS_NOINT64}, bts64{$ENDIF}
+        {$IFNDEF PS_NOUINT64}, btu64{$ENDIF}:
           begin
             Varptr := fvar.Dta;
           end;
@@ -481,11 +482,23 @@ var
             TempStr:= StringOfChar(AnsiChar(#0),8);
             Int64((@TempStr[1])^) := int64(fvar^.dta^);
             UseReg := False;
-        end;
-        btU64:
+        end;{$ENDIF}
+        {$IFNDEF PS_NOUINT64}btu64:
           begin
-            TempStr := StringOfChar(AnsiChar(#0),8);
+            TempStr:= StringOfChar(AnsiChar(#0),8);
+            {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+              {$IFOPT R+}
+                {$DEFINE RANGECHECK_REENABLE}
+                {$RANGECHECKS OFF} // {$R-}
+              {$ENDIF}
+            {$IFEND CompilerVersion <= 20} 
             UInt64((@TempStr[1])^) := tbtu64(fvar^.dta^);
+            {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+              {$IFDEF RANGECHECK_REENABLE}
+                {$RANGECHECKS ON} // {$R+}
+                {$UNDEF RANGECHECK_REENABLE}
+              {$ENDIF}
+            {$IFEND CompilerVersion <= 20} 
             UseReg := False;
         end;{$ENDIF}
       end; {case}
@@ -607,13 +620,28 @@ begin
 
               btu32,bts32{$IFDEF FPC},btArray{$ENDIF}:   tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
               btPChar:       pansichar(res.dta^) := Pansichar(RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
-              {$IFNDEF PS_NOINT64}bts64, btU64:
+              {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  if res^.aType.BaseType = btU64 then
-                    tbtu64(res.dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX)
-                  else
-                    tbts64(res.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  tbts64(res.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                end;
+              {$ENDIF}
+              {$IFNDEF PS_NOUINT64}btu64:
+                begin
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFOPT R+}
+                      {$DEFINE RANGECHECK_REENABLE}
+                      {$RANGECHECKS OFF} // {$R-}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20} 
+                  EAX := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
+                  tbtu64(res.dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFDEF RANGECHECK_REENABLE}
+                      {$RANGECHECKS ON} // {$R+}
+                      {$UNDEF RANGECHECK_REENABLE}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20}     
                 end;
               {$ENDIF}
               btCurrency:    tbtCurrency(res.Dta^) := RealFloatCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4) / 10000;
@@ -668,13 +696,28 @@ begin
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res^.Dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass, btu32, bts32:  tbtu32(res^.Dta^):= RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
               btPChar:       pansichar(res^.dta^) := Pansichar(RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
-              {$IFNDEF PS_NOINT64}bts64, btU64:
+              {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  if res^.aType.BaseType = btU64 then
-                    tbtu64(res^.dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX)
-                  else
-                    tbts64(res^.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  tbts64(res^.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                end;
+              {$ENDIF}
+              {$IFNDEF PS_NOUINT64}btu64:
+                begin
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFOPT R+}
+                      {$DEFINE RANGECHECK_REENABLE}
+                      {$RANGECHECKS OFF} // {$R-}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20} 
+                  EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
+                  tbtu64(res^.dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFDEF RANGECHECK_REENABLE}
+                      {$RANGECHECKS ON} // {$R+}
+                      {$UNDEF RANGECHECK_REENABLE}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20}     
                 end;
               {$ENDIF}
               btVariant,
@@ -730,13 +773,28 @@ begin
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res^.dta^) := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass, btu32, bts32:  tbtu32(res^.dta^) := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
               btPChar:       pansichar(res^.dta^) := Pansichar(RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
-              {$IFNDEF PS_NOINT64}bts64, btU64:
+              {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_CDecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  if res^.aType.BaseType = btU64 then
-                    tbtu64(res^.Dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX)
-                  else
-                    tbts64(res^.Dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  tbts64(res^.Dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                end;
+              {$ENDIF}
+              {$IFNDEF PS_NOUINT64}btu64:
+                begin
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFOPT R+}
+                      {$DEFINE RANGECHECK_REENABLE}
+                      {$RANGECHECKS OFF} // {$R-}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20} 
+                  EAX := RealCall_CDecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
+                  tbtu64(res^.Dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFDEF RANGECHECK_REENABLE}
+                      {$RANGECHECKS ON} // {$R+}
+                      {$UNDEF RANGECHECK_REENABLE}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20}  
                 end;
               {$ENDIF}
               btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}
@@ -768,13 +826,28 @@ begin
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res^.dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btclass, btu32, bts32:  tbtu32(res^.dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
               btPChar:       pansichar(res^.dta^) := Pansichar(RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
-              {$IFNDEF PS_NOINT64}bts64, btU64:
+              {$IFNDEF PS_NOINT64}bts64:
                 begin
                   EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
-                  if res^.aType.BaseType = btU64 then
-                    tbtu64(res^.dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX)
-                  else
-                    tbts64(res^.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  tbts64(res^.dta^) := Int64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                end;
+              {$ENDIF}
+              {$IFNDEF PS_NOUINT64}btu64:
+                begin
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFOPT R+}
+                      {$DEFINE RANGECHECK_REENABLE}
+                      {$RANGECHECKS OFF} // {$R-}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20} 
+                  EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
+                  tbtu64(res^.dta^) := UInt64(Cardinal(EDX)) shl 32 or Cardinal(EAX);
+                  {$IF CompilerVersion <= 20} // RangeCheck might cause Internal-Error C1118
+                    {$IFDEF RANGECHECK_REENABLE}
+                      {$RANGECHECKS ON} // {$R+}
+                      {$UNDEF RANGECHECK_REENABLE}
+                    {$ENDIF}
+                  {$IFEND CompilerVersion <= 20}  
                 end;
               {$ENDIF}
               btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}

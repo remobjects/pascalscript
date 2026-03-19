@@ -22,6 +22,8 @@ type
     DataVariant: TArray<TArray<Variant>>;
     {$IFNDEF PS_NOINT64}
     DataS64: TArray<TArray<Int64>>;
+    {$ENDIF}
+    {$IFNDEF PS_NOUINT64}
     DataU64: TArray<TArray<UInt64>>;
     {$ENDIF}
     DataChar: TArray<TArray<tbtChar>>;
@@ -186,6 +188,8 @@ begin
                  aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataS64[High(aOpenArrayData^.DataS64)][0])];
                  aValues := aValues + [TValue.From<NativeInt>(l_high)];
                end;
+               {$ENDIF}
+               {$IFNDEF PS_NOUINT64}
                btU64: begin
                  aOpenArrayData^.DataU64 := aOpenArrayData^.DataU64 + [[]];
                  SetLength(aOpenArrayData^.DataU64[High(aOpenArrayData^.DataU64)], l_high + 1);
@@ -304,6 +308,8 @@ begin
       {$IFNDEF PS_NOINT64}
       //17
       btS64:                            aValues := aValues + [TValue.From<Int64>(PInt64(aValue^.dta)^)];
+      {$ENDIF}
+      {$IFNDEF PS_NOUINT64}
       btU64:                            aValues := aValues + [TValue.From<UInt64>(PUInt64(aValue^.dta)^)];
       {$ENDIF}
       //18
@@ -421,7 +427,8 @@ begin
         btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
         btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency,
         btUnicodeString
-        {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
+        {$IFNDEF PS_NOINT64}, bts64{$ENDIF}
+        {$IFNDEF PS_NOUINT64}, btU64{$ENDIF}:
           Arg := TValue.From<Pointer>( Pointer(fvar.dta) );
         else
           begin
@@ -505,6 +512,8 @@ begin
       {$IFNDEF PS_NOINT64}
       //17
       bts64:                   PInt64(res.dta)^ := Int64(Invoke(Address,Args,SysCalConv,TypeInfo(Int64),IsStatic).AsInt64);
+      {$ENDIF}
+      {$IFNDEF PS_NOUINT64}
       btU64:                   PUInt64(res.dta)^ := UInt64(Invoke(Address,Args,SysCalConv,TypeInfo(UInt64),IsStatic).AsUInt64);
       {$ENDIF}
       //18

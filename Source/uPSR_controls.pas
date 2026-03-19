@@ -1,4 +1,3 @@
-
 unit uPSR_controls;
 
 {$I PascalScript.inc}
@@ -51,7 +50,7 @@ type
     procedure StyleElementsR(  var T: TStyleElements);
     procedure StyleElementsW( T: TStyleElements);
     {$ENDIF}
-    {$IFDEF DELPHI26UP}
+    {$IFDEF DELPHI27UP}
     procedure StyleNameR( var T: string);
     procedure StyleNameW( T: string);
     {$ENDIF}
@@ -86,7 +85,7 @@ procedure TControl_PSHelper.StyleElementsR( var T: TStyleElements); begin T := S
 procedure TControl_PSHelper.StyleElementsW( T: TStyleElements); begin Self.StyleElements:= T; end;
 {$ENDIF}
 
-{$IFDEF DELPHI26UP}
+{$IFDEF DELPHI27UP}
 procedure TControl_PSHelper.StyleNameR( var T: string); begin T := Self.StyleName; end;
 procedure TControl_PSHelper.StyleNameW( T: string); begin Self.StyleName:= T; end;
 {$ENDIF}
@@ -116,7 +115,7 @@ begin
     {$IFDEF DELPHI23UP}
     RegisterPropertyHelper(@TControl.StyleElementsR, @TControl.StyleElementsW, 'StyleElements');
     {$ENDIF}
-    {$IFDEF DELPHI26UP}
+    {$IFDEF DELPHI27UP}
     RegisterPropertyHelper(@TControl.StyleNameR, @TControl.StyleNameW, 'StyleName');
     {$ENDIF}
 
@@ -172,7 +171,7 @@ procedure TControlStyleElementsR(Self: TControl; var T: TStyleElements); begin T
 procedure TControlStyleElementsW(Self: TControl; T: TStyleElements); begin Self.StyleElements:= T; end;
 {$ENDIF}
 
-{$IFDEF DELPHI26UP}
+{$IFDEF DELPHI27UP}
 procedure TControlStyleNameR(Self: TControl; var T: string); begin T := Self.StyleName; end;
 procedure TControlStyleNameW(Self: TControl; T: string); begin Self.StyleName:= T; end;
 {$ENDIF}
@@ -202,7 +201,7 @@ begin
     {$IFDEF DELPHI23UP}
     RegisterPropertyHelper(@TControlStyleElementsR, @TControlStyleElementsW, 'StyleElements');
     {$ENDIF}
-    {$IFDEF DELPHI26UP}
+    {$IFDEF DELPHI27UP}
     RegisterPropertyHelper(@TControlStyleNameR, @TControlStyleNameW, 'StyleName');
     {$ENDIF}
 

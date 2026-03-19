@@ -699,7 +699,8 @@ _XMM0: Double;
         btClass,
         {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-        {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
+        {$IFNDEF PS_NOINT64}, bts64{$ENDIF}
+        {$IFNDEF PS_NOUINT64}, btu64{$ENDIF}:
           begin
             Varptr := fvar.Dta;
           end;
@@ -821,6 +822,8 @@ _XMM0: Double;
           begin
             StoreReg(IPointer(int64(fvar^.dta^)));
         end;
+{$ENDIF}
+{$IFNDEF PS_NOUINT64}
         btU64:
           begin
             StoreReg(IPointer(tbtu64(fvar^.dta^)));
@@ -951,6 +954,8 @@ begin
         btPChar:       pansichar(res.dta^) := Pansichar(_RAX);
 {$IFNDEF PS_NOINT64}
         bts64: tbts64(res.dta^) := Int64(_RAX);
+{$ENDIF}
+{$IFNDEF PS_NOUINT64}
         btU64: tbtu64(res.dta^) := UInt64(_RAX);
 {$ENDIF}
         btCurrency:    tbts64(res.Dta^) := Int64(_RAX); { Do not change to tbtCurrency: see 08d2743a }
@@ -998,5 +1003,3 @@ begin
     end;
   end;
 end;
-
-

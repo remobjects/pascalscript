@@ -1,0 +1,13 @@
+/* VER150
+  Generiert vom Borland Delphi Pascal Compiler
+  da -GD or --drc beim Compilieren angegeben war.
+
+  Sie enthält Compiler-generierte Ressourcen, die mit der ausführbaren Datei verbunden sind.
+  Wenn sie leer ist, wurden keine vom Compiler generierten Ressourcen mit der 
+  produzierten ausführbaren Datei verbunden.
+*/
+
+STRINGTABLE
+BEGIN
+END
+

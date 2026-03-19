@@ -222,7 +222,7 @@ It's a descendant of TStringList with "enhanced" IndexOf function (and others)
     constructor Create;
     function    EraseDuplicates(callBackProc:TEraseSectionCallback) : Boolean;
     function    GetSectionItems(index: Integer): TStringList;
-    function    IndexOf(const S: AnsiString): Integer; override;
+    function    IndexOf(const S: String): Integer; override;
     function    IndexOfName(const name: string): Integer; //override;
     property    SectionItems[index: Integer]: TStringList Read GetSectionItems;
   end;
@@ -546,7 +546,7 @@ end;
 {. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . }
 { search string                                                              }
 {. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . }
-function TSectionList.IndexOf(const S: AnsiString): Integer;
+function TSectionList.IndexOf(const S: String): Integer;
 var
   ix,
   LastIX        : Integer;
@@ -1401,7 +1401,7 @@ end;
 function TBiggerIniFile.ReadBinaryData(const aSection, aKey: String; var Buffer; BufSize: Integer): Integer;
 var
   ix            : Integer;
-  bufPtr        : PChar;
+  bufPtr        : PAnsiChar;
   hexDump       : AnsiString;
 begin
   hexDump := ReadAnsiString(aSection,aKey,'');
@@ -1411,7 +1411,7 @@ begin
   bufPtr  := Pointer(Buffer);
   for ix := 0 to result -1 do
   begin
-    Byte(bufPtr[ix]) := StrToIntDef('$' + Copy(hexDump,1 + ix*2,2) ,0);
+    bufPtr[ix] := AnsiChar( StrToIntDef('$' + Copy(hexDump,1 + ix*2,2) ,0) );
   end;
 end;
 
@@ -1422,7 +1422,7 @@ end;
 procedure TBiggerIniFile.WriteBinaryData(const aSection, aKey: String; var Buffer; BufSize: Integer);
 var
   ix            : Integer;
-  bufPtr        : PChar;
+  bufPtr        : PAnsiChar;
   hexDump       : AnsiString;
 begin
   hexDump := '';

@@ -548,12 +548,14 @@ end;
 {$ENDIF}
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
+{$IFDEF DELPHI4UP}
 {$IFDEF DELPHI10UP}{$REGION 'TSizeConstraints'}{$ENDIF}
 procedure RIRegisterTSizeConstraints(cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TSizeConstraints);
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+{$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'Controls'}{$ENDIF}
 procedure RIRegister_Controls(Cl: TPSRuntimeClassImporter);
@@ -563,7 +565,9 @@ begin
   RIRegisterTGraphicControl(cl);
   RIRegisterTCustomControl(cl);
   RIRegister_TDragObject(cl);
+  {$IFDEF DELPHI4UP}
   RIRegisterTSizeConstraints(cl);
+  {$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 

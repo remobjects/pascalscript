@@ -126,7 +126,6 @@ begin
     RegisterMethod(@TControl.Dragging, 'Dragging');
     RegisterMethod(@TControl.HasParent, 'HasParent');
     RegisterMethod(@TCONTROL.CLIENTTOSCREEN, 'ClientToScreen');
-    RegisterMethod(@TCONTROL.DRAGGING, 'Dragging');
    {$IFNDEF FPC}
     RegisterMethod(@TCONTROL.BEGINDRAG, 'BeginDrag');
     RegisterMethod(@TCONTROL.ENDDRAG, 'EndDrag');
@@ -212,7 +211,6 @@ begin
     RegisterMethod(@TControl.Dragging, 'Dragging');
     RegisterMethod(@TControl.HasParent, 'HasParent');
     RegisterMethod(@TCONTROL.CLIENTTOSCREEN, 'ClientToScreen');
-    RegisterMethod(@TCONTROL.DRAGGING, 'Dragging');
    {$IFNDEF FPC}
     RegisterMethod(@TCONTROL.BEGINDRAG, 'BeginDrag');
     RegisterMethod(@TCONTROL.ENDDRAG, 'EndDrag');

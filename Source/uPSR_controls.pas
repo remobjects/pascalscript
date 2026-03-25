@@ -252,10 +252,12 @@ begin
   end;
 end;
 
+{$IFDEF DELPHI4UP}
 procedure RIRegisterTSizeConstraints(cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TSizeConstraints);
 end;
+{$ENDIF}
 
 procedure RIRegister_Controls(Cl: TPSRuntimeClassImporter);
 begin
@@ -264,7 +266,9 @@ begin
   RIRegisterTGraphicControl(cl);
   RIRegisterTCustomControl(cl);
   RIRegister_TDragObject(cl);
+  {$IFDEF DELPHI4UP}
   RIRegisterTSizeConstraints(cl);
+  {$ENDIF}
 end;
 
 // PS_MINIVCL changes by Martijn Laan

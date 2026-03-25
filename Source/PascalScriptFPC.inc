@@ -4,11 +4,11 @@
     {$MODE DELPHIUNICODE}
     {$DEFINE UNICODE}
   {$ELSE}
-    {$MODE DELPHI}
+    // {$MODE DELPHI} // FPC 3.2.4: mode switch not allowed here
   {$ENDIF}
 
   {$IF (defined(cpuaarch64) or defined(cpuarm))}
-    {$DEFINE USEINVOKECALL}
+    // {$DEFINE USEINVOKECALL} // InvokeCall.inc does not compile on FPC due to missing Rtti features
   {$IFEND}
 
 

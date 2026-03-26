@@ -10538,13 +10538,9 @@ end;
     {$IFDEF Delphi6UP}
       {$IFDEF CPUX64}
         {$include x64.inc}
-    {$ELSE}
-       {$IFDEF CPUARM64}
-         {$include arm64.inc}
-       {$ELSE}
-         {$include x86.inc}
-       {$ENDIF}
-    {$ENDIF}
+      {$ELSE}
+        {$include x86.inc}
+      {$ENDIF}
     {$ELSE}
       {$include x86.inc}
     {$ENDIF}

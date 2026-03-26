@@ -12,13 +12,13 @@
     5) Copy return values back into Pascal Script result storage.
 }
 
-  {$IFDEF CPUAARCH64}
-    {$IFDEF DARWIN}
-      {$L arm64sysv-macos.o}
-    {$ELSE}
-      {$L arm64sysv-linux.o}
-    {$ENDIF}
+{$IFDEF CPUAARCH64}
+  {$IFDEF DARWIN}
+    {$L arm64sysv-macos.o}
+  {$ELSE}
+    {$L arm64sysv-linux.o}
   {$ENDIF}
+{$ENDIF}
 
 
 type

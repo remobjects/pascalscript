@@ -33,7 +33,7 @@ const EmptyPChar:PChar='';
 
 procedure arm64call(
   Address: Pointer;
-  out _X0: IPointer;
+  var _X0: IPointer;
   var _D0: Double;
   constref Registers: TARM64Registers;
   Stack: Pointer;

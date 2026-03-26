@@ -508,8 +508,8 @@ type
   public
     procedure BITS_W( T: BOOLEAN; t1: INTEGER);
     procedure BITS_R( var T: BOOLEAN; t1: INTEGER);
-    procedure SIZE_R( T: INTEGER);
-    procedure SIZE_W( var T: INTEGER);
+    procedure SIZE_W( T: INTEGER);
+    procedure SIZE_R( var T: INTEGER);
   end;
 
 procedure TBits_PSHelper.BITS_W( T: BOOLEAN; t1: INTEGER);
@@ -522,12 +522,12 @@ begin
   T := Self.Bits[t1];
 end;
 
-procedure TBits_PSHelper.SIZE_R( T: INTEGER);
+procedure TBits_PSHelper.SIZE_W( T: INTEGER);
 begin
   Self.SIZE := T;
 end;
 
-procedure TBits_PSHelper.SIZE_W( var T: INTEGER);
+procedure TBits_PSHelper.SIZE_R( var T: INTEGER);
 begin
   T := Self.SIZE;
 end;
@@ -546,8 +546,8 @@ end;
 
 procedure TBITSBITS_W(Self: TBITS; T: BOOLEAN; t1: INTEGER); begin Self.BITS[t1] := T; end;
 procedure TBITSBITS_R(Self: TBITS; var T: BOOLEAN; t1: INTEGER); begin T := Self.Bits[t1]; end;
-procedure TBITSSIZE_R(Self: TBITS; T: INTEGER); begin Self.SIZE := T; end;
-procedure TBITSSIZE_W(Self: TBITS; var T: INTEGER); begin T := Self.SIZE; end;
+procedure TBITSSIZE_W(Self: TBITS; T: INTEGER); begin Self.SIZE := T; end;
+procedure TBITSSIZE_R(Self: TBITS; var T: INTEGER); begin T := Self.SIZE; end;
 
 procedure RIRegisterTBITS(Cl: TPSRuntimeClassImporter);
 begin

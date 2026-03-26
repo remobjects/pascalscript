@@ -222,7 +222,7 @@ var
           StoreIntReg(IPointer(Cardinal(FVar^.dta^)));
         btPChar:
           if Pointer(fvar^.dta^) = nil then
-            StoreIntReg(IPointer(@EmptyPChar))
+            StoreIntReg(IPointer(EmptyPChar))
           else
             StoreIntReg(IPointer(fvar^.dta^));
         btClass, btInterface, btString{$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}:

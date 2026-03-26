@@ -1,14 +1,17 @@
-{$IFDEF CPUARM64}
-  {$IFDEF MSWINDOWS}
-    {$L arm64win.obj}
-  {$ELSE}
-    {$IFDEF MACOS}
-      {$L arm64sysv-macos.o}
-    {$ELSE}
-      {$L arm64sysv-linux.o}
-    {$ENDIF}
-  {$ENDIF}
-{$ELSE}
+{ ARM64 runtime call bridge (FPC + Linux/macOS SysV only)
+
+  This include contains the Pascal-side marshalling logic used by TPSExec.InnerfuseCall
+  on AArch64 targets.  The low-level indirect call is delegated to arm64call in
+  arm64sysv.S.
+
+  High-level flow:
+    1) Convert TPSVariant arguments to ABI-ready integer/float register values.
+    2) Spill overflow arguments to an aligned stack buffer.
+    3) Prepare hidden-result arguments/registers for managed/indirect result types.
+    4) Call arm64call, which performs the actual register+stack setup and BLR.
+    5) Copy return values back into Pascal Script result storage.
+}
+
   {$IFDEF CPUAARCH64}
     {$IFDEF DARWIN}
       {$L arm64sysv-macos.o}
@@ -16,7 +19,7 @@
       {$L arm64sysv-linux.o}
     {$ENDIF}
   {$ENDIF}
-{$ENDIF}
+
 
 type
   TARM64Registers = packed record

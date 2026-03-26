@@ -1,3 +1,21 @@
+/*
+  arm64sysv.S - AArch64 SysV indirect call shim for Pascal Script
+
+  Inputs (from arm64.inc arm64call declaration):
+    x0 = Address             (target function pointer)
+    x1 = &_X0                (integer return storage)
+    x2 = &_D0                (floating return storage)
+    x3 = &TARM64Registers    (pre-marshalled integer/float register block)
+    x4 = Stack               (pointer to overflow arguments, 8-byte slots)
+    x5 = Items               (number of stack slots)
+
+  Steps performed:
+    1) Preserve callee-saved registers and keep stable frame pointers.
+    2) Copy overflow slots from x4 into the real call stack (maintaining ABI alignment).
+    3) Load x0..x8 and d0..d7 from marshalling buffers (including single/double conversion bits).
+    4) BLR to the target function pointer.
+    5) Store x0/d0 back via x1/x2 output pointers, restoring single->double when needed.
+*/
 .text
 .align 2
 #ifdef __APPLE__

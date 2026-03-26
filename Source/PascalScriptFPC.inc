@@ -4,7 +4,7 @@
     {$MODE DELPHIUNICODE}
     {$DEFINE UNICODE}
   {$ELSE}
-    // {$MODE DELPHI} // FPC 3.2.4: mode switch not allowed here
+    {$MODE DELPHI}
   {$ENDIF}
 
   {$IF (defined(cpuaarch64) or defined(cpuarm))}

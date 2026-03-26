@@ -29,7 +29,7 @@ type
     FloatBits: Integer; // bits 0..7 = single args in D0..D7, bit 8 = single result
   end;
 
-const EmptyPChar:PChar='';
+  EmptyPchar: array[0..0] of char = #0;
 
 procedure arm64call(
   Address: Pointer;

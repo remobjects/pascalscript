@@ -129,4 +129,5 @@ arm64call:
     ret
 #ifndef __APPLE__
 .size arm64call, .-arm64call
+.section .note.GNU-stack,"",@progbits
 #endif

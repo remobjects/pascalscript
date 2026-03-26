@@ -12374,7 +12374,7 @@ end;
     {$define empty_methods_handler}
   {$ifend}
 {$else}
-  {$if defined(cpuarm)}
+  {$if defined(cpuarm) or defined(cpuarm64)}
     {$define empty_methods_handler}
   {$ifend}
 {$endif}

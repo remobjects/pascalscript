@@ -2,6 +2,11 @@ unit uPSUtils;
 {$I PascalScript.inc}
 
 interface
+
+{$WARN UNSAFE_TYPE OFF}
+{$WARN UNSAFE_CODE OFF
+{$WARN UNSAFE_CAST OFF}
+
 uses
   Classes, SysUtils {$IFDEF VER130}, Windows {$ENDIF};
 
@@ -38,6 +43,7 @@ type
   tbtPChar  = {$IFDEF DELPHI2009UP}PAnsiChar{$ELSE}PChar{$ENDIF};
   tbtChar   = {$IFDEF DELPHI4UP}AnsiChar{$ELSE}CHAR{$ENDIF};
   {$ENDIF}
+  tbtAnsiChar = AnsiChar;
 
   TPSBaseType = Byte;
 
@@ -107,8 +113,8 @@ const
 
   btUnicodeString   = 28;
 
-{$IFNDEF PS_NOINT64}
-  btU64             = 29;
+{$IFNDEF PS_NOUINT64}
+  btu64             = 29;
 {$ENDIF}
 
   btType = 130;
@@ -313,21 +319,23 @@ type
 
   TbtSingle = Single;
 
-  TbtDouble = Double;
+  TbtDouble = double;
 
   TbtExtended = Extended;
 
   tbtCurrency = Currency;
 
 {$IFNDEF PS_NOINT64}
-
   tbts64 = int64;
+{$ENDIF}
+
+{$IFNDEF PS_NOUINT64}
   tbtu64 = uint64;
 {$ENDIF}
 
 
 {$IFNDEF PS_NOWIDESTRING}
-  tbtWideString = WideString;
+  tbtwidestring = widestring;
 
   tbtUnicodeString =
     {$IFDEF FPC}
@@ -336,7 +344,7 @@ type
       {$IFDEF UNICODE}UnicodeString{$ELSE}WideString{$ENDIF}
     {$ENDIF};
 
-  tbtWideChar = WideChar;
+  tbtwidechar = widechar;
   tbtNativeString = {$IFDEF DELPHI2009UP}tbtUnicodeString{$ELSE}tbtString{$ENDIF};
 {$ENDIF}
 {$IFDEF FPC}
@@ -450,9 +458,9 @@ type
 
     function HasUses(pUnitName: TbtString): Boolean;
 
-    {$WARNINGS OFF}
+    {.$WARNINGS OFF}
     property UnitName: TbtString read fUnitName write SetUnitName;
-    {$WARNINGS ON}
+    {.$WARNINGS ON}
   end;
 
   TPSUnitList = class
@@ -610,6 +618,7 @@ type
     property OriginalToken: TbtString read FOriginalToken;
 
     property CurrTokenPos: Cardinal read FRealPosition;
+    property CurrTokenLength: Cardinal read FTokenLength;
 
     property CurrTokenID: TPSPasToken read FTokenId;
 
@@ -654,7 +663,19 @@ const
 function WideUpperCase(const S: WideString): WideString;
 function WideLowerCase(const S: WideString): WideString;
 {$ENDIF}
+
+{$IF CompilerVersion < 23}
+function StrToUInt64( const s: string ): UInt64;
+function StrToUInt64Def( const s: string; Default : UInt64 ): UInt64;
+function UIntToStr( UInt : UInt64 ): string;
+{$IFEND}
+
 implementation
+
+{$IF CompilerVersion < 23}
+uses
+  Variants;
+{$IFEND}
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -765,7 +786,11 @@ end;
 //-------------------------------------------------------------------
 
 function FloatToStr(E: Extended): TbtString;
+//var
+//  s: tbtstring;
 begin
+//  Str(e:0:12, s);
+//  result := s;
   Result := TbtString(SysUtils.FloatToStr(E));
 end;
 
@@ -1749,8 +1774,39 @@ begin
   fUnitName := FastUpperCase(Value);
 end;
 
+{$IF CompilerVersion < 23}
+{$IFOPT R+}
+  {$DEFINE RANGECHECK_REENABLE}
+  {$RANGECHECKS OFF} // {$R-}
+{$ENDIF}
+function StrToUInt64( const s: string ): UInt64;
+const
+  SInvalidUInt64 = '''%s'' is not a valid UInt64 value';
+var
+  Error: Integer;
+begin
+  Val( S, result, Error );
+  if Error <> 0 then
+    Raise Exception.Create( Format( SInvalidUInt64, [ S ] ) );
+end;
+
+function StrToUInt64Def( const s: string; Default : UInt64 ): UInt64;
+var
+  Error: Integer;
+begin
+  Val( S, result, Error );
+  if Error <> 0 then
+    result := Default;
+end;
+
+function UIntToStr( UInt : UInt64 ): string;
+begin
+  result := VarToStr( UInt );
+end;
+{$IFDEF RANGECHECK_REENABLE}
+  {$RANGECHECKS ON} // {$R+}
+  {$UNDEF RANGECHECK_REENABLE}
+{$ENDIF}  
+{$IFEND}
 
 end.
-
-
-

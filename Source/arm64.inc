@@ -14,9 +14,9 @@
 
 {$IFDEF CPUAARCH64}
   {$IFDEF DARWIN}
-    {$L arm64sysv-macos.o}
+    {$L arm64sysv-macos.o} // compile with gcc -c arm64sysv.S -o arm64sysv-macos.o
   {$ELSE}
-    {$L arm64sysv-linux.o}
+    {$L arm64sysv-linux.o} // compile with gcc -c arm64sysv.S -o arm64sysv-linux.o
   {$ENDIF}
 {$ENDIF}
 
@@ -29,6 +29,7 @@ type
     FloatBits: Integer; // bits 0..7 = single args in D0..D7, bit 8 = single result
   end;
 
+const
   EmptyPchar: array[0..0] of char = #0;
 
 procedure arm64call(
@@ -222,7 +223,7 @@ var
           StoreIntReg(IPointer(Cardinal(FVar^.dta^)));
         btPChar:
           if Pointer(fvar^.dta^) = nil then
-            StoreIntReg(IPointer(EmptyPChar))
+            StoreIntReg(IPointer(@EmptyPChar))
           else
             StoreIntReg(IPointer(fvar^.dta^));
         btClass, btInterface, btString{$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}:

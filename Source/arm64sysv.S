@@ -4,17 +4,18 @@
   Inputs (from arm64.inc arm64call declaration):
     x0 = Address             (target function pointer)
     x1 = &_X0                (integer return storage)
-    x2 = &_D0                (floating return storage)
-    x3 = &TARM64Registers    (pre-marshalled integer/float register block)
-    x4 = Stack               (pointer to overflow arguments, 8-byte slots)
-    x5 = Items               (number of stack slots)
+    x2 = &_X1                (secondary integer return storage)
+    x3 = &_D0                (floating return storage)
+    x4 = &TARM64Registers    (pre-marshalled integer/float register block)
+    x5 = Stack               (pointer to overflow arguments, 8-byte slots)
+    x6 = Items               (number of stack slots)
 
   Steps performed:
     1) Preserve callee-saved registers and keep stable frame pointers.
     2) Copy overflow slots from x4 into the real call stack (maintaining ABI alignment).
     3) Load x0..x8 and d0..d7 from marshalling buffers (including single/double conversion bits).
     4) BLR to the target function pointer.
-    5) Store x0/d0 back via x1/x2 output pointers, restoring single->double when needed.
+    5) Store x0/x1/d0 back via output pointers, restoring single->double when needed.
 */
 .text
 .align 2
@@ -35,17 +36,18 @@ arm64call:
 
     mov x24, x0
     mov x19, x1
-    mov x20, x2
-    mov x21, x3
-    mov x22, x4
-    mov x23, x5
+    mov x22, x2
+    mov x20, x3
+    mov x21, x4
+    mov x4, x5
+    mov x23, x6
 
     cbz x23, 1f
     lsl x9, x23, #3
     sub sp, sp, x9
     mov x10, sp
 0:
-    ldr x11, [x22], #8
+    ldr x11, [x4], #8
     str x11, [x10], #8
     subs x23, x23, #1
     b.ne 0b
@@ -114,6 +116,8 @@ arm64call:
     blr x24
 
     str x0, [x19]
+    str x1, [x22]
+    ldr w9, [x21, #120]      /* x9/w9 is caller-saved, reload FloatBits after BLR */
     tbnz w9, #8, 18f
     str d0, [x20]
     b 19f

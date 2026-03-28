@@ -20,7 +20,6 @@
   {$ENDIF}
 {$ENDIF}
 
-
 type
   TARM64Registers = packed record
     X1, X2, X3, X4, X5, X6, X7: IPointer;
@@ -32,9 +31,17 @@ type
 const
   EmptyPchar: array[0..0] of char = #0;
 
+{ arm64call performs the final ABI transition in arm64sysv.S:
+    - preserves callee-saved registers
+    - copies overflow argument slots to the real stack
+    - loads x0..x8 and d0..d7 from marshalling buffers
+    - performs BLR to Address
+    - writes x0/x1/d0 return values back to _X0/_X1/_D0
+}
 procedure arm64call(
   Address: Pointer;
-  var _X0: IPointer;
+  var _X0: IPointer; // in/out: carries call-time x0 and receives return x0
+  var _X1: IPointer; // out: secondary integer return register (used for 9..16 byte composites)
   var _D0: Double;
   constref Registers: TARM64Registers;
   Stack: Pointer;
@@ -44,6 +51,7 @@ function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingC
 var
   Stack: array of Byte;
   _X0: IPointer;
+  _X1: IPointer;
   _D0: Double;
   Registers: TARM64Registers;
   IntRegUsage: Byte;
@@ -275,6 +283,7 @@ begin
   try
     FillChar(Registers, SizeOf(Registers), 0);
     _X0 := 0;
+    _X1 := 0;
     _D0 := 0;
     IntRegUsage := 0;
     FloatRegUsage := 0;
@@ -330,18 +339,23 @@ begin
     else
       pp := @Stack[0];
 
-    arm64call(Address, _X0, _D0, Registers, pp, Length(Stack) div 8);
+    arm64call(Address, _X0, _X1, _D0, Registers, pp, Length(Stack) div 8);
 
     if Assigned(res) then
     begin
       case res^.aType.BaseType of
         btRecord, btSet:
-          if res.aType.RealSize <= 8 then
+          if res.aType.RealSize <= 16 then
             case res.aType.RealSize of
               1: Byte(res.Dta^) := _X0;
               2: Word(res.Dta^) := _X0;
               3, 4: Cardinal(res.Dta^) := _X0;
               5, 6, 7, 8: IPointer(res.Dta^) := _X0;
+              9..16:
+                begin
+                  Move(_X0, res.Dta^, 8);
+                  Move(_X1, Pointer(IPointer(res.Dta) + 8)^, res.aType.RealSize - 8);
+                end;
             end;
         btSingle: tbtsingle(res.Dta^) := _D0;
         btDouble: tbtdouble(res.Dta^) := _D0;
@@ -356,6 +370,7 @@ begin
         btPChar: pansichar(res.dta^) := Pansichar(_X0);
         {$IFNDEF PS_NOINT64}
         btS64: tbts64(res.dta^) := Int64(_X0);
+        btU64: tbtu64(res.dta^) := UInt64(_X0);
         {$ENDIF}
         btCurrency: tbts64(res.Dta^) := Int64(_X0);
         btInterface, btVariant, btStaticArray, btArray,

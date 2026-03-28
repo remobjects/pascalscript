@@ -148,7 +148,6 @@ begin
  {$IFNDEF FPC}
 {$IFNDEF CLX}
     RegisterMethod(@TForm.ARRANGEICONS, 'ArrangeIcons');
-    RegisterMethod(@TForm.GETFORMIMAGE, 'GetFormImage');
     RegisterMethod(@TForm.PRINT, 'Print');
     RegisterMethod(@TForm.SENDCANCELMODE, 'SendCancelMode');
     RegisterPropertyHelper(@TForm.ACTIVEOLECONTROL_R, @TForm.ACTIVEOLECONTROL_W, 'ActiveOleControl');
@@ -225,7 +224,6 @@ begin
  {$IFNDEF FPC}
 {$IFNDEF CLX}
     RegisterMethod(@TFORM.ARRANGEICONS, 'ArrangeIcons');
-    RegisterMethod(@TFORM.GETFORMIMAGE, 'GetFormImage');
     RegisterMethod(@TFORM.PRINT, 'Print');
     RegisterMethod(@TFORM.SENDCANCELMODE, 'SendCancelMode');
     RegisterPropertyHelper(@TFORMACTIVEOLECONTROL_R, @TFORMACTIVEOLECONTROL_W, 'ActiveOleControl');
@@ -420,16 +418,10 @@ begin
     RegisterMethod(@TApplication.HELPJUMP, 'HelpJump');
     {$ENDIF}
     {$ENDIF}
-//    RegisterMethod(@TApplication.HANDLEEXCEPTION, 'HandleException');
-//    RegisterMethod(@TApplication.HOOKMAINWINDOW, 'HookMainWindow');
-//    RegisterMethod(@TApplication.UNHOOKMAINWINDOW, 'UnhookMainWindow');
-
     RegisterMethod(@TApplication.HANDLEMESSAGE, 'HandleMessage');
     RegisterMethod(@TApplication.HIDEHINT, 'HideHint');
-    RegisterMethod(@TApplication.HINTMOUSEMESSAGE, 'HintMouseMessage');
     RegisterMethod(@TApplication.INITIALIZE, 'Initialize');
     RegisterMethod(@TApplication.RUN, 'Run');
-//    RegisterMethod(@TApplication.SHOWEXCEPTION, 'ShowException');
     RegisterPropertyHelper(@TApplication.HELPFILE_R, @TApplication.HELPFILE_W, 'HelpFile');
     RegisterPropertyHelper(@TApplication.HINTCOLOR_R, @TApplication.HINTCOLOR_W, 'HintColor');
     RegisterPropertyHelper(@TApplication.HINTPAUSE_R, @TApplication.HINTPAUSE_W, 'HintPause');
@@ -544,16 +536,10 @@ begin
     RegisterMethod(@TAPPLICATION.HELPJUMP, 'HelpJump');
     {$ENDIF}
     {$ENDIF}
-//    RegisterMethod(@TAPPLICATION.HANDLEEXCEPTION, 'HandleException');
-//    RegisterMethod(@TAPPLICATION.HOOKMAINWINDOW, 'HookMainWindow');
-//    RegisterMethod(@TAPPLICATION.UNHOOKMAINWINDOW, 'UnhookMainWindow');
-
     RegisterMethod(@TAPPLICATION.HANDLEMESSAGE, 'HandleMessage');
     RegisterMethod(@TAPPLICATION.HIDEHINT, 'HideHint');
-    RegisterMethod(@TAPPLICATION.HINTMOUSEMESSAGE, 'HintMouseMessage');
     RegisterMethod(@TAPPLICATION.INITIALIZE, 'Initialize');
     RegisterMethod(@TAPPLICATION.RUN, 'Run');
-//    RegisterMethod(@TAPPLICATION.SHOWEXCEPTION, 'ShowException');
     RegisterPropertyHelper(@TAPPLICATIONHELPFILE_R, @TAPPLICATIONHELPFILE_W, 'HelpFile');
     RegisterPropertyHelper(@TAPPLICATIONHINTCOLOR_R, @TAPPLICATIONHINTCOLOR_W, 'HintColor');
     RegisterPropertyHelper(@TAPPLICATIONHINTPAUSE_R, @TAPPLICATIONHINTPAUSE_W, 'HintPause');

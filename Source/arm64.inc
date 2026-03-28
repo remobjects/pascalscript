@@ -17,6 +17,9 @@
     {$L arm64sysv-macos.o} // compile with gcc -c arm64sysv.S -o arm64sysv-macos.o
   {$ELSE}
     {$L arm64sysv-linux.o} // compile with gcc -c arm64sysv.S -o arm64sysv-linux.o
+    // to cross compile on x64 linux:
+    // sudo apt install gcc-aarch64-linux-gnu
+    // aarch64-linux-gnu-gcc -c arm64sysv.S -o arm64sysv-linux.o
   {$ENDIF}
 {$ENDIF}
 

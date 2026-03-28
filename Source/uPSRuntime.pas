@@ -12367,8 +12367,6 @@ begin
   Result := (Modifier = '%') or (Modifier = '!') or AlwaysAsVariable(aType);
 end;
 
-
-
 {$ifdef fpc}
   {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
     {$define empty_methods_handler}

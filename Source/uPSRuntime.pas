@@ -10556,6 +10556,8 @@ end;
       {$include x86.inc}
     {$elseif defined(cpupowerpc)}
       {$include powerpc.inc}
+    {$elseif defined(cpuaarch64)}
+      {$include arm64.inc}
     {$elseif defined(cpuarm)}
       {$include arm.inc}
     {$elseif defined(CPUX86_64)}
@@ -12348,8 +12350,29 @@ begin
   s := '';
 end;
 
+function AlwaysAsVariable(aType: TPSTypeRec): Boolean;
+begin
+  case atype.BaseType of
+    btVariant: Result := true;
+    btSet: Result := atype.RealSize > PointerSize;
+    btRecord: Result := atype.RealSize > PointerSize;
+    btStaticArray: Result := atype.RealSize > PointerSize;
+  else
+    Result := false;
+  end;
+end;
+
+function ParamAsVariable(const Modifier: tbtchar; aType: TPSTypeRec): Boolean;
+begin
+  Result := (Modifier = '%') or (Modifier = '!') or AlwaysAsVariable(aType);
+end;
+
 {$ifdef fpc}
   {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
+    {$define empty_methods_handler}
+  {$ifend}
+{$else}
+  {$if defined(cpuarm) or defined(cpuarm64)}
     {$define empty_methods_handler}
   {$ifend}
 {$endif}
@@ -12535,23 +12558,6 @@ begin
   else
     Result := false;
   end;
-end;
-
-function AlwaysAsVariable(aType: TPSTypeRec): Boolean;
-begin
-  case atype.BaseType of
-    btVariant: Result := true;
-    btSet: Result := atype.RealSize > PointerSize;
-    btRecord: Result := atype.RealSize > PointerSize;
-    btStaticArray: Result := atype.RealSize > PointerSize;
-  else
-    Result := false;
-  end;
-end;
-
-function ParamAsVariable(const Modifier: tbtchar; aType: TPSTypeRec): Boolean;
-begin
-  Result := (Modifier = '%') or (Modifier = '!') or AlwaysAsVariable(aType);
 end;
 
 procedure PutOnFPUStackExtended(ft: extended);

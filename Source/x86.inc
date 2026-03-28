@@ -624,7 +624,7 @@ begin
               btInterface,
               btVariant,
               {$IFNDEF PS_NOWIDESTRING}btWidestring,btUnicodestring, {$ENDIF}
-              btStaticArray, {$IFNDEF FPC} btArray,{$ENDIF}{$IFNDEF PS_FPCSTRINGWORKAROUND} btstring {$ENDIF}: RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
+              btStaticArray{$IFNDEF FPC}, btArray{$ENDIF}{$IFNDEF PS_FPCSTRINGWORKAROUND}, btstring{$ENDIF}: RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
               btRecord:
                 begin
                   if res.aType.RealSize <= 4 then

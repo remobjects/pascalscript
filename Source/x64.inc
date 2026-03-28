@@ -474,12 +474,13 @@ asm
   // copy result back
   mov rsi, [rbp-16]          // _RAX parameter
   mov [rsi], RAX
-  mov rsi, [rbp-32]          // Registers parameter
-
+  
 {$IFNDEF WINDOWS}
+  mov rsi, [rbp-32]          // Registers parameter
   mov [rsi+16], RDX          // preserve RDX for 9..16 byte SYSV aggregate results
-  mov rsi, [rbp-24]          // _XMM0 parameter
 {$ENDIF}
+
+  mov rsi, [rbp-24]          // _XMM0 parameter
 
   // xmm0 res
   mov rax, [rbp-32]          // Registers parameter

@@ -4076,7 +4076,7 @@ begin
   for i := 0 to aType.FieldTypes.Count -1 do
   begin
     o := Longint(atype.RealFieldOffsets[i]);
-    CopyArrayContents(Pointer(IPointer(Dest)+Cardinal(o)), Pointer(IPointer(Src)+Cardinal(o)), 1, aType.FieldTypes[i]);
+    if not CopyArrayContents(Pointer(IPointer(Dest)+Cardinal(o)), Pointer(IPointer(Src)+Cardinal(o)), 1, aType.FieldTypes[i]) then begin result := false; exit; end;
   end;
   Result := true;
 end;
@@ -5012,6 +5012,10 @@ var
       btS16: tbts16(Into^) := Longint(b);
       btU32: tbtu32(Into^) := Cardinal(b);
       btS32: tbts32(Into^) := Longint(b);
+      {$IFNDEF PS_NOINT64}
+        btS64: tbts64(Into^) := Longint(b);
+        btU64: tbtu64(Into^) := Cardinal(b);
+      {$ENDIF}
       btVariant: Variant(Into^) := b;
     else begin
         CMD_Err(ErTypeMismatch);
@@ -5216,7 +5220,7 @@ begin
                     btU64: b := tbts32(var1^) > tbtu64(Var2^);
                   {$ENDIF}
                   btChar: b := tbts32(var1^) > Ord(tbtchar(Var2^));
-              {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) = Ord(tbtwidechar(Var2^));{$ENDIF}
+              {$IFNDEF PS_NOWIDESTRING}    btWideChar: b := tbts32(var1^) > Ord(tbtwidechar(Var2^));{$ENDIF}
                   btVariant: b := tbts32(var1^) > Variant(Var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -7164,7 +7168,7 @@ begin
         case Dest.aType.BaseType of
           btRecord:
             begin
-              if Param > Cardinal(TPSTypeRec_Record(Dest.aType).FFieldTypes.Count) then
+              if Param >= Cardinal(TPSTypeRec_Record(Dest.aType).FFieldTypes.Count) then
               begin
                 CMD_Err(erOutOfRange);
                 Result := False;
@@ -7320,7 +7324,7 @@ begin
         case Dest.aType.BaseType of
           btRecord:
             begin
-              if Param > Cardinal(TPSTypeRec_Record(Dest.aType).FFieldTypes.Count) then
+              if Param >= Cardinal(TPSTypeRec_Record(Dest.aType).FFieldTypes.Count) then
               begin
                 CMD_Err(erOutOfRange);
                 Result := False;
@@ -8735,7 +8739,7 @@ begin
               p := Cardinal((@FData^[FCurrentPosition])^);
 	      {$endif}
               Inc(FCurrentPosition, 4);
-              if p > FTypes.Count then
+              if p >= FTypes.Count then
               begin
                 CMD_Err(erInvalidType);
                 break;

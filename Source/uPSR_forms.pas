@@ -384,11 +384,11 @@ begin
     RegisterPropertyHelper(@TApplication.ONDEACTIVATE_R, @TApplication.ONDEACTIVATE_W, 'OnDeactivate');
     RegisterPropertyHelper(@TApplication.ONMINIMIZE_R, @TApplication.ONMINIMIZE_W, 'OnMinimize');
     RegisterPropertyHelper(@TApplication.ONRESTORE_R, @TApplication.ONRESTORE_W, 'OnRestore');
-    RegisterPropertyHelper(@TApplication.DIALOGHANDLE_R, @TApplication.DIALOGHANDLE_W, 'DialogHandle');
-    RegisterMethod(@TApplication.CREATEHANDLE, 'CreateHandle');
     RegisterMethod(@TApplication.NORMALIZETOPMOSTS, 'NormalizeTopMosts');
     RegisterMethod(@TApplication.RESTORETOPMOSTS, 'RestoreTopMosts');
     {$IFNDEF CLX}
+    RegisterPropertyHelper(@TApplication.DIALOGHANDLE_R, @TApplication.DIALOGHANDLE_W, 'DialogHandle');
+    RegisterMethod(@TApplication.CREATEHANDLE, 'CreateHandle');
     RegisterPropertyHelper(@TApplication.HANDLE_R, @TApplication.HANDLE_W, 'Handle');
     RegisterPropertyHelper(@TApplication.UPDATEFORMATSETTINGS_R, @TApplication.UPDATEFORMATSETTINGS_W, 'UpdateFormatSettings');
     {$ENDIF}
@@ -502,11 +502,11 @@ begin
     RegisterPropertyHelper(@TAPPLICATIONONDEACTIVATE_R, @TAPPLICATIONONDEACTIVATE_W, 'OnDeactivate');
     RegisterPropertyHelper(@TAPPLICATIONONMINIMIZE_R, @TAPPLICATIONONMINIMIZE_W, 'OnMinimize');
     RegisterPropertyHelper(@TAPPLICATIONONRESTORE_R, @TAPPLICATIONONRESTORE_W, 'OnRestore');
-    RegisterPropertyHelper(@TAPPLICATIONDIALOGHANDLE_R, @TAPPLICATIONDIALOGHANDLE_W, 'DialogHandle');
-    RegisterMethod(@TAPPLICATION.CREATEHANDLE, 'CreateHandle');
     RegisterMethod(@TAPPLICATION.NORMALIZETOPMOSTS, 'NormalizeTopMosts');
     RegisterMethod(@TAPPLICATION.RESTORETOPMOSTS, 'RestoreTopMosts');
     {$IFNDEF CLX}
+    RegisterPropertyHelper(@TAPPLICATIONDIALOGHANDLE_R, @TAPPLICATIONDIALOGHANDLE_W, 'DialogHandle');
+    RegisterMethod(@TAPPLICATION.CREATEHANDLE, 'CreateHandle');
     RegisterPropertyHelper(@TAPPLICATIONHANDLE_R, @TAPPLICATIONHANDLE_W, 'Handle');
     RegisterPropertyHelper(@TAPPLICATIONUPDATEFORMATSETTINGS_R, @TAPPLICATIONUPDATEFORMATSETTINGS_W, 'UpdateFormatSettings');
     {$ENDIF}

@@ -3203,6 +3203,13 @@ begin
   case var1.ftype.basetype of
     btSingle:
       begin
+        {$IFNDEF PS_NOINT64}
+        if vartemp.ftype.BaseType = btu64 then
+          var1^.tsingle := GetUInt64(vartemp, b)
+        else if vartemp.ftype.BaseType = bts64 then
+          var1^.tsingle := GetInt64(vartemp, b)
+        else
+        {$ENDIF}
         if (vartemp.ftype.BaseType = btu8) or (vartemp.ftype.BaseType = btu16) or (vartemp.ftype.BaseType = btu32) then
           var1^.tsingle := GetUInt(vartemp, b)
         else
@@ -3210,6 +3217,13 @@ begin
       end;
     btDouble:
       begin
+        {$IFNDEF PS_NOINT64}
+        if vartemp.ftype.BaseType = btu64 then
+          var1^.tdouble := GetUInt64(vartemp, b)
+        else if vartemp.ftype.BaseType = bts64 then
+          var1^.tdouble := GetInt64(vartemp, b)
+        else
+        {$ENDIF}
         if (vartemp.ftype.BaseType = btu8) or (vartemp.ftype.BaseType = btu16) or (vartemp.ftype.BaseType = btu32) then
           var1^.tdouble := GetUInt(vartemp, b)
         else
@@ -3217,6 +3231,13 @@ begin
       end;
     btExtended:
       begin
+        {$IFNDEF PS_NOINT64}
+        if vartemp.ftype.BaseType = btu64 then
+          var1^.textended := GetUInt64(vartemp, b)
+        else if vartemp.ftype.BaseType = bts64 then
+          var1^.textended := GetInt64(vartemp, b)
+        else
+        {$ENDIF}
         if (vartemp.ftype.BaseType = btu8) or (vartemp.ftype.BaseType = btu16) or (vartemp.ftype.BaseType = btu32) then
           var1^.textended:= GetUInt(vartemp, b)
         else
@@ -3224,6 +3245,13 @@ begin
       end;
     btCurrency:
       begin
+        {$IFNDEF PS_NOINT64}
+        if vartemp.ftype.BaseType = btu64 then
+          var1^.tcurrency := GetUInt64(vartemp, b)
+        else if vartemp.ftype.BaseType = bts64 then
+          var1^.tcurrency := GetInt64(vartemp, b)
+        else
+        {$ENDIF}
         if (vartemp.ftype.BaseType = btu8) or (vartemp.ftype.BaseType = btu16) or (vartemp.ftype.BaseType = btu32) then
           var1^.tcurrency:= GetUInt(vartemp, b)
         else
@@ -6668,6 +6696,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       tmp := Calc(CSTI_SemiColon);
       if tmp = nil then
       begin
+        Call.Free;
         Val.Free;
         Val := nil;
         exit;
@@ -10937,6 +10966,7 @@ begin
       if (AType = nil) or ((aType.BaseType <> btRecord) and (aType.BaseType <> btClass)) then
       begin
         MakeError('', ecClassTypeExpected, '');
+        aVar.Free;
         Block.Free;
         Result := False;
         exit;
@@ -13305,9 +13335,23 @@ function TPSPascalCompiler.ReadConstant(FParser: TPSPascalParser; StopOn: TPSPas
       with TUnConstOperation(P) do
       begin
         p1 := EvalConst(Val1);
+        if p1 = nil then begin Result := nil; exit; end;
         case OpType of
           otNot:
             case p1.FType.BaseType of
+              btEnum:
+                begin
+                  if IsBoolean(p1.FType) then
+                  begin
+                    p1.tu8 := (not p1.tu8) and 1;
+                  end else
+                  begin
+                    MakeError('', ecTypeMismatch, '');
+                    DisposeVariant(p1);
+                    Result := nil;
+                    exit;
+                  end;
+                end;
               btU8: p1.tu8 := not p1.tu8;
               btU16: p1.tu16 := not p1.tu16;
               btU32: p1.tu32 := not p1.tu32;

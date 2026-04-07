@@ -7820,6 +7820,7 @@ begin
   begin
     if PPSResource(FResources[I])^.P = P then
     begin
+      Dispose(PPSResource(FResources[I]));
       FResources.Delete(I);
       exit;
     end;

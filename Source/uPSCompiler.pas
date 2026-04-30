@@ -5722,7 +5722,7 @@ begin
 end;
 
 
-{ Note: 's' never starts with a minus sign }
+{ Note: 's' may start with '-' when called from unary minus handling }
 function TPSPascalCompiler.ReadInteger(const s: tbtString): PIfRVariant;
 var
   R: {$IFNDEF PS_NOINT64}Int64;{$ELSE}Longint;{$ENDIF}
@@ -5736,7 +5736,7 @@ begin
   Val(string(s), r, Code);
   if Code = 0 then
   begin
-    { Even though 's' never starts with a minus sign, r will still be negative when '$8000000000000000' is used }
+    { r will be negative when 's' starts with '-' or when hex values like '$8000000000000000' are used }
     if (r >= Low(TbtS32)) and (r <= High(TbtS32)) then
     begin
       InitializeVariant(Result, at2ut(FindBaseType(bts32)));
@@ -8162,18 +8162,27 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         CSTI_Minus:
         begin
           FParser.Next;
-          NewVar := ReadTerm;
-          if NewVar = nil then
+          if FParser.CurrTokenId in [CSTI_HexInt, CSTI_Integer] then
           begin
-            Result := nil;
-            exit;
+            { See CSTI_HexInt, CSTI_Integer below }
+            NewVar := TPSValueData.Create;
+            NewVar.SetParserPos(FParser);
+            TPSValueData(NewVar).Data := ReadInteger(tbtString('-') + FParser.GetToken);
+            FParser.Next;
+          end else begin
+            NewVar := ReadTerm;
+            if NewVar = nil then
+            begin
+              Result := nil;
+              exit;
+            end;
+            NewVarU := TPSUnValueOp.Create;
+            NewVarU.SetParserPos(FParser);
+            NewVarU.aType := GetTypeNo(BlockInfo, NewVar);
+            NewVarU.Operator := otMinus;
+            NewVarU.Val1 := NewVar;
+            NewVar := NewVarU;
           end;
-          NewVarU := TPSUnValueOp.Create;
-          NewVarU.SetParserPos(FParser);
-          NewVarU.aType := GetTypeNo(BlockInfo, NewVar);
-          NewVarU.Operator := otMinus;
-          NewVarU.Val1 := NewVar;
-          NewVar := NewVarU;
         end;
         CSTII_Nil:
           begin
@@ -8242,6 +8251,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           end;
         CSTI_HexInt, CSTI_Integer:
           begin
+            { Also see CSTI_Minus above }
             NewVar := TPSValueData.Create;
             NewVar.SetParserPos(FParser);
             TPSValueData(NewVar).Data := ReadInteger(FParser.GetToken);
@@ -13130,16 +13140,25 @@ function TPSPascalCompiler.ReadConstant(FParser: TPSPascalParser; StopOn: TPSPas
       CSTI_Minus:
       begin
         FParser.Next;
-        NewVar := ReadTerm;
-        if NewVar = nil then
+        if FParser.CurrTokenId in [CSTI_HexInt, CSTI_Integer] then
         begin
-          Result := nil;
-          exit;
+          { See CSTI_HexInt, CSTI_Integer below }
+          NewVar := TConstData.Create;
+          NewVar.SetPos(FParser);
+          TConstData(NewVar).Data := ReadInteger(tbtString('-') + FParser.GetToken);
+          FParser.Next;
+        end else begin
+          NewVar := ReadTerm;
+          if NewVar = nil then
+          begin
+            Result := nil;
+            exit;
+          end;
+          NewVarU := TUnConstOperation.Create;
+          NewVarU.OpType := otMinus;
+          NewVarU.Val1 := NewVar;
+          NewVar := NewVarU;
         end;
-        NewVarU := TUnConstOperation.Create;
-        NewVarU.OpType := otMinus;
-        NewVarU.Val1 := NewVar;
-        NewVar := NewVarU;
       end;
       CSTI_OpenRound:
         begin
@@ -13167,6 +13186,7 @@ function TPSPascalCompiler.ReadConstant(FParser: TPSPascalParser; StopOn: TPSPas
         end;
       CSTI_HexInt, CSTI_Integer:
         begin
+          { Also see CSTI_Minus above }
           NewVar := TConstData.Create;
           NewVar.SetPos(FParser);
           TConstData(NewVar).Data := ReadInteger(FParser.GetToken);

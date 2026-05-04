@@ -296,6 +296,7 @@ var
             7: s:= 'AND';
             8: s:= 'OR';
             9: s:= 'XOR';
+            10: s:= 'AS';
             else
               exit;
             end;

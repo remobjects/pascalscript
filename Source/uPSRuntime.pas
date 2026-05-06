@@ -9716,7 +9716,11 @@ begin
     39: Stack.SetInt64(-1, StrToInt64(string(Stack.GetAnsiString(-2))));  // StrToInt64
     40: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.GetInt64(-2))));// Int64ToStr
     41: Stack.SetInt64(-1, StrToInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetInt64(-3))); // StrToInt64Def
+    45: Stack.SetUInt64(-1, StrToUInt64(string(Stack.GetAnsiString(-2))));  // StrToUInt64
+    46: Stack.SetAnsiString(-1, tbtstring(SysUtils.UIntToStr(Stack.GetUInt64(-2))));// UInt64ToStr
+    47: Stack.SetUInt64(-1, StrToUInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetUInt64(-3))); // StrToUInt64Def
 {$ENDIF}
+    48: Stack.SetAnsiString(-1, tbtstring(SysUtils.UIntToStr({$IFNDEF PS_NOINT64}Stack.GetUInt64(-2){$ELSE}Cardinal(Stack.GetInt(-2)){$ENDIF}))); // UIntToStr
     42:  // sizeof
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], False);
@@ -9804,6 +9808,7 @@ begin
         end;
       end;
 {$ENDIF}
+    //45-48: see above
     else
     begin
       Result := False;
@@ -10088,6 +10093,7 @@ begin
   RegisterFunctionName('!NOTIFICATIONVARIANTGET', NVarProc, Pointer(1), nil);
 
   RegisterFunctionName('IntToStr', DefProc, Pointer(0), nil);
+  RegisterFunctionName('UIntToStr', DefProc, Pointer(48), nil);
   RegisterFunctionName('StrToInt', DefProc, Pointer(1), nil);
   RegisterFunctionName('StrToIntDef', DefProc, Pointer(2), nil);
   RegisterFunctionName('Pos', DefProc, Pointer(3), nil);
@@ -10157,6 +10163,9 @@ begin
   RegisterFunctionName('StrToInt64', DefProc, Pointer(39), nil);
   RegisterFunctionName('Int64ToStr', DefProc, Pointer(40), nil);
   RegisterFunctionName('StrToInt64Def', DefProc, Pointer(41), nil);
+  RegisterFunctionName('StrToUInt64', DefProc, Pointer(45), nil);
+  RegisterFunctionName('UInt64ToStr', DefProc, Pointer(46), nil);
+  RegisterFunctionName('StrToUInt64Def', DefProc, Pointer(47), nil);
   {$ENDIF}
   RegisterFunctionName('SizeOf', DefProc, Pointer(42), nil);
 

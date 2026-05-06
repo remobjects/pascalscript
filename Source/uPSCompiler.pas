@@ -13788,8 +13788,10 @@ begin
   }
   {$IFNDEF PS_NOINT64}
   AddFunction('function IntToStr(I: Int64): string;');
+  AddFunction('function UIntToStr(I: UInt64): string;');
   {$ELSE}
   AddFunction('function IntToStr(I: Integer): string;');
+  AddFunction('function UIntToStr(I: Cardinal): string;');
   {$ENDIF}
   AddFunction('function StrToInt(S: string): LongInt;');
   AddFunction('function StrToIntDef(S: string; def: LongInt): LongInt;');
@@ -13954,6 +13956,9 @@ begin
   AddFunction('function StrToInt64(S: string): Int64;');
   AddFunction('function Int64ToStr(I: Int64): string;');
   AddFunction('function StrToInt64Def(S: string; def: Int64): Int64;');
+  AddFunction('function StrToUInt64(S: string): UInt64;');
+  AddFunction('function UInt64ToStr(I: UInt64): string;');
+  AddFunction('function StrToUInt64Def(S: string; def: UInt64): UInt64;');
   {$ENDIF}
 
   with AddFunction('function SizeOf: LongInt;').Decl.AddParam do

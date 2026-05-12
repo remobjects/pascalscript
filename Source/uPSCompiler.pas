@@ -9840,7 +9840,7 @@ begin
         Result := False;
         exit;
       end;
-      if (not CheckOutReg(InData, OutReg, true)) and (InData is TPSBinValueOp) or (InData is TPSUnValueOp) then
+      if ((InData is TPSBinValueOp) and not CheckOutReg(InData, OutReg, true)) or (InData is TPSUnValueOp) then
       begin
         if InData is TPSBinValueOp then
         begin
@@ -9859,7 +9859,7 @@ begin
             exit;
           end;
         end;
-      end else if (InData is TPSBinValueOp) and (not CheckOutReg(TPSBinValueOp(InData).Val2, OutReg, false)) then
+      end else if (InData is TPSBinValueOp) and not CheckOutReg(TPSBinValueOp(InData).Val2, OutReg, false) then
       begin
         if not DoBinCalc(TPSBinValueOp(InData), OutReg) then
         begin

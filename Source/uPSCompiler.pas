@@ -10961,7 +10961,7 @@ begin
         Exit;
       end else
       begin
-        MakeError('', ecInternalError, '20');
+        MakeError('', ecVariableExpected, '');
         vin.Free;
         REsult := False;
         exit;

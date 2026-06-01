@@ -7049,7 +7049,7 @@ begin
               Inc(FCurrentPosition, 4);
               Pointer(Dest.P^) := nil;
               SetLength(tbtwidestring(Dest.P^), Param);
-              if not ReadData(tbtwidestring(Dest.P^)[1], Param*2) then
+              if (Param <> 0) and not ReadData(tbtwidestring(Dest.P^)[1], Param*2) then
               begin
                 CMD_Err(erOutOfRange);
                 FTempVars.Pop;
@@ -7074,7 +7074,7 @@ begin
               Inc(FCurrentPosition, 4);
               Pointer(Dest.P^) := nil;
               SetLength(tbtUnicodestring(Dest.P^), Param);
-              if not ReadData(tbtUnicodestring(Dest.P^)[1], Param*2) then
+              if (Param <> 0) and not ReadData(tbtUnicodestring(Dest.P^)[1], Param*2) then
               begin
                 CMD_Err(erOutOfRange);
                 FTempVars.Pop;
@@ -13520,6 +13520,7 @@ begin
       FDataPtr := nil;
     end;
     FCapacity := 0;
+    Exit;
   end;
   GetMem(p, Value);
   if FDataPtr <> nil then
@@ -13688,6 +13689,7 @@ begin
     val := items[ItemNo];
   ok := true;
   PSSetUnicodeString(@PPSVariantData(val).Data, val.FType, ok, Data);
+  if not ok then raise Exception.Create(RPS_TypeMismatch);
 end;
 
 procedure TPSStack.SetWideString(ItemNo: Longint;

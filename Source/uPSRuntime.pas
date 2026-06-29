@@ -12422,7 +12422,11 @@ begin
   case atype.BaseType of
     btVariant: Result := true;
     btSet: Result := atype.RealSize > PointerSize;
+{$IFDEF CPU64}
+    btRecord: Result := not (atype.RealSize in [1, 2, 4]);
+{$ELSE}
     btRecord: Result := atype.RealSize > PointerSize;
+{$ENDIF}
     btStaticArray: Result := atype.RealSize > PointerSize;
   else
     Result := false;
@@ -12619,6 +12623,9 @@ begin
     btEnum: Result := true;
     btSet: Result := b.RealSize <= PointerSize;
     btStaticArray: Result := b.RealSize <= PointerSize;
+{$IFDEF DELPHI}
+    btRecord: Result := b.RealSize in [1, 2, 4];
+{$ENDIF}
 {$IFDEF CPU64}
     btSingle,
     btDouble,

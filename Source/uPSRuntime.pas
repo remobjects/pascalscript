@@ -12560,6 +12560,9 @@ begin
     btSingle,
     btDouble,
     btExtended,
+{$IFDEF CPU64}
+    btCurrency,
+{$ENDIF}
     btU8,
     bts8,
     bts16,
@@ -12620,7 +12623,9 @@ begin
     btStaticArray: Result := b.RealSize <= PointerSize;
 {$IFDEF CPU64}
     btSingle,
-    btDouble: Result := True;
+    btDouble,
+    btExtended,
+    btCurrency: Result := True;
 {$ENDIF}
   else
     Result := false;
@@ -12725,21 +12730,21 @@ begin
       Params[i] := tmp;
       case regno of
         0: begin
-            if cpt.BaseType in [btSingle, btDouble] then
+            if cpt.BaseType in [btSingle, btDouble, btExtended] then
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM1, 1, cpt)
             else
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_RDX, 1, cpt);
             inc(regno);
           end;
         1: begin
-            if cpt.BaseType in [btSingle, btDouble] then
+            if cpt.BaseType in [btSingle, btDouble, btExtended] then
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM2, 1, cpt)
             else
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R8, 1, cpt);
             inc(regno);
           end;
         2: begin
-            if cpt.BaseType in [btSingle, btDouble] then
+            if cpt.BaseType in [btSingle, btDouble, btExtended] then
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM3, 1, cpt)
             else
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R9, 1, cpt);

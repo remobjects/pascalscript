@@ -12382,6 +12382,14 @@ begin
     btChar,
     btclass,
     btEnum: Result := true;
+{$IFDEF DELPHI}
+{$IFDEF CPU64}
+    { The Win64 ABI returns a record of 1, 2, or 4 bytes in RAX (see
+      System.Rtti's UseResultPointer). Records of these sizes never contain a
+      managed field, so no managed check is needed. }
+    btRecord: Result := b.RealSize in [1, 2, 4];
+{$ENDIF}
+{$ENDIF}
     btSet: Result := b.RealSize <= PointerSize;
     btStaticArray: Result := b.RealSize <= PointerSize;
   else

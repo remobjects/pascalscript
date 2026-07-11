@@ -15678,7 +15678,10 @@ begin
     if FType = nil then
     begin
       p.Free;
-      Exit;
+      // dropping the property silently leads to hard-to-diagnose 'Unknown
+      // identifier' errors in scripts; report the unresolved type instead
+      raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType,
+        [PropertyName + ': ' + PropertyType]);
     end;
     if p.Decl.Result = nil  then p.Decl.Result := FType else
     begin

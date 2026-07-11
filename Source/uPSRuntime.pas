@@ -11259,7 +11259,7 @@ begin
     if (IUnknown(invar.Dta^) = nil) or (IUnknown(invar.Dta^).QueryInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^)) <> 0) then
     begin
       Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastInterface));
-      Result := False;
+      Result := True; // error already dispatched by CMD_Err2
       exit;
     end;
 {$IFDEF Delphi3UP}
@@ -11273,7 +11273,7 @@ begin
     if (TObject(invar.Dta^)= nil) or (not TObject(invar.dta^).GetInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^))) then
     begin
       Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastInterface));
-      Result := False;
+      Result := True; // error already dispatched by CMD_Err2
       exit;
     end;
 {$ENDIF}
@@ -11303,8 +11303,8 @@ begin
     try
       TObject(ResVar.Dta^) := TObject(InVar.Dta^) as FSelf;
     except
-      Result := False;
       Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastObject));
+      Result := True; // error already dispatched by CMD_Err2
       exit;
     end;
   end else

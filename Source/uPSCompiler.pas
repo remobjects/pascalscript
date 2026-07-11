@@ -3,7 +3,7 @@ unit uPSCompiler;
 interface
 uses
   {$IFNDEF DELPHI3UP}{$IFNDEF PS_NOINTERFACES}{$IFNDEF LINUX}Windows, Ole2,{$ENDIF}
-  {$ENDIF}{$ENDIF}SysUtils, uPSUtils;
+  {$ENDIF}{$ENDIF}SysUtils, TypInfo, uPSUtils;
 
 
 type
@@ -992,6 +992,12 @@ type
     FCurrUsedTypeNo: Cardinal;
     FGlobalBlock: TPSBlockInfo;
 
+    {$IFDEF DELPHI2010UP}
+    // ARttiType is a TRttiType (typed as Pointer so the Rtti unit stays out
+    // of the interface uses); unknown types are registered recursively
+    function RttiTypeName(ARttiType: Pointer): TbtString;
+    function RttiFieldTypeDecl(ARttiType: Pointer): TbtString;
+    {$ENDIF}
     function IsBoolean(aType: TPSType): Boolean;
     {$IFNDEF PS_NOWIDESTRING}
 
@@ -1138,13 +1144,28 @@ type
 
     function AddDelphiFunction(const Decl: tbtString): TPSRegProc;
 
-    function AddType(const Name: tbtString; const BaseType: TPSBaseType): TPSType;
+    function AddType(const Name: tbtString; const BaseType: TPSBaseType): TPSType; overload;
+
+    { registers a host type by its classic RTTI: ordinal, char, string, float,
+      enum, set, dynamic array, method pointer and Int64/UInt64 kinds - plus
+      records and named static arrays via extended RTTI on Delphi 2010+ }
+    function AddType(const Name: TbtString; TypeInfo: PTypeInfo): TPSType; overload;
+
+    function AddType(TypeInfo: PTypeInfo): TPSType; overload;
 
     function AddTypeS(const Name, Decl: tbtString): TPSType;
 
     function AddTypeCopy(const Name: tbtString; TypeNo: TPSType): TPSType;
 
     function AddTypeCopyN(const Name, FType: tbtString): TPSType;
+
+    {$IFDEF DELPHI2010UP}
+    { registers a packed host record via extended RTTI; every field type is
+      registered recursively as needed }
+    function AddRecordWithRTTI(const ATypeInfo: PTypeInfo): TPSType; overload;
+
+    function AddRecordWithRTTI(const Name: TbtString; const ATypeInfo: PTypeInfo): TPSType; overload;
+    {$ENDIF}
 
     function AddConstant(const Name: tbtString; FType: TPSType): TPSConstant;
 
@@ -1773,7 +1794,7 @@ procedure DisposeVariant(p: PIfRVariant);
 
 implementation
 
-uses {$IFDEF DELPHI5}ComObj, {$ENDIF}{$IFDEF PS_FPC_HAS_COM}ComObj, {$ENDIF}Classes, typInfo;
+uses {$IFDEF DELPHI5}ComObj, {$ENDIF}{$IFDEF PS_FPC_HAS_COM}ComObj, {$ENDIF}{$IFDEF DELPHI2010UP}Rtti, {$ENDIF}Classes;
 
 {$IFDEF DELPHI3UP}
 resourceString
@@ -1787,6 +1808,8 @@ const
   RPS_InvalidTypeForVar = 'Invalid type for variable %s';
   RPS_InvalidType = 'Invalid Type';
   RPS_UnableToRegisterType = 'Unable to register type %s';
+  RPS_RecordNotPacked = 'Record %s must be packed (padding-free) to be registered via RTTI';
+  RPS_RecordFieldNoRTTI = 'Record %s: field %s has an anonymous type without RTTI (declare and use a named type)';
   RPS_UnknownInterface = 'Unknown interface: %s';
   RPS_ConstantValueMismatch = 'Constant Value Type Mismatch';
   RPS_ConstantValueNotAssigned = 'Constant Value is not assigned';
@@ -14136,6 +14159,280 @@ function TPSPascalCompiler.AddTypeCopyN(const Name,
 begin
   Result := AddTypeCopy(Name, FindType(FType));
 end;
+
+function TPSPascalCompiler.AddType(const Name: TbtString; TypeInfo: PTypeInfo): TPSType;
+var
+  TypeName, s, s2: TbtString;
+  TypeData: PTypeData;
+  i: Longint;
+  el: PTypeInfo;
+  {$IFNDEF FPC}
+  pp: PAnsiChar;
+  Flags: TParamFlags;
+  {$ENDIF}
+  {$IFDEF DELPHI2010UP}
+  ctx: TRttiContext;
+  {$ENDIF}
+
+  function TypeInfoName(ti: PTypeInfo): TbtString;
+  begin
+    Result := TbtString(string(ti^.Name));
+  end;
+
+begin
+  if FProcs = nil then
+    raise EPSCompilerException.Create(RPS_OnUseEventOnly);
+  if TypeInfo = nil then
+    raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, ['nil']);
+  if Name = '' then
+    TypeName := TypeInfoName(TypeInfo)
+  else
+    TypeName := Name;
+  TypeData := GetTypeData(TypeInfo);
+  case TypeInfo^.Kind of
+    tkInteger:
+      case TypeData^.OrdType of
+        otSByte: Result := AddType(TypeName, btS8);
+        otUByte: Result := AddType(TypeName, btU8);
+        otSWord: Result := AddType(TypeName, btS16);
+        otUWord: Result := AddType(TypeName, btU16);
+        otULong: Result := AddType(TypeName, btU32);
+      else
+        Result := AddType(TypeName, btS32); // otSLong
+      end;
+    tkChar: Result := AddType(TypeName, btChar);
+    {$IFNDEF PS_NOWIDESTRING}
+    tkWChar: Result := AddType(TypeName, btWideChar);
+    {$ENDIF}
+    tkEnumeration:
+      begin
+        s := '(';
+        for i := TypeData^.MinValue to TypeData^.MaxValue do
+          s := s + TbtString(GetEnumName(TypeInfo, i)) + ',';
+        s[Length(s)] := ')'; // replace the trailing comma
+        Result := AddTypeS(TypeName, s);
+      end;
+    tkFloat:
+      case TypeData^.FloatType of
+        ftSingle: Result := AddType(TypeName, btSingle);
+        ftDouble: Result := AddType(TypeName, btDouble);
+        ftExtended: Result := AddType(TypeName, btExtended);
+        ftCurr: Result := AddType(TypeName, btCurrency);
+      else // ftComp has no script equivalent
+        raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, [TypeName]);
+      end;
+    tkString, // ShortString: mapped to AnsiString (no length-limit semantics)
+    tkLString: Result := AddType(TypeName, btString);
+    {$IFNDEF PS_NOWIDESTRING}
+    tkWString: Result := AddType(TypeName, btWideString);
+    {$if declared(tkUString)}
+    tkUString: Result := AddType(TypeName, btUnicodeString);
+    {$ifend}
+    {$ENDIF}
+    tkVariant: Result := AddType(TypeName, btVariant);
+    {$IFNDEF PS_NOINT64}
+    {$if declared(tkInt64)}
+    tkInt64:
+      // UInt64 type infos have MaxInt64Value < MinInt64Value (0..-1 pattern)
+      if TypeData^.MaxInt64Value < TypeData^.MinInt64Value then
+        Result := AddType(TypeName, btU64)
+      else
+        Result := AddType(TypeName, btS64);
+    {$ifend}
+    {$ENDIF}
+    {$IFNDEF FPC} // FPC's TTypeData layouts differ for the kinds below
+    tkSet:
+      begin
+        if TypeData^.CompType = nil then
+          raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, [TypeName]);
+        el := TypeData^.CompType^;
+        s2 := TypeInfoName(el);
+        if FindType(FastUpperCase(s2)) = nil then
+          AddType('', el); // register the element type first
+        Result := AddTypeS(TypeName, 'set of ' + s2);
+      end;
+    tkDynArray:
+      begin
+        el := nil;
+        if TypeData^.elType2 <> nil then
+          el := TypeData^.elType2^
+        else if TypeData^.elType <> nil then
+          el := TypeData^.elType^;
+        if el = nil then
+          raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, [TypeName]);
+        s2 := TypeInfoName(el);
+        if FindType(FastUpperCase(s2)) = nil then
+          AddType('', el); // register the element type first
+        Result := AddTypeS(TypeName, 'array of ' + s2);
+      end;
+    tkMethod:
+      begin
+        case TypeData^.MethodKind of
+          mkProcedure: s := 'procedure(';
+          mkFunction: s := 'function(';
+        else // constructors/class methods have no script proc-type equivalent
+          raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, [TypeName]);
+        end;
+        // ParamList layout (stable since Delphi 2): per parameter
+        // TParamFlags + name: ShortString + type name: ShortString,
+        // afterwards the result type name for mkFunction
+        pp := PAnsiChar(@TypeData^.ParamList);
+        for i := 1 to TypeData^.ParamCount do
+        begin
+          if i > 1 then
+            s := s + '; ';
+          Flags := TParamFlags(Pointer(pp)^);
+          Inc(pp, SizeOf(TParamFlags));
+          if pfVar in Flags then
+            s := s + 'var '
+          else if pfOut in Flags then
+            s := s + 'out '
+          else if pfConst in Flags then
+            s := s + 'const ';
+          s := s + TbtString(PShortString(pp)^) + ': ';
+          Inc(pp, Length(PShortString(pp)^) + 1);
+          if pfArray in Flags then
+            s := s + 'array of ';
+          s := s + TbtString(PShortString(pp)^);
+          Inc(pp, Length(PShortString(pp)^) + 1);
+        end;
+        s := s + ')';
+        if TypeData^.MethodKind = mkFunction then
+          s := s + ': ' + TbtString(PShortString(pp)^);
+        Result := AddTypeS(TypeName, s);
+      end;
+    {$ENDIF !FPC}
+    {$IFDEF DELPHI2010UP}
+    tkRecord{$if declared(tkMRecord)}, tkMRecord{$ifend}:
+      Result := AddRecordWithRTTI(TypeName, TypeInfo);
+    tkArray: // named static array types ('TBuf = array[0..7] of X')
+      begin
+        ctx := TRttiContext.Create;
+        try
+          Result := AddTypeS(TypeName, RttiFieldTypeDecl(ctx.GetType(TypeInfo)));
+        finally
+          ctx.Free;
+        end;
+      end;
+    {$ENDIF}
+    // not mappable automatically: tkClass/tkInterface (use the class/interface
+    // importers), tkPointer, tkClassRef, tkProcedure
+    // (tkRecord/tkArray need the extended RTTI and are Delphi-2010+ only)
+  else
+    raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, [TypeName]);
+  end;
+end;
+
+function TPSPascalCompiler.AddType(TypeInfo: PTypeInfo): TPSType;
+begin
+  Result := AddType('', TypeInfo);
+end;
+
+{$IFDEF DELPHI2010UP}
+// script identifier for a type; unknown types are registered recursively,
+// non-identifier characters in RTTI names ('TArray<System.Byte>') sanitized
+function TPSPascalCompiler.RttiTypeName(ARttiType: Pointer): TbtString;
+var
+  t: TRttiType;
+  j: Integer;
+begin
+  t := TRttiType(ARttiType);
+  Result := TbtString(t.Name);
+  // 'string' and 'Char' can be redeclared aliases in Pascal Script (e.g.
+  // with PS_PANSICHAR) -- map them by their exact RTTI kind instead
+  {$IFNDEF PS_NOWIDESTRING}
+  {$if declared(tkUString)}
+  if (t.TypeKind = tkUString) and SameText(string(Result), 'string') then
+    Result := 'UnicodeString'
+  else
+  {$ifend}
+  if (t.TypeKind = tkWChar) and SameText(string(Result), 'Char') then
+    Result := 'WideChar';
+  {$ENDIF}
+  for j := 1 to Length(Result) do
+    if not (Result[j] in ['A'..'Z', 'a'..'z', '0'..'9', '_']) then
+      Result[j] := '_';
+  if (Result = '') or (Result[1] in ['0'..'9']) then
+    Result := '_' + Result;
+  if FindType(FastUpperCase(Result)) = nil then
+  begin
+    if t.TypeKind in [tkRecord{$if declared(tkMRecord)}, tkMRecord{$ifend}] then
+      AddRecordWithRTTI(Result, t.Handle)
+    else
+      AddType(Result, t.Handle);
+  end;
+end;
+
+// declaration text for a field/element type; static arrays become inline
+// 'array[0..n-1] of El' (works for anonymous element chains as well)
+function TPSPascalCompiler.RttiFieldTypeDecl(ARttiType: Pointer): TbtString;
+var
+  t: TRttiType;
+begin
+  t := TRttiType(ARttiType);
+  if t is TRttiArrayType then
+  begin
+    if TRttiArrayType(t).DimensionCount <> 1 then
+      raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, [TbtString(t.Name)]);
+    Result := 'array[0..' + TbtString(SysUtils.IntToStr(TRttiArrayType(t).TotalElementCount - 1)) +
+      '] of ' + RttiFieldTypeDecl(TRttiArrayType(t).ElementType);
+  end
+  else
+    Result := RttiTypeName(t);
+end;
+
+function TPSPascalCompiler.AddRecordWithRTTI(const ATypeInfo: PTypeInfo): TPSType;
+begin
+  Result := AddRecordWithRTTI('', ATypeInfo);
+end;
+
+function TPSPascalCompiler.AddRecordWithRTTI(const Name: TbtString; const ATypeInfo: PTypeInfo): TPSType;
+var
+  ctx: TRttiContext;
+  rt, ft: TRttiType;
+  fields: TArray<TRttiField>;
+  i: Integer;
+  TypeName, Decl: TbtString;
+  PackedOfs: Integer;
+begin
+  if FProcs = nil then
+    raise EPSCompilerException.Create(RPS_OnUseEventOnly);
+  if (ATypeInfo = nil) or
+    not (ATypeInfo^.Kind in [tkRecord{$if declared(tkMRecord)}, tkMRecord{$ifend}]) then
+    raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, ['nil']);
+  if Name = '' then
+    TypeName := TbtString(string(ATypeInfo^.Name))
+  else
+    TypeName := Name;
+  ctx := TRttiContext.Create;
+  try
+    rt := ctx.GetType(ATypeInfo);
+    fields := rt.GetFields;
+    if Length(fields) = 0 then
+      raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType, [TypeName]);
+    Decl := 'record ';
+    PackedOfs := 0;
+    for i := 0 to High(fields) do
+    begin
+      ft := fields[i].FieldType;
+      if ft = nil then // anonymous types (e.g. 'array[0..7] of X' inline) have no RTTI
+        raise EPSCompilerException.CreateFmt(RPS_RecordFieldNoRTTI, [TypeName, TbtString(fields[i].Name)]);
+      // Pascal Script records are packed; refuse layouts with padding, the
+      // field offsets would not match and host interop would corrupt data
+      if fields[i].Offset <> PackedOfs then
+        raise EPSCompilerException.CreateFmt(RPS_RecordNotPacked, [TypeName]);
+      Decl := Decl + TbtString(fields[i].Name) + ': ' + RttiFieldTypeDecl(ft) + '; ';
+      Inc(PackedOfs, ft.TypeSize);
+    end;
+    if PackedOfs <> rt.TypeSize then // tail padding
+      raise EPSCompilerException.CreateFmt(RPS_RecordNotPacked, [TypeName]);
+    Decl := Decl + 'end;';
+    Result := AddTypeS(TypeName, Decl);
+  finally
+    ctx.Free;
+  end;
+end;
+{$ENDIF}
 
 
 function TPSPascalCompiler.AddUsedVariable(const Name: tbtString;

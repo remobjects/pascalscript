@@ -270,6 +270,7 @@ var
 {$ENDIF}
 
   EAX, EDX, ECX: Longint;
+  BorrowList: TPSPCharBorrowList;
 
   function rp(p: PPSVariantIFC): PPSVariantIFC;
   begin
@@ -367,6 +368,9 @@ var
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
         {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
           begin
+            // the callee may overwrite P-Char slots (directly or inside
+            // records/static arrays); borrow their ownership around the call
+            PSBorrowPCharOwnership(fvar.aType, fvar.Dta, BorrowList);
             Varptr := fvar.Dta;
           end;
       else begin
@@ -726,7 +730,7 @@ begin
               end;
 
               btu32,bts32{$IFDEF FPC},btArray{$ENDIF}:   tbtu32(res.dta^) := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
-              btPChar:       pansichar(res.dta^) := Pansichar(RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
+              btPChar:       tbtstring(res.dta^) := tbtstring(Pansichar(RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil))); // owned: copy
               {$IFNDEF PS_NOINT64}bts64, btU64:
                 begin
                   EAX := RealCall_Register(Address, EAX, EDX, ECX, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
@@ -809,7 +813,7 @@ begin
               btChar, btU8, btS8:    tbtu8(res^.Dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 1, nil);
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res^.Dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass, btu32, bts32:  tbtu32(res^.Dta^):= RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
-              btPChar:       pansichar(res^.dta^) := Pansichar(RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
+              btPChar:       tbtstring(res^.dta^) := tbtstring(Pansichar(RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil))); // owned: copy
               {$IFNDEF PS_NOINT64}bts64, btU64:
                 begin
                   EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
@@ -899,7 +903,7 @@ begin
               btCHar, btU8, btS8:    tbtu8(res^.dta^) := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 1, nil);
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res^.dta^) := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btClass, btu32, bts32:  tbtu32(res^.dta^) := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
-              btPChar:       pansichar(res^.dta^) := Pansichar(RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
+              btPChar:       tbtstring(res^.dta^) := tbtstring(Pansichar(RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil))); // owned: copy
               {$IFNDEF PS_NOINT64}bts64, btU64:
                 begin
                   EAX := RealCall_CDecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
@@ -970,7 +974,7 @@ begin
               btChar, btU8, btS8:    tbtu8(res^.dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 1, nil);
               {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btu16, bts16:  tbtu16(res^.dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
               btclass, btu32, bts32:  tbtu32(res^.dta^) := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
-              btPChar:       pansichar(res^.dta^) := Pansichar(RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil));
+              btPChar:       tbtstring(res^.dta^) := tbtstring(Pansichar(RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil))); // owned: copy
               {$IFNDEF PS_NOINT64}bts64, btU64:
                 begin
                   EAX := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
@@ -1025,6 +1029,7 @@ begin
         end;
     end;
   finally
+    PSReownPCharOwnership(BorrowList);
     for i := CallData.Count -1 downto 0 do
     begin
       pp := CallData[i];

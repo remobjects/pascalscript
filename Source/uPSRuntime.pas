@@ -893,6 +893,19 @@ function ResultAsRegister(b: TPSTypeRec): Boolean;
 
 function PSGetRecField(const avar: TPSVariantIFC; Fieldno: Longint): TPSVariantIFC;
 function PSGetArrayField(const avar: TPSVariantIFC; Fieldno: Longint): TPSVariantIFC;
+type
+  { btPChar slots own their content as a managed string; before an external
+    call may write through or replace a var-param p-char, its reference is
+    borrowed and re-owned afterwards }
+  TPSPCharBorrowEntry = record
+    Slot: Pointer;          // address of the P-Char slot
+    Holder: Pointer;        // borrowed string reference (owned while borrowed)
+  end;
+  TPSPCharBorrowList = array of TPSPCharBorrowEntry;
+
+procedure PSBorrowPCharOwnership(aType: TPSTypeRec; Dta: Pointer; var List: TPSPCharBorrowList);
+procedure PSReownPCharOwnership(var List: TPSPCharBorrowList);
+
 function NewTPSVariantRecordIFC(avar: PPSVariant; Fieldno: Longint): TPSVariantIFC;
 
 function NewTPSVariantIFC(avar: PPSVariant; varparam: boolean): TPSVariantIFC;
@@ -1878,7 +1891,7 @@ end;
 procedure DestroyHeapVariant2(v: Pointer; aType: TPSTypeRec); forward;
 
 const
-  NeedFinalization = [btStaticArray, btRecord, btArray, btPointer, btVariant {$IFNDEF PS_NOINTERFACES}, btInterface{$ENDIF}, btString {$IFNDEF PS_NOWIDESTRING}, btUnicodestring,btWideString{$ENDIF}];
+  NeedFinalization = [btStaticArray, btRecord, btArray, btPointer, btVariant {$IFNDEF PS_NOINTERFACES}, btInterface{$ENDIF}, btString, btPChar {$IFNDEF PS_NOWIDESTRING}, btUnicodestring,btWideString{$ENDIF}];
 
 type
   TDynArrayRecHeader = packed record
@@ -1944,7 +1957,10 @@ var
   darr: PDynArrayRec;
 begin
   case aType.BaseType of
-    btString: tbtString(p^) := '';
+    { btPChar slots own their content as a string: the payload pointer IS the
+      p-char value (readers like the comparison operators already treat the
+      slot as tbtString) }
+    btString, btPChar: tbtString(p^) := '';
     {$IFNDEF PS_NOWIDESTRING}
     btWideString: tbtwidestring(p^) := '';
     btUnicodeString: tbtunicodestring(p^) := '';
@@ -2033,6 +2049,55 @@ function CreateHeapVariant2(aType: TPSTypeRec): Pointer;
 begin
   GetMem(Result, aType.RealSize);
   InitializeVariant(Result, aType);
+end;
+
+procedure PSBorrowPCharOwnership(aType: TPSTypeRec; Dta: Pointer; var List: TPSPCharBorrowList);
+var
+  i, n: Longint;
+begin
+  if (aType = nil) or (Dta = nil) then
+    Exit;
+  case aType.BaseType of
+    btPChar:
+      begin
+        n := Length(List);
+        SetLength(List, n + 1);
+        List[n].Slot := Dta;
+        List[n].Holder := Pointer(Dta^); // steal the reference; the slot keeps the raw pointer
+      end;
+    btRecord:
+      for i := 0 to TPSTypeRec_Record(aType).FieldTypes.Count - 1 do
+        PSBorrowPCharOwnership(TPSTypeRec_Record(aType).FieldTypes[i],
+          Pointer(IPointer(Dta) + IPointer(TPSTypeRec_Record(aType).RealFieldOffsets[i])), List);
+    btStaticArray:
+      for i := 0 to TPSTypeRec_StaticArray(aType).Size - 1 do
+        PSBorrowPCharOwnership(TPSTypeRec_StaticArray(aType).ArrayType,
+          Pointer(IPointer(Dta) + IPointer(Cardinal(i) * TPSTypeRec_StaticArray(aType).ArrayType.RealSize)), List);
+  end;
+end;
+
+procedure PSReownPCharOwnership(var List: TPSPCharBorrowList);
+var
+  i: Longint;
+  s: Pointer;
+begin
+  for i := 0 to Length(List) - 1 do
+    with List[i] do
+    begin
+      if Pointer(Slot^) = Holder then
+        // untouched by the callee: the slot silently keeps its reference
+        Holder := nil
+      else
+      begin
+        // the callee stored a foreign pointer: copy its data into an owned
+        // string and release the original (still owned via the holder)
+        s := nil;
+        tbtstring(s) := tbtstring(pansichar(Slot^));
+        tbtstring(Holder) := '';
+        Pointer(Slot^) := s; // transfer ownership of the copy into the slot
+      end;
+    end;
+  SetLength(List, 0);
 end;
 
 procedure DestroyHeapVariant2(v: Pointer; aType: TPSTypeRec);
@@ -4122,10 +4187,17 @@ begin
           Dest := Pointer(IPointer(Dest) + PointerSize);
           Src := Pointer(IPointer(Src) + PointerSize);
         end;
-      btClass, btpchar:
+      btClass:
         for i := 0 to Len -1 do
         begin
           Pointer(Dest^) := Pointer(Src^);
+          Dest := Pointer(IPointer(Dest) + PointerSize);
+          Src := Pointer(IPointer(Src) + PointerSize);
+        end;
+      btpchar:
+        for i := 0 to Len -1 do
+        begin
+          tbtstring(Dest^) := tbtstring(Src^); // owned: reference copy
           Dest := Pointer(IPointer(Dest) + PointerSize);
           Src := Pointer(IPointer(Src) + PointerSize);
         end;
@@ -4757,7 +4829,10 @@ begin
           end;
         end;
       btCurrency: tbtcurrency(Dest^) := PSGetCurrency(Src, srctype);
-      btPChar: pansichar(dest^) := pansichar(PSGetAnsiString(Src, srctype));
+      { do NOT take the payload pointer of a temporary: store a managed copy.
+        The old code left dest pointing into a string that was freed right
+        after this statement. }
+      btPChar: tbtstring(dest^) := PSGetAnsiString(Src, srctype);
       btString:
         tbtstring(dest^) := PSGetAnsiString(Src, srctype);
       btChar: tbtchar(dest^) := PSGetAnsiChar(Src, srctype);
@@ -11801,6 +11876,9 @@ begin
         Pointer(Pointer((IPointer(n.dta)+PointerSize))^) := data.Data;
         Pointer(Pointer((IPointer(n.dta)+PointerSize2))^) := data.Code;
       end;
+      // n2 is a btPChar variant abused as a raw pointer carrier (@data);
+      // clear it before destroy - finalization would treat it as a string
+      PPSVariantDynamicArray(n2)^.Data := nil;
       DestroyHeapVariant(n2);
       DisposePPSVariantIFCList(Params);
     end;

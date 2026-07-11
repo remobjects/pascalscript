@@ -519,6 +519,7 @@ _XMM0: Double;
 {$ENDIF}
   RegUsage: Byte;
   CallData: TPSList;
+  BorrowList: TPSPCharBorrowList;
   I: Integer;
   pp: ^Byte;
   IsSafeCall: Boolean;
@@ -735,6 +736,9 @@ _XMM0: Double;
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
         {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
           begin
+            // the callee may overwrite P-Char slots (directly or inside
+            // records/static arrays); borrow their ownership around the call
+            PSBorrowPCharOwnership(fvar.aType, fvar.Dta, BorrowList);
             Varptr := fvar.Dta;
           end;
       else begin
@@ -1027,7 +1031,7 @@ begin
         {$IFNDEF PS_NOWIDESTRING} btWideChar, {$ENDIF} btu16, bts16:  tbtu16(res.dta^) := _RAX;
         btClass : IPointer(res.dta^) := _RAX;
         btu32,bts32:   tbtu32(res.dta^) := _RAX;
-        btPChar:       pansichar(res.dta^) := Pansichar(_RAX);
+        btPChar:       tbtstring(res.dta^) := tbtstring(Pansichar(_RAX)); // owned: copy
 {$IFNDEF PS_NOINT64}
         bts64: tbts64(res.dta^) := Int64(_RAX);
         btU64: tbtu64(res.dta^) := UInt64(_RAX);
@@ -1064,6 +1068,7 @@ begin
     end;
     Result := True;
   finally
+    PSReownPCharOwnership(BorrowList);
     if CallData <> nil then begin
       for i := CallData.Count -1 downto 0 do
       begin

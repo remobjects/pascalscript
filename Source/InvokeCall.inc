@@ -386,6 +386,7 @@ var SysCalConv : TCallConv;
     ctx: TRTTIContext;
     RttiType : TRttiType;
     ResValue : TValue;
+    BorrowList: TPSPCharBorrowList;
 begin
   Result := False;
   IsStatic := _Self = nil;
@@ -422,7 +423,12 @@ begin
         btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency,
         btUnicodeString
         {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
-          Arg := TValue.From<Pointer>( Pointer(fvar.dta) );
+          begin
+            // the callee may overwrite P-Char slots (directly or inside
+            // records/static arrays); borrow their ownership around the call
+            PSBorrowPCharOwnership(fvar.aType, fvar.dta, BorrowList);
+            Arg := TValue.From<Pointer>( Pointer(fvar.dta) );
+          end;
         else
           begin
             Exit;
@@ -443,6 +449,7 @@ begin
   {$ENDIF CPUX86}
 
   IsConstr := (Integer(CallingConv) and 64) <> 0;
+  try
   if not assigned(res) then
   begin
     Invoke(Address, Args, SysCalConv, nil);  { ignore return }
@@ -492,11 +499,11 @@ begin
       //13
       btPointer:               res.dta := Pointer(Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic).AsType<Pointer>);
       //14
-      btPChar:
+      btPChar: // the slot owns its content: copy the returned data
         {$IFDEF FPC}
-          ptbtPChar(res.dta)^ := tbtPChar(Invoke(Address,Args,SysCalConv,TypeInfo(tbtPChar),IsStatic).AsOrdinal);
+          tbtstring(res.dta^) := tbtstring(tbtPChar(Invoke(Address,Args,SysCalConv,TypeInfo(tbtPChar),IsStatic).AsOrdinal));
         {$ELSE}
-          ptbtPChar(res.dta)^ := tbtPChar(Invoke(Address,Args,SysCalConv,TypeInfo(tbtPChar),IsStatic).AsType<tbtPChar>());
+          tbtstring(res.dta^) := tbtstring(Invoke(Address,Args,SysCalConv,TypeInfo(tbtPChar),IsStatic).AsType<tbtPChar>());
         {$ENDIF}
       //15
       //btResourcePointer
@@ -606,6 +613,9 @@ begin
         Exit;
     end;  { case }
   end; //assigned(res)
+  finally
+    PSReownPCharOwnership(BorrowList);
+  end;
   SetLength(Args, 0);
   SetLength(old_Args, 0);
   SetLength(old_Args2, 0);

@@ -9756,6 +9756,8 @@ begin
     47: Stack.SetUInt64(-1, StrToUInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetUInt64(-3))); // StrToUInt64Def
 {$ENDIF}
     48: Stack.SetAnsiString(-1, tbtstring(SysUtils.UIntToStr({$IFNDEF PS_NOINT64}Stack.GetUInt64(-2){$ELSE}Stack.GetUInt(-2){$ENDIF}))); // UIntToStr
+    49: Stack.SetInt(-1, ParamCount); // ParamCount
+    50: {$IFNDEF PS_NOWIDESTRING}Stack.SetUnicodeString(-1, tbtunicodestring(ParamStr(Stack.GetInt(-2)))){$ELSE}Stack.SetAnsiString(-1, tbtstring(ParamStr(Stack.GetInt(-2)))){$ENDIF}; // ParamStr
     42:  // sizeof
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], False);
@@ -10129,6 +10131,8 @@ begin
 
   RegisterFunctionName('IntToStr', DefProc, Pointer(0), nil);
   RegisterFunctionName('UIntToStr', DefProc, Pointer(48), nil);
+  RegisterFunctionName('ParamCount', DefProc, Pointer(49), nil);
+  RegisterFunctionName('ParamStr', DefProc, Pointer(50), nil);
   RegisterFunctionName('StrToInt', DefProc, Pointer(1), nil);
   RegisterFunctionName('StrToIntDef', DefProc, Pointer(2), nil);
   RegisterFunctionName('Pos', DefProc, Pointer(3), nil);

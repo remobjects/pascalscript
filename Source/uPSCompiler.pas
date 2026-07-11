@@ -10971,6 +10971,107 @@ begin
     Result := True;
   end; {ProcessIdentifier}
 
+  function ProcessRaise: Boolean;
+  { 'raise;' re-raises the current exception (compiled as a call to
+    RaiseLastException); 'raise <class>.Create(<message>);' compiles to
+    RaiseException(erCustomError, <message>). The class name is parsed but
+    not evaluated - scripts have no exception objects; the strict grammar
+    keeps the parser deterministic. }
+  var
+    L: Cardinal;
+    Decl: TPSParametersDecl;
+    Call: TPSValueProcNo;
+    Msg: TPSValue;
+    ExData: TPSValueData;
+    Con: TPSConstant;
+  begin
+    Result := False;
+    Debug_WriteLine(BlockInfo);
+    FParser.Next; // skip RAISE
+    if (FParser.CurrTokenId = CSTI_Semicolon) or (FParser.CurrTokenId = CSTII_End) or
+       (FParser.CurrTokenId = CSTII_Else) or (FParser.CurrTokenId = CSTII_Except) or
+       (FParser.CurrTokenId = CSTII_Finally) or (FParser.CurrTokenId = CSTII_until) then
+    begin // bare 'raise': re-raise the current exception
+      L := FindProc('RaiseLastException');
+      if L = InvalidVal then
+      begin
+        MakeError('', ecUnknownIdentifier, 'RaiseLastException');
+        exit;
+      end;
+      Call := TPSValueProcNo.Create;
+      Call.SetParserPos(FParser);
+      Call.ProcNo := L;
+      Call.ResultType := nil;
+      Call.Parameters := TPSParameters.Create;
+      Result := _ProcessFunction(Call, nil);
+      Call.Free;
+      exit;
+    end;
+    if FParser.CurrTokenId <> CSTI_Identifier then
+    begin
+      MakeError('', ecIdentifierExpected, '');
+      exit;
+    end;
+    FParser.Next;
+    if FParser.CurrTokenId <> CSTI_Period then
+    begin
+      MakeError('', ecPeriodExpected, '');
+      exit;
+    end;
+    FParser.Next;
+    if (FParser.CurrTokenId <> CSTI_Identifier) or (FParser.GetToken <> 'CREATE') then
+    begin
+      MakeError('', ecIdentifierExpected, FParser.OriginalToken);
+      exit;
+    end;
+    FParser.Next;
+    if FParser.CurrTokenId <> CSTI_OpenRound then
+    begin
+      MakeError('', ecOpenRoundExpected, '');
+      exit;
+    end;
+    FParser.Next;
+    L := FindProc('RaiseException');
+    Con := GetConstant('erCustomError');
+    if (L = InvalidVal) or (Con = nil) then
+    begin
+      MakeError('', ecUnknownIdentifier, 'RaiseException');
+      exit;
+    end;
+    Msg := Calc(CSTI_CloseRound);
+    if Msg = nil then
+      exit;
+    if FParser.CurrTokenId <> CSTI_CloseRound then
+    begin
+      MakeError('', ecCloseRoundExpected, '');
+      Msg.Free;
+      exit;
+    end;
+    FParser.Next;
+    if TPSProcedure(FProcs[L]).ClassType = TPSInternalProcedure then
+      Decl := TPSInternalProcedure(FProcs[L]).Decl
+    else
+      Decl := TPSExternalProcedure(FProcs[L]).RegProc.Decl;
+    ExData := TPSValueData.Create;
+    ExData.SetParserPos(FParser);
+    ExData.Data := NewVariant(at2ut(Con.Value.FType));
+    ExData.Data.tu32 := Con.Value.tu32;
+    Call := TPSValueProcNo.Create;
+    Call.SetParserPos(FParser);
+    Call.ProcNo := L;
+    Call.ResultType := Decl.Result;
+    Call.Parameters := TPSParameters.Create;
+    Call.Parameters.Add.Val := ExData;
+    Call.Parameters.Add.Val := Msg;
+    if not ValidateParameters(BlockInfo, Call.Parameters, Decl) then
+    begin
+      Call.Free;
+      exit;
+    end;
+    Result := _ProcessFunction(Call, nil);
+    Call.Free;
+  end; {ProcessRaise}
+
   function ProcessCase: Boolean;
   var
     V1, V2, TempRec, Val, CalcItem: TPSValue;
@@ -11675,6 +11776,12 @@ begin
                 BlockWriteLong(BlockInfo, $12345678);
                 FContinueOffsets.Add(Pointer(Length(BlockInfo.Proc.Data)));
                 FParser.Next;
+                if (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = TOneLiner) then
+                  break;
+              end else if FParser.GetToken = 'RAISE' then
+              begin
+                if not ProcessRaise then
+                  exit;
                 if (BlockInfo.SubType = tifOneliner) or (BlockInfo.SubType = TOneLiner) then
                   break;
               end else
@@ -13952,6 +14059,8 @@ begin
   AddFunction('function ExceptionProc: Cardinal;');
   AddFunction('function ExceptionPos: Cardinal;');
   AddFunction('function ExceptionToString(er: TIFException; Param: string): string;');
+  AddFunction('function ParamCount: Integer;');
+  AddFunction('function ParamStr(Index: Integer): string;');
   {$IFNDEF PS_NOINT64}
   AddFunction('function StrToInt64(S: string): Int64;');
   AddFunction('function Int64ToStr(I: Int64): string;');

@@ -6,7 +6,7 @@
 { implementation of x64 abi }
 //procedure DebugBreak; external 'Kernel32.dll';
 const
-  EmptyPchar: array[0..0] of char = #0;
+  EmptyPchar: array[0..1] of char = (#0, #0);
 {$IFDEF FPC}
 {$ASMMODE INTEL}
 {$ENDIF}
@@ -522,6 +522,7 @@ _XMM0: Double;
   I: Integer;
   pp: ^Byte;
   IsSafeCall: Boolean;
+  BorrowList: TPSPCharBorrowList;
 
   function rp(p: PPSVariantIFC): PPSVariantIFC;
   begin
@@ -731,10 +732,15 @@ _XMM0: Double;
         btRecord,
         btInterface,
         btClass,
-        {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, {$ENDIF} btU8, btS8, btU16,
+        {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, btPWideChar,{$ENDIF}
+        btAnsiString, btAnsiChar, btPAnsiChar,
+        btU8, btS8, btU16,
         btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
         {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
           begin
+            // the callee may overwrite P-Char slots (directly or inside
+            // records/static arrays); borrow their ownership around the call
+            PSBorrowPCharOwnership(fvar.aType, fvar.Dta, BorrowList);
             Varptr := fvar.Dta;
           end;
       else begin
@@ -760,11 +766,14 @@ _XMM0: Double;
               Result := True;
               exit;
             end else begin
-            {$IFDEF FPC}
+            {$IF DEFINED(FPC) AND (FPC_VERSION < 3)}
+              { kept for the old FPC 2.4 ABI this branch was written for }
               StoreReg(IPointer(FVar.Dta));
             {$ELSE}
+              { a dynamic array is a pointer: pass its value, not the slot
+                address (FPC 3.x x86_64 crashed / read garbage here) }
               StoreReg(IPointer(FVar.Dta^));
-            {$ENDIF}
+            {$IFEND}
             end;
           end;
         btSet,
@@ -834,7 +843,8 @@ _XMM0: Double;
 
         btChar,
         btU8,
-        btS8: begin
+        btS8,
+        btAnsiChar: begin
             StoreReg(IPointer(byte(fVar^.dta^)));
           end;
         {$IFNDEF PS_NOWIDESTRING} btWideChar, {$ENDIF}
@@ -851,7 +861,22 @@ _XMM0: Double;
             else
               StoreReg(IPointer(fvar^.dta^));
           end;
-        btclass, btinterface, btString:
+        btPAnsiChar:
+          begin
+            if pointer(fvar^.dta^) = nil then
+              StoreReg(IPointer(@EmptyPchar))
+            else
+              StoreReg(IPointer(fvar^.dta^));
+          end;
+        {$IFNDEF PS_NOWIDESTRING}
+        btPWideChar: begin
+          if Pointer(fVar^.Dta^) = nil then
+            StoreReg(IPointer(@EmptyPchar))
+          else
+            StoreReg(IPointer(fVar^.Dta^));
+        end;
+        {$ENDIF}
+        btclass, btinterface, btString, btAnsiString:
           begin
             StoreReg(IPointer(fvar^.dta^));
           end;
@@ -950,7 +975,7 @@ begin
    if assigned(res) and not IsSafeCall then begin
     case res^.aType.BaseType of
       {$IFDEF x64_string_result_as_varparameter}
-      btstring, btWideString, btUnicodeString,
+      btstring, btWideString, btUnicodeString, btAnsiString,
       {$ENDIF}
       btInterface, btArray, btVariant{$IFNDEF DELPHI_and_WINDOWS}, btStaticArray{$ENDIF}:
         GetPtr(res);
@@ -972,7 +997,7 @@ begin
 {$IFNDEF PS_RESBEFOREPARAMETERS}
       case res^.aType.BaseType of
         {$IFDEF x64_string_result_as_varparameter}
-        btstring, btWideString, btUnicodeString,
+        btstring, btWideString, btUnicodeString, btAnsiString,
         {$ENDIF}
         btInterface, btArray, btVariant{$IFNDEF DELPHI_and_WINDOWS}, btStaticArray{$ENDIF}:
           GetPtr(res);
@@ -1023,11 +1048,15 @@ begin
         btSingle:      tbtsingle(res.Dta^) := _XMM0;
         btDouble:      tbtdouble(res.Dta^) := _XMM0;
         btExtended:    tbtextended(res.Dta^) := _XMM0;
-        btchar,btU8, btS8:    tbtu8(res.dta^) := _RAX;
+        btchar,btU8, btS8, btAnsiChar:    tbtu8(res.dta^) := _RAX;
         {$IFNDEF PS_NOWIDESTRING} btWideChar, {$ENDIF} btu16, bts16:  tbtu16(res.dta^) := _RAX;
         btClass : IPointer(res.dta^) := _RAX;
         btu32,bts32:   tbtu32(res.dta^) := _RAX;
         btPChar:       pansichar(res.dta^) := Pansichar(_RAX);
+        btPAnsiChar:   TbtAnsiString(res.dta^) := TbtAnsiString(PAnsiChar(_RAX));
+{$IFNDEF PS_NOWIDESTRING}
+        btPWideChar:   tbtunicodestring(res.dta^) := tbtunicodestring(PWideChar(_RAX));
+{$ENDIF}
 {$IFNDEF PS_NOINT64}
         bts64: tbts64(res.dta^) := Int64(_RAX);
         btU64: tbtu64(res.dta^) := UInt64(_RAX);
@@ -1036,11 +1065,11 @@ begin
         btInterface,
         btVariant,
         {$IFDEF x64_string_result_as_varparameter}
-        btWidestring,btUnicodestring, btstring ,
+        btWidestring,btUnicodestring, btstring, btAnsiString,
         {$ENDIF}
         {$IFNDEF DELPHI_and_WINDOWS}btStaticArray, {$ENDIF}btArray:;
         {$IFNDEF x64_string_result_as_varparameter}
-        btUnicodeString, btWideString, btstring:  Int64(res.dta^) := _RAX;
+        btUnicodeString, btWideString, btstring, btAnsiString:  Int64(res.dta^) := _RAX;
         {$ENDIF}
       else
         exit;
@@ -1064,6 +1093,7 @@ begin
     end;
     Result := True;
   finally
+    PSReownPCharOwnership(BorrowList);
     if CallData <> nil then begin
       for i := CallData.Count -1 downto 0 do
       begin

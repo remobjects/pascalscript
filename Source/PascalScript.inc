@@ -53,7 +53,16 @@ Defines:
   PS_NOWIDESTRING
   PS_NOINT64
   PS_DELPHIDIV
+  PS_NATIVESTRINGS  - tbtChar/tbtPChar/tbtString follow the host compiler's
+                      native string types (Unicode on Delphi 2009+): host
+                      functions registered with tbtString parameters match the
+                      width the engine passes, and the script types
+                      PChar/AnsiChar/AnsiString/PAnsiChar become fully usable
+                      (btPWideChar and the always-Ansi base types).
+                      Default: not defined - behavior is unchanged.
 }
+
+{.$DEFINE PS_NATIVESTRINGS}
 
 {$UNDEF DEBUG}
 

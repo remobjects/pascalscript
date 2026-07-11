@@ -7,7 +7,7 @@ interface
 uses
   uPSRuntime, uPSUtils, sysutils;
 
-function IFPS3DataToText(const Input: tbtstring; var Output: string): Boolean;
+function IFPS3DataToText(const Input: tbtAnsiString; var Output: string): Boolean;
 implementation
 
 type
@@ -44,7 +44,7 @@ begin
 end;
 
 
-function IFPS3DataToText(const Input: tbtstring; var Output: string): Boolean;
+function IFPS3DataToText(const Input: tbtAnsiString; var Output: string): Boolean;
 var
   I: TMyPSExec;
 
@@ -184,8 +184,8 @@ var
           e: extended;
           ss: single;
           d: double;
-          s: ansistring;
-          c: char;
+          s: tbtstring;
+          c: tbtchar;
           {$IFNDEF PS_NOWIDESTRING}
           wc: WideChar;
           ws: WideString;
@@ -207,7 +207,7 @@ var
             btSingle: begin if not ReadData(ss, Sizeof(tbtsingle)) then exit; Result := FloatToStr(ss); end;
             btDouble: begin if not ReadData(d, Sizeof(tbtdouble)) then exit; Result := FloatToStr(d); end;
             btExtended: begin if not ReadData(e, Sizeof(tbtextended)) then exit; Result := FloatToStr(e); end;
-            btPChar, btString: begin if not ReadData(l, 4) then exit; SetLength(s, l); if not readData(s[1], l) then exit; Result := MakeString(s); end;
+            btPChar, btString: begin if not ReadData(l, 4) then exit; SetLength(s, l); if not readData(s[1], l*SizeOf(tbtChar)) then exit; Result := MakeString(s); end;
             btSet:
               begin
                 SetLength(s, TPSTypeRec_Set(f).aByteSize);
@@ -215,7 +215,7 @@ var
                 result := MakeString(s);
 
               end;
-            btChar: begin if not ReadData(c, 1) then exit; Result := '#'+IntToStr(ord(c)); end;
+            btChar: begin if not ReadData(c, SizeOf(tbtChar)) then exit; Result := '#'+IntToStr(ord(c)); end;
             {$IFNDEF PS_NOWIDESTRING}
             btWideChar: begin if not ReadData(wc, 2) then exit; Result := '#'+IntToStr(ord(wc)); end;
             btWideString: begin if not ReadData(l, 4) then exit; SetLength(ws, l); if not readData(ws[1], l*2) then exit; Result := MakeWString(ws); end;

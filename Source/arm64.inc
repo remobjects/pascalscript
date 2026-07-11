@@ -32,7 +32,8 @@ type
   end;
 
 const
-  EmptyPchar: array[0..0] of char = #0;
+  // two #0 so it also serves as an empty PWideChar
+  EmptyPchar: array[0..1] of char = (#0, #0);
 
 { arm64call performs the final ABI transition in arm64sysv.S:
     - preserves callee-saved registers
@@ -62,6 +63,7 @@ var
   CallData: TPSList;
   I: Integer;
   pp: ^Byte;
+  BorrowList: TPSPCharBorrowList;
 {$IFDEF FPC}
   IsConstructor, IsVirtualCons: Boolean;
 {$ENDIF}
@@ -167,11 +169,17 @@ var
             VarPtr := fvar.Dta;
           end;
         btVariant, btSet, btStaticArray, btRecord, btInterface, btClass,
-        {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, btWideChar,{$ENDIF}
+        {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, btWideChar, btPWideChar,{$ENDIF}
+        btAnsiString, btAnsiChar, btPAnsiChar,
         btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble,
         btExtended, btString, btPChar, btChar, btCurrency
         {$IFNDEF PS_NOINT64}, btS64, btU64{$ENDIF}:
-          VarPtr := fvar.Dta;
+          begin
+            // the callee may overwrite P-Char slots (directly or inside
+            // records/static arrays); borrow their ownership around the call
+            PSBorrowPCharOwnership(fvar.aType, fvar.Dta, BorrowList);
+            VarPtr := fvar.Dta;
+          end;
       else
         Exit;
       end;
@@ -223,7 +231,13 @@ var
           StoreIntReg(IPointer(fvar.dta^));
         btSingle:
           StoreFloatReg(Single(fvar.dta^), True);
-        btChar, btU8, btS8:
+        btChar:
+          {$if SizeOf(TbtChar) = 2}
+          StoreIntReg(IPointer(Word(fVar^.dta^)));
+          {$else}
+          StoreIntReg(IPointer(Byte(fVar^.dta^)));
+          {$ifend}
+        btU8, btS8, btAnsiChar:
           StoreIntReg(IPointer(Byte(fVar^.dta^)));
         {$IFNDEF PS_NOWIDESTRING}
         btWideChar,
@@ -232,12 +246,12 @@ var
           StoreIntReg(IPointer(Word(FVar^.dta^)));
         btU32, btS32:
           StoreIntReg(IPointer(Cardinal(FVar^.dta^)));
-        btPChar:
+        btPChar, btPAnsiChar{$IFNDEF PS_NOWIDESTRING}, btPWideChar{$ENDIF}:
           if Pointer(fvar^.dta^) = nil then
             StoreIntReg(IPointer(@EmptyPChar))
           else
             StoreIntReg(IPointer(fvar^.dta^));
-        btClass, btInterface, btString{$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}:
+        btClass, btInterface, btString, btAnsiString{$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}:
           StoreIntReg(IPointer(fvar^.dta^));
         btProcPtr:
           begin
@@ -316,7 +330,7 @@ begin
             StoreIntReg(IPointer(res.Dta));
             {$ENDIF}
           end;
-        btString, {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString,{$ENDIF}
+        btString, btAnsiString, {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString,{$ENDIF}
         btInterface, btArray, btVariant, btStaticArray:
           begin
             Registers.X8 := IPointer(res.Dta);
@@ -363,7 +377,13 @@ begin
         btSingle: tbtsingle(res.Dta^) := _D0;
         btDouble: tbtdouble(res.Dta^) := _D0;
         btExtended: tbtextended(res.Dta^) := _D0;
-        btChar, btU8, btS8: tbtu8(res.dta^) := _X0;
+        btChar:
+          {$if SizeOf(TbtChar) = 2}
+          tbtu16(res.dta^) := _X0;
+          {$else}
+          tbtu8(res.dta^) := _X0;
+          {$ifend}
+        btU8, btS8, btAnsiChar: tbtu8(res.dta^) := _X0;
         {$IFNDEF PS_NOWIDESTRING}
         btWideChar,
         {$ENDIF}
@@ -371,13 +391,18 @@ begin
         btClass: IPointer(res.dta^) := _X0;
         btU32, btS32: tbtu32(res.dta^) := _X0;
         btPChar: pansichar(res.dta^) := Pansichar(_X0);
+        // the NEW p-char types own their content: copy the returned data
+        btPAnsiChar: TbtAnsiString(res.dta^) := TbtAnsiString(PAnsiChar(_X0));
+        {$IFNDEF PS_NOWIDESTRING}
+        btPWideChar: tbtunicodestring(res.dta^) := tbtunicodestring(PWideChar(_X0));
+        {$ENDIF}
         {$IFNDEF PS_NOINT64}
         btS64: tbts64(res.dta^) := Int64(_X0);
         btU64: tbtu64(res.dta^) := UInt64(_X0);
         {$ENDIF}
         btCurrency: tbts64(res.Dta^) := Int64(_X0);
         btInterface, btVariant, btStaticArray, btArray,
-        btString{$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}: ;
+        btString, btAnsiString{$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}: ;
       else
         Exit;
       end;
@@ -385,6 +410,7 @@ begin
 
     Result := True;
   finally
+    PSReownPCharOwnership(BorrowList);
     for I := CallData.Count - 1 downto 0 do
     begin
       pp := CallData[I];

@@ -12593,8 +12593,14 @@ var
           except
             on e: Exception do
             begin
-              MakeError('', ecCustomError, tbtstring(e.Message));
-              {$IFNDEF PS_USESSUPPORT}
+              MakeError('', ecCustomError, tbtstring(e.Message)); // still attributed to the used unit
+              {$IFDEF PS_USESSUPPORT}
+              // restore what the regular failure path above restores: a stale
+              // fModule survives Cleanup and makes every following Compile of
+              // this instance fail with a bogus cross-reference error
+              FParser:=ParserPos;
+              fModule:=OldFileName;
+              {$ELSE}
               FUses.Free;
               {$ENDIF}
               Result := False;

@@ -290,8 +290,9 @@ begin
               exit;
              end;
            end
-           else //dynarray = just push pointer
-             aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+           else //dynamic array by value: pass the array pointer itself, not
+                //the address of the slot holding it (that crashed the callee)
+             aValues := aValues + [TValue.From<Pointer>(PPointer(aValue^.dta)^)];
         end;
       //13
       btPointer:                        aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
@@ -386,6 +387,7 @@ var SysCalConv : TCallConv;
     ctx: TRTTIContext;
     RttiType : TRttiType;
     ResValue : TValue;
+    ArrTypeInfo: PTypeInfo;
 begin
   Result := False;
   IsStatic := _Self = nil;
@@ -478,16 +480,42 @@ begin
       //12
       btArray: //need to check with open arrays
       begin
-        for RttiType in ctx.GetTypes do
-          if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkDynArray) then
-          begin
-            ResValue := Invoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic);
-            if ResValue.GetArrayLength > 0 then
-              CopyArrayContents(res.dta, ResValue.GetReferenceToRawData, 1, res.aType)
-            else
-              res.dta := nil;
-            Break;
-          end;
+        // Invoke needs a dynamic array type info only for the result ABI
+        // (identical for all dynamic arrays) and to release the TValue's
+        // reference afterwards. The element-wise handling below uses the
+        // script's own type record, so for the TValue any type info with the
+        // right managed kind of element suffices.
+        ArrTypeInfo := nil;
+        case TPSTypeRec_Array(res.aType).ArrayType.BaseType of
+          btString: ArrTypeInfo := TypeInfo(TArray<tbtString>);
+          {$IFNDEF PS_NOWIDESTRING}
+          btWideString: ArrTypeInfo := TypeInfo(TArray<tbtWideString>);
+          btUnicodeString: ArrTypeInfo := TypeInfo(TArray<tbtUnicodeString>);
+          {$ENDIF}
+          btVariant: ArrTypeInfo := TypeInfo(TArray<Variant>);
+          btInterface: ArrTypeInfo := TypeInfo(TArray<IInterface>);
+          btArray, btRecord, btStaticArray:
+            // nested containers: prefer the host's own array type (exact
+            // element layout), located by the exported type name
+            for RttiType in ctx.GetTypes do
+              if (RttiType.TypeKind = tkDynArray) and (res.aType.FExportName <> '') and
+                 (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) then
+              begin
+                ArrTypeInfo := RttiType.Handle;
+                Break;
+              end;
+        else
+          // unmanaged elements: releasing the reference is a plain block
+          // free, any element type will do
+          ArrTypeInfo := TypeInfo(TArray<Byte>);
+        end;
+        if ArrTypeInfo = nil then
+          Exit; // fail the call instead of silently returning an empty array
+        ResValue := Invoke(Address, Args, SysCalConv, ArrTypeInfo, IsStatic);
+        // reference-assign into the script slot using the script's own type
+        // record; this also clears the slot correctly for empty results (the
+        // old code corrupted the IFC record by setting res.dta to nil)
+        CopyArrayContents(res.dta, ResValue.GetReferenceToRawData, 1, res.aType);
       end;
       //13
       btPointer:               res.dta := Pointer(Invoke(Address,Args,SysCalConv,TypeInfo(Pointer),IsStatic).AsType<Pointer>);

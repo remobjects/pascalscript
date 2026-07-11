@@ -1112,7 +1112,13 @@ procedure PSDynArraySetLength(var arr: Pointer; aType: TPSTypeRec; NewLength: Lo
 function  GetPSArrayLength(Arr: PIFVariant): Longint;
 procedure SetPSArrayLength(Arr: PIFVariant; NewLength: Longint);
 
-function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: tbtstring): tbtstring;
+function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: tbtstring): tbtstring; overload;
+{ debug/watch helpers: render any script value as text and parse it back }
+function PSVariantToString(const V: TPSVariantIFC; AppendType: Boolean; NoQuotes: Boolean = False): string; overload;
+function VarTypeToString(BaseType: TVarType): string;
+procedure StringToPSVariant(const V: TPSVariantIFC; const Value: string);
+function PSBaseTypeToStr(BaseType: TPSBaseType; DelphiNames: Boolean = False): string; overload;
+function PSBaseTypeToStr(P: PIFTypeRec; DelphiNames: Boolean = False): string; overload;
 function MakeString(const s: tbtstring): tbtstring;
 {$IFNDEF PS_NOWIDESTRING}
 function MakeWString(const s: tbtunicodestring): tbtstring;
@@ -1125,6 +1131,7 @@ function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtS
 
 implementation
 uses
+  Classes, // TStrings access in PSVariantToString/StringToPSVariant
   TypInfo {$IFDEF DELPHI3UP}
   {$IFNDEF FPC}{$IFDEF MSWINDOWS} , ComObj {$ENDIF}{$ENDIF}{$ENDIF}
   {$IFDEF PS_FPC_HAS_COM}, ComObj{$ENDIF}
@@ -1715,6 +1722,423 @@ begin
       end;
   else
     Result := tbtString(RPS_Invalid);
+  end;
+end;
+
+function PSBaseTypeToStr(BaseType: TPSBaseType; DelphiNames: Boolean = False): string;
+begin
+  case BaseType of
+    btReturnAddress       : Result := 'ReturnAddress';
+    btU8                  : if DelphiNames then Result := 'Byte' else Result := 'U8';
+    btS8                  : if DelphiNames then Result := 'ShortInt' else Result := 'S8';
+    btU16                 : if DelphiNames then Result := 'Word' else Result := 'U16';
+    btS16                 : if DelphiNames then Result := 'SmallInt' else Result := 'S16';
+    btU32                 : if DelphiNames then Result := 'Cardinal' else Result := 'U32';
+    btS32                 : if DelphiNames then Result := 'Integer' else Result := 'S32';
+    {$IFNDEF PS_NOINT64}
+    btS64                 : if DelphiNames then Result := 'Int64' else Result := 'S64';
+    {$ENDIF}
+    btSingle              : Result := 'Single';
+    btDouble              : Result := 'Double';
+    btExtended            : Result := 'Extended';
+    // names follow the width of the base type on this build
+    btString              : Result := {$if SizeOf(tbtChar)=2}'UnicodeString'{$ELSE}'AnsiString'{$IFEND};
+    btRecord              : Result := 'Record';
+    btArray               : Result := 'Array';
+    btPointer             : Result := 'Pointer';
+    btPChar               : Result := {$if SizeOf(tbtChar)=2}'PWideChar'{$ELSE}'PAnsiChar'{$IFEND};
+    btResourcePointer     : Result := 'ResourcePointer';
+    btVariant             : Result := 'Variant';
+    btChar                : Result := {$if SizeOf(tbtChar)=2}'WideChar'{$ELSE}'AnsiChar'{$IFEND};
+    {$IFNDEF PS_NOWIDESTRING}
+    btWideString          : Result := 'WideString';
+    btWideChar            : Result := 'WideChar';
+    {$ENDIF}
+    btProcPtr             : Result := 'ProcPtr';
+    btStaticArray         : Result := 'StaticArray';
+    btSet                 : Result := 'Set';
+    btCurrency            : Result := 'Currency';
+    btClass               : Result := 'Class';
+    btInterface           : Result := 'Interface';
+    btNotificationVariant : Result := 'NotificationVariant';
+    btUnicodeString       : Result := 'UnicodeString';
+    btType                : Result := 'Type';
+    btEnum                : Result := 'Enum';
+    btExtClass            : Result := 'ExtClass';
+  else
+    Result := 'Unknown ' + SysUtils.IntToStr(BaseType);
+  end;
+end;
+
+function PSBaseTypeToStr(P: PIFTypeRec; DelphiNames: Boolean = False): string;
+var
+  i: Longint;
+begin
+  case p.BaseType of
+    btRecord              : begin
+                            Result := 'Record(';
+                            for i := 0 to TPSTypeRec_Record(P).FieldTypes.Count-1 do
+                            begin
+                              if i <> 0 then Result := Result+',';
+                              Result := Result + PSBaseTypeToStr(PIFTypeRec(TPSTypeRec_Record(P).FieldTypes[i]), DelphiNames);
+                            end;
+                            Result := Result + ')';
+                            end;
+    btArray               : Result := 'Array of ' + PSBaseTypeToStr(TPSTypeRec_Array(P).ArrayType, DelphiNames);
+    btStaticArray         : Result := 'StaticArray['+IntToStr(TPSTypeRec_StaticArray(P).StartOffset)+'..'+IntToStr(TPSTypeRec_StaticArray(P).StartOffset+TPSTypeRec_StaticArray(P).Size-1)+'] of '+PSBaseTypeToStr(TPSTypeRec_Array(P).ArrayType, DelphiNames);
+    btClass               : Result := 'Class :' + TPSTypeRec_Class(P).CN;
+  else
+    Result := PSBaseTypeToStr(p.BaseType, DelphiNames);
+  end;
+end;
+
+function VarTypeToString(BaseType: TVarType): string;
+var
+  IsArr: Boolean;
+begin
+  IsArr := (BaseType and varArray) <> 0;
+  BaseType := BaseType and varTypeMask;
+  case BaseType of
+    varEmpty    : Result := 'Empty';
+    varNull     : Result := 'Null';
+    varSmallint : Result := 'Smallint';
+    varInteger  : Result := 'Integer';
+    varSingle   : Result := 'Single';
+    varDouble   : Result := 'Double';
+    varCurrency : Result := 'Currency';
+    varDate     : Result := 'Date';
+    varOleStr   : Result := 'OleStr';
+    varDispatch : Result := 'Dispatch';
+    varError    : Result := 'Error';
+    varBoolean  : Result := 'Boolean';
+    varVariant  : Result := 'Variant';
+    varUnknown  : Result := 'Unknown';
+    {$if declared(varShortInt)}
+    varShortInt : Result := 'ShortInt';
+    {$ifend}
+    varByte     : Result := 'Byte';
+    {$if declared(varWord)}
+    varWord     : Result := 'Word';
+    varLongWord : Result := 'LongWord'; // = varUInt32
+    varInt64    : Result := 'Int64';
+    {$ifend}
+    {$if declared(varUInt64)}
+    varUInt64   : Result := 'UInt64';
+    {$ifend}
+    {$if declared(varRecord)}
+    varRecord   : Result := 'Record';
+    {$ifend}
+    {$if declared(varObject)}
+    varObject   : Result := 'Object';
+    {$ifend}
+    {$if declared(varUString)}
+    varUString  : Result := 'UnicodeString';
+    {$ifend}
+    varStrArg   : Result := 'StrArg';
+    {$if declared(varUStrArg)}
+    varUStrArg  : Result := 'UStrArg';
+    {$ifend}
+    varString   : Result := 'String';
+    varAny      : Result := 'Any';
+  else
+    Result := 'VarType(' + SysUtils.IntToStr(BaseType) + ')';
+  end;
+  if IsArr then
+    Result := 'Array of ' + Result;
+end;
+
+function PSVariantToString(const V: TPSVariantIFC; AppendType: Boolean; NoQuotes: Boolean = False): string;
+const
+  MAX_LEN = 50;
+
+  function WithType(const VV: TPSVariantIFC; const val: string): string;
+  begin
+    case VV.aType.BaseType of
+      btPointer:
+        if (VV.Dta <> nil) and (TPSTypeRec(Pointer(IPointer(VV.Dta)+PointerSize)^) <> nil) then
+          Result := PSBaseTypeToStr(VV.aType.BaseType, True) + ' (' +
+            PSBaseTypeToStr(TPSTypeRec(Pointer(IPointer(VV.Dta)+PointerSize)^).BaseType, True) + ') = ' + val
+        else
+          Result := PSBaseTypeToStr(VV.aType.BaseType, True) + ' = ' + val;
+      btVariant:
+        Result := PSBaseTypeToStr(VV.aType.BaseType, True) + ' (' +
+          VarTypeToString(TVarData(VV.Dta^).VType) + ') = ' + val;
+      btRecord, btStaticArray, btArray: Result := val;
+    else
+      Result := PSBaseTypeToStr(VV.aType.BaseType, True) + ' = ' + val;
+    end;
+  end;
+
+var
+  i, lo, hi: Integer;
+  S: string;
+  V2: TPSVariantIFC;
+  StrL: TStrings;
+  Obj: TObject;
+begin
+  Result := '';
+  if (V.Dta = nil) or (V.aType = nil) then
+    Exit;
+  case V.aType.BaseType of
+    btU8              : Result := {$if declared(UIntToStr)}UIntToStr{$else}SysUtils.IntToStr{$ifend}(tbtU8(V.Dta^));
+    btS8              : Result := SysUtils.IntToStr(tbtS8(V.Dta^));
+    btU16             : Result := {$if declared(UIntToStr)}UIntToStr{$else}SysUtils.IntToStr{$ifend}(tbtU16(V.Dta^));
+    btS16             : Result := SysUtils.IntToStr(tbtS16(V.Dta^));
+    btU32             : Result := {$if declared(UIntToStr)}UIntToStr{$else}SysUtils.IntToStr{$ifend}(tbtU32(V.Dta^));
+    btS32             : Result := SysUtils.IntToStr(tbtS32(V.Dta^));
+    {$IFNDEF PS_NOINT64}
+    btS64             : Result := SysUtils.IntToStr(tbtS64(V.Dta^));
+    {$ENDIF}
+    btSingle          : Result := FloatToStr(tbtSingle(V.Dta^));
+    btDouble          : Result := FloatToStr(tbtDouble(V.Dta^));
+    btExtended        : Result := FloatToStr(tbtExtended(V.Dta^));
+    btCurrency        : Result := CurrToStr(tbtCurrency(V.Dta^));
+    btString          : if NoQuotes then
+                          Result := string(tbtstring(V.Dta^))
+                        else
+                          Result := string(MakeString(tbtstring(V.Dta^)));
+    btChar            : if NoQuotes then
+                          Result := string(tbtChar(V.Dta^))
+                        else
+                          Result := string(MakeString(tbtstring(tbtChar(V.Dta^))));
+    {$IFNDEF PS_NOWIDESTRING}
+    btWideChar        : if NoQuotes then
+                          Result := string(tbtWideChar(V.Dta^))
+                        else
+                          Result := string(MakeWString(tbtWideChar(V.Dta^)));
+    btWideString      : if NoQuotes then
+                          Result := string(tbtWideString(V.Dta^))
+                        else
+                          Result := string(MakeWString(tbtWideString(V.Dta^)));
+    btUnicodeString   : if NoQuotes then
+                          Result := string(tbtUnicodeString(V.Dta^))
+                        else
+                          Result := string(MakeWString(tbtUnicodeString(V.Dta^)));
+    {$ENDIF}
+    btPChar           : if tbtPChar(V.Dta^) <> nil then
+                        begin
+                          if NoQuotes then
+                            Result := string(tbtPChar(V.Dta^))
+                          else
+                            Result := string(MakeString(tbtPChar(V.Dta^)));
+                        end;
+    btPointer         : begin
+                        V2.Dta := Pointer(V.Dta^);
+                        V2.aType := TPSTypeRec(Pointer(IPointer(V.Dta)+PointerSize)^);
+                        V2.VarParam := False;
+                        if (V2.Dta = nil) or (V2.aType = nil) then
+                          Result := 'nil'
+                        else
+                          Result := PSVariantToString(V2, False, NoQuotes);
+                        end;
+    btProcPtr         : Result := 'ProcPtr(' + SysUtils.IntToStr(tbtU32(V.Dta^)) + ')';
+    btSet             : begin
+                        for i := 0 to TPSTypeRec_Set(V.aType).aBitSize - 1 do
+                          if (PByteArray(V.Dta)^[i shr 3] and (1 shl (i and 7))) <> 0 then
+                          begin
+                            if Result <> '' then
+                              Result := Result + ', ';
+                            if Length(Result) > MAX_LEN then
+                            begin
+                              Result := Result + '..';
+                              Break;
+                            end;
+                            Result := Result + SysUtils.IntToStr(i);
+                          end;
+                        Result := '[' + Result + ']';
+                        end;
+    btRecord          : begin
+                        Result := 'Record = (';
+                        for i := 0 to TPSTypeRec_Record(V.aType).FieldTypes.Count - 1 do
+                        begin
+                          V2 := PSGetRecField(V, i);
+                          S := PSVariantToString(V2, False, NoQuotes);
+                          if (S <> '') and AppendType then
+                            S := WithType(V2, S);
+                          Result := Result + S;
+                          if i < TPSTypeRec_Record(V.aType).FieldTypes.Count - 1 then
+                          begin
+                            if Length(Result) > MAX_LEN then
+                            begin
+                              Result := Result + '..';
+                              Break;
+                            end;
+                            Result := Result + ', ';
+                          end;
+                        end;
+                        Result := Result + ')';
+                        end;
+    btStaticArray,
+    btArray           : begin
+                        if V.aType.BaseType = btStaticArray then
+                          hi := TPSTypeRec_StaticArray(V.aType).Size
+                        else
+                          hi := PSDynArrayGetLength(Pointer(V.Dta^), V.aType);
+                        if hi > 0 then
+                        begin
+                          for i := 0 to hi - 1 do
+                          begin
+                            if Result <> '' then
+                              Result := Result + ', ';
+                            if Length(Result) > MAX_LEN then
+                            begin
+                              Result := Result + '..';
+                              Break;
+                            end;
+                            V2 := PSGetArrayField(V, i);
+                            if i = 0 then
+                              Result := 'Array of ' + PSBaseTypeToStr(V2.aType.BaseType, True) + ' = [ ' + Result;
+                            Result := Result + PSVariantToString(V2, False, NoQuotes);
+                          end;
+                          Result := Result + ' ]';
+                        end
+                        else
+                          Result := 'Array (empty)';
+                        end;
+    btVariant         : begin
+                        try
+                          if TVarData(V.Dta^).VType = varDispatch then
+                            Result := 'Variant(IDispatch)'
+                          else if TVarData(V.Dta^).VType = varNull then
+                            Result := 'Null'
+                          else if (TVarData(V.Dta^).VType = varOleStr) and not NoQuotes then
+                            {$IFDEF PS_NOWIDESTRING}
+                            Result := string(MakeString(Variant(V.Dta^)))
+                            {$ELSE}
+                            Result := string(MakeWString(Variant(V.Dta^)))
+                            {$ENDIF}
+                          else if (TVarData(V.Dta^).VType = varString) and not NoQuotes then
+                            Result := string(MakeString(tbtstring(Variant(V.Dta^))))
+                          {$if declared(varUString)}
+                          else if (TVarData(V.Dta^).VType = varUString) and not NoQuotes then
+                            Result := string(MakeWString(Variant(V.Dta^)))
+                          {$ifend}
+                          else if VarIsArray(Variant(V.Dta^)) then
+                          begin
+                            // one generic loop covers every element type (and
+                            // non-zero low bounds)
+                            lo := VarArrayLowBound(Variant(V.Dta^), 1);
+                            hi := VarArrayHighBound(Variant(V.Dta^), 1);
+                            for i := lo to hi do
+                            begin
+                              if Result <> '' then
+                                Result := Result + ', ';
+                              if Length(Result) > MAX_LEN then
+                              begin
+                                Result := Result + '..';
+                                Break;
+                              end;
+                              Result := Result + VarToStr(Variant(V.Dta^)[i]);
+                            end;
+                            Result := VarTypeToString(TVarData(V.Dta^).VType) + ' = [ ' + Result + ' ]';
+                          end
+                          else
+                            Result := VarToStr(Variant(V.Dta^));
+                        except
+                          Result := '';
+                          Exit;
+                        end;
+                        end;
+    btClass           : begin
+                        Obj := TObject(V.Dta^);
+                        if Obj = nil then
+                          Result := 'nil'
+                        else
+                        try
+                          if Obj is TStrings then
+                            Result := TStrings(Obj).Text
+                          else if IsPublishedProp(Obj, 'Caption') then
+                            Result := GetPropValue(Obj, 'Caption')
+                          else if IsPublishedProp(Obj, 'Title') then
+                            Result := GetPropValue(Obj, 'Title')
+                          else if IsPublishedProp(Obj, 'Text') then
+                            Result := GetPropValue(Obj, 'Text')
+                          else if IsPublishedProp(Obj, 'Lines') then
+                          begin
+                            StrL := TStrings(GetObjectProp(Obj, 'Lines'));
+                            if StrL <> nil then
+                              Result := StrL.Text;
+                          end
+                          else if IsPublishedProp(Obj, 'Strings') then
+                          begin
+                            StrL := TStrings(GetObjectProp(Obj, 'Strings'));
+                            if StrL <> nil then
+                              Result := StrL.Text;
+                          end
+                          else
+                            Result := Obj.ClassName;
+                        except
+                          Result := Obj.ClassName;
+                        end;
+                        end;
+    btInterface       : Result := string(PSVariantToString(V, ''));
+  else
+    Result := '';
+  end;
+  if (Result <> '') and AppendType then
+    Result := WithType(V, Result);
+end;
+
+procedure StringToPSVariant(const V: TPSVariantIFC; const Value: string);
+var
+  StrL: TStrings;
+  Obj: TObject;
+begin
+  if (V.Dta = nil) or (V.aType = nil) then
+    Exit;
+  case V.aType.BaseType of
+    btU8              : tbtU8(V.Dta^) := {$if declared(StrToUIntDef)}StrToUIntDef{$else}StrToIntDef{$ifend}(Value, 0);
+    btS8              : tbtS8(V.Dta^) := StrToIntDef(Value, 0);
+    btU16             : tbtU16(V.Dta^) := {$if declared(StrToUIntDef)}StrToUIntDef{$else}StrToIntDef{$ifend}(Value, 0);
+    btS16             : tbtS16(V.Dta^) := StrToIntDef(Value, 0);
+    btU32             : tbtU32(V.Dta^) := {$if declared(StrToUIntDef)}StrToUIntDef{$else}StrToIntDef{$ifend}(Value, 0);
+    btS32             : tbtS32(V.Dta^) := StrToIntDef(Value, 0);
+    {$IFNDEF PS_NOINT64}
+    btS64             : tbtS64(V.Dta^) := StrToInt64Def(Value, 0);
+    {$ENDIF}
+    btSingle          : tbtSingle(V.Dta^) := StrToFloatDef(Value, 0);
+    btDouble          : tbtDouble(V.Dta^) := StrToFloatDef(Value, 0);
+    btExtended        : tbtExtended(V.Dta^) := StrToFloatDef(Value, 0);
+    btCurrency        : tbtCurrency(V.Dta^) := StrToFloatDef(Value, 0);
+    btString          : tbtstring(V.Dta^) := tbtstring(Value);
+    btChar            : if Value <> '' then tbtChar(V.Dta^) := tbtChar(tbtstring(Value)[1]);
+    {$IFNDEF PS_NOWIDESTRING}
+    btWideChar        : if Value <> '' then tbtWideChar(V.Dta^) := tbtWideChar(Value[1]);
+    btWideString      : tbtWideString(V.Dta^) := tbtWideString(Value);
+    btUnicodeString   : tbtUnicodeString(V.Dta^) := tbtUnicodeString(Value);
+    {$ENDIF}
+    // btPChar is not written: the slot holds a raw pointer to memory that
+    // is not owned by the script engine
+    btVariant         : try
+                          Variant(V.Dta^) := Value;
+                        except
+                        end;
+    btClass           : begin
+                        Obj := TObject(V.Dta^);
+                        if Obj = nil then
+                          Exit;
+                        try
+                          if Obj is TStrings then
+                            TStrings(Obj).Text := Value
+                          else if IsPublishedProp(Obj, 'Caption') then
+                            SetPropValue(Obj, 'Caption', Value)
+                          else if IsPublishedProp(Obj, 'Text') then
+                            SetPropValue(Obj, 'Text', Value)
+                          else if IsPublishedProp(Obj, 'Lines') then
+                          begin
+                            StrL := TStrings(GetObjectProp(Obj, 'Lines'));
+                            if StrL <> nil then
+                              StrL.Text := Value;
+                          end
+                          else if IsPublishedProp(Obj, 'Strings') then
+                          begin
+                            StrL := TStrings(GetObjectProp(Obj, 'Strings'));
+                            if StrL <> nil then
+                              StrL.Text := Value;
+                          end;
+                        except
+                        end;
+                        end;
   end;
 end;
 

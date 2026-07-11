@@ -1945,7 +1945,7 @@ begin
       if ExecIs64Bit then begin
         {$IFNDEF CPU64}
         { On 64-bit Exec, Extended is an alias for Double, so write a Double instead }
-        TempDouble := tbtDouble(p^.textended);
+        TempDouble := p^.textended; { conversion; a tbtDouble() cast fails on Delphi 7 }
         BlockWriteData(BlockInfo, TempDouble, sizeof(tbtDouble));
         {$ELSE}
         BlockWriteData(BlockInfo, p^.textended, sizeof(tbtExtended));
@@ -10214,9 +10214,9 @@ begin
             TPSValueData(Result).Data^.ts64 := High(tbtS64);
         btU64:
           if Backwards then
-            TPSValueData(Result).Data^.tu64 := Low(tbtU64)
-          else
-            TPSValueData(Result).Data^.tu64 := High(tbtU64);
+            TPSValueData(Result).Data^.tu64 := 0
+          else // all-ones = High(tbtU64); D7 cannot evaluate that as a constant
+            TPSValueData(Result).Data^.tu64 := not tbtU64(0);
         {$ENDIF}
       else
       begin
@@ -10232,14 +10232,20 @@ begin
       Does not free finVal. See also EmitForExitCheck. }
     begin
       if not (PreWriteOutRec(VariableVar, nil) and PreWriteOutRec(finVal, nil)) then
-        Exit(False);
+      begin
+        Result := False;
+        Exit;
+      end;
       BlockWriteByte(BlockInfo, CM_CO);
       if Backwards then
         BlockWriteByte(BlockInfo, 0) { >= }
       else
         BlockWriteByte(BlockInfo, 1); { <= }
       if not (WriteOutRec(TempBool, False) and WriteOutRec(VariableVar, True) and WriteOutRec(finVal, True)) then
-        Exit(False);
+      begin
+        Result := False;
+        Exit;
+      end;
       AfterWriteOutRec(finVal);
       AfterWriteOutRec(VariableVar);
       BlockWriteByte(BlockInfo, Cm_CNG);
@@ -10260,18 +10266,23 @@ begin
       BoundaryValue := CreateForBoundaryValue;
       ExitCheckEmitted := BoundaryValue <> nil;
       if BoundaryValue = nil then
-        Exit(True);
+      begin
+        Result := True;
+        Exit;
+      end;
       if not (PreWriteOutRec(VariableVar, nil) and PreWriteOutRec(BoundaryValue, nil)) then
       begin
         BoundaryValue.Free;
-        Exit(False);
+        Result := False;
+        Exit;
       end;
       BlockWriteByte(BlockInfo, CM_CO);
       BlockWriteByte(BlockInfo, 5); { = }
       if not (WriteOutRec(TempBool, False) and WriteOutRec(VariableVar, True) and WriteOutRec(BoundaryValue, True)) then
       begin
         BoundaryValue.Free;
-        Exit(False);
+        Result := False;
+        Exit;
       end;
       AfterWriteOutRec(BoundaryValue);
       AfterWriteOutRec(VariableVar);
@@ -12001,7 +12012,7 @@ var
           if FExecIs64Bit then begin
             {$IFNDEF CPU64}
             { On 64-bit Exec, Extended is an alias for Double, so write a Double instead }
-            TempDouble := tbtDouble(p^.textended);
+            TempDouble := p^.textended; { conversion; a tbtDouble() cast fails on Delphi 7 }
             WriteData(TempDouble, sizeof(tbtDouble));
             {$ELSE}
             WriteData(p^.textended, sizeof(tbtExtended));

@@ -657,6 +657,27 @@ const
 function WideUpperCase(const S: WideString): WideString;
 function WideLowerCase(const S: WideString): WideString;
 {$ENDIF}
+
+{ SysUtils fallbacks for compilers that lack the UInt64 conversion helpers
+  (the StrToUInt64 family appeared in XE4, UIntToStr in 2009). Note that
+  pre-2010 compilers treat UInt64 as a signed alias, so values above
+  High(Int64) are formatted with a sign there - an inherent limit of those
+  RTLs. }
+{$IFNDEF PS_NOINT64}
+{$IF NOT DECLARED(StrToUInt64)}
+  {$DEFINE PS_NEED_STRTOUINT64}
+{$IFEND}
+{$IF NOT DECLARED(UIntToStr)}
+  {$DEFINE PS_NEED_UINTTOSTR}
+{$IFEND}
+{$ENDIF}
+{$IFDEF PS_NEED_STRTOUINT64}
+function StrToUInt64(const S: string): UInt64;
+function StrToUInt64Def(const S: string; const Default: UInt64): UInt64;
+{$ENDIF}
+{$IFDEF PS_NEED_UINTTOSTR}
+function UIntToStr(Value: UInt64): string;
+{$ENDIF}
 implementation
 
 {$IFDEF DELPHI3UP }
@@ -1752,6 +1773,33 @@ procedure TPSUnit.SetUnitName(const Value: TbtString);
 begin
   fUnitName := FastUpperCase(Value);
 end;
+
+{$IFDEF PS_NEED_STRTOUINT64}
+function StrToUInt64(const S: string): UInt64;
+var
+  Err: Integer;
+begin
+  Val(S, Result, Err);
+  if Err <> 0 then
+    raise EConvertError.CreateFmt('''%s'' is not a valid UInt64 value', [S]);
+end;
+
+function StrToUInt64Def(const S: string; const Default: UInt64): UInt64;
+var
+  Err: Integer;
+begin
+  Val(S, Result, Err);
+  if Err <> 0 then
+    Result := Default;
+end;
+{$ENDIF}
+
+{$IFDEF PS_NEED_UINTTOSTR}
+function UIntToStr(Value: UInt64): string;
+begin
+  Str(Value, Result);
+end;
+{$ENDIF}
 
 
 end.

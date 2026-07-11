@@ -9752,10 +9752,10 @@ begin
     40: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.GetInt64(-2))));// Int64ToStr
     41: Stack.SetInt64(-1, StrToInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetInt64(-3))); // StrToInt64Def
     45: Stack.SetUInt64(-1, StrToUInt64(string(Stack.GetAnsiString(-2))));  // StrToUInt64
-    46: Stack.SetAnsiString(-1, tbtstring(SysUtils.UIntToStr(Stack.GetUInt64(-2))));// UInt64ToStr
+    46: Stack.SetAnsiString(-1, tbtstring(UIntToStr(Stack.GetUInt64(-2))));// UInt64ToStr
     47: Stack.SetUInt64(-1, StrToUInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetUInt64(-3))); // StrToUInt64Def
 {$ENDIF}
-    48: Stack.SetAnsiString(-1, tbtstring(SysUtils.UIntToStr({$IFNDEF PS_NOINT64}Stack.GetUInt64(-2){$ELSE}Stack.GetUInt(-2){$ENDIF}))); // UIntToStr
+    48: Stack.SetAnsiString(-1, tbtstring(UIntToStr({$IFNDEF PS_NOINT64}Stack.GetUInt64(-2){$ELSE}Stack.GetUInt(-2){$ENDIF}))); // UIntToStr
     42:  // sizeof
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], False);
@@ -10026,7 +10026,7 @@ begin
     btS32        : Stack.SetInt(-1,High(Integer));    //Integer/LongInt: 2147483647
 {$IFNDEF PS_NOINT64}
     btS64        : Stack.SetInt64(-1,High(Int64));    //Int64: 9223372036854775807
-    btU64        : Stack.SetUInt64(-1,High(UInt64));  //UInt64: 18446744073709551615
+    btU64        : Stack.SetUInt64(-1,not UInt64(0));  //UInt64: 18446744073709551615 (High(UInt64); D7 cannot evaluate that as a constant)
 {$ENDIF}
     else Result:=false;
   end;

@@ -3063,16 +3063,22 @@ begin
   if not LoadTypes then
   begin
     Clear;
+    if ExEx = erNoError then
+      CMD_Err2(erCustomError, TbtString('Failed to load types'));
     exit;
   end;
   if not LoadProcs then
   begin
     Clear;
+    if ExEx = erNoError then
+      CMD_Err2(erCustomError, TbtString('Failed to load procedures'));
     exit;
   end;
   if not LoadVars then
   begin
     Clear;
+    if ExEx = erNoError then
+      CMD_Err2(erCustomError, TbtString('Failed to load variables'));
     exit;
   end;
   if (HDR.MainProcNo >= FProcs.Count) and (HDR.MainProcNo <> InvalidVal)then begin

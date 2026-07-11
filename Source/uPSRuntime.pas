@@ -4516,6 +4516,90 @@ begin
 end;
 {$ENDIF}
 
+{$IFNDEF PS_NOINTERFACES}
+const
+  GUID_NULL: TGUID = '{00000000-0000-0000-0000-000000000000}';
+  IUnknown_GUID: TGUID = '{00000000-0000-0000-C000-000000000046}';
+
+// variant payload as IUnknown, no conversion (varAny/CORBA not supported)
+function VarToIInterface(const Value: TVarData; out Obj): Boolean;
+var
+  Intf: IUnknown absolute Obj;
+begin
+  Pointer(Obj) := nil;
+  case Value.VType of
+    varUnknown, varDispatch:
+      if Assigned(Value.VUnknown) then
+        Intf := IUnknown(Value.VUnknown);
+    varUnknown + varByRef, varDispatch + varByRef:
+      if Assigned(Value.VPointer) then
+        Intf := IUnknown(PPointer(Value.VPointer)^);
+  end;
+  Result := Assigned(Intf);
+end;
+
+// assign a Variant to an interface slot, casting to the destination GUID via
+// QueryInterface; empty/nil variants assign nil when AllowEmptyAssign
+function AssignIInterfaceFromVariant(var Dest: IUnknown; const Src: Variant;
+  const DestGuid: TGUID; AllowEmptyAssign: Boolean = True): Boolean;
+var
+  iObj: IUnknown;
+begin
+  Dest := nil;
+  case TVarData(Src).VType of
+    varEmpty, varNull:
+      begin
+        Result := AllowEmptyAssign;
+        Exit;
+      end;
+    varDispatch, varUnknown:
+      if TVarData(Src).VUnknown = nil then
+      begin
+        Result := AllowEmptyAssign;
+        Exit;
+      end;
+  end;
+  if VarToIInterface(TVarData(Src), iObj) then
+  begin
+    // GUID-less destinations (IUnknown or script interfaces declared without
+    // a GUID) get the reference as-is, everything else must support the GUID
+    if IsEqualGUID(DestGuid, IUnknown_GUID) or IsEqualGUID(DestGuid, GUID_NULL) then
+      Dest := iObj
+    else if iObj.QueryInterface(DestGuid, Dest) <> 0 then
+      Dest := nil;
+  end;
+  Result := Dest <> nil;
+end;
+
+// assign between interface slots of different declared types (cast via
+// QueryInterface); same GUID-less fallback as above
+function AssignIntfFromIntf(var Dest: IUnknown; const Src: IUnknown;
+  const DestGuid: TGUID; AllowNilAssign: Boolean = True): Boolean;
+begin
+  Dest := nil;
+  if Src = nil then
+  begin
+    Result := AllowNilAssign;
+    Exit;
+  end;
+  if IsEqualGUID(DestGuid, IUnknown_GUID) or IsEqualGUID(DestGuid, GUID_NULL) then
+    Dest := Src
+  else if Src.QueryInterface(DestGuid, Dest) <> 0 then
+    Dest := nil;
+  Result := Dest <> nil;
+end;
+
+// 'Cannot cast an interface' plus the target's name (or GUID when unnamed)
+function PSIntfCastErrorMsg(const BaseMsg: TbtString; DestType: TPSTypeRec): TbtString;
+begin
+  Result := BaseMsg;
+  if DestType.ExportName <> '' then
+    Result := Result + TbtString(' ') + DestType.ExportName
+  else
+    Result := Result + TbtString(' ') + TbtString(GUIDToString(TPSTypeRec_Interface(DestType).Guid));
+end;
+{$ENDIF !PS_NOINTERFACES}
+
 function TPSExec.SetVariantValue(dest, Src: Pointer; desttype, srctype: TPSTypeRec): Boolean;
 var
   Tmp: TObject;
@@ -4850,7 +4934,13 @@ begin
               AssignIDispatchFromVariant(IDispatch(Dest^), Variant(Src^));
               {$ENDIF}
             end else
+            {$IFDEF Delphi3UP}
+            if not AssignIInterfaceFromVariant(IUnknown(Dest^), Variant(Src^),
+              TPSTypeRec_Interface(desttype).Guid) then
+              raise Exception.Create(string(PSIntfCastErrorMsg(TbtString(RPS_CannotCastInterface), desttype)));
+            {$ELSE}
               Result := False;
+            {$ENDIF}
 {$IFDEF Delphi3UP}
           end else
           if srctype.BaseType = btClass then
@@ -4864,15 +4954,22 @@ begin
 {$ENDIF}
           end else if srctype.BaseType = btInterface then
           begin
-            {$IFNDEF Delphi3UP}
+            {$IFDEF Delphi3UP}
+            // same declared type (or nil source): plain assignment, otherwise
+            // cast to the destination interface via QueryInterface
+            if (Pointer(Src^) = nil) or
+               IsEqualGUID(TPSTypeRec_Interface(srctype).Guid, TPSTypeRec_Interface(desttype).Guid) then
+              IUnknown(Dest^) := IUnknown(Src^)
+            else if not AssignIntfFromIntf(IUnknown(Dest^), IUnknown(Src^),
+              TPSTypeRec_Interface(desttype).Guid) then
+              raise Exception.Create(string(PSIntfCastErrorMsg(TbtString(RPS_CannotCastInterface), desttype)));
+            {$ELSE}
             if IUnknown(Dest^) <> nil then
             begin
               IUnknown(Dest^).Release;
               IUnknown(Dest^) := nil;
             end;
-            {$ENDIF}
             IUnknown(Dest^) := IUnknown(Src^);
-            {$IFNDEF Delphi3UP}
             if IUnknown(Dest^) <> nil then
               IUnknown(Dest^).AddRef;
             {$ENDIF}

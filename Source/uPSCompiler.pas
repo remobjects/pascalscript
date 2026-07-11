@@ -8078,7 +8078,60 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
       Proc: TPSProcedure;
       function ReadArray: Boolean;
       var
-        tmp: TPSValue;
+        tmp, tmp2: TPSValue;
+        RStart, RStop, RVal: Longint;
+        RType: TPSType;
+
+        // constant ordinal value of a set/array literal element ('a', 5, enum)
+        function OrdValueOf(P: TPSValue; var v: Longint): Boolean;
+        begin
+          Result := P is TPSValueData;
+          if not Result then Exit;
+          case TPSValueData(P).Data.FType.BaseType of
+            btChar: v := Ord(TPSValueData(P).Data.tchar);
+            {$IFNDEF PS_NOWIDESTRING}
+            btWideChar: v := Ord(TPSValueData(P).Data.twidechar);
+            {$ENDIF}
+            btU8: v := TPSValueData(P).Data.tu8;
+            btS8: v := TPSValueData(P).Data.ts8;
+            btU16: v := TPSValueData(P).Data.tu16;
+            btS16: v := TPSValueData(P).Data.ts16;
+            btEnum, btU32: v := Longint(TPSValueData(P).Data.tu32);
+            btS32: v := TPSValueData(P).Data.ts32;
+          else
+            Result := False;
+          end;
+        end;
+
+        function SameOrdFamily(a, b: TPSType): Boolean;
+        begin
+          if a.BaseType = btEnum then
+            Result := a = b
+          else if a.BaseType in [btChar{$IFNDEF PS_NOWIDESTRING}, btWideChar{$ENDIF}] then
+            Result := b.BaseType in [btChar{$IFNDEF PS_NOWIDESTRING}, btWideChar{$ENDIF}]
+          else
+            Result := IsIntType(a.BaseType) and IsIntType(b.BaseType);
+        end;
+
+        function MakeOrdConst(aType: TPSType; v: Longint): TPSValue;
+        begin
+          Result := TPSValueData.Create;
+          Result.SetParserPos(FParser);
+          TPSValueData(Result).Data := NewVariant(aType);
+          case aType.BaseType of
+            btChar: TPSValueData(Result).Data.tchar := TbtChar(v);
+            {$IFNDEF PS_NOWIDESTRING}
+            btWideChar: TPSValueData(Result).Data.twidechar := TbtWideChar(v);
+            {$ENDIF}
+            btU8: TPSValueData(Result).Data.tu8 := TbtU8(v);
+            btS8: TPSValueData(Result).Data.ts8 := TbtS8(v);
+            btU16: TPSValueData(Result).Data.tu16 := TbtU16(v);
+            btS16: TPSValueData(Result).Data.ts16 := TbtS16(v);
+            btEnum, btU32: TPSValueData(Result).Data.tu32 := TbtU32(v);
+            btS32: TPSValueData(Result).Data.ts32 := TbtS32(v);
+          end;
+        end;
+
       begin
         FParser.Next;
         NewVar := TPSValueArray.Create;
@@ -8102,7 +8155,45 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               Result := False;
               exit;
             end;
-            TPSValueArray(NewVar).Add(tmp);
+            if FParser.CurrTokenID = CSTI_TwoDots then
+            begin
+              // range like ['0'..'9']: expand into individual constant
+              // elements; both bounds must be constant ordinals of the same
+              // family (char/char, int/int or the identical enum)
+              FParser.Next;
+              tmp2 := ReadExpression();
+              if tmp2 = nil then
+              begin
+                tmp.Free;
+                NewVar.Free;
+                Result := False;
+                exit;
+              end;
+              if (not TryEvalConst(tmp2)) or (not OrdValueOf(tmp, RStart)) or
+                (not OrdValueOf(tmp2, RStop)) or
+                (not SameOrdFamily(TPSValueData(tmp).Data.FType, TPSValueData(tmp2).Data.FType)) or
+                (RStop - RStart >= 256) then // a set holds at most 256 elements
+              begin
+                MakeError('', ecTypeMismatch, '');
+                tmp.Free;
+                tmp2.Free;
+                NewVar.Free;
+                Result := False;
+                exit;
+              end;
+              tmp2.Free;
+              if RStop >= RStart then
+              begin
+                RType := TPSValueData(tmp).Data.FType;
+                TPSValueArray(NewVar).Add(tmp);
+                for RVal := RStart + 1 to RStop do
+                  TPSValueArray(NewVar).Add(MakeOrdConst(RType, RVal));
+              end
+              else // like Delphi: an inverted range yields no elements
+                tmp.Free;
+            end
+            else
+              TPSValueArray(NewVar).Add(tmp);
             if FParser.CurrTokenID = CSTI_CloseBlock then Break;
             if FParser.CurrTokenID <> CSTI_Comma then
             begin

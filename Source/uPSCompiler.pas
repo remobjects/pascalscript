@@ -8332,7 +8332,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               MakeError('', ecCloseRoundExpected, '');
               exit;
             end;
-            if not ((GetTypeNo(BlockInfo, NewVar).BaseType = btChar) or
+            if (GetTypeNo(BlockInfo, NewVar) = nil) or not ((GetTypeNo(BlockInfo, NewVar).BaseType = btChar) or
             {$IFNDEF PS_NOWIDESTRING} (GetTypeNo(BlockInfo, NewVar).BaseType = btWideChar) or{$ENDIF}
             (GetTypeNo(BlockInfo, NewVar).BaseType = btEnum) or (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType))) then
             begin
@@ -8372,7 +8372,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               MakeError('', ecCloseRoundExpected, '');
               exit;
             end;
-            if not (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType)) then
+            if (GetTypeNo(BlockInfo, NewVar) = nil) or not (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType)) then
             begin
               NewVar.Free;
               Result := nil;
@@ -11020,6 +11020,13 @@ begin
     if FParser.CurrTokenId <> CSTII_Of then
     begin
       MakeError('', ecOfExpected, '');
+      val.Free;
+      ProcessCase := False;
+      exit;
+    end; {if}
+    if GetTypeNo(BlockInfo, Val) = nil then
+    begin
+      MakeError('', ecTypeMismatch, '');
       val.Free;
       ProcessCase := False;
       exit;

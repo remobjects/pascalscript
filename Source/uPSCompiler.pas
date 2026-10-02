@@ -6412,7 +6412,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             dataval.Free;
             exit;
           end;
-          if (c < Low(Byte)) or (c > High(Byte)) then
+          if (c < 0) or (c >= SetType.BitSize) then
           begin
             with MakeError('', ecTypeMismatch, '') do
             begin

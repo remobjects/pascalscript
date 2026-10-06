@@ -4904,6 +4904,7 @@ begin
       begin
         Result := False;
         ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
+        Tmp.Free;
         exit;
       end else
       if Tmp is EDivByZero then
@@ -5559,11 +5560,6 @@ begin
           if var2Type.BaseType = btSet then
           begin
             Cmd := PSGetUInt(var1, var1type);
-            if not Result then
-            begin
-              CMD_Err(erTypeMismatch);
-              exit;
-            end;
             if Cmd >= Cardinal(TPSTypeRec_Set(var2Type).aBitSize) then
             begin
               cmd_Err(erOutofRecordRange);
@@ -5629,6 +5625,7 @@ begin
       begin
         Result := False;
         ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
+        Tmp.Free;
         exit;
       end else
       if Tmp is EDivByZero then
@@ -6745,6 +6742,7 @@ begin
       begin
         Result := False;
         ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
+        Tmp.Free;
         exit;
       end else
       if Tmp is EDivByZero then
@@ -7698,6 +7696,7 @@ begin
           begin
             Result := False;
             ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
+            Tmp.Free;
             exit;
           end else
           if Tmp is EDivByZero then
@@ -8192,7 +8191,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
 
                 CMD_Err(erInvalidOpcodeParameter);
                 break;
@@ -8223,7 +8221,6 @@ begin
                   if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                   {$ENDIF}
                   FTempVars.FLength := P;
-                  if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
                 end;
                 Break;
               end;
@@ -8238,7 +8235,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
               end;
               {$IFDEF LOG}
               ODSvar('  = dest', vd);
@@ -8286,7 +8282,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
                 CMD_Err(erInvalidOpcodeParameter);
                 break;
               end;
@@ -8305,7 +8300,6 @@ begin
                   if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                   {$ENDIF}
                   FTempVars.FLength := P;
-                  if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
                 end;
                 Break;
               end;
@@ -8320,7 +8314,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
               end;
             end;
           CM_P:
@@ -8348,7 +8341,6 @@ begin
                   if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                   {$ENDIF}
                   FTempVars.FLength := P;
-                  if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
                 end;
                 break;
               end;
@@ -8363,7 +8355,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
               end;
             end;
           CM_PV:
@@ -8483,6 +8474,7 @@ begin
                     if Tmp is EPSException then
                     begin
                       ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
+                      Tmp.Free;
                       Break;
                     end else
                     if Tmp is EDivByZero then
@@ -9308,6 +9300,7 @@ begin
                       if Tmp is EPSException then
                       begin
                         ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
+                        Tmp.Free;
                         break;
                       end else
                       if Tmp is EDivByZero then
@@ -9383,7 +9376,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
                 CMD_Err(erInvalidOpcodeParameter);
                 break;
               end;
@@ -9402,7 +9394,6 @@ begin
                   if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                   {$ENDIF}
                   FTempVars.FLength := P;
-                  if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
                 end;
                 Break;
               end;
@@ -9418,7 +9409,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
               end;
               if vs.FreeType <> vtNone then
               begin
@@ -9431,7 +9421,6 @@ begin
                 if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
                 {$ENDIF}
                 FTempVars.FLength := P;
-                if ((FTempVars.FCapacity - FTempVars.FLength) shr 12) > 2 then FTempVars.AdjustLength;
               end;
             end;
 
@@ -11812,6 +11801,12 @@ begin
       exit;
     end;
     FSelf := Tobject(n.dta^);
+    if FSelf = nil then
+    begin
+      Caller.CMD_Err(erCouldNotCallProc);
+      Result := False;
+      exit;
+    end;
     n := NewTPSVariantIFC(Stack[Longint(Stack.Count) - 1], True); // Result
     if (n.aType.BaseType <> btU32) and (n.aType.BaseType <> btProcPtr) then
     begin
@@ -11856,6 +11851,12 @@ begin
       exit;
     end;
     FSelf := Tobject(n.dta^);
+    if FSelf = nil then
+    begin
+      Caller.CMD_Err(erCouldNotCallProc);
+      Result := False;
+      exit;
+    end;
     n := NewTPSVariantIFC(Stack[Longint(Stack.Count) - 2], false);
     if (n.Dta = nil) or ((n.aType.BaseType <> btu32) and (n.aType.BaseType <> btProcPtr)) then
     begin
@@ -13410,6 +13411,7 @@ const
 { TPSStack }
 
 procedure TPSStack.AdjustLength;
+{ Only grows, never shrinks }
 var
   MyLen: Longint;
 begin
@@ -13606,7 +13608,6 @@ begin
   FLength := IPointer(p1) - IPointer(FDataPtr);
   if TPSTypeRec(p1^).BaseType in NeedFinalization then
     FinalizeVariant(Pointer(IPointer(p1)+PointerSize), Pointer(p1^));
-  if ((FCapacity - FLength) shr 12) > 2 then AdjustLength;
 end;
 
 function TPSStack.Push(TotalSize: Longint): PPSVariant;

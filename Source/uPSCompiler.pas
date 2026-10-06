@@ -8914,6 +8914,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         end;
         begin
           F := TPSBinValueOp.Create;
+          F.SetParserPos(FParser);
           f.Val1 := F1;
           f.Val2 := F2;
           f.Operator := Op;
@@ -8964,6 +8965,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           Op := otAdd;
         end;
         F := TPSBinValueOp.Create;
+        F.SetParserPos(FParser);
         f.Val1 := F1;
         f.Val2 := F2;
         f.Operator := Op;
@@ -9018,6 +9020,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           Op := otAdd;
         end;
         F := TPSBinValueOp.Create;
+        F.SetParserPos(FParser);
         f.Val1 := F1;
         f.Val2 := F2;
         f.Operator := Op;
@@ -9141,6 +9144,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             otCast:
               begin
                 preplace := TPSValueData.Create;
+                preplace.Pos := p.Pos;
+                preplace.Row := p.Row;
+                preplace.Col := p.Col;
                 TPSValueData(preplace).Data := NewVariant(TPSUnValueOp(p).FType);
                 case TPSUnValueOp(p).FType.BaseType of
                   btU8:

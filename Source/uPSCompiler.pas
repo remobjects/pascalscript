@@ -3287,7 +3287,10 @@ begin
     ((p1.BaseType = btUnicodeString) and (p2.BaseType = btWideChar)) or
     ((p1.BaseType = btUnicodeString) and ((p2.BaseType = btString) or (p2.BaseType = btPchar) or (p2.BaseType = btUnicodeString))) or
     ((p1.BaseType = btUnicodeString) and (p2.BaseType = btWidestring)) or
-    (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btWideString)or (p2.BaseType = btUnicodeString)) or
+    (((p1.basetype = btPchar) or (p1.BaseType = btString)) and
+      // the second/third term used to dangle outside the p1 check, which
+      // made EVERY destination type compatible with UnicodeString sources
+      ((p2.BaseType = btWideString) or (p2.BaseType = btUnicodeString))) or
     (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btWidechar)) or
     (((p1.basetype = btPchar) or (p1.BaseType = btString)) and (p2.BaseType = btchar)) or
     {$ENDIF}

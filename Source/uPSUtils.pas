@@ -753,6 +753,12 @@ function StrToFloat(const s: TbtString): Extended;
 var
   i: longint;
 begin
+  {$IFDEF LINUX}
+  {$IFNDEF FPC}
+  Result := SysUtils.StrToFloat(string(s), TFormatSettings.Invariant);
+  Exit;
+  {$ENDIF}
+  {$ENDIF}
   Val(string(s), Result, i);
   if i <> 0 then raise Exception.Create(RPS_InvalidFloat);
 end;

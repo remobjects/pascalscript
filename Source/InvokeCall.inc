@@ -33,8 +33,41 @@ type
     DataCurrency: TArray<TArray<Currency>>;
     DataClass: TArray<TArray<TObject>>;
     DataInterface: TArray<TArray<IInterface>>;
+    //Zero-padded copies of sets Delphi keeps wider than PS does
+    DataSet: TArray<TArray<Byte>>;
   end;
   POpenArrayData = ^TOpenArrayData;
+
+{$IFNDEF FPC}
+//PS sizes a set as ceil(members / 8) bytes. Delphi rounds 3 bytes up to 4,
+//and on Win64 5..7 bytes up to 8, so the two disagree for 17..24 members, and
+//on Win64 also for 33..56. The real size is taken from RTTI. Returns the TypeInfo
+//and the Delphi size of the native set type a PS set export maps to: a type
+//with the same name and size if there is one, otherwise the same name at
+//Delphi's size. nil when RTTI has no such type.
+function FindNativeSetType(const AExportName: string; APSByteSize: Integer; out ASize: Integer): PTypeInfo;
+var
+  ctx: TRttiContext;
+  RttiType: TRttiType;
+begin
+  Result := nil;
+  ASize := 0;
+  for RttiType in ctx.GetTypes do
+    if (RttiType.TypeKind = tkSet) and RttiType.Name.ToUpper.EndsWith(AExportName) then
+    begin
+      if RttiType.TypeSize = APSByteSize then
+      begin
+        ASize := APSByteSize;
+        Exit(RttiType.Handle);
+      end;
+      if Result = nil then
+      begin
+        Result := RttiType.Handle;
+        ASize := RttiType.TypeSize;
+      end;
+    end;
+end;
+{$ENDIF}
 
 function PSVariantIFCToTValue(aValue: PPSVariantIFC; var aValues: TArray<TValue>; var aValues1: TArray<TValue>; var aValues2: TArray<TVarRec>; aOpenArrayData: POpenArrayData; aSelf: TPSExec): Boolean;
 //aValues1, aValues2 and aOpenArrayData are just used to keep references alive when this function exits, you can put anything in them
@@ -49,6 +82,8 @@ var
   methodValue: TValue;
   rttiType: TRttiType;
   elemIFC: TPSVariantIFC;
+  setSize, nativeSize: Integer;
+  setU32: Cardinal;
 begin
   Result := Assigned(aValue^.aType) and (IPointer(aValue^.aType) > $FFFF);
   if Result then
@@ -340,13 +375,39 @@ begin
       //23
       btSet:
         begin
-          case TPSTypeRec_Set(aValue^.aType).aByteSize  of
+          setSize := TPSTypeRec_Set(aValue^.aType).aByteSize;
+          case setSize of
             1: aValues := aValues + [TValue.From<Byte>(pbyte(aValue^.dta)^)];
             2: aValues := aValues + [TValue.From<Word>(pWord(aValue^.dta)^)];
-            3,
+            3:
+              begin
+                //Delphi has no 3-byte sets: zero-extend the 3 script bytes
+                //instead of reading a 4th one past the variable
+                setU32 := 0;
+                Move(aValue^.dta^, setU32, 3);
+                aValues := aValues + [TValue.From<Cardinal>(setU32)];
+              end;
             4: aValues := aValues + [TValue.From<Cardinal>(pCardinal(aValue^.dta)^)];
           else
-            aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+            begin
+              nativeSize := 0;
+              {$IFNDEF FPC}
+              FindNativeSetType(String(aValue^.aType.FExportName), setSize, nativeSize);
+              {$ENDIF}
+              //Passed by reference, and the callee reads its own set size from
+              //the buffer: when that is wider than the script variable, hand
+              //over a zero-padded copy
+              if nativeSize > setSize then
+              begin
+                aOpenArrayData^.DataSet := aOpenArrayData^.DataSet + [nil];
+                SetLength(aOpenArrayData^.DataSet[High(aOpenArrayData^.DataSet)], nativeSize);
+                FillChar(aOpenArrayData^.DataSet[High(aOpenArrayData^.DataSet)][0], nativeSize, 0);
+                Move(aValue^.dta^, aOpenArrayData^.DataSet[High(aOpenArrayData^.DataSet)][0], setSize);
+                aValues := aValues + [TValue.From<Pointer>(@aOpenArrayData^.DataSet[High(aOpenArrayData^.DataSet)][0])];
+              end
+              else
+                aValues := aValues + [TValue.From<Pointer>(aValue^.dta)];
+            end;
           end;
         end;
       //24
@@ -372,12 +433,27 @@ begin
     end;  { case }
 end;
 
+type
+  //A var set parameter whose Delphi type is wider than the script variable:
+  //the callee writes into Buf, and the script's share is copied back
+  TSetBounce = record
+    PSData: Pointer;
+    Buf: TArray<Byte>;
+    CopyLen: Integer;
+  end;
+
 function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var SysCalConv : TCallConv;
     Args: TArray<TValue>;
     old_Args: TArray<TValue>;
     old_Args2: TArray<TVarRec>;
     OpenArrayData: TOpenArrayData;
+    SetBounces: TArray<TSetBounce>;
+    SetSize, NativeSize: Integer;
+    SetU32: Cardinal;
+    {$IFNDEF FPC}
+    SetTypeInfo: PTypeInfo;
+    {$ENDIF}
     Arg : TValue;
     i : Integer;
     fvar: PPSVariantIFC;
@@ -418,7 +494,33 @@ begin
     if fvar.varparam then
     begin { var param }
       case fvar.aType.BaseType of
-        btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
+        btSet:
+          begin
+            Arg := TValue.From<Pointer>( Pointer(fvar.dta) );
+            //The callee writes its own set size through this pointer. Delphi
+            //has no 3-byte sets, and above 4 bytes its size comes from RTTI:
+            //when it is wider than the script variable, pass a buffer of that
+            //size and copy the script's share back after the call
+            SetSize := TPSTypeRec_Set(fvar.aType).aByteSize;
+            NativeSize := 0;
+            if SetSize = 3 then
+              NativeSize := 4
+            {$IFNDEF FPC}
+            else if SetSize > 4 then
+              FindNativeSetType(String(fvar.aType.FExportName), SetSize, NativeSize)
+            {$ENDIF};
+            if NativeSize > SetSize then
+            begin
+              SetLength(SetBounces, Length(SetBounces) + 1);
+              SetBounces[High(SetBounces)].PSData := fvar.dta;
+              SetBounces[High(SetBounces)].CopyLen := SetSize;
+              SetLength(SetBounces[High(SetBounces)].Buf, NativeSize);
+              FillChar(SetBounces[High(SetBounces)].Buf[0], NativeSize, 0);
+              Move(fvar.dta^, SetBounces[High(SetBounces)].Buf[0], SetSize);
+              Arg := TValue.From<Pointer>( @SetBounces[High(SetBounces)].Buf[0] );
+            end;
+          end;
+        btArray, btVariant, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
         btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency,
         btUnicodeString
         {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
@@ -555,18 +657,32 @@ begin
           case TPSTypeRec_Set(res.aType).aByteSize  of
             1: byte(res.Dta^) := Byte(Invoke(Address,Args,SysCalConv,TypeInfo(Byte),IsStatic).AsInteger);
             2: word(res.Dta^) := word(Invoke(Address,Args,SysCalConv,TypeInfo(Word),IsStatic).AsInteger);
-            3,
+            3:
+              begin
+                //Delphi has no 3-byte sets: take the 4-byte result and keep
+                //only the 3 bytes the script variable has
+                SetU32 := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),IsStatic).AsInteger);
+                Move(SetU32, res.Dta^, 3);
+              end;
             4: Longint(res.Dta^) := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),IsStatic).AsInteger);
             {$IFNDEF FPC}
             else
             begin
-              for RttiType in ctx.GetTypes do
-                if (RttiType.Name.ToUpper.EndsWith(String(res.aType.FExportName))) and (RttiType.TypeKind = tkSet)
-                  and (RttiType.TypeSize = TPSTypeRec_Set(res.aType).aByteSize) then
-                begin
-                  Invoke(Address,Args,SysCalConv,RttiType.Handle,IsStatic).ExtractRawData(res.dta);
-                  Break;
-                end;
+              //The size is a preference, not a filter: on Win64 Delphi keeps
+              //e.g. a 44-member set in 8 bytes where PS has 6, and filtering on
+              //size skipped the call altogether
+              SetSize := TPSTypeRec_Set(res.aType).aByteSize;
+              SetTypeInfo := FindNativeSetType(String(res.aType.FExportName), SetSize, NativeSize);
+              if SetTypeInfo <> nil then
+              begin
+                ResValue := Invoke(Address,Args,SysCalConv,SetTypeInfo,IsStatic);
+                //Copy only what both sides have
+                if NativeSize < SetSize then
+                  FillChar(res.dta^, SetSize, 0)
+                else
+                  NativeSize := SetSize;
+                Move(ResValue.GetReferenceToRawData^, res.dta^, NativeSize);
+              end;
             end;
             {$ENDIF}
           end;
@@ -606,6 +722,11 @@ begin
         Exit;
     end;  { case }
   end; //assigned(res)
+
+  //var sets that travelled through a wider buffer: give the callee's writes back
+  for i := 0 to High(SetBounces) do
+    Move(SetBounces[i].Buf[0], SetBounces[i].PSData^, SetBounces[i].CopyLen);
+
   SetLength(Args, 0);
   SetLength(old_Args, 0);
   SetLength(old_Args2, 0);

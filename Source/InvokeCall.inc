@@ -386,6 +386,7 @@ var SysCalConv : TCallConv;
     ctx: TRTTIContext;
     RttiType : TRttiType;
     ResValue : TValue;
+    ResMethod : TMethod;
 begin
   Result := False;
   IsStatic := _Self = nil;
@@ -532,11 +533,19 @@ begin
       {$ENDIF}
       //21
       btProcPtr:
-        {$IFDEF FPC}
-          TMethod(res.dta^) := TMethod(Invoke(Address,Args,SysCalConv,TypeInfo(TMethod),IsStatic).AsOrdinal);
-        {$ELSE}
-          TMethod(res.dta^) := Invoke(Address,Args,SysCalConv,TypeInfo(TMethod),IsStatic).AsType<TMethod>;
-        {$ENDIF}
+        begin
+          {$IFDEF FPC}
+          ResMethod := TMethod(Invoke(Address,Args,SysCalConv,TypeInfo(TMethod),IsStatic).AsOrdinal);
+          {$ELSE}
+          ResMethod := Invoke(Address,Args,SysCalConv,TypeInfo(TMethod),IsStatic).AsType<TMethod>;
+          {$ENDIF}
+          // A proc-ptr variable is three slots (ProcNo, Self, Ptr), and only
+          // ProcNo = 0 makes the runtime treat Self/Ptr as a native method
+          // (see CM_PV in TPSExec.RunLine).
+          Pointer(res.dta^) := nil;
+          Pointer(Pointer(IPointer(res.dta) + PointerSize)^) := ResMethod.Data;
+          Pointer(Pointer(IPointer(res.dta) + PointerSize2)^) := ResMethod.Code;
+        end;
       //22
       {$IFNDEF FPC}
       btStaticArray:

@@ -38,6 +38,12 @@ type
     function TranslatePosition(Proc, Position: Cardinal): Cardinal;
     
     function TranslatePositionEx(Proc, Position: Cardinal; var Pos, Row, Col: Cardinal; var Fn: tbtstring): Boolean;
+
+    { True when any opcode of any procedure maps to source row Row. This is
+      the exact "may a breakpoint sit on this line" test for IDEs - only
+      meaningful while DebugDataLoaded is True. Fn filters by source/module
+      name ('' = any file). }
+    function HasCodeAtRow(Row: Cardinal; const Fn: tbtstring = ''): Boolean;
     
     procedure LoadDebugData(const Data: tbtstring);
 	
@@ -271,6 +277,32 @@ begin
   c^.FParamNames := TIfStringList.Create;
   FProcs.Add(c);
   REsult := c;
+end;
+
+function TPSCustomDebugExec.HasCodeAtRow(Row: Cardinal; const Fn: tbtstring): Boolean;
+var
+  i, j: Longint;
+  fi: PFunctionInfo;
+  r: PPositionData;
+begin
+  Result := False;
+  if FDebugDataForProcs = nil then
+    Exit;
+  for i := 0 to FDebugDataForProcs.Count - 1 do
+  begin
+    fi := FDebugDataForProcs[i];
+    if fi^.FPositionTable = nil then
+      Continue;
+    for j := 0 to fi^.FPositionTable.Count - 1 do
+    begin
+      r := PPositionData(fi^.FPositionTable[j]);
+      if (r^.Row = Row) and ((Fn = '') or (r^.FileName = Fn)) then
+      begin
+        Result := True;
+        Exit;
+      end;
+    end;
+  end;
 end;
 
 procedure TPSCustomDebugExec.LoadDebugData(const Data: tbtstring);

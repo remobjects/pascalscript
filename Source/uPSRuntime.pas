@@ -12564,6 +12564,10 @@ begin
   end;
 end;
 
+{$if defined(fpc) and defined(cpux86_64) and defined(unix)}
+  {$define sysv_methods_handler}
+{$ifend}
+
 {$ifdef fpc}
   {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
     {$define empty_methods_handler}
@@ -12575,9 +12579,13 @@ end;
 {$endif}
 
 {$ifdef empty_methods_handler}
+{$ifdef sysv_methods_handler}
+{$I x64sysvhandler.inc}
+{$else}
 procedure MyAllMethodsHandler;
 begin
 end;
+{$endif}
 {$else}
 
 

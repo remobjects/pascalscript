@@ -2,9 +2,9 @@
 unit CompilerTestFunctions;
 
 {$IFDEF fpc}
-  {$IFnDEF cpu86}         // Has MyAllMethodsHandler
+  {$IF not defined(cpu86) and not (defined(cpux86_64) and defined(unix))} // Have MyAllMethodsHandler
     {$define empty_methods_handler}
-  {$ENDIF}
+  {$IFEND}
 {$ENDIF}
 
 {$IFnDEF empty_methods_handler}
@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses StrUtils, SysUtils, Math, Dialogs;
+uses StrUtils, SysUtils, Math;
 //,
 //    { Project Units }
 //    ifpiir_std,

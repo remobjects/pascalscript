@@ -530,6 +530,7 @@ type
     Dta: Pointer;
     aType: TPSTypeRec;
     VarParam: Boolean;
+    ConstParam: Boolean;
   end;
   PIFPSVariantIFC = PPSVariantIFC;
   TIFPSVariantIFC = TPSVariantIFC;
@@ -10898,6 +10899,7 @@ end;
 function NewTPSVariantIFC(avar: PPSVariant; varparam: boolean): TPSVariantIFC;
 begin
   Result.VarParam := varparam;
+  Result.ConstParam := False;
   if avar = nil then
   begin
     Result.aType := nil;
@@ -10993,6 +10995,13 @@ begin
   Result^ := NewTPSVariantIFC(avar, varparam);
 end;
 
+{ d: #0 by value, #1 var, #2 const, as written by the compiler in ImportDecl }
+function NewPPSVariantIFCD(avar: PPSVariant; d: tbtchar): PPSVariantIFC;
+begin
+  Result := NewPPSVariantIFC(avar, d = #1);
+  Result^.ConstParam := d = #2;
+end;
+
 
 procedure DisposePPSVariantIFC(aVar: PPSVariantIFC);
 begin
@@ -11049,7 +11058,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n := Stack[CurrStack];
-    MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -11151,9 +11160,9 @@ begin
     n :=Stack[CurrStack];
 //    if s[i] <> #0 then
 //    begin
-//      MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
+//      MyList[i - 2] := NewPPSVariantIFCD(n, s[i]);
 //    end;
-    MyList[i - 1] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 1] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -11242,7 +11251,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n :=Stack[CurrStack];
-    MyList[i - 1] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 1] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -11411,7 +11420,7 @@ begin
   end;
   for i := length(s) downto 2 do
   begin
-    MyList[i - 2] := NewPPSVariantIFC(Stack[CurrStack], s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(Stack[CurrStack], s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -12188,7 +12197,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n := FStack[CurrStack];
-    MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -13205,7 +13214,7 @@ begin
   end;
   for i := length(s) downto 2 do
   begin
-    MyList[i - 2] := NewPPSVariantIFC(Stack[CurrStack], s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(Stack[CurrStack], s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then

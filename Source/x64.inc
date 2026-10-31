@@ -710,6 +710,15 @@ _XMM0: Double;
   end;
 
   {$IF defined(FPC) and not defined(WINDOWS)}
+  procedure StoreBigRecord(const Data: Pointer; Size: Longint);
+  var
+    n: Integer;
+  begin
+    n := Length(Stack);
+    SetLength(Stack, n + ((Size + 7) and not 7));
+    Move(Data^, Stack[n], Size);
+  end;
+
   procedure StoreSmallRecord(const Data: Pointer; t: TPSTypeRec);
   var
     cl: TSysVClasses;
@@ -904,6 +913,8 @@ _XMM0: Double;
             {$ELSE}
             if (fvar^.aType.BaseType = btRecord) and (fvar^.aType.RealSize <= 16) then
               StoreSmallRecord(fvar.Dta, fvar^.aType)
+            else if (fvar^.aType.BaseType = btRecord) and not fvar^.ConstParam then
+              StoreBigRecord(fvar.Dta, fvar^.aType.RealSize)
             else if (fvar^.aType.BaseType <> btStaticArray) and
                (fvar^.aType.RealSize <= sizeof(IPointer)) then
               StoreRegBytes(fvar.Dta, fvar^.aType.RealSize)

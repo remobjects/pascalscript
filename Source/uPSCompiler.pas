@@ -29,6 +29,9 @@ type
   EPSCompilerException = class(Exception) end;
 
   TPSParameterDecl = class(TObject)
+  public
+    { Declared const: by value records above 16 bytes travel differently on System V }
+    IsConst: Boolean;
   private
     FName: tbtString;
     FOrgName: tbtString;
@@ -1775,6 +1778,9 @@ implementation
 
 uses {$IFDEF DELPHI5}ComObj, {$ENDIF}{$IFDEF PS_FPC_HAS_COM}ComObj, {$ENDIF}Classes, typInfo;
 
+threadvar
+  ParamIsConst: Boolean;
+
 {$IFDEF DELPHI3UP}
 resourceString
 {$ELSE}
@@ -2132,7 +2138,7 @@ begin
       begin
         if Parser.CurrTokenId = CSTII_Const then
         begin
-          modifier := pmIn;
+          modifier := pmIn; ParamIsConst := True;
           Parser.Next;
         end
         else
@@ -2148,7 +2154,7 @@ begin
           Parser.Next;
         end
         else
-          modifier := pmIn;
+          begin modifier := pmIn; ParamIsConst := False; end;
         if Parser.CurrTokenId <> CSTI_Identifier then
         begin
           if Parser <> CustomParser then
@@ -2278,7 +2284,7 @@ begin
             DeclarePos := EPos;
             DeclareRow := ERow;
             DeclareCol := ECol;
-            Mode := modifier;
+            Mode := modifier; IsConst := ParamIsConst;
             OrgName := copy(VNames, 1, Pos(tbtchar('|'), VNames) - 1);
             aType := VCType;
           end;
@@ -2565,7 +2571,7 @@ begin
           end else
           if Parser.CurrTokenId = CSTII_Const then
           begin
-            Modifier := pmIn;
+            Modifier := pmIn; ParamIsConst := True;
             Parser.Next;
           end else
           if Parser.CurrTokenId = CSTII_Var then
@@ -2574,7 +2580,7 @@ begin
             Parser.Next;
           end
           else
-            modifier := pmIn;
+            begin modifier := pmIn; ParamIsConst := False; end;
           if Parser.CurrTokenId <> CSTI_Identifier then
             raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterFunction, [Name]);
           VNames := Parser.OriginalToken + '|';
@@ -2597,7 +2603,7 @@ begin
           begin
             with Decl.AddParam do
             begin
-              Mode := modifier;
+              Mode := modifier; IsConst := ParamIsConst;
               OrgName := copy(VNames, 1, Pos(tbtchar('|'), VNames) - 1);
               aType := VCType;
             end;
@@ -2640,6 +2646,8 @@ begin
     begin
       if Decl.Params[i].Mode <> pmIn then
         x.ImportDecl := x.ImportDecl + #1
+      else if Decl.Params[i].IsConst then
+        x.ImportDecl := x.ImportDecl + #2
       else
         x.ImportDecl := x.ImportDecl + #0;
     end;
@@ -3903,7 +3911,7 @@ begin
         begin
           if FParser.CurrTokenId = CSTII_Const then
           begin
-            Modifier := pmIn;
+            Modifier := pmIn; ParamIsConst := True;
             FParser.Next;
           end else
           if FParser.CurrTokenId = CSTII_Out then
@@ -3917,7 +3925,7 @@ begin
             FParser.Next;
           end
           else
-            modifier := pmIn;
+            begin modifier := pmIn; ParamIsConst := False; end;
           if FParser.CurrTokenId <> CSTI_Identifier then
           begin
             Result := nil;
@@ -3967,7 +3975,7 @@ begin
           begin
             with Decl.AddParam do
             begin
-              Mode := modifier;
+              Mode := modifier; IsConst := ParamIsConst;
               OrgName := copy(VNames, 1, Pos(tbtchar('|'), VNames) - 1);
               FType := VCType;
             end;
@@ -5134,7 +5142,7 @@ begin
         begin
           if FParser.CurrTokenId = CSTII_Const then
           begin
-            modifier := pmIn;
+            modifier := pmIn; ParamIsConst := True;
             FParser.Next;
           end
           else
@@ -5150,7 +5158,7 @@ begin
             FParser.Next;
           end
           else
-            modifier := pmIn;
+            begin modifier := pmIn; ParamIsConst := False; end;
           if FParser.CurrTokenId <> CSTI_Identifier then
           begin
             MakeError('', ecIdentifierExpected, '');
@@ -5210,7 +5218,7 @@ begin
             with FunctionDecl.AddParam do
             begin
               OrgName := copy(FunctionParamNames, 1, Pos(tbtchar('|'), FunctionParamNames) - 1);
-              Mode := modifier;
+              Mode := modifier; IsConst := ParamIsConst;
               aType := FunctionTempType;
               {$IFDEF PS_USESSUPPORT}
               DeclareUnit:=fModule;
@@ -14263,7 +14271,9 @@ begin
 
   for i := 0 to decl.ParamCount -1 do
   begin
-    if decl.GetParam(i).Mode = pmIn then
+    if (decl.GetParam(i).Mode = pmIn) and decl.GetParam(i).IsConst then
+      Result := Result + ' &'
+    else if decl.GetParam(i).Mode = pmIn then
       Result := Result + ' @'
     else
       Result := Result + ' !';
@@ -14335,6 +14345,8 @@ begin
     begin
       if pDecl.Params[i].Mode <> pmIn then
         p.ImportDecl := p.ImportDecl + #1
+      else if pDecl.Params[i].IsConst then
+        p.ImportDecl := p.ImportDecl + #2
       else
         p.ImportDecl := p.ImportDecl + #0;
     end;
@@ -16102,6 +16114,7 @@ begin
     np := AddParam;
     np.OrgName := orgp.OrgName;
     np.Mode := orgp.Mode;
+    np.IsConst := orgp.IsConst;
     np.aType := orgp.aType;
     np.DeclarePos:=orgp.DeclarePos;
     np.DeclareRow:=orgp.DeclareRow;

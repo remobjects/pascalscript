@@ -144,9 +144,9 @@ begin
     fmod := e[1];
     Delete(e, 1, 1);
     cpt := Self^.Se.GetTypeNo(StrToInt(e));
-    if (fmod <> '@') or (cpt.BaseType in [btVariant, btStaticArray]) or
+    if (fmod in ['!', '%']) or (cpt.BaseType in [btVariant, btStaticArray]) or
        ((cpt.BaseType = btSet) and (cpt.RealSize > PointerSize)) or
-       ((cpt.BaseType = btRecord) and (cpt.RealSize > 16)) then
+       ((cpt.BaseType = btRecord) and (cpt.RealSize > 16) and (fmod = '&')) then
     begin
       Tmp := CreateHeapVariant(Self^.Se.FindType2(btPointer));
       PPSVariantPointer(Tmp).DestType := cpt;
@@ -166,6 +166,12 @@ begin
             Inc(sp, 16);
           end;
         btRecord:
+          if cpt.RealSize > 16 then
+          begin
+            slot := sp;
+            Inc(sp, (cpt.RealSize + 7) and not 7);
+          end
+          else
           begin
             SmallRecord(cpt);
             slot := @buf;

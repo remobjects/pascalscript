@@ -48,9 +48,9 @@ begin
   with Cl.AddClassN(cl.FindClass('TPersistent'), 'TStrings') do
   begin
     IsAbstract := True;
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterMethod('constructor Create;');
-{$ENDIF}
+{$IFEND}
     RegisterMethod('function Add(S: string): Integer;');
     RegisterMethod('procedure Append(S: string);');
     RegisterMethod('procedure AddStrings(Strings: TStrings);');
@@ -105,9 +105,9 @@ procedure SIRegisterTSTRINGLIST(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TStrings'), 'TStringList') do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterMethod('constructor Create;');
-{$ENDIF}
+{$IFEND}
     RegisterMethod('function Find(S: string; var Index: Integer): Boolean');
     RegisterMethod('procedure Sort');
     RegisterProperty('CaseSensitive', 'Boolean', iptrw);

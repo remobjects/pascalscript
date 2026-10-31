@@ -5679,7 +5679,7 @@ function TPSPascalCompiler.ReadString: PIfRVariant;
       begin
         if UTF8Decode then
         begin
-        temp3 := temp3 + {$IFNDEF PS_NOWIDESTRING}{$IFDEF DELPHI6UP}System.{$IFDEF DELPHI2009UP}UTF8ToWidestring{$ELSE}UTF8Decode{$ENDIF}{$ENDIF}{$ENDIF}(PString(FParser.GetToken));
+        temp3 := temp3 + {$IFNDEF PS_NOWIDESTRING}{$IFDEF DELPHI6UP}System.{$IF defined(DELPHI2009UP) and not defined(FPC)}UTF8ToWidestring{$ELSE}UTF8Decode{$IFEND}{$ENDIF}{$ENDIF}(PString(FParser.GetToken));
         {$IFNDEF PS_NOWIDESTRING}wchar:=true;{$ENDIF}
         end else
           temp3 := temp3 + {$IFNDEF PS_NOWIDESTRING}tbtUnicodestring{$ENDIF}(PString(FParser.GetToken));

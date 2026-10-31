@@ -4,6 +4,9 @@
 {$ENDIF}
 
 { implementation of x64 abi }
+{$IF defined(FPC) and not defined(MSWINDOWS)}
+{$I x64sysv.inc}
+{$IFEND}
 //procedure DebugBreak; external 'Kernel32.dll';
 const
   EmptyPchar: array[0..0] of char = #0;
@@ -329,6 +332,9 @@ type
     _XMM6,              // 88
     _XMM7: Double;      // 96
     SingleBits: Integer; //104
+    _Pad: Integer;       //108
+    ExtRes: array[0..1] of IPointer; //112: x87 ST0 result
+    ResXmm1: Double;     //128
   end;
 
 procedure x64call(
@@ -493,6 +499,18 @@ asm
   movq [rsi],xmm0            // move quadword to _XMM0
   @skipresre:
 
+{$IFNDEF WINDOWS}
+  mov rax, [rbp-32]
+  movq [rax+128], xmm1
+  bt [rax+104], 9            // Extended result is in ST0
+  jnc @skipext
+  fstp tbyte ptr [rax+112]
+  @skipext:
+  bt [rax+104], 10           // Currency result is in ST0
+  jnc @skipcur
+  fistp qword ptr [rax+112]
+  @skipcur:
+{$ENDIF}
 
   pop rdx
   pop r9   // xmm0
@@ -552,6 +570,11 @@ _XMM0: Double;
         ((res^.aType.RealSize <> 8) or IsManagedType(res^.aType))
     else
     {$ENDIF}
+      {$IF defined(FPC) and not defined(MSWINDOWS)}
+      if res^.aType.BaseType = btRecord then
+        Result := res^.aType.RealSize > 16
+      else
+      {$IFEND}
       Result := res^.aType.RealSize > PointerSize;
   end;
 {$IFDEF WINDOWS}
@@ -685,6 +708,47 @@ _XMM0: Double;
     Move(Data^, RegData, Size);
     StoreReg(RegData);
   end;
+
+  {$IF defined(FPC) and not defined(WINDOWS)}
+  procedure StoreBigRecord(const Data: Pointer; Size: Longint);
+  var
+    n: Integer;
+  begin
+    n := Length(Stack);
+    SetLength(Stack, n + ((Size + 7) and not 7));
+    Move(Data^, Stack[n], Size);
+  end;
+
+  procedure StoreSmallRecord(const Data: Pointer; t: TPSTypeRec);
+  var
+    cl: TSysVClasses;
+    buf: array[0..1] of IPointer;
+    n, k, ni, nf: Integer;
+  begin
+    n := (t.RealSize + 7) div 8;
+    cl[0] := scNone;
+    cl[1] := scNone;
+    SysVWalk(t, 0, cl);
+    buf[0] := 0;
+    buf[1] := 0;
+    Move(Data^, buf, t.RealSize);
+    ni := 0;
+    nf := 0;
+    for k := 0 to n - 1 do
+      if cl[k] = scSse then
+        Inc(nf)
+      else
+        Inc(ni);
+    if (RegUsage + ni <= 6) and (RegUsageFloat + nf <= 8) then
+      for k := 0 to n - 1 do
+        if cl[k] = scSse then
+          StoreReg(Double(Pointer(@buf[k])^))
+        else
+          StoreReg(buf[k])
+    else
+      StoreStack(buf, n * 8);
+  end;
+  {$IFEND}
   
   {$IFDEF DELPHI}
   type
@@ -695,12 +759,48 @@ _XMM0: Double;
     PMethodCallData = ^TMethodCallData;
   {$ENDIF}
 
+  {$IF defined(FPC) and not defined(WINDOWS)}
+  procedure StoreRecordResult(r: PPSVariantIFC);
+  var
+    cl: TSysVClasses;
+    buf: array[0..1] of IPointer;
+    k, ni, nf: Integer;
+  begin
+    cl[0] := scNone;
+    cl[1] := scNone;
+    SysVWalk(r^.aType, 0, cl);
+    ni := 0;
+    nf := 0;
+    for k := 0 to (r^.aType.RealSize + 7) div 8 - 1 do
+      if cl[k] = scSse then
+      begin
+        if nf = 0 then
+          buf[k] := IPointer(Pointer(@_XMM0)^)
+        else
+          buf[k] := IPointer(Pointer(@Registers.ResXmm1)^);
+        Inc(nf);
+      end
+      else
+      begin
+        if ni = 0 then
+          buf[k] := _RAX
+        else
+          buf[k] := Registers._RDX;
+        Inc(ni);
+      end;
+    Move(buf, r^.Dta^, r^.aType.RealSize);
+  end;
+  {$IFEND}
+
   function GetPtr(fVar: PPSVariantIFC): Boolean;
   var
     varPtr: Pointer;
     //UseReg: Boolean;
     //tempstr: tbtstring;
     p: Pointer;
+    {$IF defined(FPC) and not defined(WINDOWS)}
+    ExtBuf: array[0..15] of Byte;
+    {$IFEND}
   begin
     Result := False;
     if FVar = nil then exit;
@@ -760,11 +860,11 @@ _XMM0: Double;
               Result := True;
               exit;
             end else begin
-            {$IFDEF FPC}
+            {$IF defined(FPC) and defined(WINDOWS)}
               StoreReg(IPointer(FVar.Dta));
             {$ELSE}
               StoreReg(IPointer(FVar.Dta^));
-            {$ENDIF}
+            {$IFEND}
             end;
           end;
         btSet,
@@ -811,7 +911,11 @@ _XMM0: Double;
               StoreReg(IPointer(fVar.Dta));
             {$ENDIF}
             {$ELSE}
-            if (fvar^.aType.BaseType <> btStaticArray) and
+            if (fvar^.aType.BaseType = btRecord) and (fvar^.aType.RealSize <= 16) then
+              StoreSmallRecord(fvar.Dta, fvar^.aType)
+            else if (fvar^.aType.BaseType = btRecord) and not fvar^.ConstParam then
+              StoreBigRecord(fvar.Dta, fvar^.aType.RealSize)
+            else if (fvar^.aType.BaseType <> btStaticArray) and
                (fvar^.aType.RealSize <= sizeof(IPointer)) then
               StoreRegBytes(fvar.Dta, fvar^.aType.RealSize)
             else
@@ -822,9 +926,20 @@ _XMM0: Double;
           begin
             StoreReg(IPointer(fVar.Dta));
           end;
+        {$IF defined(FPC) and not defined(WINDOWS)}
+        btExtended: begin { SysV: 80-bit, in memory, 16 bytes aligned }
+            FillChar(ExtBuf, SizeOf(ExtBuf), 0);
+            Move(fvar.dta^, ExtBuf, SizeOf(tbtextended));
+            StoreStack(ExtBuf, 16);
+          end;
+        btDouble: {8 bytes} begin
+            StoreReg(double(fvar.dta^));
+          end;
+        {$ELSE}
         btExtended, btDouble: {8 bytes} begin
             StoreReg(double(fvar.dta^));
           end;
+        {$IFEND}
         btCurrency: {8 bytes} begin
             StoreReg(IPointer(fvar.dta^));
           end;
@@ -946,6 +1061,12 @@ begin
     if assigned(res) and not IsSafeCall and (res^.atype.basetype = btSingle) then begin
       Registers.Singlebits  := Registers.Singlebits or 256;
     end;
+    {$IFNDEF WINDOWS}
+    if assigned(res) and not IsSafeCall and (res^.atype.basetype = btExtended) then
+      Registers.Singlebits := Registers.Singlebits or 512;
+    if assigned(res) and not IsSafeCall and (res^.atype.basetype = btCurrency) then
+      Registers.Singlebits := Registers.Singlebits or 1024;
+    {$ENDIF}
 {$IFDEF PS_RESBEFOREPARAMETERS}
    if assigned(res) and not IsSafeCall then begin
     case res^.aType.BaseType of
@@ -1003,6 +1124,11 @@ begin
             { A result that used the hidden result pointer is already in place }
             if not ResultUsesResultPointer(res) then
             {$ENDIF}
+            {$IF defined(FPC) and not defined(WINDOWS)}
+            if (res^.aType.BaseType = btRecord) and (res^.aType.RealSize <= 16) then
+              StoreRecordResult(res)
+            else
+            {$IFEND}
             begin
               case res.aType.RealSize of
                 1: byte(res.Dta^) := _RAX;
@@ -1022,7 +1148,11 @@ begin
           end;
         btSingle:      tbtsingle(res.Dta^) := _XMM0;
         btDouble:      tbtdouble(res.Dta^) := _XMM0;
+        {$IF defined(FPC) and not defined(WINDOWS)}
+        btExtended:    Move(Registers.ExtRes, res.Dta^, SizeOf(tbtextended));
+        {$ELSE}
         btExtended:    tbtextended(res.Dta^) := _XMM0;
+        {$IFEND}
         btchar,btU8, btS8:    tbtu8(res.dta^) := _RAX;
         {$IFNDEF PS_NOWIDESTRING} btWideChar, {$ENDIF} btu16, bts16:  tbtu16(res.dta^) := _RAX;
         btClass : IPointer(res.dta^) := _RAX;
@@ -1032,7 +1162,11 @@ begin
         bts64: tbts64(res.dta^) := Int64(_RAX);
         btU64: tbtu64(res.dta^) := UInt64(_RAX);
 {$ENDIF}
+        {$IF defined(FPC) and not defined(WINDOWS)}
+        btCurrency:    tbts64(res.Dta^) := Int64(Registers.ExtRes[0]);
+        {$ELSE}
         btCurrency:    tbts64(res.Dta^) := Int64(_RAX); { Currency is returned in RAX as its scaled Int64 backing, not its logical value }
+        {$IFEND}
         btInterface,
         btVariant,
         {$IFDEF x64_string_result_as_varparameter}

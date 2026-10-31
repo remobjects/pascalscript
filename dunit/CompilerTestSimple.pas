@@ -45,7 +45,7 @@ type
 
 implementation
 
-uses StrUtils, SysUtils, Math, Dialogs;
+uses StrUtils, SysUtils, Math;
 //,
 //    { Project Units }
 //    ifpiir_std,

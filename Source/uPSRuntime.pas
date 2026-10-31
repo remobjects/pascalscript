@@ -530,6 +530,7 @@ type
     Dta: Pointer;
     aType: TPSTypeRec;
     VarParam: Boolean;
+    ConstParam: Boolean;
   end;
   PIFPSVariantIFC = PPSVariantIFC;
   TIFPSVariantIFC = TPSVariantIFC;
@@ -9167,7 +9168,7 @@ begin
                 bts64: dec(tbts64(vd.P^));
                 btU64: dec(tbtu64(vd.P^));
 {$ENDIF}
-                btVariant: dec(Variant(vd.P^));
+                btVariant: Variant(vd.P^) := Variant(vd.P^) - 1;
               else
                 begin
                   CMD_Err(ErTypeMismatch);
@@ -9200,7 +9201,7 @@ begin
                 bts64: Inc(tbts64(vd.P^));
                 btU64: Inc(tbtu64(vd.P^));
 {$ENDIF}
-                btVariant: Inc(Variant(vd.P^));
+                btVariant: Variant(vd.P^) := Variant(vd.P^) + 1;
               else
                 begin
                   CMD_Err(ErTypeMismatch);
@@ -10898,6 +10899,7 @@ end;
 function NewTPSVariantIFC(avar: PPSVariant; varparam: boolean): TPSVariantIFC;
 begin
   Result.VarParam := varparam;
+  Result.ConstParam := False;
   if avar = nil then
   begin
     Result.aType := nil;
@@ -10993,6 +10995,13 @@ begin
   Result^ := NewTPSVariantIFC(avar, varparam);
 end;
 
+{ d: #0 by value, #1 var, #2 const, as written by the compiler in ImportDecl }
+function NewPPSVariantIFCD(avar: PPSVariant; d: tbtchar): PPSVariantIFC;
+begin
+  Result := NewPPSVariantIFC(avar, d = #1);
+  Result^.ConstParam := d = #2;
+end;
+
 
 procedure DisposePPSVariantIFC(aVar: PPSVariantIFC);
 begin
@@ -11049,7 +11058,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n := Stack[CurrStack];
-    MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -11151,9 +11160,9 @@ begin
     n :=Stack[CurrStack];
 //    if s[i] <> #0 then
 //    begin
-//      MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
+//      MyList[i - 2] := NewPPSVariantIFCD(n, s[i]);
 //    end;
-    MyList[i - 1] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 1] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -11242,7 +11251,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n :=Stack[CurrStack];
-    MyList[i - 1] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 1] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -11411,7 +11420,7 @@ begin
   end;
   for i := length(s) downto 2 do
   begin
-    MyList[i - 2] := NewPPSVariantIFC(Stack[CurrStack], s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(Stack[CurrStack], s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -12188,7 +12197,7 @@ begin
   for i := length(s) downto 2 do
   begin
     n := FStack[CurrStack];
-    MyList[i - 2] := NewPPSVariantIFC(n, s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(n, s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then
@@ -12517,6 +12526,57 @@ begin
   Result := (Modifier = '%') or (Modifier = '!') or AlwaysAsVariable(aType);
 end;
 
+function ResultAsRegister(b: TPSTypeRec): Boolean;
+begin
+  case b.BaseType of
+    btSingle,
+    btDouble,
+    btExtended,
+    btCurrency,
+    btU8,
+    bts8,
+    bts16,
+    btu16,
+    bts32,
+    btu32,
+{$IFDEF PS_FPCSTRINGWORKAROUND}
+    btString,
+{$ENDIF}
+{$IFNDEF PS_NOINT64}
+    bts64,
+    btU64,
+{$ENDIF}
+    btPChar,
+{$IFNDEF PS_NOWIDESTRING}
+    btWideChar,
+{$ENDIF}
+    btChar,
+    btclass,
+    btEnum: Result := true;
+{$IFDEF DELPHI}
+    { The Delphi x64 ABI returns a record of 1, 2, or 4 bytes in RAX, and
+      the x86 ABI a record of 1 or 2 bytes in AL/AX (see System.Rtti's
+      UseResultPointer). Records of these sizes never contain a managed
+      field, so no managed check is needed. A record of pointer size is
+      also returned in RAX/EAX, but only when it contains no managed
+      field. Static arrays follow the same rule: UseResultPointer treats
+      tkArray like tkRecord. }
+    btRecord, btStaticArray: Result := (b.RealSize in [1, 2{$IFDEF CPU64}, 4{$ENDIF}]) or
+      ((b.RealSize = PointerSize) and not IsManagedType(b));
+{$ENDIF}
+    btSet: Result := b.RealSize <= PointerSize;
+{$IFNDEF DELPHI}
+    btStaticArray: Result := b.RealSize <= PointerSize;
+{$ENDIF}
+  else
+    Result := false;
+  end;
+end;
+
+{$if defined(fpc) and defined(cpux86_64) and defined(unix)}
+  {$define sysv_methods_handler}
+{$ifend}
+
 {$ifdef fpc}
   {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
     {$define empty_methods_handler}
@@ -12528,9 +12588,13 @@ end;
 {$endif}
 
 {$ifdef empty_methods_handler}
+{$ifdef sysv_methods_handler}
+{$I x64sysvhandler.inc}
+{$else}
 procedure MyAllMethodsHandler;
 begin
 end;
+{$endif}
 {$else}
 
 
@@ -12661,52 +12725,6 @@ end;
 {$ENDIF}
 {$endif CPU64}
 
-function ResultAsRegister(b: TPSTypeRec): Boolean;
-begin
-  case b.BaseType of
-    btSingle,
-    btDouble,
-    btExtended,
-    btCurrency,
-    btU8,
-    bts8,
-    bts16,
-    btu16,
-    bts32,
-    btu32,
-{$IFDEF PS_FPCSTRINGWORKAROUND}
-    btString,
-{$ENDIF}
-{$IFNDEF PS_NOINT64}
-    bts64,
-    btU64,
-{$ENDIF}
-    btPChar,
-{$IFNDEF PS_NOWIDESTRING}
-    btWideChar,
-{$ENDIF}
-    btChar,
-    btclass,
-    btEnum: Result := true;
-{$IFDEF DELPHI}
-    { The Delphi x64 ABI returns a record of 1, 2, or 4 bytes in RAX, and
-      the x86 ABI a record of 1 or 2 bytes in AL/AX (see System.Rtti's
-      UseResultPointer). Records of these sizes never contain a managed
-      field, so no managed check is needed. A record of pointer size is
-      also returned in RAX/EAX, but only when it contains no managed
-      field. Static arrays follow the same rule: UseResultPointer treats
-      tkArray like tkRecord. }
-    btRecord, btStaticArray: Result := (b.RealSize in [1, 2{$IFDEF CPU64}, 4{$ENDIF}]) or
-      ((b.RealSize = PointerSize) and not IsManagedType(b));
-{$ENDIF}
-    btSet: Result := b.RealSize <= PointerSize;
-{$IFNDEF DELPHI}
-    btStaticArray: Result := b.RealSize <= PointerSize;
-{$ENDIF}
-  else
-    Result := false;
-  end;
-end;
 
 function SupportsRegister(b: TPSTypeRec): Boolean;
 begin
@@ -13196,7 +13214,7 @@ begin
   end;
   for i := length(s) downto 2 do
   begin
-    MyList[i - 2] := NewPPSVariantIFC(Stack[CurrStack], s[i] <> #0);
+    MyList[i - 2] := NewPPSVariantIFCD(Stack[CurrStack], s[i]);
     inc(CurrStack);
   end;
   if s[1] <> #0 then

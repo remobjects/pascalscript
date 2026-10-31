@@ -56,7 +56,7 @@ type
     FPlugin: TPSPlugin;
     procedure SetPlugin(const Value: TPSPlugin);
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: {$IFDEF FPC}AnsiString{$ELSE}string{$ENDIF}; override;
   public
     procedure Assign(Source: TPersistent); override; //Birb
   published
@@ -1484,7 +1484,7 @@ begin
    inherited;
 end;
 
-function TPSPluginItem.GetDisplayName: string;
+function TPSPluginItem.GetDisplayName: {$IFDEF FPC}AnsiString{$ELSE}string{$ENDIF};
 begin
   if FPlugin <> nil then
     Result := string(FPlugin.Name)

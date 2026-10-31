@@ -205,9 +205,9 @@ procedure RIRegisterTStrings(cl: TPSRuntimeClassImporter; Streams: Boolean); // 
 begin
   with Cl.Add(TStrings) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStrings.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
 
     RegisterVirtualMethod(@TStrings.Add, 'Add');
     RegisterMethod(@TStrings.Append, 'Append');
@@ -327,9 +327,9 @@ procedure RIRegisterTStrings(cl: TPSRuntimeClassImporter; Streams: Boolean); // 
 begin
   with Cl.Add(TStrings) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStrings.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
 
     RegisterVirtualMethod(@TStrings.Add, 'Add');
     RegisterMethod(@TStrings.Append, 'Append');
@@ -453,9 +453,9 @@ procedure RIRegisterTSTRINGLIST(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGLIST) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStringList.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
     RegisterVirtualMethod(@TStringList.FIND, 'Find');
     RegisterVirtualMethod(@TStringList.SORT, 'Sort');
     RegisterPropertyHelper(@TStringList.CASESENSITIVE_R, @TStringList.CASESENSITIVE_W, 'CaseSensitive');
@@ -484,9 +484,9 @@ procedure RIRegisterTSTRINGLIST(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGLIST) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStringList.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
     RegisterVirtualMethod(@TSTRINGLIST.FIND, 'Find');
     RegisterVirtualMethod(@TSTRINGLIST.SORT, 'Sort');
     RegisterPropertyHelper(@TSTRINGLISTCASESENSITIVE_R, @TSTRINGLISTCASESENSITIVE_W, 'CaseSensitive');

@@ -35,8 +35,7 @@ type
 
 implementation
 
-uses StrUtils, SysUtils, Math,
-  Dialogs;//,
+uses StrUtils, SysUtils, Math;//,
     { Project Units }
     //ifpiir_std,
     //ifpii_std,
@@ -64,10 +63,10 @@ procedure TCompilerTestBase.SetUp;
 begin
     inherited;
     CompExec := TIFPS3CompExec.Create(nil);
-    CompExec.OnCompile := {$IFDEF FPC}@{$ENDIF}OnCompile;
-    CompExec.OnExecute := {$IFDEF FPC}@{$ENDIF}OnExecute;
-    CompExec.OnCompImport := {$IFDEF FPC}@{$ENDIF}OnCompImport;
-    CompExec.OnExecImport := {$IFDEF FPC}@{$ENDIF}OnExecImport;
+    CompExec.OnCompile := {$IFDEF FPC_OBJFPC}@{$ENDIF}OnCompile;
+    CompExec.OnExecute := {$IFDEF FPC_OBJFPC}@{$ENDIF}OnExecute;
+    CompExec.OnCompImport := {$IFDEF FPC_OBJFPC}@{$ENDIF}OnCompImport;
+    CompExec.OnExecImport := {$IFDEF FPC_OBJFPC}@{$ENDIF}OnExecImport;
 end;
 
 procedure TCompilerTestBase.TearDown;

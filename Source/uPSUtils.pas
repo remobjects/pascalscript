@@ -633,7 +633,7 @@ function FastLowerCase(const s: TbtString): TbtString;
 
 function Fw(const S: TbtString): TbtString;
 
-function IntToStr(I: LongInt): TbtString;
+function IntToStr(I: Int64): TbtString;
 
 function StrToIntDef(const S: TbtString; Def: LongInt): LongInt;
 
@@ -758,7 +758,7 @@ begin
 end;
 //-------------------------------------------------------------------
 
-function IntToStr(I: LongInt): TbtString;
+function IntToStr(I: Int64): TbtString;
 var
   s: tbtstring;
 begin

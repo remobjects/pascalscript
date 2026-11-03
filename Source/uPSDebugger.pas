@@ -29,6 +29,8 @@ type
   protected
     
     procedure ClearDebug; virtual;
+    { looks the current routine's debug record up }
+    procedure FindCurrentDebugProc;
   public
     
     function GetCurrentProcNo: Cardinal;
@@ -194,9 +196,23 @@ begin
   inherited Destroy;
 end;
 
+procedure TPSCustomDebugExec.FindCurrentDebugProc;
+var
+  lIdx: Longint;
+begin
+  FLastProc := FCurrProc;
+  FCurrentDebugProc := nil;
+  for lIdx := 0 to FDebugDataForProcs.Count -1 do
+    if PFunctionInfo(FDebugDataForProcs[lIdx])^.Func = FLastProc then
+    begin
+      FCurrentDebugProc := FDebugDataForProcs[lIdx];
+      break;
+    end;
+end;
+
 function TPSCustomDebugExec.GetCurrentPosition: Cardinal;
 begin
-  Result := TranslatePosition(GetCurrentProcNo, 0);
+  Result := TranslatePosition(GetCurrentProcNo, FCurrentPosition);
 end;
 
 function TPSCustomDebugExec.GetCurrentProcNo: Cardinal;
@@ -216,6 +232,10 @@ end;
 
 function TPSCustomDebugExec.GetCurrentProcParams: TIfStringList;
 begin
+  { a script routine that native code ran, or the end of a run, can have
+    changed the current routine since the record was looked up }
+  if FLastProc <> FCurrProc then
+    FindCurrentDebugProc;
   if FCurrentDebugProc <> nil then
   begin
     Result := PFunctionInfo(FCurrentDebugProc)^.FParamNames;
@@ -224,6 +244,8 @@ end;
 
 function TPSCustomDebugExec.GetCurrentProcVars: TIfStringList;
 begin
+  if FLastProc <> FCurrProc then
+    FindCurrentDebugProc;
   if FCurrentDebugProc <> nil then
   begin
     Result := PFunctionInfo(FCurrentDebugProc)^.FVariableNames;
@@ -546,15 +568,29 @@ var
   DebugProc: PFunctionInfo;
   Name: tbtString;
   I: Integer;
+  V: PPSVariant;
 begin
-  Result := ProcNames[GetProcIndex(FCurrProc)] + '(' +
-            ParseParams(GetCurrentProcParams, FCurrStackBase) + ')';
+  { named as the walk below names a caller }
+  I := GetProcIndex(FCurrProc);
+  if I <= 0 then
+  begin
+    if Assigned(FCurrProc) then
+      Name := FCurrProc.ExportName
+    else
+      Name := '';
+  end else
+    Name := ProcNames[I];
+  Result := Name + '(' + ParseParams(GetCurrentProcParams, FCurrStackBase) + ')';
   Count := 1;
 
   StackBase := FCurrStackBase;
 
   while StackBase > 0 do
   begin
+    { the run's entry routine has no return address at its stack base }
+    V := FStack[StackBase];
+    if (V = nil) or (V.FType <> FReturnAddressType) then
+      Break;
     DebugProc := nil;
 
     for I := 0 to FDebugDataForProcs.Count -1 do
@@ -583,6 +619,25 @@ begin
   end;
 end;
 
+{ the index of the first entry of aTable -- a routine's positions, which the
+  compiler writes in code order -- at or after aPosition; Count when none is }
+function _FirstPositionFrom(aTable: TIfList; aPosition: Cardinal): Longint;
+var
+  lLow, lHigh, lMid: Longint;
+begin
+  lLow := 0;
+  lHigh := Longint(aTable.Count);
+  while lLow < lHigh do
+  begin
+    lMid := lLow + (lHigh - lLow) div 2;
+    if PPositionData(aTable[lMid])^.Position < aPosition then
+      lLow := lMid + 1
+    else
+      lHigh := lMid;
+  end;
+  Result := lLow;
+end;
+
 { TPSDebugExec }
 procedure TPSDebugExec.ClearDebug;
 begin
@@ -604,23 +659,16 @@ var
 begin
   inherited RunLine;
   if not DebugEnabled then exit;
+  { a line hook that stopped the script: the instruction does not run, nor
+    does its source line }
+  if FStatus <> isRunning then exit;
   if FCurrProc <> FLastProc then
-  begin
-    FLastProc := FCurrProc;
-    FCurrentDebugProc := nil;
-    for i := 0 to FDebugDataForProcs.Count -1 do
-    begin
-      if PFunctionInfo(FDebugDataForProcs[I])^.Func = FLastProc then
-      begin
-        FCurrentDebugProc := FDebugDataForProcs[I];
-        break;
-      end;
-    end;
-  end;
+    FindCurrentDebugProc;
   if FCurrentDebugProc <> nil then
   begin
     pt := PFunctionInfo(FCurrentDebugProc)^.FPositionTable;
-    for i := 0 to pt.Count -1 do
+    i := _FirstPositionFrom(pt, FCurrentPosition);
+    if i < Longint(pt.Count) then
     begin
       r := pt[I];
       if r^.Position = FCurrentPosition then
@@ -630,7 +678,6 @@ begin
         FCurrentCol := r^.Col;
         FCurrentFile := r^.FileName;
         SourceChanged;
-        break;
       end;
     end;
   end else
@@ -645,7 +692,13 @@ begin
     if @FOnIdleCall <> nil then
     begin
       FOnIdleCall(Self);
-    end else break; // endless loop
+    end else
+    begin
+      { no idle call to wait in: the executor's own pause, as Pause takes
+        without one }
+      FDebugMode := dmRun;
+      inherited Pause;
+    end;
   end;
 end;
 
@@ -667,7 +720,10 @@ procedure TPSDebugExec.SourceChanged;
         V := FStack.Items[I];
         if (V = nil) or (V.FType <> FReturnAddressType) then
           raise Exception.Create(RPS_ExpectedReturnAddressStackBase);
-        if (PPSVariantReturnAddress(V).Addr.ProcNo = FStepOverProc) and
+        { a return address that names no routine is RunProc's: native code
+          called by the routine at that stack base runs this script routine }
+        if ((PPSVariantReturnAddress(V).Addr.ProcNo = FStepOverProc) or
+            (PPSVariantReturnAddress(V).Addr.ProcNo = nil)) and
            (PPSVariantReturnAddress(V).Addr.StackBase = FStepOverStackBase) then
         begin
           { We are, so don't pause }
@@ -701,7 +757,11 @@ end;
 
 procedure TPSDebugExec.Pause;
 begin
-  FDebugMode := dmPaused;
+  { the debugger's wait at the next line needs an idle call to wait in }
+  if @FOnIdleCall = nil then
+    inherited Pause
+  else
+    FDebugMode := dmPaused;
 end;
 
 procedure TPSDebugExec.Stop;

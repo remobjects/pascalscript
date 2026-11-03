@@ -36,3 +36,8 @@
   {$ifend}
   {$DEFINE DELPHI3UP}
   {$DEFINE DELPHI6UP}
+  { fcl-db declares TObjectField, TArrayField, TField.ParentField, TFieldDefs.ParentDef,
+    TDataSet.SparseArrays and TFieldDef's child definitions from Free Pascal 3.2.4 on }
+  {$IF FPC_FULLVERSION < 30204}
+    {$DEFINE PS_FCLDB_NO_OBJECT_FIELD}
+  {$IFEND}

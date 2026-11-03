@@ -189,7 +189,7 @@ begin
   end;
 end;
 
-function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+function TPSExec.PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   rint: Trint;			{ registers r3 to r10 }
   rfloat: Trfloat;		{ registers f1 to f13 }

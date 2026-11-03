@@ -32,19 +32,42 @@ begin
 	end;
 end;
 
-procedure SIRegisterTPOPUPMENU(CL: TPSPascalCompiler);
+{ The members naming a menu type of the classes registered before it: their own
+  declaration names a type the compiler did not hold yet, and was dropped. }
+procedure _RegisterMenuMembers(Cl: TPSPascalCompiler);
+const
+  cClasses: array[0..17] of AnsiString = ('TGroupBox', 'TLabel', 'TEdit', 'TMemo', 'TComboBox',
+    'TButton', 'TCheckBox', 'TRadioButton', 'TListBox', 'TScrollBar', 'TImage', 'TPaintBox',
+    'TPanel', 'TNotebook', 'THeader', 'TRadioGroup', 'TScrollBox', 'TForm');
 var
-	cc: TPSCompileTimeClass;
+  lClass    : TPSCompileTimeClass;
+  lItem     : TPSDelphiClassItem;
+  lClassIdx : Integer;
+begin
+  for lClassIdx := Low(cClasses) to High(cClasses) do begin
+    lClass := Cl.FindClass(cClasses[lClassIdx]);
+    if Assigned(lClass) and not lClass.Property_Find('POPUPMENU', lItem) then
+      lClass.RegisterProperty('PopupMenu', 'TPopupMenu', iptRW);
+  end;
+  lClass := Cl.FindClass('TForm');
+  if Assigned(lClass) then begin
+    if not lClass.Property_Find('MENU', lItem) then
+      lClass.RegisterProperty('Menu', 'TMainMenu', iptRW);
+    if not lClass.Property_Find('OBJECTMENUITEM', lItem) then
+      lClass.RegisterProperty('ObjectMenuItem', 'TMenuItem', iptRW);
+    if not lClass.Property_Find('WINDOWMENU', lItem) then
+      lClass.RegisterProperty('WindowMenu', 'TMenuItem', iptRW);
+  end;
+  lClass := Cl.FindClass('TMenuItem');
+  if Assigned(lClass) and not lClass.Func_Find('GETPARENTMENU', lItem) then
+    lClass.RegisterMethod('function GetParentMenu: TMenu');
+end;
+
+procedure SIRegisterTPOPUPMENU(CL: TPSPascalCompiler);
 begin
 	With cl.AddClassN(Cl.FindClass('TMenu'),'TPopupMenu') do
 	begin
-		cc := Cl.FindClass('TLabel');
-		if cc <> nil then
-			RegisterProperty('PopupMenu', 'TPopupMenu', iptRW);
-		with Cl.FindClass('TForm') do
-		begin
-			RegisterProperty('PopupMenu', 'TPopupMenu', iptRW);
-		end;
+		_RegisterMenuMembers(Cl);
 	RegisterMethod('constructor Create(AOwner: TComponent)');
 	RegisterMethod('procedure Popup(X, Y: Integer)');
 	RegisterProperty('PopupComponent', 'TComponent', iptrw);
@@ -77,8 +100,9 @@ begin
     RegisterMethod('constructor Create(AOwner: TComponent)');
     RegisterMethod('function DispatchCommand(ACommand: Word): Boolean');
     RegisterMethod('function DispatchPopup(AHandle: HMENU): Boolean');
-    RegisterMethod('function FindItem(Value: Integer; Kind: TFindItemKind): TMenuItem');
-    RegisterMethod('function GetHelpContext(Value: Integer; ByCommand: Boolean): THelpContext');
+    { the searches' value is as wide as a menu handle in Delphi's declaration }
+    RegisterMethod('function FindItem(Value: ' + {$IFDEF FPC}'Integer'{$ELSE}'NativeUInt'{$ENDIF} + '; Kind: TFindItemKind): TMenuItem');
+    RegisterMethod('function GetHelpContext(Value: ' + {$IFDEF FPC}'Integer'{$ELSE}'NativeUInt'{$ENDIF} + '; ByCommand: Boolean): THelpContext');
     RegisterProperty('Images', 'TCustomImageList', iptrw);
     RegisterMethod('function IsRightToLeft: Boolean');
     RegisterMethod('procedure ParentBiDiModeChanged(AControl: TObject)');
@@ -152,12 +176,18 @@ end;
 
 procedure SIRegister_Menus(Cl: TPSPascalCompiler);
 begin
+  if Cl.FindType('THelpContext') = nil then
+    Cl.AddTypeS('THelpContext', 'LongInt');
   Cl.AddTypeS('HMENU', 'NativeUInt');
   Cl.AddTypeS('HACCEL', 'NativeUInt');
 
   cl.addClassN(cl.FindClass('Exception'),'EMenuError');
   Cl.addTypeS('TMenuBreak', '(mbNone, mbBreak, mbBarBreak)');
 {$IFNDEF FPC}
+  if Cl.FindType('TOwnerDrawState') = nil then begin
+    Cl.addTypeS('TEOwnerDrawState', '(odSelected, odGrayed, odDisabled, odChecked, odFocused, odDefault, odHotLight, odInactive, odNoAccel, odNoFocusRect, odReserved1, odReserved2, odComboBoxEdit)');
+    Cl.AddTypeS('TOwnerDrawState', 'set of TEOwnerDrawState');
+  end;
   Cl.addTypeS('TMenuDrawItemEvent', 'procedure (Sender: TObject; ACanvas: TCanvas; ARect: TRect; Selected: Boolean)');
 
   Cl.addTypeS('TAdvancedMenuDrawItemEvent', 'procedure (Sender: TObject; ACanvas: TCanvas; ARect: TRect; State: TOwnerDrawState)');
@@ -199,9 +229,9 @@ begin
   Cl.AddDelphiFunction('function NewPopupMenu(Owner: TComponent; const AName: string; Alignment: TPopupAlignment; AutoPopup: Boolean; const Items: array of TCMenuItem): TPopupMenu');
 
 
-  Cl.AddDelphiFunction('function NewSubMenu(const ACaption: string; HCTX: Word; const AName: string; Items: array of TMenuItem; AEnabled: Boolean): TMenuItem');
+  Cl.AddDelphiFunction('function NewSubMenu(const ACaption: string; HCTX: THelpContext; const AName: string; Items: array of TMenuItem; AEnabled: Boolean): TMenuItem');
 
-  Cl.AddDelphiFunction('function NewItem(const ACaption: string; AShortCut: TShortCut; Achecked, AEnabled: Boolean; AOnClick: TNotifyEvent; HCTX: Word; const AName: string): TMenuItem');
+  Cl.AddDelphiFunction('function NewItem(const ACaption: string; AShortCut: TShortCut; Achecked, AEnabled: Boolean; AOnClick: TNotifyEvent; HCTX: THelpContext; const AName: string): TMenuItem');
 
 
   Cl.AddDelphiFunction('function NewLine: TMenuItem');

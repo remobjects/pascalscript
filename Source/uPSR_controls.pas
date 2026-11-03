@@ -17,6 +17,12 @@ procedure RIRegisterTSizeConstraints(cl: TPSRuntimeClassImporter);
 
 procedure RIRegister_Controls(Cl: TPSRuntimeClassImporter);
 
+{$IFDEF UNICODE}{$IFNDEF FPC}
+{ Binds OnKeyPress of aClass, a windowed control class registered at run time, through
+  helpers that hand a script's handler the key as an ANSI character (a script's Char). }
+procedure RIRegisterKeyPressHelper(aClass: TPSRuntimeClass);
+{$ENDIF}{$ENDIF}
+
 implementation
 {$IFNDEF FPC}
 uses
@@ -24,6 +30,110 @@ uses
 {$ELSE}
 uses
   Classes, Controls, Graphics;
+{$ENDIF}
+
+{ Members that are dynamic methods, bound through routines that call them: a descendant's
+  override then runs, where bound by address a script ran this class's own code. }
+function TControlHasParent_P(Self: TControl): Boolean;
+begin
+  Result := Self.HasParent;
+end;
+
+function TWinControlCanFocus_P(Self: TWinControl): Boolean;
+begin
+  Result := Self.CanFocus;
+end;
+
+function TWinControlFocused_P(Self: TWinControl): Boolean;
+begin
+  Result := Self.Focused;
+end;
+
+{$IFDEF UNICODE}{$IFNDEF FPC}
+{ A script's Char is an ANSI character and Delphi's a 16-bit one.  A script's OnKeyPress handler is
+  installed as a method whose code is _ScriptKeyPress and whose object pointer is the script method's
+  own, as for any script handler: it hands the handler the key converted to the ANSI code page
+  (PSWideCharToAnsiChar) and, when the handler changed it, hands Delphi the new key converted back; a
+  key the handler leaves alone stays what it was.  It holds no state of its own, so the event can be
+  copied to another control as any handler can.  Any other handler a script assigns -- nil, or a
+  Delphi handler it read back -- is assigned as it is. }
+type
+  TPSAnsiKeyPressEvent = procedure(Sender: TObject; var Key: AnsiChar) of object;
+
+  TPSWinControlAccess = class(TWinControl);
+
+{ Called as a TKeyPressEvent method: aScriptMethod is the method's object pointer. }
+procedure _ScriptKeyPress(    aScriptMethod : Pointer;
+                              Sender        : TObject;
+                          var Key           : Char);
+var
+  lHandler : TPSAnsiKeyPressEvent;
+  lWas     : AnsiChar;
+  lKey     : AnsiChar;
+begin
+  TMethod(lHandler).Code := @MyAllMethodsHandler;
+  TMethod(lHandler).Data := aScriptMethod;
+  lWas := PSWideCharToAnsiChar(Key);
+  lKey := lWas;
+  lHandler(Sender, lKey);
+  if lKey <> lWas then
+    Key := PSAnsiCharToWideChar(lKey);
+end;
+
+procedure _WinControlOnKeyPressR(Self: TWinControl; var T: TKeyPressEvent);
+begin
+  T := TPSWinControlAccess(Self).OnKeyPress;
+  if TMethod(T).Code = @_ScriptKeyPress then
+    TMethod(T).Code := @MyAllMethodsHandler;
+end;
+
+procedure _WinControlOnKeyPressW(Self: TWinControl; const T: TKeyPressEvent);
+var
+  lEvent : TKeyPressEvent;
+begin
+  lEvent := T;
+  if TMethod(lEvent).Code = @MyAllMethodsHandler then
+    TMethod(lEvent).Code := @_ScriptKeyPress;
+  TPSWinControlAccess(Self).OnKeyPress := lEvent;
+end;
+
+procedure RIRegisterKeyPressHelper(aClass: TPSRuntimeClass);
+begin
+  if Assigned(aClass) then
+    aClass.RegisterEventPropertyHelper(@_WinControlOnKeyPressR, @_WinControlOnKeyPressW, 'OnKeyPress');
+end;
+{$ENDIF}{$ENDIF}
+
+{$IFNDEF PS_MINIVCL}
+{ A script PChar is a PAnsiChar on every compiler, Delphi's PChar a PWideChar from Delphi 2009: the
+  text members that take one are bound through routines that go through a string, and copy at most
+  BufSize - 1 bytes and a #0 into the script's buffer. }
+{$IFNDEF CLX}{$IFNDEF FPC}
+function TControlGetTextBuf_P(Self: TControl; Buffer: PAnsiChar; BufSize: Integer): Integer;
+var
+  lText : string;
+begin
+  Result := 0;
+  if BufSize <= 0 then
+    Exit;
+  SetLength(lText, BufSize);
+  SetLength(lText, Self.GetTextBuf(PChar(lText), BufSize));
+  Result := PSTextToAnsiBuffer(lText, Buffer, BufSize);
+end;
+
+procedure TControlSetTextBuf_P(Self: TControl; Buffer: PAnsiChar);
+begin
+  Self.SetTextBuf(PChar(string(AnsiString(Buffer))));
+end;
+{$ENDIF}{$ENDIF}
+
+{$IFNDEF FPC}
+{ BeginDrag is bound through a routine, so that Threshold takes its Delphi default. }
+procedure TControlBeginDrag_P(Self: TControl; Immediate: Boolean);
+begin
+  Self.BeginDrag(Immediate);
+end;
+{$ENDIF}
 {$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TControl'}{$ENDIF}
@@ -49,7 +159,7 @@ type
     procedure StyleElementsR(  var T: TStyleElements);
     procedure StyleElementsW( T: TStyleElements);
     {$ENDIF}
-    {$IFDEF DELPHI26UP}
+    {$IFDEF DELPHI27UP}
     procedure StyleNameR( var T: string);
     procedure StyleNameW( T: string);
     {$ENDIF}
@@ -81,7 +191,7 @@ procedure TControl_PSHelper.StyleElementsR( var T: TStyleElements); begin T := S
 procedure TControl_PSHelper.StyleElementsW( T: TStyleElements); begin Self.StyleElements:= T; end;
 {$ENDIF}
 
-{$IFDEF DELPHI26UP}
+{$IFDEF DELPHI27UP}
 procedure TControl_PSHelper.StyleNameR( var T: string); begin T := Self.StyleName; end;
 procedure TControl_PSHelper.StyleNameW( T: string); begin Self.StyleName:= T; end;
 {$ENDIF}
@@ -111,7 +221,7 @@ begin
     {$IFDEF DELPHI23UP}
     RegisterPropertyHelper(@TControl.StyleElementsR, @TControl.StyleElementsW, 'StyleElements');
     {$ENDIF}
-    {$IFDEF DELPHI26UP}
+    {$IFDEF DELPHI27UP}
     RegisterPropertyHelper(@TControl.StyleNameR, @TControl.StyleNameW, 'StyleName');
     {$ENDIF}
 
@@ -119,17 +229,17 @@ begin
 
     {$IFNDEF PS_MINIVCL}
     RegisterMethod(@TControl.Dragging, 'Dragging');
-    RegisterMethod(@TControl.HasParent, 'HasParent');
+    RegisterMethod(@TControlHasParent_P, 'HasParent');
     RegisterMethod(@TCONTROL.CLIENTTOSCREEN, 'ClientToScreen');
    {$IFNDEF FPC}
-    RegisterMethod(@TCONTROL.BEGINDRAG, 'BeginDrag');
+    RegisterMethod(@TControlBeginDrag_P, 'BeginDrag');
     RegisterMethod(@TCONTROL.ENDDRAG, 'EndDrag');
    {$ENDIF}
     {$IFNDEF CLX}
-    RegisterMethod(@TCONTROL.GETTEXTBUF, 'GetTextBuf');
+    {$IFDEF FPC}RegisterMethod(@TCONTROL.GETTEXTBUF, 'GetTextBuf');{$ELSE}RegisterMethod(@TControlGetTextBuf_P, 'GetTextBuf');{$ENDIF}
     RegisterMethod(@TCONTROL.GETTEXTLEN, 'GetTextLen');
     RegisterMethod(@TCONTROL.PERFORM, 'Perform');
-    RegisterMethod(@TCONTROL.SETTEXTBUF, 'SetTextBuf');
+    {$IFDEF FPC}RegisterMethod(@TCONTROL.SETTEXTBUF, 'SetTextBuf');{$ELSE}RegisterMethod(@TControlSetTextBuf_P, 'SetTextBuf');{$ENDIF}
     {$ENDIF}
     RegisterMethod(@TCONTROL.SCREENTOCLIENT, 'ScreenToClient');
     {$ENDIF}
@@ -163,7 +273,7 @@ procedure TControlStyleElementsR(Self: TControl; var T: TStyleElements); begin T
 procedure TControlStyleElementsW(Self: TControl; T: TStyleElements); begin Self.StyleElements:= T; end;
 {$ENDIF}
 
-{$IFDEF DELPHI26UP}
+{$IFDEF DELPHI27UP}
 procedure TControlStyleNameR(Self: TControl; var T: string); begin T := Self.StyleName; end;
 procedure TControlStyleNameW(Self: TControl; T: string); begin Self.StyleName:= T; end;
 {$ENDIF}
@@ -193,7 +303,7 @@ begin
     {$IFDEF DELPHI23UP}
     RegisterPropertyHelper(@TControlStyleElementsR, @TControlStyleElementsW, 'StyleElements');
     {$ENDIF}
-    {$IFDEF DELPHI26UP}
+    {$IFDEF DELPHI27UP}
     RegisterPropertyHelper(@TControlStyleNameR, @TControlStyleNameW, 'StyleName');
     {$ENDIF}
 
@@ -201,17 +311,17 @@ begin
 
     {$IFNDEF PS_MINIVCL}
     RegisterMethod(@TControl.Dragging, 'Dragging');
-    RegisterMethod(@TControl.HasParent, 'HasParent');
+    RegisterMethod(@TControlHasParent_P, 'HasParent');
     RegisterMethod(@TCONTROL.CLIENTTOSCREEN, 'ClientToScreen');
    {$IFNDEF FPC}
-    RegisterMethod(@TCONTROL.BEGINDRAG, 'BeginDrag');
+    RegisterMethod(@TControlBeginDrag_P, 'BeginDrag');
     RegisterMethod(@TCONTROL.ENDDRAG, 'EndDrag');
    {$ENDIF}
     {$IFNDEF CLX}
-    RegisterMethod(@TCONTROL.GETTEXTBUF, 'GetTextBuf');
+    {$IFDEF FPC}RegisterMethod(@TCONTROL.GETTEXTBUF, 'GetTextBuf');{$ELSE}RegisterMethod(@TControlGetTextBuf_P, 'GetTextBuf');{$ENDIF}
     RegisterMethod(@TCONTROL.GETTEXTLEN, 'GetTextLen');
     RegisterMethod(@TCONTROL.PERFORM, 'Perform');
-    RegisterMethod(@TCONTROL.SETTEXTBUF, 'SetTextBuf');
+    {$IFDEF FPC}RegisterMethod(@TCONTROL.SETTEXTBUF, 'SetTextBuf');{$ELSE}RegisterMethod(@TControlSetTextBuf_P, 'SetTextBuf');{$ENDIF}
     {$ENDIF}
     RegisterMethod(@TCONTROL.SCREENTOCLIENT, 'ScreenToClient');
     {$ENDIF}
@@ -264,8 +374,8 @@ begin
     RegisterPropertyHelper(@TWinControl.ShowingR, nil, 'Showing');
     RegisterPropertyHelper(@TWinControl.TabOrderR, @TWinControl.TabOrderW, 'TabOrder');
     RegisterPropertyHelper(@TWinControl.TabStopR, @TWinControl.TabStopW, 'TabStop');
-    RegisterMethod(@TWinControl.CANFOCUS, 'CanFocus');
-    RegisterMethod(@TWinControl.FOCUSED, 'Focused');
+    RegisterMethod(@TWinControlCanFocus_P, 'CanFocus');
+    RegisterMethod(@TWinControlFocused_P, 'Focused');
     RegisterPropertyHelper(@TWinControl.CONTROLS_R, nil, 'Controls');
     RegisterPropertyHelper(@TWinControl.CONTROLCOUNT_R, nil, 'ControlCount');
     {$IFNDEF PS_MINIVCL}
@@ -317,8 +427,8 @@ begin
     RegisterPropertyHelper(@TWinControlShowingR, nil, 'Showing');
     RegisterPropertyHelper(@TWinControlTabOrderR, @TWinControlTabOrderW, 'TabOrder');
     RegisterPropertyHelper(@TWinControlTabStopR, @TWinControlTabStopW, 'TabStop');
-    RegisterMethod(@TWINCONTROL.CANFOCUS, 'CanFocus');
-    RegisterMethod(@TWINCONTROL.FOCUSED, 'Focused');
+    RegisterMethod(@TWinControlCanFocus_P, 'CanFocus');
+    RegisterMethod(@TWinControlFocused_P, 'Focused');
     RegisterPropertyHelper(@TWINCONTROLCONTROLS_R, nil, 'Controls');
     RegisterPropertyHelper(@TWINCONTROLCONTROLCOUNT_R, nil, 'ControlCount');
     {$IFNDEF PS_MINIVCL}
@@ -522,7 +632,12 @@ end;
 {$IFDEF DELPHI10UP}{$REGION 'TSizeConstraints'}{$ENDIF}
 procedure RIRegisterTSizeConstraints(cl: TPSRuntimeClassImporter);
 begin
-  Cl.Add(TSizeConstraints);
+  with Cl.Add(TSizeConstraints) do
+  begin
+    {$IFNDEF FPC}
+    RegisterVirtualConstructor(@TSizeConstraints.Create, 'Create');
+    {$ENDIF}
+  end;
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 {$ENDIF}

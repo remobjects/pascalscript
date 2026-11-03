@@ -27,7 +27,7 @@
     {$ifdef mswindows}
       {$if (fpc_version>2) or ((fpc_version=2) and (fpc_release>5))}
        {$DEFINE PS_FPC_HAS_COM}
-      {$endif}
+      {$IFEND}
     {$endif}
   {FreePascal 2.3.1 and above has much Delphi compatibility bugs fixed}
   {$else}

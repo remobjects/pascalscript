@@ -11293,7 +11293,7 @@ begin
     btS32        : Stack.SetInt(-1,High(Integer));    //Integer/LongInt: 2147483647
 {$IFNDEF PS_NOINT64}
     btS64        : Stack.SetInt64(-1,High(Int64));    //Int64: 9223372036854775807
-    btU64        : Stack.SetUInt64(-1,High(UInt64));  //UInt64: 18446744073709551615
+    btU64        : Stack.SetUInt64(-1,{$IFDEF DELPHI2005UP}High(UInt64){$ELSE}UInt64(-1){$ENDIF});  //UInt64: 18446744073709551615
 {$ENDIF}
     else Result:=false;
   end;

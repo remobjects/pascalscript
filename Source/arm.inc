@@ -318,7 +318,7 @@ begin
 	                                         addfloat(fvar.dta, 1);
 	                                       {$else}
 					         addgen(dword(psingle(fvar.dta)^));
-					       {$endif}
+					       {$IFEND}
           btDouble{, btExtended}:              {$if defined(FPUFPA) or defined(FPC_abi_eabihf)}
 	                                         addfloat(fvar.dta, 2);
 	                                       {$else}
@@ -330,7 +330,7 @@ begin
 					           addgen(hi(qword(pdouble(fvar.dta)^)));
 					           {$ENDIF}
 						 end;
-					       {$endif}
+					       {$IFEND}
           btPChar:                             addgen(dword(ppchar(fvar.dta)^));
           btChar:                              addgen(dword(pchar(fvar.dta)^));
           {$IFNDEF PS_NOINT64}bts64:           begin

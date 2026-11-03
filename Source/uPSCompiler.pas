@@ -13165,7 +13165,7 @@ begin
           if Backwards then
             TPSValueData(Result).Data^.tu64 := Low(tbtU64)
           else
-            TPSValueData(Result).Data^.tu64 := High(tbtU64);
+            TPSValueData(Result).Data^.tu64 := {$IFDEF DELPHI2005UP}High(tbtU64){$ELSE}tbtU64(-1){$ENDIF};
         {$ENDIF}
       else
       begin
@@ -13181,14 +13181,14 @@ begin
       Does not free finVal. See also EmitForExitCheck. }
     begin
       if not (PreWriteOutRec(VariableVar, nil) and PreWriteOutRec(finVal, nil)) then
-        Exit(False);
+        begin Result := False; Exit; end;
       BlockWriteByte(BlockInfo, CM_CO);
       if Backwards then
         BlockWriteByte(BlockInfo, 0) { >= }
       else
         BlockWriteByte(BlockInfo, 1); { <= }
       if not (WriteOutRec(TempBool, False) and WriteOutRec(VariableVar, True) and WriteOutRec(finVal, True)) then
-        Exit(False);
+        begin Result := False; Exit; end;
       AfterWriteOutRec(finVal);
       AfterWriteOutRec(VariableVar);
       BlockWriteByte(BlockInfo, Cm_CNG);
@@ -13209,18 +13209,18 @@ begin
       BoundaryValue := CreateForBoundaryValue;
       ExitCheckEmitted := BoundaryValue <> nil;
       if BoundaryValue = nil then
-        Exit(True);
+        begin Result := True; Exit; end;
       if not (PreWriteOutRec(VariableVar, nil) and PreWriteOutRec(BoundaryValue, nil)) then
       begin
         BoundaryValue.Free;
-        Exit(False);
+        begin Result := False; Exit; end;
       end;
       BlockWriteByte(BlockInfo, CM_CO);
       BlockWriteByte(BlockInfo, 5); { = }
       if not (WriteOutRec(TempBool, False) and WriteOutRec(VariableVar, True) and WriteOutRec(BoundaryValue, True)) then
       begin
         BoundaryValue.Free;
-        Exit(False);
+        begin Result := False; Exit; end;
       end;
       AfterWriteOutRec(BoundaryValue);
       AfterWriteOutRec(VariableVar);

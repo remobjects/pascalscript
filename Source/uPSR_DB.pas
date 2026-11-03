@@ -2006,7 +2006,7 @@ begin
   {$ELSE}
 begin
   Self.VALUE := T;
-  {$ENDIF}
+  {$IFEND}
 end;
 
 procedure TBlobField_PSHelper.VALUE_R(var T: String);
@@ -2016,7 +2016,7 @@ begin
   Move(Self.Value[0], t[1], LEngth(T));
 {$ELSE}
   T := Self.VALUE;
-{$ENDIF}
+{$IFEND}
 end;
 
 procedure TBlobField_PSHelper.MODIFIED_W(const T: BOOLEAN);
@@ -2082,7 +2082,7 @@ begin
   {$ELSE}
 begin
   Self.VALUE := T;
-  {$ENDIF}
+  {$IFEND}
 end;
 
 procedure TBLOBFIELDVALUE_R(Self: TBLOBFIELD; var T: String);
@@ -2092,7 +2092,7 @@ begin
   Move(Self.Value[0], t[1], LEngth(T));
 {$ELSE}
   T := Self.VALUE;
-{$ENDIF}
+{$IFEND}
 end;
 
 procedure TBLOBFIELDMODIFIED_W(Self: TBLOBFIELD; const T: BOOLEAN);
@@ -4911,7 +4911,7 @@ with Cl.Add(TLookupList) do
   RegisterMethod(@TLOOKUPLIST.ADD, 'Add');
   RegisterMethod(@TLOOKUPLIST.CLEAR, 'Clear');
   RegisterMethod(@TLOOKUPLIST.VALUEOFKEY, 'ValueOfKey');
-  {$ENDIF}
+  {$IFEND}
   end;
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}

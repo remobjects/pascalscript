@@ -1073,7 +1073,7 @@ begin
       DisposePPSVariantIFC(Params[0]);
       Params.Delete(0);
     end;
-    {$ENDIF}
+    {$IFEND}
     if assigned(_Self) then begin
       StoreReg(IPointer(_Self));
     end;

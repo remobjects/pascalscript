@@ -299,7 +299,7 @@ begin
       DisposePPSVariantIFC(Params[0]);
       Params.Delete(0);
     end;
-    {$ENDIF}
+    {$IFEND}
 
     if Assigned(_Self) then
       StoreIntReg(IPointer(_Self));

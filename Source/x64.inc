@@ -760,11 +760,14 @@ _XMM0: Double;
               Result := True;
               exit;
             end else begin
-            {$IFDEF FPC}
+            {$IF DEFINED(FPC) AND (FPC_VERSION < 3)}
+              { kept for the old FPC 2.4 ABI this branch was written for }
               StoreReg(IPointer(FVar.Dta));
             {$ELSE}
+              { a dynamic array is a pointer: pass its value, not the slot
+                address (FPC 3.x x86_64 crashed / read garbage here) }
               StoreReg(IPointer(FVar.Dta^));
-            {$ENDIF}
+            {$IFEND}
             end;
           end;
         btSet,

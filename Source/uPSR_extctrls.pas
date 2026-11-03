@@ -34,7 +34,7 @@ uses
   {$IFDEF CLX}
   QExtCtrls, QGraphics;
   {$ELSE}
-  ExtCtrls, Graphics;
+  SysUtils, ExtCtrls, Graphics;
   {$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TShape'}{$ENDIF}
@@ -210,8 +210,13 @@ end;
 {$IFDEF DELPHI14UP}
 
 procedure TCUSTOMLINKLABELALIGNMENT_R(Self: TCUSTOMLINKLABEL; var T: TCustomLinkLabel.TLinkAlignment); begin T := Self.ALIGNMENT; end;
-procedure TCUSTOMLINKLABELALIGNMENT_W(Self: TCUSTOMLINKLABEL; T: TCustomLinkLabel.TLinkAlignment); begin
-Self.ALIGNMENT := T;
+procedure TCUSTOMLINKLABELALIGNMENT_W(Self: TCUSTOMLINKLABEL; T: TCustomLinkLabel.TLinkAlignment);
+var
+  lRaw : Byte absolute T;
+begin
+  if lRaw > Ord(High(TCustomLinkLabel.TLinkAlignment)) then
+    raise ERangeError.Create('Out Of Range');
+  Self.ALIGNMENT := T;
 end;
 procedure TCUSTOMLINKLABELAUTOSIZE_R(Self: TCUSTOMLINKLABEL; var T: Boolean); begin T := Self.AUTOSIZE; end;
 procedure TCUSTOMLINKLABELAUTOSIZE_W(Self: TCUSTOMLINKLABEL; T: Boolean); begin Self.AUTOSIZE := T; end;
@@ -227,7 +232,7 @@ begin
     RegisterPropertyHelper(@TCUSTOMLINKLABELALIGNMENT_R, @TCUSTOMLINKLABELALIGNMENT_W, 'Alignment');
     RegisterPropertyHelper(@TCUSTOMLINKLABELAUTOSIZE_R, @TCUSTOMLINKLABELAUTOSIZE_W, 'AutoSize');
     RegisterPropertyHelper(@TCUSTOMLINKLABELUSEVISUALSTYLE_R, @TCUSTOMLINKLABELUSEVISUALSTYLE_W, 'UseVisualStyle');
-    RegisterPropertyHelper(@TCUSTOMLINKLABELONLINKCLICK_R, @TCUSTOMLINKLABELONLINKCLICK_W, 'OnLinkClick');
+    RegisterEventPropertyHelper(@TCUSTOMLINKLABELONLINKCLICK_R, @TCUSTOMLINKLABELONLINKCLICK_W, 'OnLinkClick');
   end;
 end;
 

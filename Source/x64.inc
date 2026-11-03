@@ -58,11 +58,12 @@ const
   c_loc_offs__rax    = c_loc_offs_adress + 1*c_sz_ptr;       // == 584
   c_loc_offs__xmm0   = c_loc_offs_adress + 2*c_sz_ptr;       // == 592
   c_loc_offs_reginfo = c_loc_offs_adress + 4*c_sz_ptr;       // == 608
+  c_frame_params     = c_loc_offs_reginfo div c_sz_ptr + 1;  // == 77: a frame holding the four saved registers
 
   //c_reg_packed = ((SizeOf(TRegisters) mod c_sz_ptr) + c_sz_ptr - 1) div c_sz_ptr; // 1 - packed records; 0 - aligned
 asm
 {$ifdef DELPHI}
-  .params c_params // There's actually room for c_loc_count, assembler is saving locals for "Address,_RAX,_XMM0,RegInfo"
+  .params c_frame_params // room for the stack parameters and the saved Address, _RAX, _XMM0 and RegInfo
 {$else} // TODO: FPC: GPF on exception
   push    rbp
   sub     rsp, $210  // ? $268
@@ -205,7 +206,14 @@ asm
 *)
 //{$IFDEF FPC}
   push rbp
+  {$IF Defined(FPC) and Defined(MSWINDOWS)}
+  .seh_pushreg rbp
+  {$IFEND}
   mov rbp,rsp
+  {$IF Defined(FPC) and Defined(MSWINDOWS)}
+  .seh_setframe rbp, 0
+  .seh_endprologue
+  {$IFEND}
 //{$ENDIF}
   push rcx  // address         ;rbp -8
   push rdx  // @_rax           ;rbp -16
@@ -505,7 +513,7 @@ end;
 
 {$IFDEF DELPHI}{$IFDEF WINDOWS}{$DEFINE DELPHI_and_WINDOWS}{$ENDIF}{$ENDIF}
 
-function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+function TPSExec.PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   Stack: array of Byte;
   _RAX: IPointer;
@@ -552,6 +560,16 @@ _XMM0: Double;
         ((res^.aType.RealSize <> 8) or IsManagedType(res^.aType))
     else
     {$ENDIF}
+    {$IF defined(FPC) and defined(WINDOWS)}
+    { Free Pascal Win64: a record result is returned in RAX only at 1, 2, 4 or 8 bytes
+      with no managed field, a set only at 1 to 4 bytes; every other one is written
+      through the hidden result pointer }
+    if res^.aType.BaseType = btRecord then
+      Result := not (res^.aType.RealSize in [1, 2, 4, 8]) or IsManagedType(res^.aType)
+    else if res^.aType.BaseType = btSet then
+      Result := res^.aType.RealSize > 4
+    else
+    {$IFEND}
       Result := res^.aType.RealSize > PointerSize;
   end;
 {$IFDEF WINDOWS}
@@ -686,14 +704,83 @@ _XMM0: Double;
     StoreReg(RegData);
   end;
   
-  {$IFDEF DELPHI}
+  {$IF defined(DELPHI) or (defined(FPC) and defined(MSWINDOWS))}
   type
     TMethodCallData = record
       AType: Byte; { Must be first field, matching uPSRuntime's TOpenArray }
       Data: TMethod;
     end;
     PMethodCallData = ^TMethodCallData;
+  {$IFEND}
+
+  {$IFDEF FPC}
+  { Free Pascal's RTL and fcl-db keep an enumeration or a set of up to 32 members in 4 bytes (their
+    units are compiled in objfpc mode), where the script holds it in 1 to 3: a native routine writing
+    such a var parameter would overrun the script's value.  It gets a zero-extended copy instead,
+    whose script-sized part is written back after the call }
+  type
+    TNarrowedVar = record
+      AType  : Byte; { 1; must be first, matching uPSRuntime's TOpenArray }
+      Size   : Longint;
+      Target : Pointer;
+      Data   : array[0..31] of Byte;
+    end;
+    PNarrowedVar = ^TNarrowedVar;
+
+  function NarrowedVar(aTarget: Pointer; aSize: Longint): Pointer;
+  var
+    lRec: PNarrowedVar;
+    lIdx: Longint;
+  begin
+    { the same script value passed twice by reference shares one copy, as it shares one address on Delphi }
+    if CallData <> nil then
+      for lIdx := 0 to CallData.Count - 1 do
+      begin
+        lRec := CallData[lIdx];
+        if (lRec^.AType = 1) and (lRec^.Target = aTarget) then
+        begin
+          Result := @lRec^.Data;
+          Exit;
+        end;
+      end;
+    New(lRec);
+    FillChar(lRec^, SizeOf(lRec^), 0);
+    lRec^.AType := 1;
+    lRec^.Size := aSize;
+    lRec^.Target := aTarget;
+    Move(aTarget^, lRec^.Data, aSize);
+    if CallData = nil then
+      CallData := TPSList.Create;
+    CallData.Add(lRec);
+    Result := @lRec^.Data;
+  end;
   {$ENDIF}
+
+  {$IF defined(DELPHI_RIO_UP) and defined(WINDOWS)}
+  { A set Delphi holds in 8 bytes and the script in 5 to 8, passed by
+    reference: the routine gets a copy zero-extended to 8 bytes, kept until
+    the call ends }
+  type
+    TNativeSetCopy = record
+      AType : Byte; { 2; must be first, matching uPSRuntime's TOpenArray }
+      Data  : UInt64;
+    end;
+    PNativeSetCopy = ^TNativeSetCopy;
+
+  function NativeSetCopy(fVar: PPSVariantIFC): Pointer;
+  var
+    lRec: PNativeSetCopy;
+  begin
+    New(lRec);
+    lRec^.AType := 2;
+    lRec^.Data := 0;
+    Move(fVar.Dta^, lRec^.Data, fVar^.aType.RealSize);
+    if CallData = nil then
+      CallData := TPSList.Create;
+    CallData.Add(lRec);
+    Result := @lRec^.Data;
+  end;
+  {$IFEND}
 
   function GetPtr(fVar: PPSVariantIFC): Boolean;
   var
@@ -711,13 +798,25 @@ _XMM0: Double;
           begin
             if Copy(fvar.aType.ExportName, 1, 10) = '!OPENARRAY' then
             begin
-              p := CreateOpenArray(True, Self, FVar);
+              p := CreateOpenArray(True, Self, FVar, CallData);
               if p = nil then exit;
               if CallData = nil then
                 CallData := TPSList.Create;
               CallData.Add(p);
+              {$IFDEF FPC}
+              { Free Pascal has a cdecl routine take an array of const only as an
+                external one, whose values go one by one as C varargs: refused }
+              if (CallingConv = cdCdecl) and (TPSTypeRec_Array(fvar.aType).ArrayType.BaseType = btPointer) then
+                Exit;
+              {$ENDIF}
               StoreReg(IPointer(POpenArray(p)^.Data));
+              {$IFDEF FPC}
+              { Free Pascal passes a cdecl open array as its data alone, with no high bound }
+              if CallingConv <> cdCdecl then
+                StoreReg(IPointer(POpenArray(p)^.ItemCount -1));
+              {$ELSE}
               StoreReg(IPointer(POpenArray(p)^.ItemCount -1));
+              {$ENDIF}
               Result := True;
               Exit;
             end else begin
@@ -741,6 +840,12 @@ _XMM0: Double;
           exit; //invalid type
         end;
       end; {case}
+      {$IFDEF FPC}
+      if fvar.aType.BaseType in [btU8, btS8, btU16, btS16] then
+        VarPtr := NarrowedVar(VarPtr, fvar.aType.RealSize)
+      else if (fvar.aType.BaseType = btSet) and (TPSTypeRec_Set(fvar.aType).aByteSize < 32) then
+        VarPtr := NarrowedVar(VarPtr, TPSTypeRec_Set(fvar.aType).aByteSize);
+      {$ENDIF}
 
       StoreReg(IPointer(VarPtr));
     end else begin
@@ -750,21 +855,29 @@ _XMM0: Double;
           begin
             if Copy(fvar^.aType.ExportName, 1, 10) = '!OPENARRAY' then
             begin
-              p := CreateOpenArray(False, SElf, FVar);
+              p := CreateOpenArray(False, SElf, FVar, CallData);
               if p =nil then exit;
               if CallData = nil then
                 CallData := TPSList.Create;
               CallData.Add(p);
+              {$IFDEF FPC}
+              { Free Pascal has a cdecl routine take an array of const only as an
+                external one, whose values go one by one as C varargs: refused }
+              if (CallingConv = cdCdecl) and (TPSTypeRec_Array(fvar.aType).ArrayType.BaseType = btPointer) then
+                Exit;
+              {$ENDIF}
               StoreReg(IPointer(POpenArray(p)^.Data));
+              {$IFDEF FPC}
+              { Free Pascal passes a cdecl open array as its data alone, with no high bound }
+              if CallingConv <> cdCdecl then
+                StoreReg(IPointer(POpenArray(p)^.ItemCount -1));
+              {$ELSE}
               StoreReg(IPointer(POpenArray(p)^.ItemCount -1));
+              {$ENDIF}
               Result := True;
               exit;
             end else begin
-            {$IFDEF FPC}
-              StoreReg(IPointer(FVar.Dta));
-            {$ELSE}
               StoreReg(IPointer(FVar.Dta^));
-            {$ENDIF}
             end;
           end;
         btSet,
@@ -776,36 +889,57 @@ _XMM0: Double;
             { Delphi Win64 ABI: a record or static array is passed by value (in
               a register) at sizes 1, 2, or 4 and for stdcall/cdecl/safecall
               also at size 8; all other sizes (3, 5, 6, 7, and > 8) are passed
-              by reference. A set follows the same rules, except that it has no
-              8-byte stdcall/cdecl/safecall by-value case (not in the blog
-              below, found empirically; likely because C has no sets) and that Delphi
-              rounds set storage up (a native set is never 3 bytes, and on Win64
-              never 5-7 bytes), so a 3-byte ROPS set is a native 4-byte set
-              passed by value, and a 5-8 byte ROPS set is a native 8-byte set
-              passed by reference. Before Rio 10.3 the register convention
-              additionally passed sizes 5, 6, 7, and 8 by value, see
-              https://blogs.embarcadero.com/abi-changes-in-rad-studio-10-3/ }
+              by reference. Before Rio 10.3 the register convention
+              additionally passed a record or static array of 8 bytes by
+              value, see
+              https://blogs.embarcadero.com/abi-changes-in-rad-studio-10-3/ ;
+              a record or static array of 5, 6 or 7 bytes went by reference
+              there too (measured with XE2 and 10.2 Tokyo). Delphi rounds set
+              storage up (a native set is never 3 bytes, and on Win64 never
+              5-7 bytes), so a 3-byte ROPS set is a native 4-byte set passed
+              by value, and a 5-8 byte ROPS set is a native 8-byte set: passed
+              by value under every convention before Rio 10.3, under
+              stdcall/cdecl/safecall only in Rio 10.3, and by reference from
+              Sydney 10.4 (measured on every Win64 compiler from XE2 to 13
+              Florence) -- by reference as a copy zero-extended to 8 bytes,
+              since the routine reads all of them }
+            if (fvar^.aType.BaseType = btSet) and (fvar^.aType.RealSize in [5, 6, 7, 8]) then
+            begin
+              {$IFDEF DELPHI_RIO_UP}
+              {$IFNDEF DELPHI_SYDNEY_UP}
+              if CallingConv in [cdCdecl, cdStdCall, cdSafeCall] then
+                StoreRegBytes(fvar.Dta, fvar^.aType.RealSize)
+              else
+              {$ENDIF}
+                StoreReg(IPointer(NativeSetCopy(fVar)));
+              {$ELSE}
+              StoreRegBytes(fvar.Dta, fvar^.aType.RealSize);
+              {$ENDIF}
+            end else
             if (fvar^.aType.RealSize in [1, 2, 4]) or
                ((fvar^.aType.BaseType = btSet) and (fvar^.aType.RealSize = 3)) or
                ((fvar^.aType.BaseType <> btSet) and (fvar^.aType.RealSize = 8) and (CallingConv in [cdCdecl, cdStdCall, cdSafeCall]))
                {$IFNDEF DELPHI_RIO_UP}
-               or ((fvar^.aType.RealSize in [5, 6, 7, 8]) and not (CallingConv in [cdCdecl, cdStdCall, cdSafeCall]))
+               or ((fvar^.aType.RealSize = 8) and
+                   not (CallingConv in [cdCdecl, cdStdCall, cdSafeCall]))
                {$ENDIF}
                then
               StoreRegBytes(fvar.Dta, fvar^.aType.RealSize)
             else
               StoreReg(IPointer(fVar.Dta));
             {$ELSE}
-            { FPC Win64 ABI: a record is passed by value (in a register) only
-              at sizes 1, 2, 4, or 8, a set only when it is a small set of at
-              most 4 bytes, and a static array never, for all calling
-              conventions. See aggregate_in_registers_win64 and the arraydef
-              and setdef cases of push_addr_param in
+            { FPC Win64 ABI: a value record is passed by value (in a register)
+              only at sizes 1, 2, 4, or 8 and a const record by reference at
+              every size; a set by value only when it is a small set of at most
+              4 bytes; a static array never; for all calling conventions. The
+              script compiler keeps no const flag, so every record goes by
+              reference here, as a const one: a value record of 1, 2, 4 or 8
+              bytes is the stated gap. See aggregate_in_registers_win64 and
+              the arraydef and setdef cases of push_addr_param in
               https://gitlab.com/freepascal.org/fpc/source/-/blob/main/compiler/x86_64/cpupara.pas
               and is_smallset in
               https://gitlab.com/freepascal.org/fpc/source/-/blob/main/compiler/defutil.pas }
-            if ((fvar^.aType.BaseType = btRecord) and (fvar^.aType.RealSize in [1, 2, 4, 8])) or
-               ((fvar^.aType.BaseType = btSet) and (fvar^.aType.RealSize in [1, 2, 3, 4])) then
+            if (fvar^.aType.BaseType = btSet) and (fvar^.aType.RealSize in [1, 2, 3, 4]) then
               StoreRegBytes(fvar.Dta, fvar^.aType.RealSize)
             else
               StoreReg(IPointer(fVar.Dta));
@@ -864,7 +998,7 @@ _XMM0: Double;
 
         btProcPtr:
           begin
-            {$IFDEF DELPHI}
+            {$IF defined(DELPHI) or (defined(FPC) and defined(MSWINDOWS))}
               p := New(PMethodCallData);
               TMethodCallData(p^).AType := 255;
               if CallData = nil then
@@ -873,14 +1007,14 @@ _XMM0: Double;
               // Uncomment when Handler will be implemented
               //TMethodCallData(p^).Data.Code:=nil;
               //TMethodCallData(p^).Data.Data:=nil;
-              TMethodCallData(p^).Data := MKMethod(Self, Longint(fvar.dta^)); // It requires the implementation of "Handled"
+              TMethodCallData(p^).Data := ProcPtrToMethod(Self, fvar.dta);
               StoreReg(IPointer(@TMethodCallData(p^).Data));
             {$ELSE}
               GetMem(p, PointerSize2);
-              TMethod(p^) := MKMethod(Self, Longint(FVar.Dta^));
+              TMethod(p^) := ProcPtrToMethod(Self, FVar.Dta);
               StoreStack(p^, Pointersize2);
               FreeMem(p);
-            {$ENDIF}
+            {$IFEND}
           end;
 {$IFNDEF PS_NOINT64}
         bts64:
@@ -911,7 +1045,7 @@ begin
   {$ENDIF}
   IsSafeCall := CallingConv = cdSafeCall;
 
-  InnerfuseCall := False;
+  PlatformInnerfuseCall := False;
   if Address = nil then
     exit; // need address
   SetLength(Stack, 0);
@@ -959,6 +1093,12 @@ begin
         begin
           if ResultUsesResultPointer(res) then GetPtr(res);
         end;
+      btSingle, btDouble, btExtended, btChar, btU8, btS8, {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}btU16,
+      btS16, btClass, btU32, btS32, btPChar, {$IFNDEF PS_NOINT64}btS64, btU64, {$ENDIF}btCurrency
+      {$IFNDEF x64_string_result_as_varparameter}, btUnicodeString, btWideString, btString{$ENDIF}:
+        ; { returned in RAX or XMM0 }
+    else
+      exit; { a result the call layer does not return: the routine is not called }
     end;
    end;
 {$ENDIF}
@@ -966,8 +1106,9 @@ begin
     begin
       if not GetPtr(rp(Params[I])) then Exit;
     end;
-    if assigned(res) and IsSafeCall then
-      GetPtr(res); { SafeCall: res is actually passed as last parameter }
+    { SafeCall: res is actually passed as last parameter }
+    if assigned(res) and IsSafeCall and not GetPtr(res) then
+      exit;
     if assigned(res) and not IsSafeCall then begin
 {$IFNDEF PS_RESBEFOREPARAMETERS}
       case res^.aType.BaseType of
@@ -999,10 +1140,10 @@ begin
       case res^.aType.BaseType of
         btRecord, btSet{$IFDEF DELPHI_and_WINDOWS}, btStaticArray{$ENDIF}:
           begin
-            {$IFDEF DELPHI_and_WINDOWS}
+            {$IF defined(DELPHI_and_WINDOWS) or (defined(FPC) and defined(WINDOWS))}
             { A result that used the hidden result pointer is already in place }
             if not ResultUsesResultPointer(res) then
-            {$ENDIF}
+            {$IFEND}
             begin
               case res.aType.RealSize of
                 1: byte(res.Dta^) := _RAX;
@@ -1070,7 +1211,14 @@ begin
         pp := CallData[i];
         case pp^ of
           0: DestroyOpenArray(Self, Pointer(pp));
-          {$IFDEF DELPHI} 255: Dispose(PMethodCallData(pp)); {$ENDIF}
+          {$IF defined(DELPHI) or (defined(FPC) and defined(MSWINDOWS))} 255: Dispose(PMethodCallData(pp)); {$IFEND}
+          {$IF defined(DELPHI_RIO_UP) and defined(WINDOWS)} 2: Dispose(PNativeSetCopy(pp)); {$IFEND}
+{$IFDEF FPC}
+        1: begin
+             Move(PNarrowedVar(pp)^.Data, PNarrowedVar(pp)^.Target^, PNarrowedVar(pp)^.Size);
+             Dispose(PNarrowedVar(pp));
+           end;
+{$ENDIF}
         end;
       end;
       CallData.Free;

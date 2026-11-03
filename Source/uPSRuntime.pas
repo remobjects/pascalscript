@@ -9,7 +9,7 @@ Copyright (C) 2000-2009 by Carlo Kok (ck@carlo-kok.com)
 
 interface
 uses
-  {$IFNDEF FPC} {$IFDEF DELPHI2010UP} System.Rtti,{$ENDIF} {$ENDIF}
+  {$IFNDEF FPC} {$IFDEF DELPHIXE2UP} System.Rtti,{$ELSE}{$IFDEF DELPHI2010UP} Rtti,{$ENDIF}{$ENDIF} {$ENDIF}
   {$IFDEF FPC}{$IFDEF USEINVOKECALL}Rtti,{$ENDIF}{$ENDIF}
   SysUtils, uPSUtils{$IFDEF DELPHI6UP}, variants{$ENDIF}
   {$IFNDEF PS_NOIDISPATCH}{$IFDEF DELPHI3UP}, ActiveX, Windows{$ELSE}, Ole2{$ENDIF}{$ENDIF};
@@ -37,14 +37,8 @@ type
   PDWordArray = ^TDWordArray;
 
   TDWordArray = array[0..1023] of Cardinal;
-{@link(TPSProcRec)
-  PIFProcRec is a pointer to a TIProcRec record}
   TPSProcRec = class;
-  TIFProcRec = TPSProcRec;
   TPSExternalProcRec = class;
-  TIFPSExternalProcRec = TPSExternalProcRec;
-  TIFExternalProcRec = TPSExternalProcRec;
-  PIFProcRec = TPSProcRec;
   PProcRec = ^TProcRec;
 
   TPSProcPtr = function(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
@@ -63,6 +57,13 @@ type
 
     property Attributes: TPSRuntimeAttributes read FAttributes;
   end;
+
+  { The aliases follow the class bodies: XE3 and XE4 emit an alias declared before its class body into the C++
+    header without its closing semicolon. }
+  TIFProcRec = TPSProcRec;
+{@link(TPSProcRec)
+  PIFProcRec is a pointer to a TIProcRec record}
+  PIFProcRec = TPSProcRec;
 
   TPSExternalProcRec = class(TPSProcRec)
   private
@@ -83,6 +84,9 @@ type
 
     property ProcPtr: TPSProcPtr read FProcPtr write FProcPtr;
   end;
+
+  TIFPSExternalProcRec = TPSExternalProcRec;
+  TIFExternalProcRec = TPSExternalProcRec;
 
   TPSInternalProcRec = class(TPSProcRec)
   private
@@ -607,6 +611,9 @@ type
     FId: Pointer;
     FJumpFlag: Boolean;
     FCallCleanup: Boolean;
+    { the runs RunProc began, still going: a Stop in one of them leaves the
+      stack below it to whatever began the run }
+    FNestedRuns: Longint;
     FOnException: TPSOnException;
     function ReadData(var Data; Len: Cardinal): Boolean;
     function ReadLong(var b: Cardinal): Boolean;
@@ -629,6 +636,10 @@ type
     FAttributeTypes: TPSList;
 
     FExceptionStack: TPSList;
+
+    { the exceptions ExceptionProc has raised, wrapping: compared across a
+      call, it tells whether the callee raised one }
+    FRaisedCount: Cardinal;
 
     FResources: TPSList;
 
@@ -661,6 +672,7 @@ type
     FOnRunLine: TPSOnLineEvent;
 
     FSpecialProcList: TPSList;
+    FOwnedImporters: TPSList;
 
     FRegProcs: TPSList;
 
@@ -676,6 +688,7 @@ type
 
     function InvokeExternalMethod(At: TPSTypeRec_ProcPtr; Slf, Ptr: Pointer): Boolean;
 
+    function PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
     function InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 
     procedure RunLine; virtual;
@@ -683,6 +696,9 @@ type
     function ImportProc(const Name: ShortString; proc: TPSExternalProcRec): Boolean; Virtual;
 
     procedure ExceptionProc(proc, Position: Cardinal; Ex: TPSError; const s: tbtstring; NewObject: TObject); Virtual;
+    { the exception the top exception frame holds goes on unwinding, without
+      that frame }
+    procedure ResumeUnwinding;
 
     function FindSpecialProcImport(P: TPSOnSpecialProcImport): pointer;
   Public
@@ -808,9 +824,26 @@ type
     FDataPtr: Pointer;
     FCapacity,
     FLength: Longint;
+    { after UseChunks the stack keeps its values in chunks (TPSStackChunk
+      records) that never move -- FChunkCount of them, FChunkIdx the one in
+      use; without it the data is one block, moved when it grows.  The lists
+      are made long enough before anything changes, so that storing, moving
+      and freeing a chunk never allocates }
+    FChunked: Boolean;
+    FChunks: array of Pointer;
+    FChunkCount,
+    FChunkIdx: Longint;
+    { the native calls in progress, and the chunks a Clear released meanwhile:
+      kept until the last of those calls ends }
+    FNativeCalls: Longint;
+    FRetired: array of Pointer;
+    FRetiredCount: Longint;
     function GetItem(I: Longint): PPSVariant;
     procedure SetCapacity(const Value: Longint);
     procedure AdjustLength;
+    procedure NextChunk(aSize: Longint);
+    procedure NativeCallStarts;
+    procedure NativeCallEnds;
   public
 
     property DataPtr: Pointer read FDataPtr;
@@ -825,6 +858,10 @@ type
     destructor Destroy; override;
 
     procedure Clear; {$IFDEF DELPHI5UP} reintroduce;{$ELSE} override; {$ENDIF}
+
+    { from now on the stack grows by adding a chunk, so its values never move: an
+      address into it stays valid until its value is popped }
+    procedure UseChunks;
 
     function Push(TotalSize: Longint): PPSVariant;
 
@@ -889,7 +926,22 @@ const
 function PIFVariantToVariant(Src: PIFVariant; var Dest: Variant): Boolean;
 function VariantToPIFVariant(Exec: TPSExec; const Src: Variant; Dest: PIFVariant): Boolean;
 function ParamAsVariable(const Modifier: tbtchar; aType: TPSTypeRec): Boolean;
+
+{ empty_methods_handler: the platforms where no native stub carries a call into a script
+  method, so MyAllMethodsHandler is empty and ResultAsRegister, which only the stubs use,
+  is not compiled.  Defined here so that this interface can test it. }
+{$ifdef fpc}
+  {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
+    {$define empty_methods_handler}
+  {$ifend}
+{$else}
+  {$if defined(cpuarm) or defined(cpuarm64)}
+    {$define empty_methods_handler}
+  {$ifend}
+{$endif}
+{$ifndef empty_methods_handler}
 function ResultAsRegister(b: TPSTypeRec): Boolean;
+{$endif}
 
 function PSGetRecField(const avar: TPSVariantIFC; Fieldno: Longint): TPSVariantIFC;
 function PSGetArrayField(const avar: TPSVariantIFC; Fieldno: Longint): TPSVariantIFC;
@@ -1055,6 +1107,7 @@ type
 
     constructor Create;
 
+    { AutoFree: Exec owns the importer, which goes when Exec does }
     constructor CreateAndRegister(Exec: TPSExec; AutoFree: Boolean);
 
     destructor Destroy; override;
@@ -1175,12 +1228,17 @@ const
   RPS_OutOfMemory = 'Out Of Memory';
   RPS_InterfaceNotSupported = 'Interface not supported';
   RPS_UnknownError = 'Unknown error';
+  RPS_HostRoutineAsMethod = 'A host routine cannot be called as a native event';
+  RPS_EndedScriptMethod = 'A script routine cannot be called after its script has ended';
 
 
   RPS_InvalidVariable = 'Invalid variable';
   RPS_InvalidArray = 'Invalid array';
   RPS_OLEError = 'OLE error %.8x';
   RPS_UnknownProcedure = 'Unknown procedure';
+{$IFDEF FPC}{$IFDEF empty_methods_handler}
+  RPS_NoNativeMethodsHandler = 'A script method cannot be bound to a native event on this platform';
+{$ENDIF}{$ENDIF}
   RPS_NotEnoughParameters = 'Not enough parameters';
   RPS_InvalidParameter = 'Invalid parameter';
   RPS_TooManyParameters = 'Too many parameters';
@@ -1216,6 +1274,13 @@ type
     ExceptionData: TPSError;
     ExceptionObject: TObject;
     ExceptionParam: tbtString;
+    { True while the frame's finally runs for the exception it holds in the
+      fields above, from the finally's start to its end, where the exception
+      goes on }
+    Unwinding: Boolean;
+    { where the exception the frame holds or handles was raised }
+    ExceptionProcNo, ExceptionPos: Cardinal;
+    procedure DropException;
     destructor Destroy; override;
   end;
   TPSHeader = packed record
@@ -1257,6 +1322,30 @@ destructor TPSExceptionHandler.Destroy;
 begin
   ExceptionObject.Free;
   inherited;
+end;
+
+procedure TPSExceptionHandler.DropException;
+begin
+  ExceptionObject.Free;
+  ExceptionObject := nil;
+  ExceptionData := ENoError;
+  ExceptionParam := '';
+  Unwinding := False;
+end;
+
+{ The frame whose except handler runs, nearest the top of aStack; nil when
+  none does.  Frames of statements nested in the handler are above it. }
+function _HandlerFrame(aStack: TPSList): TPSExceptionHandler;
+var
+  lFrameIdx : Longint;
+begin
+  for lFrameIdx := aStack.Count - 1 downto 0 do
+  begin
+    Result := aStack[lFrameIdx];
+    if Result.ExceptOffset = Cardinal(InvalidVal -1) then
+      Exit;
+  end;
+  Result := nil;
 end;
 
 procedure P_CM_A; begin end;
@@ -1348,11 +1437,6 @@ begin
 end;
 
 
-procedure RCIFreeProc(Sender: TPSExec; P: TPSRuntimeClassImporter);
-begin
-  p.Free;
-end;
-
 function Trim(const s: tbtstring): tbtstring;
 begin
   Result := s;
@@ -1424,41 +1508,46 @@ end;
 function MakeWString(const s: tbtunicodestring): tbtString;
 var
   i: Longint;
-  e: tbtString;
+  e: tbtunicodestring;
   b: boolean;
+  w: tbtunicodestring;
 begin
-  Result := tbtString(s);
+  { the text is built on the wide string and narrowed last: a character past
+    #255 is written by its number, and so is one from #128 that the host's
+    ANSI code page cannot hold -- a narrowing first could lose either }
+  w := s;
   i := 1;
   b := false;
-  while i <= length(result) do
+  while i <= length(w) do
   begin
-    if Result[i] = '''' then
+    if w[i] = '''' then
     begin
       if not b then
       begin
         b := true;
-        Insert('''', Result, i);
+        Insert('''', w, i);
         inc(i);
       end;
-      Insert('''', Result, i);
+      Insert('''', w, i);
       inc(i, 2);
-    end else if (Result[i] < #32) or (Result[i] > #255) then
+    end else if (w[i] < #32) or (w[i] > #255) or
+      ((w[i] > #127) and (tbtunicodestring(tbtString(w[i])) <> w[i])) then
     begin
-      e := '#'+inttostr(ord(Result[i]));
-      Delete(Result, i, 1);
+      e := tbtunicodestring('#'+inttostr(ord(w[i])));
+      Delete(w, i, 1);
       if b then
       begin
         b := false;
-        Insert('''', Result, i);
+        Insert('''', w, i);
         inc(i);
       end;
-      Insert(e, Result, i);
+      Insert(e, w, i);
       inc(i, length(e));
     end else begin
       if not b then
       begin
         b := true;
-        Insert('''', Result, i);
+        Insert('''', w, i);
         inc(i, 2);
       end else
         inc(i);
@@ -1466,10 +1555,11 @@ begin
   end;
   if b then
   begin
-    Result := Result + '''';
+    w := w + '''';
   end;
-  if Result = '' then
-    Result := '''''';
+  if w = '' then
+    w := '''''';
+  Result := tbtString(w);
 end;
 {$ENDIF}
 function MakeString(const s: tbtString): tbtString;
@@ -1539,6 +1629,10 @@ begin
 
 end;
 
+{$IFNDEF DELPHI2009UP}
+function UIntToStr(const Value: tbtu64): string; forward;
+{$ENDIF}
+
 function PropertyToString(Instance: TObject; PName: tbtString): tbtString;
 var
   s: tbtString;
@@ -1563,26 +1657,59 @@ begin
     end;
     pp := GetPropInfo(PTypeInfo(Instance.ClassInfo), string(s));
     if pp = nil then begin Result := tbtstring(RPS_UnknownIdentifier); exit; end;
+    { a name after one that is no object names nothing }
+    if (PName <> '') and (pp^.PropType^.Kind <> tkClass) then
+    begin
+      Result := tbtstring(RPS_UnknownIdentifier);
+      exit;
+    end;
 
 
     case pp^.PropType^.Kind of
-      tkInteger: begin Result := IntToStr(GetOrdProp(Instance, pp)); exit; end;
+      tkInteger:
+        begin
+          { a Cardinal is read as the unsigned number it is }
+          if GetTypeData(pp^.PropType{$IFNDEF FPC}{$IFDEF DELPHI3UP}^{$ENDIF}{$ENDIF})^.OrdType = otULong then
+            Result := tbtString(SysUtils.IntToStr(Int64(Cardinal(GetOrdProp(Instance, pp)))))
+          else
+            Result := IntToStr(GetOrdProp(Instance, pp));
+          exit;
+        end;
       tkChar, tkWChar: begin Result := '#'+IntToStr(GetOrdProp(Instance, pp)); exit; end;
       tkEnumeration: begin Result := tbtstring(GetEnumName(pp^.PropType{$IFNDEF FPC}{$IFDEF DELPHI3UP}^{$ENDIF}{$ENDIF}, GetOrdProp(Instance, pp))); exit; end;
+      {$IFDEF FPC}
+      { Free Pascal gives Boolean a kind of its own; written as Delphi writes it, by name }
+      tkBool: begin Result := tbtstring(GetEnumName(TypeInfo(Boolean), Ord(GetOrdProp(Instance, pp) <> 0))); exit; end;
+      {$ENDIF}
       {$IFNDEF PS_NOINT64}
-      tkInt64: begin Result := tbtString(SysUtils.IntToStr(GetInt64Prop(Instance, pp))); exit; end;
+      tkInt64:
+        begin
+          { a UInt64 -- its type's least value past its greatest, as the RTL's own
+            GetPropValue tells it -- is read as the unsigned number it is }
+          if GetTypeData(pp^.PropType{$IFNDEF FPC}{$IFDEF DELPHI3UP}^{$ENDIF}{$ENDIF})^.MinInt64Value >
+             GetTypeData(pp^.PropType{$IFNDEF FPC}{$IFDEF DELPHI3UP}^{$ENDIF}{$ENDIF})^.MaxInt64Value then
+            Result := tbtString(UIntToStr(tbtu64(GetInt64Prop(Instance, pp))))
+          else
+            Result := tbtString(SysUtils.IntToStr(GetInt64Prop(Instance, pp)));
+          exit;
+        end;
+      {$IFDEF FPC}
+      { Free Pascal gives UInt64 a kind of its own: read as the unsigned number it is }
+      tkQWord: begin Result := tbtString(UIntToStr(tbtu64(GetInt64Prop(Instance, pp)))); exit; end;
+      {$ENDIF}
      {$ENDIF}
       tkFloat: begin Result := FloatToStr(GetFloatProp(Instance, PP)); exit; end;
-      tkString, tkLString: begin Result := ''''+tbtString(GetStrProp(Instance, PP))+''''; exit; end;
+      { a string as a string variable's is written }
+      tkString, tkLString{$IFDEF FPC}, tkAString{$ENDIF}: begin Result := MakeString(tbtString(GetStrProp(Instance, PP))); exit; end;
       tkSet: begin Result := '[Set]'; exit; end;
       tkClass: begin Instance := TObject(GetOrdProp(Instance, pp)); end;
       tkMethod: begin Result := '[Method]'; exit; end;
       tkVariant: begin Result := '[Variant]'; exit; end;
 	  {$IFDEF DELPHI6UP}
 	  {$IFNDEF PS_NOWIDESTRING}
-      tkWString: begin Result := ''''+tbtString(GetWideStrProp(Instance, pp))+''''; exit; end;
+      tkWString: begin Result := MakeWString(GetWideStrProp(Instance, pp)); exit; end;
 	  {$IFDEF DELPHI2009UP}
-      tkUString: begin Result := ''''+tbtString({$IFDEF DELPHI_TOKYO_UP}GetStrProp{$ELSE}GetUnicodeStrProp{$ENDIF}(Instance, pp))+''''; exit; end;
+      tkUString: begin Result := MakeWString({$IFDEF DELPHI_TOKYO_UP}GetStrProp{$ELSE}GetUnicodeStrProp{$ENDIF}(Instance, pp)); exit; end;
 	  {$ENDIF}
       {$ENDIF}
 	  {$ENDIF}
@@ -1605,6 +1732,102 @@ begin
       Result := 'Interface'
   else Result := tbtstring(RPS_InvalidType);
 end;
+
+{$IFNDEF DELPHI2009UP}
+{ The RTL has UIntToStr for a 64-bit value from Delphi 2009 on.  The value is divided by ten in two
+  32-bit halves because unsigned 64-bit arithmetic is not dependable on the oldest compilers. }
+function UIntToStr(const Value: tbtu64): string;
+var
+  Hi, Lo: Cardinal;
+  Temp: Int64;
+begin
+  Hi := Int64Rec(Value).Hi;
+  Lo := Int64Rec(Value).Lo;
+  Result := '';
+  repeat
+    Temp := (Int64(Hi mod 10) shl 32) or Int64(Lo);
+    Hi := Hi div 10;
+    Lo := Cardinal(Temp div 10);
+    Result := Chr(Ord('0') + Integer(Temp mod 10)) + Result;
+  until (Hi = 0) and (Lo = 0);
+end;
+{$ENDIF}
+
+{$IFNDEF DELPHI25UP}
+{ The RTL has StrToUInt64 and StrToUInt64Def from Delphi XE6 on, and through 10.1 Berlin its
+  StrToUInt64Def answers 0 for a number past the 64-bit range instead of the default.  So every
+  compiler before 10.2 Tokyo gets these.  They read what Val reads for an unsigned value: leading
+  blanks, an optional plus sign -- or a minus sign before a value of zero --, decimal digits, or
+  hexadecimal digits after $, x or 0x.  The value is built in two 32-bit halves because unsigned
+  64-bit arithmetic is not dependable on the oldest compilers. }
+function PSTryStrToUInt64(const S: string; var Value: tbtu64): Boolean;
+var
+  Idx, Len, Digit, Base: Integer;
+  Hi, Lo: Cardinal;
+  Temp: Int64;
+  Any, Minus: Boolean;
+begin
+  Result := False;
+  Len := Length(S);
+  Idx := 1;
+  while (Idx <= Len) and (S[Idx] = ' ') do
+    Inc(Idx);
+  Minus := (Idx <= Len) and (S[Idx] = '-');
+  if (Idx <= Len) and ((S[Idx] = '+') or Minus) then
+    Inc(Idx);
+  Base := 10;
+  if (Idx <= Len) and ((S[Idx] = '$') or (S[Idx] = 'x') or (S[Idx] = 'X')) then
+  begin
+    Base := 16;
+    Inc(Idx);
+  end
+  else if (Idx < Len) and (S[Idx] = '0') and ((S[Idx + 1] = 'x') or (S[Idx + 1] = 'X')) then
+  begin
+    Base := 16;
+    Inc(Idx, 2);
+  end;
+  Hi := 0;
+  Lo := 0;
+  Any := False;
+  while Idx <= Len do
+  begin
+    case S[Idx] of
+      '0'..'9': Digit := Ord(S[Idx]) - Ord('0');
+      'a'..'f': Digit := Ord(S[Idx]) - Ord('a') + 10;
+      'A'..'F': Digit := Ord(S[Idx]) - Ord('A') + 10;
+    else
+      Exit;
+    end;
+    if Digit >= Base then
+      Exit;
+    Temp := Int64(Lo) * Base + Digit;
+    Lo := Cardinal(Temp and $FFFFFFFF);
+    Temp := Int64(Hi) * Base + (Temp shr 32);
+    if (Temp shr 32) <> 0 then
+      Exit;
+    Hi := Cardinal(Temp and $FFFFFFFF);
+    Any := True;
+    Inc(Idx);
+  end;
+  if not Any or (Minus and ((Hi <> 0) or (Lo <> 0))) then
+    Exit;
+  Int64Rec(Value).Hi := Hi;
+  Int64Rec(Value).Lo := Lo;
+  Result := True;
+end;
+
+function StrToUInt64(const S: string): tbtu64;
+begin
+  if not PSTryStrToUInt64(S, Result) then
+    raise EConvertError.CreateFmt('''%s'' is not a valid integer value', [S]);
+end;
+
+function StrToUInt64Def(const S: string; const Default: tbtu64): tbtu64;
+begin
+  if not PSTryStrToUInt64(S, Result) then
+    Result := Default;
+end;
+{$ENDIF}
 
 function PSVariantToString(const p: TPSVariantIFC; const ClassProperties: tbtString): tbtString;
 var
@@ -1667,7 +1890,7 @@ begin
     {$ENDIF}
     {$IFNDEF PS_NOINT64}
     btS64: str(tbts64(p.dta^), Result);
-    btU64: str(tbtu64(p.dta^), Result);
+    btU64: Result := tbtString(UIntToStr(tbtu64(p.dta^)));
     {$ENDIF}
     btStaticArray, btArray:
       begin
@@ -1692,7 +1915,8 @@ begin
           if b then begin
             if Result <> '' then
               Result := Result + ', ';
-            Result := Result + IntToStr(i+1);
+            { a member by its ordinal, as the in operator and Include number it }
+            Result := Result + IntToStr(i);
           end;
         end;
         Result := '[' + Result + ']';
@@ -1726,7 +1950,21 @@ begin
 end;
 
 function PSErrorToString(x: TPSError; const Param: tbtString): tbtString;
+{$IFDEF FPC}
+var
+  lOrd: Integer;
+{$ENDIF}
 begin
+  {$IFDEF FPC}
+  { Free Pascal, optimising, jumps through an unbounded table for a case that
+    names every value: a value past the enumeration is answered here, as the
+    else below answers it on Delphi }
+  lOrd := Ord(x);
+  if (lOrd < Ord(Low(TPSError))) or (lOrd > Ord(High(TPSError))) then begin
+    Result := tbtString(RPS_UnknownError);
+    Exit;
+  end;
+  {$ENDIF}
   case x of
     ErNoError: Result := tbtString(RPS_NoError);
     erCannotImport: Result := tbtString(Format (RPS_CannotImport, [Safestr(Param)]));
@@ -1936,12 +2174,32 @@ begin
   end;
 end;
 
+{$IFNDEF PS_NOINTERFACES}
+{ stores an interface reference in Delphi's order (_IntfCopy, _IntfClear):
+  the variable holds the new value before the old one is released, so what
+  the release runs (a native destructor running a script event) does not
+  find the old value there, nor copy it out when it moves the container.
+  Free Pascal's own interface assignment releases first. }
+procedure SetInterfaceVar(var Dest: Pointer; Source: Pointer);
+var
+  lOld: Pointer;
+begin
+  if Source <> nil then
+    IUnknown(Source)._AddRef;
+  lOld := Dest;
+  Dest := Source;
+  if lOld <> nil then
+    IUnknown(lOld)._Release;
+end;
+{$ENDIF}
+
 procedure FinalizeVariant(p: Pointer; aType: TPSTypeRec);
 var
   t: TPSTypeRec;
   elsize: Cardinal;
   i, l: Longint;
   darr: PDynArrayRec;
+  lBlock: Pointer;
 begin
   case aType.BaseType of
     btString: tbtString(p^) := '';
@@ -1955,7 +2213,7 @@ begin
         if IUnknown(p^) <> nil then
           IUnknown(p^).Release;
         {$ENDIF}
-        IUnknown(p^) := nil;
+        SetInterfaceVar(Pointer(p^), nil);
       end; {$ENDIF}
     btVariant:
     begin
@@ -1967,16 +2225,27 @@ begin
     btPointer:
       if Pointer(Pointer(IPointer(p)+PointerSize2)^) <> nil then
       begin
-        DestroyHeapVariant2(Pointer(p^), Pointer(Pointer(IPointer(p)+PointerSize)^));
+        { taken out of the slot before it is destroyed, as an interface
+          variable is cleared before its release: what the destruction runs
+          (a native destructor running a script event) does not reach the
+          value through the slot }
+        lBlock := Pointer(p^);
         Pointer(p^) := nil;
+        DestroyHeapVariant2(lBlock, Pointer(Pointer(IPointer(p)+PointerSize)^));
       end;
     btArray:
       begin
         if IPointer(P^) = 0 then exit;
         darr := PDynArrayRec(IPointer(p^) - sizeof(TDynArrayRecHeader));
+        { emptied first, whoever else shares the block, as Delphi's
+          _DynArrayClear empties the variable before it releases the block:
+          what a finalization runs (a native destructor running a script
+          event) does not reach the block through this variable }
+        Pointer(P^) := nil;
         if darr^.header.refCnt < 0 then exit;// refcount < 0 means don't free
         Dec(darr^.header.refCnt);
         if darr^.header.refCnt <> 0 then exit;
+        lBlock := darr;
         t := TPSTypeRec_Array(aType).ArrayType;
         elsize := t.RealSize;
         {$IFDEF FPC}
@@ -1997,8 +2266,7 @@ begin
               end;
             end;
         end;
-        FreeMem(Pointer(IPointer(p^) - SizeOf(TDynArrayRecHeader)), IPointer(Cardinal(l) * elsize) + SizeOf(TDynArrayRecHeader));
-        Pointer(P^) := nil;
+        FreeMem(lBlock, IPointer(Cardinal(l) * elsize) + SizeOf(TDynArrayRecHeader));
       end;
     btRecord:
       begin
@@ -2048,6 +2316,12 @@ function CreateHeapVariant(aType: TPSTypeRec): PPSVariant;
 var
   aSize: Longint;
 begin
+  { a type the loaded script lacks gives no value, which the helpers refuse }
+  if aType = nil then
+  begin
+    Result := nil;
+    exit;
+  end;
   aSize := aType.RealSize + RTTISize;
   GetMem(Result, aSize);
   Result.FType := aType;
@@ -2134,28 +2408,44 @@ begin
     pp := FExceptionStack.Data^[i];
     pp.Free;
   end;
-  for i := Longint(FResources.Count) -1 downto 0 do
+  FExceptionStack.Clear;
+  { the script's values are released while the script can still run: what a
+    release runs (a native destructor running a script event) needs the
+    method records among the resources, the procs and the types -- and the
+    locals an unhandled error left on the stack go before the globals, which
+    their events may use }
+  FStack.Clear;
+  FTempVars.Clear;
+  FGlobalVars.Clear;
+  { each resource is taken out of the list before its release runs: a host
+    looking a resource up from a release sees only those not yet released,
+    and one it adds is released here too }
+  while FResources.Count > 0 do
   begin
-    Temp := FResources.Data^[i];
-    Proc := Temp^.Proc;
-    Proc(Self, Temp^.P);
-    Dispose(Temp);
+    Temp := FResources.Data^[Pred(Longint(FResources.Count))];
+    FResources.DeleteLast;
+    try
+      Proc := Temp^.Proc;
+      Proc(Self, Temp^.P);
+    finally
+      Dispose(Temp);
+    end;
   end;
   for i := Longint(FExportedVars.Count) -1 downto 0 do
     Dispose(PPSExportedVar(FExportedVars.Data^[I]));
   for I := Longint(FProcs.Count) - 1downto 0  do
     TPSProcRec(FProcs.Data^[i]).Destroy;
   FProcs.Clear;
-  FGlobalVars.Clear;
-  FStack.Clear;
-  FTempVars.Clear;
   for I := Longint(FTypes.Count) - 1downto 0  do
     TPSTypeRec(FTypes.Data^[i]).Free;
   FTypes.Clear;
+  { nothing refers to the destroyed procs }
+  FCurrProc := nil;
+  FData := nil;
+  FDataLength := 0;
   FStatus := isNotLoaded;
   FResources.Clear;
   FExportedVars.Clear;
-  FExceptionStack.Clear;
   FCurrStackBase := InvalidVal;
 end;
 
@@ -2175,6 +2465,7 @@ begin
   FRegProcs := TPSList.Create;
   FExportedVars := TPSList.create;
   FSpecialProcList := TPSList.Create;
+  FOwnedImporters := TPSList.Create;
   RegisterStandardProcs;
   FReturnAddressType := TPSTypeRec.Create(self);
   FReturnAddressType.BaseType := btReturnAddress;
@@ -2187,6 +2478,7 @@ begin
   FVariantArrayType.CalcSize;
   TPSTypeRec_Array(FVariantArrayType).ArrayType := FVariantType;
   FStack := TPSStack.Create;
+  FStack.UseChunks;
 end;
 
 destructor TPSExec.Destroy;
@@ -2206,6 +2498,9 @@ begin
     P := FSpecialProcList.Data^[I];
     Dispose(p);
   end;
+  for I := Pred(FOwnedImporters.Count) downto 0 do
+    TObject(FOwnedImporters.Data^[I]).Free;
+  FOwnedImporters.Free;
   FResources.Free;
   FExportedVars.Free;
   FTempVars.Free;
@@ -2234,6 +2529,22 @@ procedure TPSExec.ExceptionProc(proc, Position: Cardinal; Ex: TPSError; const s:
 var
   d, l: Longint;
   pp: TPSExceptionHandler;
+
+  { aFrame's finally runs for the exception: the frame holds it until the
+    finally ends, so that what the finally does cannot take it }
+  procedure HoldIn(aFrame: TPSExceptionHandler);
+  begin
+    aFrame.DropException;
+    aFrame.Unwinding := True;
+    aFrame.ExceptionProcNo := ExProc;
+    aFrame.ExceptionPos := ExPos;
+    aFrame.ExceptionData := ExEx;
+    aFrame.ExceptionParam := ExParam;
+    aFrame.ExceptionObject := ExObject;
+    ExObject := nil;
+    ExEx := ENoError;
+  end;
+
 begin
   ExProc := proc;
   ExPos := Position;
@@ -2243,9 +2554,16 @@ begin
     ExObject.Free;
   ExObject := NewObject;
   if Ex = eNoError then Exit;
+  if FRaisedCount = High(Cardinal) then
+    FRaisedCount := 0
+  else
+    Inc(FRaisedCount);
   for d := FExceptionStack.Count -1 downto 0 do
   begin
     pp := FExceptionStack[d];
+    { an exception escaping a finally replaces the one the finally ran for }
+    if pp.Unwinding then
+      pp.DropException;
     if Cardinal(FStack.Count) > pp.StackSize then
     begin
       for l := Longint(FStack.count) -1 downto Longint(pp.StackSize) do
@@ -2257,7 +2575,9 @@ begin
       FExceptionStack.DeleteLast;
 
       FCurrStackBase := InvalidVal;
-      FStatus := isPaused;
+      { a Stop made before the exception stands }
+      if FStatus = isRunning then
+        FStatus := isPaused;
       exit;
     end;
     FCurrProc := pp.CurrProc;
@@ -2269,11 +2589,16 @@ begin
     begin
       FCurrentPosition := pp.FinallyOffset;
       pp.FinallyOffset := InvalidVal;
+      HoldIn(pp);
       Exit;
     end else if (pp.ExceptOffset <> InvalidVal) and (pp.ExceptOffset <> Cardinal(InvalidVal -1)) then
     begin
         FCurrentPosition := pp.ExceptOffset;
       pp.ExceptOffset := Cardinal(InvalidVal -1);
+      { the exception cancels the jump whose finally raised it }
+      pp.ExitPoint := InvalidVal;
+      pp.ExceptionProcNo := ExProc;
+      pp.ExceptionPos := ExPos;
       pp.ExceptionObject := ExObject;
       pp.ExceptionData := ExEx;
       pp.ExceptionParam := ExParam;
@@ -2284,13 +2609,38 @@ begin
     begin
       FCurrentPosition := pp.Finally2Offset;
       pp.Finally2Offset := InvalidVal;
+      { the except before the second finally is over }
+      pp.ExceptOffset := InvalidVal;
+      HoldIn(pp);
       Exit;
     end;
     pp.Free;
     FExceptionStack.DeleteLast;
   end;
-  if FStatus <> isNotLoaded then
+  { a Stop made before the exception stands }
+  if FStatus = isRunning then
     FStatus := isPaused;
+end;
+
+procedure TPSExec.ResumeUnwinding;
+var
+  pp      : TPSExceptionHandler;
+  lProcNo : Cardinal;
+  lPos    : Cardinal;
+  lData   : TPSError;
+  lParam  : tbtString;
+  lObject : TObject;
+begin
+  pp := FExceptionStack[FExceptionStack.Count -1];
+  lProcNo := pp.ExceptionProcNo;
+  lPos := pp.ExceptionPos;
+  lData := pp.ExceptionData;
+  lParam := pp.ExceptionParam;
+  lObject := pp.ExceptionObject;
+  pp.ExceptionObject := nil;
+  pp.Free;
+  FExceptionStack.DeleteLast;
+  ExceptionProc(lProcNo, lPos, lData, lParam, lObject);
 end;
 
 function LookupProc(List: TPSList; const Name: ShortString): PProcRec;
@@ -2596,6 +2946,16 @@ var
     l2, l: Longint;
     d: Cardinal;
 
+    { the sum of a record's field sizes, which the Longint offsets below wrap }
+    function RecordSize(Dta: TPSTypeRec_Record): Int64;
+    var
+      l: Longint;
+    begin
+      Result := 0;
+      for l := 0 to Dta.FieldTypes.Count -1 do
+        Result := Result + TPSTypeRec(Dta.FieldTypes[l]).RealSize;
+    end;
+
     function resolve(Dta: TPSTypeRec_Record): Boolean;
     var
       offs, l: Longint;
@@ -2843,6 +3203,16 @@ var
         Curr.ExportNameHash := MakeHash(Curr.ExportName);
       end;
       curr.CalcSize;
+      { a static array whose size a Longint cannot hold got a wrapped size, which every allocation then trusted }
+      if ((curr is TPSTypeRec_StaticArray) and (Int64(TPSTypeRec_StaticArray(curr).ArrayType.RealSize) *
+        TPSTypeRec_StaticArray(curr).Size > High(Longint))) or
+        { so did a record whose fields' sizes sum past it }
+        ((curr is TPSTypeRec_Record) and (RecordSize(TPSTypeRec_Record(curr)) > High(Longint))) then
+      begin
+        cmd_err(erInvalidType);
+        LoadTypes := False;
+        exit;
+      end;
       if HDR.PSBuildNo >= 21 then // since build 21 we support attributes
       begin
         if not ReadAttributes(Curr.Attributes) then
@@ -3037,8 +3407,10 @@ var
           dispose(e);
           cmd_err(erInvalidType);
           LoadVars := False;
-          exit;
         end;
+        { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
+        if not Result then
+          exit;
       end;
     end;
   end;
@@ -3090,7 +3462,9 @@ end;
 
 procedure TPSExec.Pause;
 begin
-  if FStatus = isRunning then
+  { a run RunProc began cannot be left part way to be resumed: its caller
+    gets control back when it ends, so it runs on }
+  if (FStatus = isRunning) and (FNestedRuns = 0) then
     FStatus := isPaused;
 end;
 
@@ -3451,23 +3825,8 @@ begin
 {$ENDIF}
     btChar: Result := Ord(tbtchar(Src^));
 {$IFNDEF PS_NOWIDESTRING}    btWideChar: Result := Ord(tbtwidechar(Src^));{$ENDIF}
-    btVariant:
-      case VarType(Variant(Src^)) of
-        varString:
-          if Length(VarToStr(Variant(Src^))) = 1 then
-            Result := Ord(VarToStr(Variant(Src^))[1])
-          else
-            raise Exception.Create(RPS_TypeMismatch);
-{$IFNDEF PS_NOWIDESTRING}
-        varOleStr:
-          if Length(VarToWideStr(Variant(Src^))) = 1 then
-            Result := Ord(VarToWideStr(Variant(Src^))[1])
-          else
-            raise Exception.Create(RPS_TypeMismatch);
-{$ENDIF}
-       else
-        Result := Variant(src^);
-       end;
+    { a Variant converts as Delphi converts it, as PSGetInt does: text holding a number gives the number }
+    btVariant: Result := Variant(src^);
     else raise Exception.Create(RPS_TypeMismatch);
   end;
 end;
@@ -3528,6 +3887,17 @@ begin
 {$ENDIF}
     else raise Exception.Create(RPS_TypeMismatch);
   end;
+end;
+
+{ the base type of a value, followed through a pointer: a division by a 64-bit divisor keeps its 64 bits }
+function _DivisorBaseType(Src: Pointer; aType: TPSTypeRec): TPSBaseType;
+begin
+  if aType.BaseType = btPointer then
+    aType := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
+  if aType = nil then
+    Result := btPointer
+  else
+    Result := aType.BaseType;
 end;
 
 function PSGetUInt64(Src: Pointer; aType: TPSTypeRec): UInt64;
@@ -3647,7 +4017,7 @@ var Res : tbtString;
 begin
   Res := PSGetAnsiString(Src,aType);
   if Length(Res) > 0 then
-    Result := Res[{$IFDEF DELPHI2009UP}Low(Res){$ELSE}1{$ENDIF}]
+    Result := Res[{$IFDEF DELPHI17UP}Low(Res){$ELSE}1{$ENDIF}]
   else
     Result := #0;
 end;
@@ -4056,6 +4426,77 @@ end;
 
 function CopyArrayContents(dest, src: Pointer; Len: Longint; aType: TPSTypeRec): Boolean; forward;
 
+function IsZeroBlock(p: Pointer; Size: Cardinal): Boolean;
+var
+  lIdx: Cardinal;
+begin
+  Result := False;
+  lIdx := 0;
+  while lIdx < Size do
+  begin
+    if PAnsiChar(IPointer(p) + lIdx)^ <> #0 then
+      exit;
+    Inc(lIdx);
+  end;
+  Result := True;
+end;
+
+{ whether releasing a value of the type can run code: an interface, or what
+  may hold one (a string's release runs none) }
+function ReleaseCanRunCode(aType: TPSTypeRec): Boolean;
+var
+  lIdx: Longint;
+begin
+  case aType.BaseType of
+    btArray, btVariant, btPointer{$IFNDEF PS_NOINTERFACES}, btInterface{$ENDIF}:
+      Result := True;
+    btStaticArray:
+      Result := ReleaseCanRunCode(TPSTypeRec_Array(aType).ArrayType);
+    btRecord:
+      begin
+        Result := True;
+        for lIdx := 0 to TPSTypeRec_Record(aType).FieldTypes.Count -1 do
+          if ReleaseCanRunCode(TPSTypeRec_Record(aType).FieldTypes[lIdx]) then
+            exit;
+        Result := False;
+      end;
+  else
+    Result := False;
+  end;
+end;
+
+{ copies into a destination that holds a value: its old contents are moved
+  out first and released only after the copy, as Delphi's _IntfCopy orders
+  an interface, so what the release runs (a native destructor running a
+  script event) finds the destination assigned, and may change or free
+  the container it lies in }
+function ReplaceArrayContents(dest, src: Pointer; Len: Longint; aType: TPSTypeRec): Boolean;
+var
+  lSize: Cardinal;
+  lOld: Pointer;
+  lBuf: array[0..255] of Byte;
+  lIdx: Longint;
+begin
+  lSize := Cardinal(Len) * aType.RealSize;
+  if lSize <= SizeOf(lBuf) then
+    lOld := @lBuf
+  else
+    GetMem(lOld, lSize);
+  try
+    Move(dest^, lOld^, lSize);
+    FillChar(dest^, lSize, 0);
+    Result := CopyArrayContents(dest, src, Len, aType);
+  finally
+    try
+      for lIdx := 0 to Len - 1 do
+        FinalizeVariant(Pointer(IPointer(lOld) + Cardinal(lIdx) * aType.RealSize), aType);
+    finally
+      if lOld <> @lBuf then
+        FreeMem(lOld);
+    end;
+  end;
+end;
+
 function CopyRecordContents(dest, src: Pointer; aType: TPSTypeRec_Record): Boolean;
 var
   o, i: Longint;
@@ -4068,23 +4509,38 @@ begin
   Result := true;
 end;
 
+{ src by value: converting an element can run host code (a custom variant
+  type's cast, copy or clear) that runs a script event, which can free or
+  replace the script variable the caller's Variant lives in -- the copy is
+  what the conversion reads }
 function CreateArrayFromVariant(Exec: TPSExec; dest: Pointer; src: Variant; DestType: TPSTypeRec): Boolean;
 var
   i: Integer;
   r: Pointer;
   lVarType: TPSTypeRec;
   v: variant;
+  lElType: TPSTypeRec;
+  lNewArr: Pointer;
 begin
   lVarType := Exec.FindType2(btVariant);
-  if lVarType = nil then begin result := false; exit; end;
-  PSDynArraySetLength(Pointer(dest^), desttype, VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) + 1);
-  r := Pointer(Dest^);
-  DestType := TPSTypeRec_Array(DestType).ArrayType;
-  for i := 0 to VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) do begin
-    v := src[i + VarArrayLowBound(src, 1)];
-    if not Exec.SetVariantValue(r, @v, desttype, lVarType) then begin result := false; exit; end;
-    //r := Pointer(IPointer(r) + Longint(DestType.RealSize));
-    r := Pointer(IPointer(r) + DestType.RealSize);
+  if lVarType = nil then begin Exec.CMD_Err(ErTypeMismatch); result := false; exit; end;
+  { built apart and then assigned: releasing the destination's old
+    elements (a native destructor running a script event) comes after the
+    destination holds the new array, and a failed conversion leaves it as
+    it was }
+  lNewArr := nil;
+  PSDynArraySetLength(lNewArr, desttype, VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) + 1);
+  try
+    r := lNewArr;
+    lElType := TPSTypeRec_Array(DestType).ArrayType;
+    for i := 0 to VarArrayHighBound(src, 1) - VarArrayLowBound(src, 1) do begin
+      v := src[i + VarArrayLowBound(src, 1)];
+      if not Exec.SetVariantValue(r, @v, lElType, lVarType) then begin result := false; exit; end;
+      r := Pointer(IPointer(r) + lElType.RealSize);
+    end;
+    CopyArrayContents(dest, @lNewArr, 1, DestType);
+  finally
+    FinalizeVariant(@lNewArr, DestType);
   end;
   Result := true;
 end;
@@ -4093,7 +4549,26 @@ function CopyArrayContents(dest, src: Pointer; Len: Longint; aType: TPSTypeRec):
 var
   elsize: Cardinal;
   i: Longint;
+  lSrcArr: Pointer;
 begin
+  { a copy onto itself changes nothing, as in Delphi: releasing the destination first would release the
+    source }
+  if dest = src then
+  begin
+    Result := True;
+    exit;
+  end;
+  { a destination whose release can run code (an interface, and what may
+    hold one) is replaced: see ReplaceArrayContents.  A source overlapping
+    the destination is copied in place. }
+  if (Len > 0) and ReleaseCanRunCode(aType) and
+    not IsZeroBlock(dest, Cardinal(Len) * aType.RealSize) and
+    ((IPointer(src) >= IPointer(dest) + Cardinal(Len) * aType.RealSize) or
+     (IPointer(dest) >= IPointer(src) + Cardinal(Len) * aType.RealSize)) then
+  begin
+    Result := ReplaceArrayContents(dest, src, Len, aType);
+    exit;
+  end;
   try
     case aType.BaseType of
       btU8, btS8, btChar:
@@ -4221,15 +4696,15 @@ begin
         begin
           for i := 0 to Len -1 do
           begin
+            { the source is taken, with its reference, before the destination is
+              released, as Delphi's _DynArrayAsg takes it: what the release runs
+              (a native destructor running a script event) can empty the source }
+            lSrcArr := Pointer(Src^);
+            if lSrcArr <> nil then
+              Inc(PDynArrayRec(PAnsiChar(lSrcArr) - SizeOf(TDynArrayRecHeader))^.header.refCnt);
             if Pointer(Dest^) <> nil then
-            begin
               PSDynArraySetLength(Pointer(Dest^), aType, 0);
-            end;
-            Pointer(Dest^) := Pointer(Src^);
-            if Pointer(Dest^) <> nil then
-            begin
-              Inc(PDynArrayRec(PAnsiChar(Dest^) - SizeOf(TDynArrayRecHeader))^.header.refCnt);
-            end;
+            Pointer(Dest^) := lSrcArr;
             Dest := Pointer(IPointer(Dest) + PointerSize);
             Src := Pointer(IPointer(Src) + PointerSize);
           end;
@@ -4270,7 +4745,7 @@ begin
               IUnknown(Dest^) := nil;
             end;
             {$ENDIF}
-            IUnknown(Dest^) := IUnknown(Src^);
+            SetInterfaceVar(Pointer(Dest^), Pointer(Src^));
             {$IFNDEF DELPHI3UP}
             if IUnknown(Dest^) <> nil then
               IUnknown(Dest^).AddRef;
@@ -4282,7 +4757,9 @@ begin
 {$ENDIF}
       btPointer:
         begin
-          if (Pointer(Pointer(IPointer(Dest)+PointerSize2)^) = nil) and (Pointer(Pointer(IPointer(Src)+PointerSize2)^) = nil) then
+          { the borrowed copy for one element: of several, a later one may own
+            its value, which the loop below copies }
+          if (Len = 1) and (Pointer(Pointer(IPointer(Dest)+PointerSize2)^) = nil) and (Pointer(Pointer(IPointer(Src)+PointerSize2)^) = nil) then
           begin
             for i := 0 to Len -1 do
             begin
@@ -4336,11 +4813,11 @@ begin
       Result := False;
       exit;
     end;
+    Result := true;
   except
+    { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
     Result := False;
-    exit;
   end;
-  Result := true;
 end;
 
 function  GetPSArrayLength(Arr: PIFVariant): Longint;
@@ -4364,38 +4841,71 @@ procedure PSDynArraySetLength(var arr: Pointer; aType: TPSTypeRec; NewLength: Lo
 var
   elSize, i, OldLen: Longint;
   darr : PDynArrayRec;
+  lRemoved: Pointer;
 begin
   if aType.BaseType <> btArray then raise Exception.Create(RPS_InvalidArray);
   OldLen := PSDynArrayGetLength(arr, aType);
   elSize := TPSTypeRec_Array(aType).ArrayType.RealSize;
   if NewLength<0 then
      NewLength:=0;
+  { the size below is a Longint: a length whose size it cannot hold allocated a few bytes and initialised
+    the whole length past them }
+  if (NewLength > 0) and (TPSTypeRec_Array(aType).ArrayType.RealSize > 0) and
+    (NewLength > (High(Longint) - SizeOf(TDynArrayRecHeader)) div Longint(TPSTypeRec_Array(aType).ArrayType.RealSize)) then
+    raise Exception.Create(RPS_OutOfRange);
   if (OldLen = 0) and (NewLength = 0) then exit; // already are both 0
-  if (OldLen = NewLength) then exit; // already same size, noop
+  { at its length already: nothing to do unless another variable shares the array -- Delphi's SetLength
+    makes it unique }
+  if (OldLen = NewLength) and (PDynArrayRec(PAnsiChar(Arr) - SizeOf(TDynArrayRecHeader))^.header.refCnt = 1) then
+    exit;
   darr := PDynArrayRec(PAnsiChar(Arr) - SizeOf(TDynArrayRecHeader));
   if (OldLen <> 0) and (darr^.header.refCnt = 1) then // unique copy of this dynamic array
   begin
-    for i := NewLength to OldLen -1 do
-    begin
-      if TPSTypeRec_Array(aType).ArrayType.BaseType in NeedFinalization then
-        FinalizeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
-    end;
     if NewLength <= 0 then
     begin
-      FreeMem(darr);
+      { emptied before its elements are finalized, as Delphi's _DynArrayClear
+        empties the variable first: what a finalization runs (a native
+        destructor running a script event) does not reach the block freed here }
       arr := nil;
+      if TPSTypeRec_Array(aType).ArrayType.BaseType in NeedFinalization then
+        for i := 0 to OldLen -1 do
+          FinalizeVariant(Pointer(IPointer(@darr^.datas) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
+      FreeMem(darr);
       exit;
     end;
-    ReallocMem(darr, Longint(NewLength * elSize) + SizeOf(TDynArrayRecHeader));
-    {$IFDEF FPC}
-    darr^.header.high := NewLength  -1;
-    {$ELSE}
-    darr^.header.length := NewLength;
-    {$ENDIF}
-    arr := @darr^.datas;
-    for i := OldLen to NewLength -1 do
+    { the elements a shrink removes are moved out and the array shortened
+      before they are finalized, as an assignment stores its new value
+      before it releases the old one: what a finalization runs (a native
+      destructor running a script event) finds the array at its new length,
+      and what it does to the array stands.  When the smaller block cannot
+      be had, the array keeps its length, the removed elements emptied. }
+    lRemoved := nil;
+    if (NewLength < OldLen) and (TPSTypeRec_Array(aType).ArrayType.BaseType in NeedFinalization) then
     begin
-      InitializeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
+      GetMem(lRemoved, (OldLen - NewLength) * elSize);
+      Move(Pointer(IPointer(arr) + Cardinal(elsize * NewLength))^, lRemoved^, (OldLen - NewLength) * elSize);
+      FillChar(Pointer(IPointer(arr) + Cardinal(elsize * NewLength))^, (OldLen - NewLength) * elSize, 0);
+    end;
+    try
+      ReallocMem(darr, Longint(NewLength * elSize) + SizeOf(TDynArrayRecHeader));
+      {$IFDEF FPC}
+      darr^.header.high := NewLength  -1;
+      {$ELSE}
+      darr^.header.length := NewLength;
+      {$ENDIF}
+      arr := @darr^.datas;
+      for i := OldLen to NewLength -1 do
+      begin
+        InitializeVariant(Pointer(IPointer(arr) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
+      end;
+    finally
+      if lRemoved <> nil then
+      try
+        for i := 0 to OldLen - NewLength - 1 do
+          FinalizeVariant(Pointer(IPointer(lRemoved) + Cardinal(elsize * i)), TPSTypeRec_Array(aType).ArrayType);
+      finally
+        FreeMem(lRemoved);
+      end;
     end;
   end else
   begin
@@ -4517,10 +5027,76 @@ begin
 end;
 {$ENDIF}
 
+{ moves aNew into the Variant at dest, leaving aNew empty, and only then
+  releases the value dest held: Delphi's own Variant assignment releases
+  first, and what a release runs (a native destructor running a script
+  event) can move or free the container dest lies in }
+procedure MoveIntoVariant(dest: Pointer; var aNew: Variant);
+var
+  lOld: Variant;
+begin
+  { the old value moves out and the new one in; lOld is released when
+    this routine ends }
+  Move(dest^, lOld, SizeOf(TVarData));
+  Move(aNew, dest^, SizeOf(TVarData));
+  FillChar(aNew, SizeOf(TVarData), 0);
+end;
+
+{ stores a copy of aNew into the Variant at dest by MoveIntoVariant }
+procedure StoreVariant(dest: Pointer; const aNew: Variant);
+var
+  lNew: Variant;
+begin
+  lNew := aNew;
+  MoveIntoVariant(dest, lNew);
+end;
+
+{ SetVariantValue's Variant destination: the new value is made apart and
+  then moved in by MoveIntoVariant }
+function SetVariantFromValue(Exec: TPSExec; dest, src: Pointer; srctype: TPSTypeRec): Boolean;
+var
+  lNew: Variant;
+  tt: TPSVariantPointer;
+begin
+  Result := True;
+{$IFNDEF PS_NOINTERFACES}
+  if srctype.ExportName = 'IDISPATCH' then
+  begin
+    {$IFDEF DELPHI3UP}
+    lNew := IDispatch(src^);
+    {$ELSE}
+    AssignVariantFromIDispatch(lNew, IDispatch(src^));
+    {$ENDIF}
+  end else
+{$ENDIF}
+  if srctype.BaseType = btVariant then
+  begin
+    { a Variant assigned to itself changes nothing, as in Delphi }
+    if src = dest then
+      exit;
+    lNew := Variant(src^);
+  end else
+  begin
+    tt.VI.FType := Exec.FindType2(btPointer);
+    if tt.VI.FType = nil then
+    begin
+      Result := False;
+      exit;
+    end;
+    tt.DestType := srctype;
+    tt.DataDest := src;
+    tt.FreeIt := False;
+    Result := PIFVariantToVariant(@tt, lNew);
+    if not Result then
+      exit;
+  end;
+  MoveIntoVariant(dest, lNew);
+end;
+
 function TPSExec.SetVariantValue(dest, Src: Pointer; desttype, srctype: TPSTypeRec): Boolean;
 var
   Tmp: TObject;
-  tt: TPSVariantPointer;
+  lNewArr: Pointer;
 begin
   Result := True;
   try
@@ -4758,7 +5334,20 @@ begin
           end;
         end;
       btCurrency: tbtcurrency(Dest^) := PSGetCurrency(Src, srctype);
-      btPChar: pansichar(dest^) := pansichar(PSGetAnsiString(Src, srctype));
+      btPChar:
+        begin
+          if srctype.BaseType = btPointer then
+          begin
+            srctype := PIFTypeRec(Pointer(IPointer(Src)+PointerSize)^);
+            Src := Pointer(Src^);
+            if (src = nil) or (srctype = nil) then raise Exception.Create(RPS_TypeMismatch);
+          end;
+          { a PChar takes the other's pointer, as in Delphi: a string made of its text would be freed here }
+          if srctype.BaseType = btPChar then
+            pansichar(dest^) := pansichar(src^)
+          else
+            pansichar(dest^) := pansichar(PSGetAnsiString(Src, srctype));
+        end;
       btString:
         tbtstring(dest^) := PSGetAnsiString(Src, srctype);
       btChar: tbtchar(dest^) := PSGetAnsiChar(Src, srctype);
@@ -4769,22 +5358,47 @@ begin
       {$ENDIF}
       btStaticArray:
         begin
+          { here, for a static array assigned to a dynamic one, and for a record:
+            CopyArrayContents takes a failed copy's exception and answers False, and
+            the assignment is refused, as Delphi raises, rather than going on with
+            the destination partly copied }
           if desttype <> srctype then
             Result := False
-          else
-            CopyArrayContents(dest, Src, TPSTypeRec_StaticArray(desttype).Size, TPSTypeRec_StaticArray(desttype).ArrayType);
+          else if not CopyArrayContents(dest, Src, TPSTypeRec_StaticArray(desttype).Size, TPSTypeRec_StaticArray(desttype).ArrayType) then
+            Result := False;
         end;
       btArray:
         begin
           if (srctype.BaseType = btStaticArray) and (TPSTypeRec_Array(desttype).ArrayType = TPSTypeRec_Array(srctype).ArrayType) then
           begin
-            PSDynArraySetLength(Pointer(Dest^), desttype, TPSTypeRec_StaticArray(srctype).Size);
-            CopyArrayContents(Pointer(dest^), Src, TPSTypeRec_StaticArray(srctype).Size, TPSTypeRec_StaticArray(srctype).ArrayType);
+            { built apart and then assigned: releasing the destination's old
+              elements (a native destructor running a script event) comes
+              after the destination holds the new array }
+            lNewArr := nil;
+            PSDynArraySetLength(lNewArr, desttype, TPSTypeRec_StaticArray(srctype).Size);
+            try
+              if CopyArrayContents(lNewArr, Src, TPSTypeRec_StaticArray(srctype).Size, TPSTypeRec_StaticArray(srctype).ArrayType) then
+                CopyArrayContents(Dest, @lNewArr, 1, desttype)
+              else
+                Result := False;
+            finally
+              FinalizeVariant(@lNewArr, desttype);
+            end;
           end else if (srctype.BaseType = btvariant) and VarIsArray(Variant(src^)) then
-            Result := CreateArrayFromVariant(Self, dest, Variant(src^), desttype)
-          else if (desttype <> srctype) and not ((desttype.BaseType = btarray) and (srctype.BaseType = btArray)
-            and ((TPSTypeRec_Array(desttype).ArrayType.BaseType = TPSTypeRec_Array(srctype).ArrayType.BaseType) and
-                 not (TPSTypeRec_Array(desttype).ArrayType.BaseType in [btRecord, btSet, btStaticArray, btArray]))) then
+          begin
+            { CreateArrayFromVariant has reported its failure: a second report would find the handler of the
+              try that took the first used up, and go on to an outer handler or stop the script }
+            if not CreateArrayFromVariant(Self, dest, Variant(src^), desttype) then
+            begin
+              Result := False;
+              exit;
+            end;
+          end else if (desttype <> srctype) and not ((desttype.BaseType = btarray) and (srctype.BaseType = btArray)
+            and (((TPSTypeRec_Array(desttype).ArrayType.BaseType = TPSTypeRec_Array(srctype).ArrayType.BaseType){$IFDEF WIDESTRING_EQUAL_UNICODESTRING}{$IFNDEF PS_NOWIDESTRING} or
+                  ((TPSTypeRec_Array(desttype).ArrayType.BaseType in [btWideString, btUnicodeString]) and
+                   (TPSTypeRec_Array(srctype).ArrayType.BaseType in [btWideString, btUnicodeString])){$ENDIF}{$ENDIF}) and
+                 (not (TPSTypeRec_Array(desttype).ArrayType.BaseType in [btRecord, btSet, btStaticArray, btArray]) or
+                  (TPSTypeRec_Array(desttype).ArrayType = TPSTypeRec_Array(srctype).ArrayType)))) then
             { ^ Comparing BaseType is needed because the compiler doesn't merge open array types
               and regular array types in ReadType (see the '!' check). Still it considers them
               compatible in IsCompatibleType, so we should check ArrayType.BaseType instead of
@@ -4797,39 +5411,18 @@ begin
         begin
           if desttype <> srctype then
             Result := False
-          else
-            CopyArrayContents(dest, Src, 1, desttype);
+          else if not CopyArrayContents(dest, Src, 1, desttype) then
+            Result := False;
         end;
       btVariant:
-        begin
-{$IFNDEF PS_NOINTERFACES}
-          if srctype.ExportName = 'IDISPATCH' then
-          begin
-            {$IFDEF DELPHI3UP}
-            Variant(Dest^) := IDispatch(Src^);
-            {$ELSE}
-            AssignVariantFromIDispatch(Variant(Dest^), IDispatch(Src^));
-            {$ENDIF}
-          end else
-{$ENDIF}
-          if srctype.BaseType = btVariant then
-            variant(Dest^) := variant(src^)
-          else
-          begin
-            tt.VI.FType := FindType2(btPointer);
-            tt.DestType := srctype;
-            tt.DataDest := src;
-            tt.FreeIt := False;
-            Result := PIFVariantToVariant(@tt, variant(dest^));
-          end;
-        end;
+        Result := SetVariantFromValue(Self, Dest, Src, srctype);
       btClass:
         begin
           if srctype.BaseType = btClass then
             TObject(Dest^) := TObject(Src^)
           else
           if srctype.BaseType = btVariant then
-            TbtU32(Dest^) := Variant(Src^)
+            {$IFDEF CPU64} TbtU64(Dest^) := Variant(Src^) {$ELSE} TbtU32(Dest^) := Variant(Src^) {$ENDIF}
           else
           // nx change start
           if (srctype.BaseType in {$IFDEF CPU64} [btU64, btS64] {$ELSE} [btU32, btS32] {$ENDIF}) then
@@ -4856,7 +5449,10 @@ begin
           end else
           if srctype.BaseType = btClass then
           begin
-            if (TObject(Src^) = nil) or not TObject(Src^).GetInterface(TPSTypeRec_Interface(desttype).Guid, IUnknown(Dest^)) then
+            { a nil object is a nil interface, as in Delphi }
+            if TObject(Src^) = nil then
+              SetInterfaceVar(Pointer(Dest^), nil)
+            else if not TObject(Src^).GetInterface(TPSTypeRec_Interface(desttype).Guid, IUnknown(Dest^)) then
             begin
               Result := false;
               Cmd_Err(erInterfaceNotSupported);
@@ -4872,7 +5468,7 @@ begin
               IUnknown(Dest^) := nil;
             end;
             {$ENDIF}
-            IUnknown(Dest^) := IUnknown(Src^);
+            SetInterfaceVar(Pointer(Dest^), Pointer(Src^));
             {$IFNDEF Delphi3UP}
             if IUnknown(Dest^) <> nil then
               IUnknown(Dest^).AddRef;
@@ -4990,6 +5586,167 @@ var
   b: Boolean;
   Tmp: TObject;
   tvar: Variant;
+  lRight: Pointer;
+  lRightType: TPSTypeRec;
+
+  { an integer compared with an integer compares by value, with a Currency exactly and with a real as a real,
+    and a Currency with a Single, Double or Extended as a real, as in Delphi: the cases below read the right
+    operand in the left one's width and sign, or a real as a Currency }
+  function NumericCompare(out aResult: Boolean): Boolean;
+  const
+    cInts = [btU8, btS8, btU16, btS16, btU32, btS32{$IFNDEF PS_NOINT64}, btS64, btU64{$ENDIF}];
+    { the largest integer a Currency holds }
+    cCurrencyIntMax = 922337203685477;
+  var
+    lP2: Pointer;
+    lT2: TPSTypeRec;
+    lI1, lI2: Int64;
+    lHuge1, lHuge2: Boolean;
+    lR1, lR2: Extended;
+    lC: Integer;
+
+    { the value, and whether it is a UInt64 past High(Int64) }
+    function OrdOf(aP: Pointer; aT: TPSTypeRec; out aHuge: Boolean): Int64;
+    begin
+      aHuge := False;
+      case aT.BaseType of
+        btU8: Result := tbtu8(aP^);
+        btS8: Result := tbts8(aP^);
+        btU16: Result := tbtu16(aP^);
+        btS16: Result := tbts16(aP^);
+        btU32: Result := tbtu32(aP^);
+        btS32: Result := tbts32(aP^);
+      {$IFNDEF PS_NOINT64}
+        btS64: Result := PInt64(aP)^;
+        btU64:
+          begin
+            Result := PInt64(aP)^;
+            aHuge := Result < 0;
+          end;
+      {$ENDIF}
+      else
+        Result := 0;
+      end;
+    end;
+
+    { the order of an integer against a Currency's raw value, -1, 0 or 1: an integer past the range of
+      Currency is greater or less than every Currency }
+    function IntegerCurrencyOrder(aP: Pointer; aT: TPSTypeRec; aCurrency: Int64): Integer;
+    var
+      lValue: Int64;
+      lHuge: Boolean;
+    begin
+      lValue := OrdOf(aP, aT, lHuge);
+      if lHuge or (lValue > cCurrencyIntMax) then
+        Result := 1
+      else if lValue < -cCurrencyIntMax then
+        Result := -1
+      else
+      begin
+        lValue := lValue * 10000;
+        if lValue < aCurrency then
+          Result := -1
+        else if lValue > aCurrency then
+          Result := 1
+        else
+          Result := 0;
+      end;
+    end;
+
+  begin
+    Result := False;
+    if (Cmd > 5) or not ((var1Type.BaseType in cInts) or (var1Type.BaseType = btCurrency)) then
+      exit;
+    lP2 := lRight;
+    lT2 := lRightType;
+    if (var1Type.BaseType in cInts) and (lT2.BaseType in cInts) then
+    begin
+      lI1 := OrdOf(var1, var1Type, lHuge1);
+      lI2 := OrdOf(lP2, lT2, lHuge2);
+      if lHuge1 <> lHuge2 then
+      begin
+        if lHuge1 then
+          lC := 1
+        else
+          lC := -1;
+      end else if lI1 < lI2 then
+        lC := -1
+      else if lI1 > lI2 then
+        lC := 1
+      else
+        lC := 0;
+      case Cmd of
+        0: aResult := lC >= 0;
+        1: aResult := lC <= 0;
+        2: aResult := lC > 0;
+        3: aResult := lC < 0;
+        4: aResult := lC <> 0;
+      else
+        aResult := lC = 0;
+      end;
+    end else if ((var1Type.BaseType in cInts) and (lT2.BaseType = btCurrency)) or
+      ((var1Type.BaseType = btCurrency) and (lT2.BaseType in cInts)) then
+    begin
+      { an integer compared with a Currency compares exactly, whichever is on the left: a real here would be a
+        Double on Win64, which cannot hold every Currency, and converting the integer to a Currency wraps or
+        raises past the range of Currency }
+      if var1Type.BaseType = btCurrency then
+        lC := -IntegerCurrencyOrder(lP2, lT2, PInt64(var1)^)
+      else
+        lC := IntegerCurrencyOrder(var1, var1Type, PInt64(lP2)^);
+      case Cmd of
+        0: aResult := lC >= 0;
+        1: aResult := lC <= 0;
+        2: aResult := lC > 0;
+        3: aResult := lC < 0;
+        4: aResult := lC <> 0;
+      else
+        aResult := lC = 0;
+      end;
+    end else if ((var1Type.BaseType in cInts) and (lT2.BaseType in [btSingle, btDouble, btExtended])) or
+      ((var1Type.BaseType = btCurrency) and (lT2.BaseType in [btSingle, btDouble, btExtended])) then
+    begin
+      lR1 := PSGetReal(var1, var1Type);
+      lR2 := PSGetReal(lP2, lT2);
+      case Cmd of
+        0: aResult := lR1 >= lR2;
+        1: aResult := lR1 <= lR2;
+        2: aResult := lR1 > lR2;
+        3: aResult := lR1 < lR2;
+        4: aResult := lR1 <> lR2;
+      else
+        aResult := lR1 = lR2;
+      end;
+    end else
+      exit;
+    Result := True;
+  end;
+{$IFNDEF PS_NOWIDESTRING}
+
+  { an AnsiString, a PChar or a Char compared with a wide string or character compares as a UnicodeString,
+    as in Delphi: the cases below read the wide operand through the ANSI code page }
+  function WideCompare(out aResult: Boolean): Boolean;
+  var
+    lU1, lU2: tbtunicodestring;
+  begin
+    Result := False;
+    if (Cmd > 5) or not (var1Type.BaseType in [btString, btPChar, btChar]) or
+      not (lRightType.BaseType in [btWideChar, btWideString, btUnicodeString]) then
+      exit;
+    lU1 := PSGetUnicodeString(var1, var1Type);
+    lU2 := PSGetUnicodeString(var2, var2type);
+    case Cmd of
+        0: aResult := lU1 >= lU2;
+        1: aResult := lU1 <= lU2;
+        2: aResult := lU1 > lU2;
+        3: aResult := lU1 < lU2;
+        4: aResult := lU1 <> lU2;
+      else
+        aResult := lU1 = lU2;
+    end;
+    Result := True;
+  end;
+{$ENDIF}
 
 
   procedure SetBoolean(b: Boolean; var Ok: Boolean);
@@ -5006,7 +5763,7 @@ var
         btS64: tbts64(Into^) := Longint(b);
         btU64: tbtu64(Into^) := Cardinal(b);
       {$ENDIF}
-      btVariant: Variant(Into^) := b;
+      btVariant: StoreVariant(Into, b);
     else begin
         CMD_Err(ErTypeMismatch);
         Ok := False;
@@ -5016,6 +5773,43 @@ var
 begin
   Result := true;
   try
+    { a host's pointer to a pointer (TPSScript.SetPointerToData) reaches here as
+      the pointer: the rules below read the value where it points, as the typed
+      arms do; a cell of no value or no type is left to the arms }
+    lRight := var2;
+    lRightType := var2type;
+    if (var2type.BaseType = btPointer) and (Pointer(var2^) <> nil) and
+      (PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^) <> nil) then
+    begin
+      lRight := Pointer(var2^);
+      lRightType := PIFTypeRec(Pointer(IPointer(var2)+PointerSize)^);
+    end;
+    if NumericCompare(b){$IFNDEF PS_NOWIDESTRING} or WideCompare(b){$ENDIF} then
+    begin
+      SetBoolean(b, Result);
+      exit;
+    end;
+    { a value compared with a Variant compares as two Variants, as in Delphi: the
+      cases below read the Variant in the other operand's type, which rounds a
+      fraction away, reads a Boolean as a number and refuses a Null }
+    if (Cmd <= 5) and (lRightType.BaseType = btVariant) and
+      (var1Type.BaseType in [btU8, btS8, btU16, btS16, btU32, btS32{$IFNDEF PS_NOINT64}, btS64, btU64{$ENDIF},
+        btSingle, btDouble, btExtended, btCurrency, btChar, btString{$IFNDEF PS_NOWIDESTRING}, btWideChar,
+        btWideString, btUnicodeString{$ENDIF}]) and
+      IntPIFVariantToVariant(var1, var1Type, tvar) then
+    begin
+      case Cmd of
+        0: b := tvar >= Variant(lRight^);
+        1: b := tvar <= Variant(lRight^);
+        2: b := tvar > Variant(lRight^);
+        3: b := tvar < Variant(lRight^);
+        4: b := tvar <> Variant(lRight^);
+      else
+        b := tvar = Variant(lRight^);
+      end;
+      SetBoolean(b, Result);
+      exit;
+    end;
     case Cmd of
       0: begin { >= }
           case var1Type.BaseType of
@@ -5660,6 +6454,17 @@ begin
   Result := VarType(V) in [varSingle, varDouble, varCurrency];
 end;
 
+{$IFDEF FPC_CURRENCY_IS_INT64}
+{ Free Pascal makes Currency op real (+ - *) a Currency operation, and where
+  Currency is an Int64 (x86_64) that rounds the real operand alone first:
+  1 + 0.00005 would give 1.  Taken into a real first, the operation is the
+  real one, as Delphi computes it. }
+function _CurrAsReal(const c: Currency): Extended;
+begin
+  Result := c;
+end;
+{$ENDIF}
+
 function TPSExec.DoCalc(var1, Var2: Pointer; var1Type, var2type: TPSTypeRec; CalcType: Cardinal): Boolean;
     { var1=dest, var2=src }
 var
@@ -5752,7 +6557,7 @@ begin
                   btSingle: tbtsingle(var1^) := tbtsingle(var1^) + tbtsingle(var2^);
                   btDouble: tbtsingle(var1^) := tbtsingle(var1^) + tbtdouble(var2^);
                   btExtended: tbtsingle(var1^) := tbtsingle(var1^) + tbtextended(var2^);
-                  btCurrency: tbtsingle(var1^) := tbtsingle(var1^) + tbtcurrency(var2^);
+                  btCurrency: tbtsingle(var1^) := tbtsingle(var1^) + {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtsingle(var1^) := tbtsingle(var1^) +  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5779,7 +6584,7 @@ begin
                   btSingle: tbtdouble(var1^) := tbtdouble(var1^) + tbtsingle(var2^);
                   btDouble: tbtdouble(var1^) := tbtdouble(var1^) + tbtdouble(var2^);
                   btExtended: tbtdouble(var1^) := tbtdouble(var1^) + tbtextended(var2^);
-                  btCurrency: tbtdouble(var1^) := tbtdouble(var1^) + tbtcurrency(var2^);
+                  btCurrency: tbtdouble(var1^) := tbtdouble(var1^) + {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtdouble(var1^) := tbtdouble(var1^) +  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5803,9 +6608,9 @@ begin
                     btS64: tbtcurrency(var1^) := tbtcurrency(var1^) + tbts64(var2^);
                     btU64: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtu64(var2^);
                   {$ENDIF}
-                  btSingle: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtsingle(var2^);
-                  btDouble: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtdouble(var2^);
-                  btExtended: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtextended(var2^);
+                  btSingle: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} + tbtsingle(var2^);
+                  btDouble: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} + tbtdouble(var2^);
+                  btExtended: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} + tbtextended(var2^);
                   btCurrency: tbtcurrency(var1^) := tbtcurrency(var1^) + tbtcurrency(var2^);
                   btVariant:  tbtcurrency(var1^) := tbtcurrency(var1^) +  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
@@ -5833,7 +6638,7 @@ begin
                   btSingle: tbtextended(var1^) := tbtextended(var1^) + tbtsingle(var2^);
                   btDouble: tbtextended(var1^) := tbtextended(var1^) + tbtdouble(var2^);
                   btExtended: tbtextended(var1^) := tbtextended(var1^) + tbtextended(var2^);
-                  btCurrency: tbtextended(var1^) := tbtextended(var1^) + tbtcurrency(var2^);
+                  btCurrency: tbtextended(var1^) := tbtextended(var1^) + {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtextended(var1^) := tbtextended(var1^) +  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5956,7 +6761,7 @@ begin
                   btSingle: tbtsingle(var1^) := tbtsingle(var1^) - tbtsingle(var2^);
                   btDouble: tbtsingle(var1^) := tbtsingle(var1^) - tbtdouble(var2^);
                   btExtended: tbtsingle(var1^) := tbtsingle(var1^) - tbtextended(var2^);
-                  btCurrency: tbtsingle(var1^) := tbtsingle(var1^) - tbtcurrency(var2^);
+                  btCurrency: tbtsingle(var1^) := tbtsingle(var1^) - {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtsingle(var1^) := tbtsingle(var1^) - Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -5980,9 +6785,9 @@ begin
                     btS64: tbtcurrency(var1^) := tbtcurrency(var1^) - tbts64(var2^);
                     btU64: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtu64(var2^);
                   {$ENDIF}
-                  btSingle: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtsingle(var2^);
-                  btDouble: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtdouble(var2^);
-                  btExtended: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtextended(var2^);
+                  btSingle: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} - tbtsingle(var2^);
+                  btDouble: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} - tbtdouble(var2^);
+                  btExtended: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} - tbtextended(var2^);
                   btCurrency: tbtcurrency(var1^) := tbtcurrency(var1^) - tbtcurrency(var2^);
                   btVariant:  tbtcurrency(var1^) := tbtcurrency(var1^) -  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
@@ -6010,7 +6815,7 @@ begin
                   btSingle: tbtdouble(var1^) := tbtdouble(var1^) - tbtsingle(var2^);
                   btDouble: tbtdouble(var1^) := tbtdouble(var1^) - tbtdouble(var2^);
                   btExtended: tbtdouble(var1^) := tbtdouble(var1^) - tbtextended(var2^);
-                  btCurrency: tbtdouble(var1^) := tbtdouble(var1^) - tbtcurrency(var2^);
+                  btCurrency: tbtdouble(var1^) := tbtdouble(var1^) - {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtdouble(var1^) := tbtdouble(var1^) -  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -6037,7 +6842,7 @@ begin
                   btSingle: tbtextended(var1^) := tbtextended(var1^) - tbtsingle(var2^);
                   btDouble: tbtextended(var1^) := tbtextended(var1^) - tbtdouble(var2^);
                   btExtended: tbtextended(var1^) := tbtextended(var1^) - tbtextended(var2^);
-                  btCurrency: tbtextended(var1^) := tbtextended(var1^) - tbtcurrency(var2^);
+                  btCurrency: tbtextended(var1^) := tbtextended(var1^) - {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtextended(var1^) := tbtextended(var1^) -  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -6152,9 +6957,9 @@ begin
                     btS64: tbtcurrency(var1^) := tbtcurrency(var1^) * tbts64(var2^);
                     btU64: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtu64(var2^);
                   {$ENDIF}
-                  btSingle: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtsingle(var2^);
-                  btDouble: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtdouble(var2^);
-                  btExtended: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtextended(var2^);
+                  btSingle: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} * tbtsingle(var2^);
+                  btDouble: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} * tbtdouble(var2^);
+                  btExtended: tbtcurrency(var1^) := {$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var1^)){$ELSE}tbtcurrency(var1^){$ENDIF} * tbtextended(var2^);
                   btCurrency: tbtcurrency(var1^) := tbtcurrency(var1^) * tbtcurrency(var2^);
                   btVariant:  tbtcurrency(var1^) := tbtcurrency(var1^) *  Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
@@ -6182,7 +6987,7 @@ begin
                   btSingle: tbtsingle(var1^) := tbtsingle(var1^) *tbtsingle(var2^);
                   btDouble: tbtsingle(var1^) := tbtsingle(var1^) *tbtdouble(var2^);
                   btExtended: tbtsingle(var1^) := tbtsingle(var1^) *tbtextended(var2^);
-                  btCurrency: tbtsingle(var1^) := tbtsingle(var1^) *tbtcurrency(var2^);
+                  btCurrency: tbtsingle(var1^) := tbtsingle(var1^) *{$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtsingle(var1^) := tbtsingle(var1^) * Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -6209,7 +7014,7 @@ begin
                   btSingle: tbtdouble(var1^) := tbtdouble(var1^) *tbtsingle(var2^);
                   btDouble: tbtdouble(var1^) := tbtdouble(var1^) *tbtdouble(var2^);
                   btExtended: tbtdouble(var1^) := tbtdouble(var1^) *tbtextended(var2^);
-                  btCurrency: tbtdouble(var1^) := tbtdouble(var1^) *tbtcurrency(var2^);
+                  btCurrency: tbtdouble(var1^) := tbtdouble(var1^) *{$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtdouble(var1^) := tbtdouble(var1^) * Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -6236,7 +7041,7 @@ begin
                   btSingle: tbtextended(var1^) := tbtextended(var1^) *tbtsingle(var2^);
                   btDouble: tbtextended(var1^) := tbtextended(var1^) *tbtdouble(var2^);
                   btExtended: tbtextended(var1^) := tbtextended(var1^) *tbtextended(var2^);
-                  btCurrency: tbtextended(var1^) := tbtextended(var1^) *tbtcurrency(var2^);
+                  btCurrency: tbtextended(var1^) := tbtextended(var1^) *{$IFDEF FPC_CURRENCY_IS_INT64}_CurrAsReal(tbtcurrency(var2^)){$ELSE}tbtcurrency(var2^){$ENDIF};
                   btVariant:  tbtextended(var1^) := tbtextended(var1^) * Variant(var2^);
                   else raise Exception.Create(RPS_TypeMismatch);
                 end;
@@ -6270,10 +7075,55 @@ begin
       {$IFDEF DELPHI10UP}{$REGION '/'}{$ENDIF}
       3: begin { / }
           case var1Type.BaseType of
-            btU8: tbtU8(var1^) := tbtU8(var1^) div PSGetUInt(Var2, var2type);
-            btS8: tbts8(var1^) := tbts8(var1^) div PSGetInt(Var2, var2type);
-            btU16: tbtU16(var1^) := tbtU16(var1^) div PSGetUInt(Var2, var2type);
-            btS16: tbts16(var1^) := tbts16(var1^) div PSGetInt(Var2, var2type);
+            { a 64-bit divisor is not narrowed, as for a 32-bit dividend }
+            btU8:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbtU8(var1^) := tbtU8(var1^) div PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbtU8(var1^) := tbtU8(var1^) div PSGetUInt64(Var2, var2type)
+              { a signed divisor makes the division signed, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) in [btS8, btS16, btS32] then
+                tbtU8(var1^) := Int64(tbtU8(var1^)) div PSGetInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbtU8(var1^) := tbtU8(var1^) div PSGetUInt(Var2, var2type);
+            btS8:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbts8(var1^) := tbts8(var1^) div PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbts8(var1^) := tbts8(var1^) div PSGetUInt64(Var2, var2type)
+              { a Cardinal divisor makes the division 64-bit, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) = btU32 then
+                tbts8(var1^) := Int64(tbts8(var1^)) div PSGetUInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbts8(var1^) := tbts8(var1^) div PSGetInt(Var2, var2type);
+            btU16:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbtU16(var1^) := tbtU16(var1^) div PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbtU16(var1^) := tbtU16(var1^) div PSGetUInt64(Var2, var2type)
+              { a signed divisor makes the division signed, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) in [btS8, btS16, btS32] then
+                tbtU16(var1^) := Int64(tbtU16(var1^)) div PSGetInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbtU16(var1^) := tbtU16(var1^) div PSGetUInt(Var2, var2type);
+            btS16:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbts16(var1^) := tbts16(var1^) div PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbts16(var1^) := tbts16(var1^) div PSGetUInt64(Var2, var2type)
+              { a Cardinal divisor makes the division 64-bit, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) = btU32 then
+                tbts16(var1^) := Int64(tbts16(var1^)) div PSGetUInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbts16(var1^) := tbts16(var1^) div PSGetInt(Var2, var2type);
             btU32:
               begin
                 if var2type.BaseType = btPointer then
@@ -6284,11 +7134,11 @@ begin
                 end;
                 case var2type.BaseType of
                   btU8: tbtU32(var1^) := tbtU32(var1^) div tbtu8(var2^);
-                  btS8: tbtU32(var1^) := tbtU32(var1^) div cardinal(longint(tbts8(var2^)));
+                  btS8: tbtU32(var1^) := Int64(tbtU32(var1^)) div tbts8(var2^);
                   btU16: tbtU32(var1^) := tbtU32(var1^) div tbtu16(var2^);
-                  btS16: tbtU32(var1^) := tbtU32(var1^) div cardinal(longint(tbts16(var2^)));
+                  btS16: tbtU32(var1^) := Int64(tbtU32(var1^)) div tbts16(var2^);
                   btU32: tbtU32(var1^) := tbtU32(var1^) div tbtu32(var2^);
-                  btS32: tbtU32(var1^) := tbtU32(var1^) div cardinal(tbts32(var2^));
+                  btS32: tbtU32(var1^) := Int64(tbtU32(var1^)) div tbts32(var2^);
                   {$IFNDEF PS_NOINT64}
                     btS64: tbtU32(var1^) := tbtU32(var1^) div tbts64(var2^);
                     btU64: tbtU32(var1^) := tbtU32(var1^) div tbtu64(var2^);
@@ -6312,7 +7162,7 @@ begin
                   btS8: tbts32(var1^) := tbts32(var1^) div tbts8(var2^);
                   btU16: tbts32(var1^) := tbts32(var1^) div tbtu16(var2^);
                   btS16: tbts32(var1^) := tbts32(var1^) div tbts16(var2^);
-                  btU32: tbts32(var1^) := tbts32(var1^) div Longint(tbtu32(var2^));
+                  btU32: tbts32(var1^) := Int64(tbts32(var1^)) div tbtu32(var2^);
                   btS32: tbts32(var1^) := tbts32(var1^) div tbts32(var2^);
                   {$IFNDEF PS_NOINT64}
                     btS64: tbts32(var1^) := tbts32(var1^) div tbts64(var2^);
@@ -6463,10 +7313,55 @@ begin
       {$IFDEF DELPHI10UP}{$REGION 'MOD'}{$ENDIF}
       4: begin { MOD }
           case var1Type.BaseType of
-            btU8: tbtU8(var1^) := tbtU8(var1^) mod PSGetUInt(Var2, var2type);
-            btS8: tbts8(var1^) := tbts8(var1^) mod PSGetInt(Var2, var2type);
-            btU16: tbtU16(var1^) := tbtU16(var1^) mod PSGetUInt(Var2, var2type);
-            btS16: tbts16(var1^) := tbts16(var1^) mod PSGetInt(Var2, var2type);
+            { a 64-bit divisor is not narrowed, as for a 32-bit dividend }
+            btU8:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbtU8(var1^) := tbtU8(var1^) mod PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbtU8(var1^) := tbtU8(var1^) mod PSGetUInt64(Var2, var2type)
+              { a signed divisor makes the division signed, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) in [btS8, btS16, btS32] then
+                tbtU8(var1^) := Int64(tbtU8(var1^)) mod PSGetInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbtU8(var1^) := tbtU8(var1^) mod PSGetUInt(Var2, var2type);
+            btS8:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbts8(var1^) := tbts8(var1^) mod PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbts8(var1^) := tbts8(var1^) mod PSGetUInt64(Var2, var2type)
+              { a Cardinal divisor makes the division 64-bit, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) = btU32 then
+                tbts8(var1^) := Int64(tbts8(var1^)) mod PSGetUInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbts8(var1^) := tbts8(var1^) mod PSGetInt(Var2, var2type);
+            btU16:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbtU16(var1^) := tbtU16(var1^) mod PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbtU16(var1^) := tbtU16(var1^) mod PSGetUInt64(Var2, var2type)
+              { a signed divisor makes the division signed, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) in [btS8, btS16, btS32] then
+                tbtU16(var1^) := Int64(tbtU16(var1^)) mod PSGetInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbtU16(var1^) := tbtU16(var1^) mod PSGetUInt(Var2, var2type);
+            btS16:
+              {$IFNDEF PS_NOINT64}
+              if _DivisorBaseType(Var2, var2type) = btS64 then
+                tbts16(var1^) := tbts16(var1^) mod PSGetInt64(Var2, var2type)
+              else if _DivisorBaseType(Var2, var2type) = btU64 then
+                tbts16(var1^) := tbts16(var1^) mod PSGetUInt64(Var2, var2type)
+              { a Cardinal divisor makes the division 64-bit, as in Delphi }
+              else if _DivisorBaseType(Var2, var2type) = btU32 then
+                tbts16(var1^) := Int64(tbts16(var1^)) mod PSGetUInt(Var2, var2type)
+              else
+              {$ENDIF}
+                tbts16(var1^) := tbts16(var1^) mod PSGetInt(Var2, var2type);
             btU32:
               begin
                 if var2type.BaseType = btPointer then
@@ -6477,11 +7372,11 @@ begin
                 end;
                 case var2type.BaseType of
                   btU8: tbtU32(var1^) := tbtU32(var1^) mod tbtu8(var2^);
-                  btS8: tbtU32(var1^) := tbtU32(var1^) mod cardinal(longint(tbts8(var2^)));
+                  btS8: tbtU32(var1^) := Int64(tbtU32(var1^)) mod tbts8(var2^);
                   btU16: tbtU32(var1^) := tbtU32(var1^) mod tbtu16(var2^);
-                  btS16: tbtU32(var1^) := tbtU32(var1^) mod cardinal(longint(tbts16(var2^)));
+                  btS16: tbtU32(var1^) := Int64(tbtU32(var1^)) mod tbts16(var2^);
                   btU32: tbtU32(var1^) := tbtU32(var1^) mod tbtu32(var2^);
-                  btS32: tbtU32(var1^) := tbtU32(var1^) mod cardinal(tbts32(var2^));
+                  btS32: tbtU32(var1^) := Int64(tbtU32(var1^)) mod tbts32(var2^);
                   {$IFNDEF PS_NOINT64}
                     btS64: tbtU32(var1^) := tbtU32(var1^) mod tbts64(var2^);
                     btU64: tbtU32(var1^) := tbtU32(var1^) mod tbtu64(var2^);
@@ -6505,7 +7400,7 @@ begin
                   btS8: tbts32(var1^) := tbts32(var1^) mod tbts8(var2^);
                   btU16: tbts32(var1^) := tbts32(var1^) mod tbtu16(var2^);
                   btS16: tbts32(var1^) := tbts32(var1^) mod tbts16(var2^);
-                  btU32: tbts32(var1^) := tbts32(var1^) mod Longint(tbtu32(var2^));
+                  btU32: tbts32(var1^) := Int64(tbts32(var1^)) mod tbtu32(var2^);
                   btS32: tbts32(var1^) := tbts32(var1^) mod tbts32(var2^);
                   {$IFNDEF PS_NOINT64}
                     btS64: tbts32(var1^) := tbts32(var1^) mod tbts64(var2^);
@@ -6773,11 +7668,30 @@ begin
 end;
 
 function TPSExec.ReadVariable(var Dest: TPSResultData; UsePointer: Boolean): Boolean;
+const
+  { the types the constant case below reads: a constant of any other type is
+    refused before its place is made, since a static array or a record can be
+    larger than the temporaries can hold }
+  ConstantTypes = [btSet, bts8, btchar, btU8, bts16{$IFNDEF PS_NOWIDESTRING}, btwidechar{$ENDIF}, btU16, bts32, btU32,
+    btProcPtr{$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}, btSingle, btDouble, btExtended, btCurrency, btPchar, btString
+    {$IFNDEF PS_NOWIDESTRING}, btWidestring, btUnicodeString{$ENDIF}];
 var
   VarType: Cardinal;
   Param: Cardinal;
   Tmp: PIfVariant;
   at: TPSTypeRec;
+
+{$IFNDEF PS_NOINT64}
+  { a 64-bit index as the Cardinal the bounds checks below compare: one outside a Cardinal becomes
+    High(Cardinal), which fails every check, as a negative 32-bit index does }
+  function Index64(const aValue: Int64): Cardinal;
+  begin
+    if (aValue < 0) or (aValue > High(Cardinal)) then
+      Result := High(Cardinal)
+    else
+      Result := Cardinal(aValue);
+  end;
+{$ENDIF}
 
 begin
   if FCurrentPosition + 4 >= FDataLength then
@@ -6843,28 +7757,29 @@ begin
           exit;
         end;
         at := FTypes.Data^[Param];
+        if not (at.BaseType in ConstantTypes) then
+        begin
+          CMD_Err(erInvalidType);
+          Result := False;
+          exit;
+        end;
         Param := FTempVars.FLength;
         FTempVars.FLength := Cardinal(Longint(Param) + Longint(at.RealSize) + Longint(RTTISize + 3)) and not 3;
         if FTempVars.FLength > FTempVars.FCapacity then FtempVars.AdjustLength;
         Tmp := Pointer(IPointer(FtempVars.FDataPtr) + IPointer(Param));
 
-        if Cardinal(FTempVars.FCount) >= Cardinal(FTempVars.FCapacity) then
-        begin
-          Inc(FTempVars.FCapacity, FCapacityInc);// := FCount + 1;
-          ReAllocMem(FTempVars.FData, FTempVars.FCapacity shl 2);
-        end;
-        FTempVars.FData[FTempVars.FCount] := Tmp; // Instead of SetItem
-        Inc(FTempVars.FCount);
-      {$IFNDEF PS_NOSMARTLIST}
-        Inc(FTempVars.FCheckCount);
-        if FTempVars.FCheckCount > FMaxCheckCount then FTempVars.Recreate;
-      {$ENDIF}
+        { TPSList.Add: TPSStack's own FCapacity is the size of its data in bytes, not of its item list }
+        FTempVars.Add(Tmp);
 
 
         Tmp.FType := at;
         Dest.P := @PPSVariantData(Tmp).Data;
         Dest.aType := tmp.FType;
         dest.FreeType := vtTempVar;
+        { a value refused below is popped, which finalizes one of a managed
+          type: its place holds nothing until its value is read }
+        if at.BaseType in NeedFinalization then
+          FillChar(Dest.P^, at.RealSize, 0);
         case Dest.aType.BaseType of
           btSet:
             begin
@@ -7306,6 +8221,10 @@ begin
           bts16: Param := PPSVariants16(Tmp).Data;
           btu32: Param := PPSVariantU32(Tmp).Data;
           bts32: Param := PPSVariants32(Tmp).Data;
+          {$IFNDEF PS_NOINT64}
+          bts64: Param := Index64(PPSVariantS64(Tmp).Data);
+          btu64: Param := Index64(PInt64(@PPSVariantU64(Tmp).Data)^);
+          {$ENDIF}
           btPointer:
             begin
               if PPSVariantPointer(tmp).DestType <> nil then
@@ -7317,6 +8236,9 @@ begin
                   bts16: Param := tbts16(PPSVariantPointer(tmp).DataDest^);
                   btu32, btProcPtr: Param := tbtu32(PPSVariantPointer(tmp).DataDest^);
                   bts32: Param := tbts32(PPSVariantPointer(tmp).DataDest^);
+                  {$IFNDEF PS_NOINT64}
+                  bts64, btu64: Param := Index64(PInt64(PPSVariantPointer(tmp).DataDest)^);
+                  {$ENDIF}
                   else
                     begin
                       CMD_Err(ErTypeMismatch);
@@ -7393,6 +8315,7 @@ begin
       end;
   else
     begin
+      CMD_Err(erInvalidOpcodeParameter);
       Result := False;
       exit;
     end;
@@ -7419,13 +8342,15 @@ begin
     btCurrency: tbtcurrency(dta^) := -tbtcurrency(dta^);
     btVariant:
       begin
+        Result := True;
         try
           Variant(dta^) := - Variant(dta^);
         except
           CMD_Err(erTypeMismatch);
           Result := False;
-          exit;
         end;
+        { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
+        exit;
       end;
   else
     begin
@@ -7452,13 +8377,15 @@ begin
     {$ENDIF}
     btVariant:
       begin
+        Result := True;
         try
           Variant(dta^) := Variant(dta^) = 0;
         except
           CMD_Err(erTypeMismatch);
           Result := False;
-          exit;
         end;
+        { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
+        exit;
       end;
   else
     begin
@@ -7498,6 +8425,64 @@ begin
     Result := False;
 end;
 
+{ Runs aProcNo for native code -- RunProcP and RunProcPVar, a host's call into
+  the script -- as the method handlers run a script method: behind a frame of
+  its own, so that the routine's exception ends the call there and never
+  reaches a try statement of a script that is running.  If a script was
+  running when the call began, the exception goes to the native code that made
+  the call -- also when the routine stopped that script -- which may handle it
+  and go on: the script holds it no longer, and counts it again only if the
+  native code lets it come back.  With no script running the executor keeps
+  it, for RaiseCurrentException and the host to read. }
+procedure _RunProcForNative(aExec: TPSExec; aParams: TPSList; aProcNo: Cardinal);
+var
+  lFrame     : TPSExceptionHandler;
+  lIdx       : Integer;
+  lPosition  : Cardinal;
+  lStackBase : Cardinal;
+  lRaised    : Cardinal;
+  lObject    : TObject;
+  lRunning   : Boolean;
+begin
+  lFrame := TPSExceptionHandler.Create;
+  lFrame.FinallyOffset := InvalidVal;
+  lFrame.ExceptOffset := InvalidVal;
+  lFrame.Finally2Offset := InvalidVal;
+  lFrame.EndOfBlock := InvalidVal;
+  lFrame.CurrProc := nil;
+  lFrame.BasePtr := aExec.FCurrStackBase;
+  lFrame.StackSize := aExec.FStack.Count;
+  lIdx := aExec.FExceptionStack.Add(lFrame);
+  { where the interpreter stands while the native code runs the routine }
+  lPosition := aExec.FCurrentPosition;
+  lStackBase := aExec.FCurrStackBase;
+  lRaised := aExec.FRaisedCount;
+  lRunning := aExec.FStatus = isRunning;
+  aExec.RunProc(aParams, aProcNo);
+  if aExec.FExceptionStack[lIdx] = lFrame then
+  begin
+    aExec.FExceptionStack.Remove(lFrame);
+    lFrame.Free;
+  end else
+  begin
+    { the routine's exception ended the call at this frame, below the return
+      address: the interpreter is back where the native code called it }
+    aExec.FCurrentPosition := lPosition;
+    aExec.FCurrStackBase := lStackBase;
+  end;
+  if (aExec.ExEx <> erNoError) and lRunning then
+  begin
+    lObject := aExec.ExObject;
+    aExec.ExObject := nil;
+    if lObject = nil then
+      lObject := EPSException.Create(PSErrorToString(aExec.ExceptionCode, aExec.ExceptionString), aExec,
+        aExec.ExProc, aExec.ExPos);
+    aExec.ExceptionProc(InvalidVal, InvalidVal, erNoError, '', nil);
+    aExec.FRaisedCount := lRaised;
+    raise lObject;
+  end;
+end;
+
 function TPSExec.RunProcP(const Params: array of Variant; const Procno: Cardinal): Variant;
 var
   ParamList: TPSList;
@@ -7529,18 +8514,23 @@ begin
     if I > -1 then raise Exception.Create(RPS_TooManyParameters);
     if res <> '-1' then
     begin
-      pvar := CreateHeapVariant(FTypes[StrToInt(res)]);
+      ct := FTypes[StrToInt(res)];
+      if ct = nil then raise Exception.Create(RPS_InvalidParameter);
+      pvar := CreateHeapVariant(ct);
       ParamList.Add(pvar);
     end else
       pvar := nil;
 
-    RunProc(ParamList, ProcNo);
+    _RunProcForNative(Self, ParamList, ProcNo);
 
     RaiseCurrentException;
 
     if pvar <> nil then
     begin
-      PIFVariantToVariant(PVar, Result);
+      { what no Variant can hold answers no value: Result can arrive holding a
+        value of the caller's }
+      if not PIFVariantToVariant(PVar, Result) then
+        Result := Null;
     end else
       Result := Null;
   finally
@@ -7578,12 +8568,14 @@ begin
     if I > -1 then raise Exception.Create(RPS_TooManyParameters);
     if res <> '-1' then
     begin
-      pvar := CreateHeapVariant(FTypes[StrToInt(res)]);
+      ct := FTypes[StrToInt(res)];
+      if ct = nil then raise Exception.Create(RPS_InvalidParameter);
+      pvar := CreateHeapVariant(ct);
       ParamList.Add(pvar);
     end else
       pvar := nil;
 
-    RunProc(ParamList, ProcNo);
+    _RunProcForNative(Self, ParamList, ProcNo);
 
     RaiseCurrentException;
 
@@ -7593,7 +8585,10 @@ begin
 
     if pvar <> nil then
     begin
-      PIFVariantToVariant(PVar, Result);
+      { what no Variant can hold answers no value: Result can arrive holding a
+        value of the caller's }
+      if not PIFVariantToVariant(PVar, Result) then
+        Result := Null;
     end else
       Result := Null;
   finally
@@ -7619,7 +8614,11 @@ var
   Cp: TPSInternalProcRec;
   oldStatus: TPSStatus;
   tmp: TObject;
+  lBase: Longint;
+  lRaised: Cardinal;
+  lReported: Boolean;
 begin
+  lBase := FStack.Count;
 {$IFDEF LOG}
   ODS_stack(FStack);
   __Log(string('==== RunProc, paramcnt='+IntToStr(Params.Count)+', procNo='+IntToStr(ProcNo)));
@@ -7637,6 +8636,8 @@ begin
         vd := Params[I];
         if vd = nil then
         begin
+          while Longint(FStack.Count) > lBase do
+            FStack.Pop;
           Result := False;
           exit;
         end;
@@ -7654,6 +8655,7 @@ begin
     I := FStack.Count;
     Cp := FCurrProc;
     oldStatus := FStatus;
+    lReported := False;
 {$IFDEF LOG}
     ODS_stack(FStack);
 {$ENDIF}
@@ -7669,16 +8671,32 @@ begin
       FDataLength := FCurrProc.Length;
       FCurrentPosition := 0;
       FStatus := isPaused;
-      Result := RunScript;
+      lRaised := FRaisedCount;
+      Inc(FNestedRuns);
+      try
+        Result := RunScript;
+      finally
+        Dec(FNestedRuns);
+      end;
+      { what the routine raised and handled itself never reached the native
+        routine that ran it: that routine's call is judged as if nothing was }
+      if ExEx = erNoError then
+        FRaisedCount := lRaised;
     end else
     begin
       try
+        lRaised := FRaisedCount;
         Result := TPSExternalProcRec(FProcs.Data^[ProcNo]).ProcPtr(Self, TPSExternalProcRec(FProcs.Data^[ProcNo]), FGlobalVars, FStack);
         if not Result then
         begin
-          if ExEx = erNoError then
+          { False with nothing raised: the call failed without saying why }
+          if FRaisedCount = lRaised then
             CMD_Err(erCouldNotCallProc);
         end;
+        { a routine that reported an error failed, whatever it answered }
+        lReported := FRaisedCount <> lRaised;
+        if lReported then
+          Result := False;
       except
         {$IFDEF DELPHI6UP}
         Tmp := AcquireExceptionObject;
@@ -7690,6 +8708,10 @@ begin
         end else
           Tmp := nil;
         {$ENDIF}
+        { the arms below leave RunProc at once: the values pushed for the call
+          go first }
+        while Longint(FStack.Count) > lBase do
+          FStack.Pop;
         if Tmp <> nil then
         begin
           if Tmp is EPSException then
@@ -7737,18 +8759,21 @@ begin
         FStack.Pop;
       end;
     end;
-    if Params <> nil then
+    { down to where the stack stood: an exception the routine raised has already unwound it to there, and
+      popping the parameters again removed the caller's values }
+    while Longint(FStack.Count) > lBase do
+      FStack.Pop;
+    { an imported routine's report moved the run -- to the handler that took
+      it, or paused it where no handler was left -- as it does when the script
+      calls the routine itself: the status and the routine are the report's }
+    if not lReported then
     begin
-      for I := Params.Count - 1 downto 0 do
-      begin
-        if FStack.Count = 0 then
-          Break
-        else
-          FStack.Pop;
-      end;
+      { a Stop in a run begun while the script was running stops the script:
+        the run it interrupted ends when control comes back to it }
+      if (FStatus <> isLoaded) or (oldStatus <> isRunning) then
+        FStatus := oldStatus;
+      FCurrProc := Cp;
     end;
-    FStatus := oldStatus;
-    FCurrProc := Cp;
     if FCurrProc <> nil then
     begin
       FData := FCurrProc.Data;
@@ -7795,7 +8820,11 @@ var
     I: Longint;
   n: PIFProcRec;
   s: tbtString;
+  lExternal: Cardinal;
 begin
+  { a script's routine comes before an external one of its name, which the
+    compiler's own code may have added }
+  lExternal := InvalidVal;
   s := FastUpperCase(name);
   MM := MakeHash(s);
   for I := FProcs.Count - 1 downto 0 do begin
@@ -7803,13 +8832,10 @@ begin
     if (n.ClassType = TPSInternalProcRec) and (TPSInternalProcRec(n).ExportNameHash = MM) and (TPSInternalProcRec(n).ExportName = s) then begin
       Result := I;
       exit;
-    end else if (n.ClassType = TPSExternalProcRec) and (TPSExternalProcRec(n).Name = s) then
-    begin
-      Result := I;
-      exit;
-    end;
+    end else if (n.ClassType = TPSExternalProcRec) and (TPSExternalProcRec(n).Name = s) and (lExternal = InvalidVal) then
+      lExternal := I;
   end;
-  Result := InvalidVal;
+  Result := lExternal;
 end;
 
 function TPSExec.GetType(const Name: tbtString): Cardinal;
@@ -7882,8 +8908,8 @@ begin
   for i := 0 to Longint(FResources.Count) -1 do
   begin
     temp := FResources[i];
-    if temp^.p = p then begin
-      result := temp^.Proc = Proc;
+    if (temp^.p = p) and (temp^.Proc = Proc) then begin
+      result := True;
       exit;
     end;
   end;
@@ -7922,6 +8948,7 @@ procedure TPSExec.CMD_Err3(EC: TPSError; const Param: tbtString; ExObject: TObje
 var
   l: Longint;
   C: Cardinal;
+  lOnException: TPSOnException;
 begin
   C := InvalidVal;
   for l := FProcs.Count - 1 downto 0 do begin
@@ -7930,8 +8957,11 @@ begin
       break;
     end;
   end;
-  if @FOnException <> nil then
-    FOnException(Self, Ec, Param, ExObject, C, FCurrentPosition);
+  { the handler is called from a local: for the field, Delphi 10 Seattle's Win64
+    compiler reads Self from a stack slot it never writes }
+  lOnException := FOnException;
+  if @lOnException <> nil then
+    lOnException(Self, Ec, Param, ExObject, C, FCurrentPosition);
   ExceptionProc(C, FCurrentPosition, EC, Param, ExObject);
 end;
 
@@ -7999,13 +9029,15 @@ begin
     {$ENDIF}
     btVariant:
       begin
+        Result := True;
         try
           Variant(dta^) := not Variant(dta^);
         except
           CMD_Err(erTypeMismatch);
           Result := False;
-          exit;
         end;
+        { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
+        exit;
       end;
   else
     begin
@@ -8105,6 +9137,9 @@ var
   Tmp: TObject;
   btemp: Boolean;
   CallRunline: TMyRunLine;
+  lRaised: Cardinal;
+  lFrames: Longint;
+  lCalled: Boolean;
 begin
 {$IFDEF LOG}
   ODS_stack(Fstack);
@@ -8118,6 +9153,7 @@ begin
     end;
     FExceptionStack.Clear;
   end;
+  lFrames := FExceptionStack.Count;
   ExceptionProc(InvalidVal, InvalidVal, erNoError, '', nil);
   RunScript := True;
   FOldStatus := FStatus;
@@ -8133,6 +9169,7 @@ begin
         if FCurrProc.ClassType = TPSExternalProcRec then begin
           CMD_Err(erNoMainProc);
           FStatus := isLoaded;
+          RunScript := False;
           exit;
         end;
         FData := FCurrProc.Data;
@@ -8141,6 +9178,9 @@ begin
         FCurrentPosition := 0;
       end;
     isPaused: begin
+        { a run resumed at the top ends as one begun from the start does }
+        if FNestedRuns = 0 then
+          FOldStatus := isLoaded;
         FStatus := isRunning;
       end;
   else begin
@@ -8155,6 +9195,10 @@ begin
     while FStatus = isRunning do
     begin
       if @CallRunLine <> nil then CallRunLine(Self);
+      { a line hook that stopped or paused the script: the next instruction
+        does not run }
+      if FStatus <> isRunning then
+        break;
       if FCurrentPosition >= FDataLength then
       begin
         CMD_Err(erOutOfRange); // Error
@@ -8452,9 +9496,11 @@ begin
                 {$IFDEF LOG}
                 ODS_TPSExternalProcRec('proc', TPSExternalProcRec(u));
                 {$ENDIF}
+                lRaised := FRaisedCount;
                 try
                   if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then begin
-                    if ExEx = erNoError then
+                    { False with nothing raised: the call failed without saying why }
+                    if FRaisedCount = lRaised then
                       CMD_Err(erCouldNotCallProc);
                     Break;
                   end;
@@ -8528,12 +9574,19 @@ begin
                 NewPosition: Longint; //relative to end of this instruction<br>
             }
             begin
-              FStack.Pop;
               if FCurrentPosition + 3 >= FDataLength then
               begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+              { as CM_PO: a value to pop, and not a routine's return address }
+              if (FStack.Count = 0)
+                or (PIFVariant(FStack.Data^[FStack.Count -1]).FType.BaseType = btReturnAddress) then
+              begin
+                CMD_Err(erOutOfStackRange);
+                break;
+              end;
+              FStack.Pop;
 	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
               p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
 	      {$else}
@@ -8548,13 +9601,21 @@ begin
                 NewPosition: Longint; //relative to end of this instruction<br>
             }
             begin
-              FStack.Pop;
-              FStack.Pop;
               if FCurrentPosition + 3 >= FDataLength then
               begin
                 Cmd_Err(erOutOfRange);
                 Break;
               end;
+              { as CM_PO, for each of the two values }
+              if (FStack.Count < 2)
+                or (PIFVariant(FStack.Data^[FStack.Count -1]).FType.BaseType = btReturnAddress)
+                or (PIFVariant(FStack.Data^[FStack.Count -2]).FType.BaseType = btReturnAddress) then
+              begin
+                CMD_Err(erOutOfStackRange);
+                break;
+              end;
+              FStack.Pop;
+              FStack.Pop;
 	      {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
               p := unaligned(Cardinal((@FData^[FCurrentPosition])^));
 	      {$else}
@@ -8603,13 +9664,14 @@ begin
               btemp := true;
               if not ReadVariable(vs, btemp) then
                 Break;
-              { The compiler only emits Cm_CG for boolean types via
-                short-circuit 'or' evaluation in DoBinCalc (guarded by
-                IsBoolean) and for the boundary check in for-loops
-                (ProcessFor). Enum serialization in WriteTypes maps these
-                to btU8 (Boolean/ByteBool), btU16 (WordBool), or btU32
-                (LongBool) only, so btS8/btS16/btS32 never fire and
-                btS64/btU64 are correctly absent. }
+              { The compiler writes Cm_CG for the boundary check of a for
+                loop (ProcessFor), on a Boolean register, and for the
+                short-circuit 'or' in DoBinCalc, on its result: a Boolean
+                (btU8) -- two ByteBool, WordBool or LongBool operands are
+                combined by their truth into one first -- except that a
+                Variant right operand keeps the left one's type, a ByteBool
+                (btU8), WordBool (btU16) or LongBool (btU32).  The signed
+                arms are for compiled code this compiler did not write. }
               case Vs.aType.BaseType of
                 btU8: btemp := tbtu8(vs.p^) <> 0;
                 btS8: btemp := tbts8(vs.p^) <> 0;
@@ -8650,9 +9712,10 @@ begin
               btemp := true;
               if not ReadVariable(vs, BTemp) then
                 Break;
-              { See Cm_CG comment: only btU8/btU16/btU32 are reachable
-                via short-circuit 'and' in DoBinCalc and for-loop entry
-                checks in ProcessFor. }
+              { As at Cm_CG: the compiler writes Cm_CNG for the
+                short-circuit 'and' in DoBinCalc, on the types of the 'or'
+                there, and for the conditions of while, repeat, for and
+                case statements, each a Boolean (btU8). }
               case Vs.aType.BaseType of
                 btU8: btemp := tbtu8(vs.p^) = 0;
                 btS8: btemp := tbts8(vs.p^) = 0;
@@ -8685,6 +9748,9 @@ begin
                 pp := FExceptionStack.Data[FExceptionStack.Count -1];
                 while (pp.BasePtr = FCurrStackBase) or ((pp.BasePtr > FCurrStackBase) and (pp.BasePtr <> InvalidVal)) do
                 begin
+                  { an Exit out of a finally an exception runs ends that exception }
+                  if pp.Unwinding then
+                    pp.DropException;
                   if pp.StackSize < Cardinal(FStack.Count) then
                   begin
                     for p := Longint(FStack.count) -1 downto Longint(pp.StackSize) do
@@ -8703,6 +9769,8 @@ begin
                     pp.ExitPoint := FCurrentPosition -1;
                     FCurrentPosition := pp.Finally2Offset;
                     pp.Finally2Offset := InvalidVal;
+                    pp.ExceptOffset := InvalidVal;
+                    pp.DropException;
                     p2 := 1;
                     break;
                   end else
@@ -8734,7 +9802,11 @@ begin
                 FCurrStackBase := PPSVariantReturnAddress(vtemp).Addr.StackBase;
                 FStack.Pop;
                 if FCurrProc = nil then begin
-                  FStatus := FOldStatus;
+                  { the end of a run RunProc began: a Stop that the release of the
+                    routine's locals above made (a destructor running a script
+                    event) stands }
+                  if FStatus = isRunning then
+                    FStatus := FOldStatus;
                   break;
                 end;
                 FData := FCurrProc.Data;
@@ -8792,7 +9864,7 @@ begin
           cm_in:
             { Script internal command: Integer NOT<br>
                 Command: TPSCommand; <br>
-                Where: Cardinal;<br>
+                Var: TPSVariable;<br>
             }
             begin
               if not ReadVariable(vd, True) then
@@ -8876,14 +9948,12 @@ begin
                 FCurrentPosition := FCurrentPosition + p;
             end;
           cm_puexh:
-              { Script internal command: Pop Exception Handler<br>
+              { Script internal command: Push Exception Handler<br>
                   Command:TPSCommand; <br>
-                  Position: Byte;<br>
-                  <i> 0 = end of try/finally/exception block;<br>
-                    1 = end of first finally<br>
-                    2 = end of except<br>
-                    3 = end of second finally<br>
-                  </i><br>
+                  FinallyOffset,<br>
+                  ExceptionOffset, // FinallyOffset or ExceptionOffset need to be set.<br>
+                  Finally2Offset,<br>
+                  EndOfBlock: Cardinal;<br>
               }
             begin
               pp := TPSExceptionHandler.Create;
@@ -8938,6 +10008,7 @@ begin
                   1 = end of first finally<br>
                   2 = end of except<br>
                   3 = end of second finally<br>
+                  4 = a jump leaving the frame (Break, Continue)<br>
                 </i><br>
             }
             begin
@@ -8962,6 +10033,8 @@ begin
                       Break;
                     end;
                     pp.ExceptOffset := InvalidVal;
+                    { the handler is over, and so is its exception }
+                    pp.DropException;
                     if pp.Finally2Offset <> InvalidVal then
                     begin
                       FCurrentPosition := pp.Finally2Offset;
@@ -8996,6 +10069,8 @@ begin
                     begin
                        FCurrentPosition := pp.Finally2Offset;
                        pp.Finally2Offset := InvalidVal;
+                       { the except before it, not entered, is over }
+                       pp.ExceptOffset := InvalidVal;
                     end else begin
                       if pp.ExitPoint <> InvalidVal then
                         p := pp.ExitPoint
@@ -9024,6 +10099,22 @@ begin
                       cmd_err(ErOutOfRange);
                       Break;
                     end;
+                    if pp.Unwinding then
+                    begin
+                      { the end of a finally an exception ran: the except of the same
+                        statement takes it, a second finally runs for it, or it goes on }
+                      if (pp.ExceptOffset <> InvalidVal) and (pp.ExceptOffset <> Cardinal(InvalidVal -1)) then
+                      begin
+                        pp.Unwinding := False;
+                        FCurrentPosition := pp.ExceptOffset;
+                        pp.ExceptOffset := Cardinal(InvalidVal -1);
+                      end else if pp.Finally2Offset <> InvalidVal then
+                      begin
+                        FCurrentPosition := pp.Finally2Offset;
+                        pp.Finally2Offset := InvalidVal;
+                      end else
+                        ResumeUnwinding;
+                    end else
                     if (ExEx <> ENoError) and (pp.ExceptOffset <> InvalidVal) and (pp.ExceptOffset <> InvalidVal -1) then
                     begin
                       FCurrentPosition := pp.ExceptOffset;
@@ -9037,6 +10128,7 @@ begin
                     begin
                       FCurrentPosition := pp.Finally2Offset;
                       pp.Finally2Offset := InvalidVal;
+                      pp.ExceptOffset := InvalidVal;
                     end else begin
                       if pp.ExitPoint <> InvalidVal then
                         p := pp.ExitPoint
@@ -9065,26 +10157,78 @@ begin
                       cmd_err(ErOutOfRange);
                       Break;
                     end;
-                    if pp.ExitPoint <> InvalidVal then
-                      p := pp.ExitPoint
+                    if pp.Unwinding then
+                      { the end of a second finally an exception ran: it goes on }
+                      ResumeUnwinding
                     else
-                      p := pp.EndOfBlock;
-                    pp.Free;
-                    FExceptionStack.DeleteLast;
-                    if ExEx <> eNoError then
                     begin
-                      Tmp := ExObject;
-                      ExObject := nil;
-                      ExceptionProc(ExProc, ExPos, ExEx, ExParam, Tmp);
-                    end else
-                      FCurrentPosition := p;
+                      if pp.ExitPoint <> InvalidVal then
+                        p := pp.ExitPoint
+                      else
+                        p := pp.EndOfBlock;
+                      pp.Free;
+                      FExceptionStack.DeleteLast;
+                      if ExEx <> eNoError then
+                      begin
+                        Tmp := ExObject;
+                        ExObject := nil;
+                        ExceptionProc(ExProc, ExPos, ExEx, ExParam, Tmp);
+                      end else
+                        FCurrentPosition := p;
+                    end;
                  end;
+                4:
+                  { leave the frame for a jump (Break, Continue): run its pending finally, which comes back to
+                    the next command, or remove the frame and go on }
+                  begin
+                    if (FExceptionStack.Count = 0) then
+                    begin
+                      cmd_err(ErOutOfRange);
+                      Break;
+                    end;
+                    pp := FExceptionStack.Data^[FExceptionStack.Count -1];
+                    if pp = nil then begin
+                      cmd_err(ErOutOfRange);
+                      Break;
+                    end;
+                    { a jump out of a finally an exception runs ends that exception }
+                    if pp.Unwinding then
+                      pp.DropException;
+                    { the values pushed inside the frame's statement go first, as for Exit and an exception:
+                      its finally was compiled without them }
+                    if pp.StackSize < Cardinal(FStack.Count) then
+                      for p := Longint(FStack.Count) -1 downto Longint(pp.StackSize) do
+                        FStack.Pop;
+                    if pp.FinallyOffset <> InvalidVal then
+                    begin
+                      pp.ExitPoint := FCurrentPosition;
+                      FCurrentPosition := pp.FinallyOffset;
+                      pp.FinallyOffset := InvalidVal;
+                    end else if pp.Finally2Offset <> InvalidVal then
+                    begin
+                      pp.ExitPoint := FCurrentPosition;
+                      FCurrentPosition := pp.Finally2Offset;
+                      pp.Finally2Offset := InvalidVal;
+                      pp.ExceptOffset := InvalidVal;
+                      pp.DropException;
+                    end else
+                    begin
+                      pp.Free;
+                      FExceptionStack.DeleteLast;
+                      if ExEx <> eNoError then
+                      begin
+                        Tmp := ExObject;
+                        ExObject := nil;
+                        ExceptionProc(ExProc, ExPos, ExEx, ExParam, Tmp);
+                      end;
+                    end;
+                  end;
               end;
             end;
           cm_spc:
             {Script internal command: Set Stack Pointer To Copy<br>
                 Command: TPSCommand; <br>
-              Where: Cardinal;<br>
+              VarDest, VarSrc: TPSVariable;<br>
             }
             begin
               if not ReadVariable(vd, False) then
@@ -9167,7 +10311,7 @@ begin
                 bts64: dec(tbts64(vd.P^));
                 btU64: dec(tbtu64(vd.P^));
 {$ENDIF}
-                btVariant: dec(Variant(vd.P^));
+                btVariant: {$IFDEF FPC}Variant(vd.P^) := Variant(vd.P^) - 1{$ELSE}dec(Variant(vd.P^)){$ENDIF};
               else
                 begin
                   CMD_Err(ErTypeMismatch);
@@ -9200,7 +10344,7 @@ begin
                 bts64: Inc(tbts64(vd.P^));
                 btU64: Inc(tbtu64(vd.P^));
 {$ENDIF}
-                btVariant: Inc(Variant(vd.P^));
+                btVariant: {$IFDEF FPC}Variant(vd.P^) := Variant(vd.P^) + 1{$ELSE}Inc(Variant(vd.P^)){$ENDIF};
               else
                 begin
                   CMD_Err(ErTypeMismatch);
@@ -9267,75 +10411,88 @@ begin
               VdPtr := Pointer(Pointer(IPointer(vd.p)+PointerSize2)^);
               if vd.FreeType <> vtNone then
                 FTempVars.Pop; { This makes vd invalid }
+              { a native method: routine 0 with the method beside it, called as a
+                host's routine is, so that its exception and a refused call are
+                the script's error }
               if (p = 0) and (VdPtr <> nil) then
-              begin
-                if not InvokeExternalMethod(TPSTypeRec_ProcPtr(vd.aType), VdSlf, VdPtr) then
-                  Break;
-              end else begin
+                u := nil
+              else begin
+                { a nil procedural value: proc 0 with no method -- proc 0 is the
+                  script's main block, which no script can name }
+                if p = 0 then begin
+                  CMD_Err(erNullPointerException);
+                  break;
+                end;
                 if (p >= FProcs.Count) or (p = FMainProc) then begin
                   CMD_Err(erOutOfProcRange);
                   break;
                 end;
                 u := FProcs.Data^[p];
-                if u.ClassType = TPSExternalProcRec then begin
-                  try
-                    if not TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack) then begin
-                      if ExEx = erNoError then
-                        CMD_Err(erCouldNotCallProc);
-                      Break;
-                    end;
-                  except
-                    {$IFDEF DELPHI6UP}
-                    Tmp := AcquireExceptionObject;
-                    {$ELSE}
-                    if RaiseList <> nil then
-                    begin
-                      Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
-                      PRaiseFrame(RaiseList)^.ExceptObject := nil;
-                    end else
-                      Tmp := nil;
-                    {$ENDIF}
-                    if Tmp <> nil then
-                    begin
-                      if Tmp is EPSException then
-                      begin
-                        ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
-                        Tmp.Free;
-                        break;
-                      end else
-                      if Tmp is EDivByZero then
-                      begin
-                        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
-                        break;
-                      end;
-                      if Tmp is EZeroDivide then
-                      begin
-                        CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
-                        break;
-                      end;
-                      if Tmp is EMathError then
-                      begin
-                        CMD_Err3(erMathError, tbtString(Exception(Tmp).Message), Tmp);
-                        break;
-                      end;
-                    end;
-                    if (Tmp <> nil) and (Tmp is Exception) then
-                      CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp) else
-                      CMD_Err3(erException, '', Tmp);
+              end;
+              if (u = nil) or (u.ClassType = TPSExternalProcRec) then begin
+                lRaised := FRaisedCount;
+                try
+                  if u = nil then
+                    lCalled := InvokeExternalMethod(TPSTypeRec_ProcPtr(vd.aType), VdSlf, VdPtr)
+                  else
+                    lCalled := TPSExternalProcRec(u).ProcPtr(Self, TPSExternalProcRec(u), FGlobalVars, FStack);
+                  if not lCalled then begin
+                    { False with nothing raised: the call failed without saying why }
+                    if FRaisedCount = lRaised then
+                      CMD_Err(erCouldNotCallProc);
                     Break;
                   end;
-                end
-                else begin
-                  vtemp := FStack.PushType(FReturnAddressType);
-                  PPSVariantReturnAddress(vtemp).Addr.ProcNo := FCurrProc;
-                  PPSVariantReturnAddress(vtemp).Addr.Position := FCurrentPosition;
-                  PPSVariantReturnAddress(vtemp).Addr.StackBase := FCurrStackBase;
-                  FCurrStackBase := FStack.Count - 1;
-                  FCurrProc := TPSInternalProcRec(u);
-                  FData := FCurrProc.Data;
-                  FDataLength := FCurrProc.Length;
-                  FCurrentPosition := 0;
+                except
+                  {$IFDEF DELPHI6UP}
+                  Tmp := AcquireExceptionObject;
+                  {$ELSE}
+                  if RaiseList <> nil then
+                  begin
+                    Tmp := Exception(PRaiseFrame(RaiseList)^.ExceptObject);
+                    PRaiseFrame(RaiseList)^.ExceptObject := nil;
+                  end else
+                    Tmp := nil;
+                  {$ENDIF}
+                  if Tmp <> nil then
+                  begin
+                    if Tmp is EPSException then
+                    begin
+                      ExceptionProc(EPSException(tmp).ProcNo, EPSException(tmp).ProcPos, erCustomError, tbtString(EPSException(tmp).Message), nil);
+                      Tmp.Free;
+                      break;
+                    end else
+                    if Tmp is EDivByZero then
+                    begin
+                      CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
+                      break;
+                    end;
+                    if Tmp is EZeroDivide then
+                    begin
+                      CMD_Err3(erDivideByZero, tbtString(Exception(Tmp).Message), Tmp);
+                      break;
+                    end;
+                    if Tmp is EMathError then
+                    begin
+                      CMD_Err3(erMathError, tbtString(Exception(Tmp).Message), Tmp);
+                      break;
+                    end;
+                  end;
+                  if (Tmp <> nil) and (Tmp is Exception) then
+                    CMD_Err3(erException, tbtString(Exception(Tmp).Message), Tmp) else
+                    CMD_Err3(erException, '', Tmp);
+                  Break;
                 end;
+              end
+              else begin
+                vtemp := FStack.PushType(FReturnAddressType);
+                PPSVariantReturnAddress(vtemp).Addr.ProcNo := FCurrProc;
+                PPSVariantReturnAddress(vtemp).Addr.Position := FCurrentPosition;
+                PPSVariantReturnAddress(vtemp).Addr.StackBase := FCurrStackBase;
+                FCurrStackBase := FStack.Count - 1;
+                FCurrProc := TPSInternalProcRec(u);
+                FData := FCurrProc.Data;
+                FDataLength := FCurrProc.Length;
+                FCurrentPosition := 0;
               end;
             end;
           CM_CO:
@@ -9431,7 +10588,32 @@ begin
 //    if cmd <> invalidval then ProfilerExitProc(Cmd+1);
 //    if ExEx <> erNoError then FStatus := FOldStatus;
   until (FExceptionStack.Count = 0) or (Fstatus <> IsRunning);
-  if FStatus = isLoaded then begin
+  { a Stop skips the code that retires the frames of the try statements it
+    leaves: they go with this run, before another run can meet them }
+  if FStatus = isLoaded then
+    while Longint(FExceptionStack.Count) > lFrames do
+    begin
+      pp := FExceptionStack.Data[FExceptionStack.Count - 1];
+      FExceptionStack.DeleteLast;
+      { the exception a finally of the run was running for, which the run
+        did not handle, ends the run with it }
+      if pp.Unwinding and (ExEx = erNoError) then
+      begin
+        ExProc := pp.ExceptionProcNo;
+        ExPos := pp.ExceptionPos;
+        ExEx := pp.ExceptionData;
+        ExParam := pp.ExceptionParam;
+        if ExObject <> nil then
+          ExObject.Free;
+        ExObject := pp.ExceptionObject;
+        pp.ExceptionObject := nil;
+      end;
+      pp.Free;
+    end;
+  { a run RunProc began leaves the stack below it to whatever began it -- a
+    running script, a host, or a release while the stack is being popped or
+    cleared: RunProc pops this run's own values }
+  if (FStatus = isLoaded) and (FNestedRuns = 0) then begin
     for I := Longint(FStack.Count) - 1 downto 0 do
       FStack.Pop;
     FStack.Clear;
@@ -9474,6 +10656,26 @@ var
   S: string;
   pex: TPSExceptionHandler;
   Tmp: TObject;
+  lStrIdx: {$IFNDEF PS_NOINT64}Int64{$ELSE}Longint{$ENDIF};
+{$IFNDEF PS_NOWIDESTRING}
+
+  { WStrSet's character: a WideChar or Char, or the first character of a string, which is how a character
+    argument of its AnyString parameter arrives }
+  function WStrSetChar: WideChar;
+  var
+    lText: tbtunicodestring;
+  begin
+    if Stack.GetItem(Stack.Count - 1)^.FType.BaseType in [btString, btWideString, btUnicodeString] then
+    begin
+      lText := Stack.GetUnicodeString(-1);
+      if lText = '' then
+        raise Exception.Create(RPS_TypeMismatch);
+      Result := lText[1];
+    end else
+      Result := WideChar(Stack.GetInt(-1));
+  end;
+{$ENDIF}
+
 begin
   { The following needs to be in synch in these 3 functions:
     -UPSCompiler.TPSPascalCompiler.DefineStandardProcedures
@@ -9486,10 +10688,14 @@ begin
     2: Stack.SetInt(-1, StrToIntDef(Stack.GetAnsiString(-2), Stack.GetInt(-3))); // strtointdef
     3:
 {$IFNDEF PS_NOWIDESTRING}
-      if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btUnicodeString then
+      { a wide string on either side makes the search wide, as in Delphi: by the substring's type alone, a Char
+        or AnsiString substring read a wide S through the ANSI code page }
+      if (Stack.GetItem(Stack.Count -2)^.FType.BaseType = btUnicodeString) or
+        (Stack.GetItem(Stack.Count -3)^.FType.BaseType = btUnicodeString) then
         Stack.SetInt(-1, Pos(Stack.GetUnicodeString(-2), Stack.GetUnicodeString(-3)))// pos
       else
-      if Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString then
+      if (Stack.GetItem(Stack.Count -2)^.FType.BaseType = btWideString) or
+        (Stack.GetItem(Stack.Count -3)^.FType.BaseType = btWideString) then
         Stack.SetInt(-1, Pos(Stack.GetWideString(-2), Stack.GetWideString(-3)))// pos
       else{$ENDIF}
         Stack.SetInt(-1, Pos(Stack.GetAnsiString(-2), Stack.GetAnsiString(-3)));// pos
@@ -9548,24 +10754,28 @@ begin
         case temp.aType.BaseType of
           btString:
             begin
-              I := Stack.GetInt(-3);
-              if (i<1) or (i>length(tbtstring(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-3);
+              if (lStrIdx<1) or (lStrIdx>length(tbtstring(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
+              I := lStrIdx;
               Stack.SetInt(-1,Ord(tbtstring(temp.Dta^)[i]));
             end;
           btUnicodeString:
             begin
-              I := Stack.GetInt(-3);
-              if (i<1) or (i>length(tbtUnicodeString(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-3);
+              if (lStrIdx<1) or (lStrIdx>length(tbtUnicodeString(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
+              I := lStrIdx;
               Stack.SetInt(-1,Ord(tbtUnicodeString(temp.Dta^)[i]));
             end;
 
@@ -9587,24 +10797,28 @@ begin
         case temp.aType.BaseType of
           btString:
             begin
-              I := Stack.GetInt(-2);
-              if (i<1) or (i>length(tbtstring(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2);
+              if (lStrIdx<1) or (lStrIdx>length(tbtstring(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
+              I := lStrIdx;
               tbtstring(temp.Dta^)[i] := tbtchar(Stack.GetInt(-1));
             end;
           btUnicodeString:
             begin
-              I := Stack.GetInt(-2);
-              if (i<1) or (i>length(tbtUnicodeString(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2);
+              if (lStrIdx<1) or (lStrIdx>length(tbtUnicodeString(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
+              I := lStrIdx;
               tbtUnicodeString(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
             end;
 
@@ -9664,8 +10878,15 @@ begin
     15: Stack.SetReal(-1, Sin(Stack.GetReal(-2))); // Sin
     16: Stack.SetReal(-1, Cos(Stack.GetReal(-2)));  // Cos
     17: Stack.SetReal(-1, SQRT(Stack.GetReal(-2))); // Sqrt
+    {$IFNDEF PS_NOINT64}
+    { the whole Int64, which the compiler now declares; a script compiled with the LongInt declaration gets
+      the low half, as before }
+    18: Stack.SetInt64(-1, Round(Stack.GetReal(-2))); // Round
+    19: Stack.SetInt64(-1, Trunc(Stack.GetReal(-2))); // Trunc
+    {$ELSE}
     18: Stack.SetInt(-1, Round(Stack.GetReal(-2))); // Round
     19: Stack.SetInt(-1, Trunc(Stack.GetReal(-2))); // Trunc
+    {$ENDIF}
     20: Stack.SetReal(-1, Int(Stack.GetReal(-2))); // Int
     21: Stack.SetReal(-1, Pi); // Pi
     22: Stack.SetReal(-1, Abs(Stack.GetReal(-2))); // Abs
@@ -9702,7 +10923,19 @@ begin
       begin
         S := Stack.GetString(-2);
         if S <> '' then
+{$IF Defined(FPC_FULLVERSION) and (FPC_FULLVERSION < 30204)}
+        begin
+          { Free Pascal before 3.2.4 declares StringOfChar for an AnsiChar alone, which would narrow a
+            wide character through the code page: the string is built from the character here }
+          I := Stack.GetInt(-3);
+          S := Copy(S, 1, 1);
+          while (I > 0) and (Length(S) < I) do
+            S := S + S;
+          Stack.SetString(-1, Copy(S, 1, I));
+        end
+{$ELSE}
           Stack.SetString(-1, StringOfChar(S[1], Stack.GetInt(-3)))
+{$IFEND}
         else
           Stack.SetString(-1, StringOfChar(#0, Stack.GetInt(-3)));
       end;
@@ -9724,6 +10957,8 @@ begin
           btUnicodeString: b := tbtUnicodeString(temp.dta^)<> '';
 {$ENDIF}
           btArray, btClass{$IFNDEF PS_NOINTERFACES}, btInterface{$ENDIF}: b := Pointer(temp.dta^) <> nil;
+          { a script routine has a routine number, a Delphi method a code address }
+          btProcPtr: b := (tbtu32(temp.dta^) <> 0) or (Pointer(Pointer(IPointer(temp.dta)+PointerSize2)^) <> nil);
         else
           Result := False;
           Exit;
@@ -9735,13 +10970,13 @@ begin
       end;
     30:
       begin {RaiseLastException}
-        if (Caller.FExceptionStack.Count > 0) then begin
-          pex := Caller.FExceptionStack.Data[Caller.fExceptionStack.Count -1];
-          if pex.ExceptOffset = Cardinal(InvalidVal -1) then begin
-            Tmp := pex.ExceptionObject;
-            pex.ExceptionObject := nil;
-            Caller.ExceptionProc(Caller.ExProc, pex.ExceptOffset, pex.ExceptionData, pex.ExceptionParam, tmp);
-          end;
+        { the exception of the nearest except handler running, raised again
+          where it was raised first }
+        pex := _HandlerFrame(Caller.FExceptionStack);
+        if pex <> nil then begin
+          Tmp := pex.ExceptionObject;
+          pex.ExceptionObject := nil;
+          Caller.ExceptionProc(pex.ExceptionProcNo, pex.ExceptionPos, pex.ExceptionData, pex.ExceptionParam, tmp);
         end;
       end;
     31: Caller.CMD_Err2(TPSError(Stack.GetInt(-1)), Stack.GetAnsiString(-2)); {RaiseExeption}
@@ -9757,10 +10992,10 @@ begin
     40: Stack.SetAnsiString(-1, tbtstring(SysUtils.IntToStr(Stack.GetInt64(-2))));// Int64ToStr
     41: Stack.SetInt64(-1, StrToInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetInt64(-3))); // StrToInt64Def
     45: Stack.SetUInt64(-1, StrToUInt64(string(Stack.GetAnsiString(-2))));  // StrToUInt64
-    46: Stack.SetAnsiString(-1, tbtstring(SysUtils.UIntToStr(Stack.GetUInt64(-2))));// UInt64ToStr
+    46: Stack.SetAnsiString(-1, tbtstring(UIntToStr(Stack.GetUInt64(-2))));// UInt64ToStr
     47: Stack.SetUInt64(-1, StrToUInt64Def(string(Stack.GetAnsiString(-2)), Stack.GetUInt64(-3))); // StrToUInt64Def
 {$ENDIF}
-    48: Stack.SetAnsiString(-1, tbtstring(SysUtils.UIntToStr({$IFNDEF PS_NOINT64}Stack.GetUInt64(-2){$ELSE}Stack.GetUInt(-2){$ENDIF}))); // UIntToStr
+    48: Stack.SetAnsiString(-1, tbtstring(UIntToStr({$IFNDEF PS_NOINT64}Stack.GetUInt64(-2){$ELSE}Stack.GetUInt(-2){$ENDIF}))); // UIntToStr
     42:  // sizeof
       begin
         temp := NewTPSVariantIFC(Stack[Stack.Count -2], False);
@@ -9780,24 +11015,28 @@ begin
         case temp.aType.BaseType of
           btWideString:
             begin
-              I := Stack.GetInt(-3);
-              if (i<1) or (i>length(tbtwidestring(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-3);
+              if (lStrIdx<1) or (lStrIdx>length(tbtwidestring(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
+              I := lStrIdx;
               Stack.SetInt(-1,Ord(tbtwidestring(temp.Dta^)[i]));
             end;
           btUnicodeString:
             begin
-              I := Stack.GetInt(-3);
-              if (i<1) or (i>length(tbtUnicodeString(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-3);
+              if (lStrIdx<1) or (lStrIdx>length(tbtUnicodeString(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
+              I := lStrIdx;
               Stack.SetInt(-1,Ord(tbtUnicodeString(temp.Dta^)[i]));
             end;
 
@@ -9819,26 +11058,30 @@ begin
         case temp.aType.BaseType of
           btWideString:
             begin
-              I := Stack.GetInt(-2);
-              if (i<1) or (i>length(tbtWidestring(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2);
+              if (lStrIdx<1) or (lStrIdx>length(tbtWidestring(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
-              tbtWidestring(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
+              I := lStrIdx;
+              tbtWidestring(temp.Dta^)[i] := WStrSetChar;
             end;
 
           btUnicodeString:
             begin
-              I := Stack.GetInt(-2);
-              if (i<1) or (i>length(tbtunicodestring(temp.Dta^))) then
+              { the whole index: narrowed to 32 bits first, 4294967297 selected the first character }
+              lStrIdx := Stack.{$IFNDEF PS_NOINT64}GetInt64{$ELSE}GetInt{$ENDIF}(-2);
+              if (lStrIdx<1) or (lStrIdx>length(tbtunicodestring(temp.Dta^))) then
               begin
                 Caller.CMD_Err2(erCustomError, tbtString(RPS_OutOfStringRange));
                 Result := True;
                 exit;
               end;
-              tbtunicodestring(temp.Dta^)[i] := WideChar(Stack.GetInt(-1));
+              I := lStrIdx;
+              tbtunicodestring(temp.Dta^)[i] := WStrSetChar;
             end;
         else
           begin
@@ -9967,6 +11210,9 @@ begin
   arr:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
   if arr.aType.BaseType=btArray then
   begin
+    { a negative length is an error for an array, as in Delphi (a string takes it as 0) }
+    if Stack.GetInt(-2) < 0 then
+      raise Exception.Create(RPS_OutOfRange);
     PSDynArraySetLength(Pointer(arr.Dta^),arr.aType,Stack.GetInt(-2));
     Result:=true;
   end else
@@ -10103,10 +11349,17 @@ var
 begin
   TheSet:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
   NewMember:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
-  Result := (TheSet.aType.BaseType = btSet) and (NewMember.aType.BaseType = btU8);
+  { a Char is one byte, as the set's members are -- of a set of 256 members, a set of Char: a Char into an
+    enumeration's set is refused, as before }
+  Result := (TheSet.aType.BaseType = btSet) and
+    ((NewMember.aType.BaseType = btU8) or
+    ((NewMember.aType.BaseType = btChar) and (TPSTypeRec_Set(TheSet.aType).aBitSize = 256)));
   if not Result then Exit;
   SetData := TheSet.Dta;
   Val := Tbtu8(NewMember.dta^);
+  { a member past the set's size would change the memory after the set }
+  if Val >= TPSTypeRec_Set(TheSet.aType).aBitSize then
+    raise Exception.Create(RPS_OutOfRange);
   SetData^[Val shr 3] := SetData^[Val shr 3] or (1 shl (Val and 7));
 end;
 
@@ -10118,10 +11371,17 @@ var
 begin
   TheSet:=NewTPSVariantIFC(Stack[Stack.Count-1],true);
   NewMember:=NewTPSVariantIFC(Stack[Stack.Count-2],false);
-  Result := (TheSet.aType.BaseType = btSet) and (NewMember.aType.BaseType = btU8);
+  { a Char is one byte, as the set's members are -- of a set of 256 members, a set of Char: a Char into an
+    enumeration's set is refused, as before }
+  Result := (TheSet.aType.BaseType = btSet) and
+    ((NewMember.aType.BaseType = btU8) or
+    ((NewMember.aType.BaseType = btChar) and (TPSTypeRec_Set(TheSet.aType).aBitSize = 256)));
   if not Result then Exit;
   SetData := TheSet.Dta;
   Val := Tbtu8(NewMember.dta^);
+  { a member past the set's size would change the memory after the set }
+  if Val >= TPSTypeRec_Set(TheSet.aType).aBitSize then
+    raise Exception.Create(RPS_OutOfRange);
   SetData^[Val shr 3] := SetData^[Val shr 3] and not (1 shl (Val and 7));
 end;
 
@@ -10158,6 +11418,7 @@ begin
   RegisterFunctionName('Insert', DefProc, Pointer(6), nil);
 
   RegisterFunctionName('StrGet', DefProc, Pointer(7), nil);
+  RegisterFunctionName('StrGet2', DefProc, Pointer(7), nil);
   RegisterFunctionName('StrSet', DefProc, Pointer(8), nil);
   RegisterFunctionName('UpperCase', DefProc, Pointer(10), nil);
   RegisterFunctionName('LowerCase', DefProc, Pointer(11), nil);
@@ -10275,6 +11536,12 @@ begin
   begin
     aType := TPSTypeRec(Pointer(IPointer(src)+PointerSize)^);
     Src := Pointer(Pointer(Src)^);
+    if (aType = nil) or (Src = nil) then
+    begin
+      Dest := null;
+      Result := True;
+      exit;
+    end;
   end;
 
   case aType.BaseType of
@@ -10354,13 +11621,26 @@ type
     ItemCount: Longint;
     Data: Pointer;
     VarParam: Boolean;
+    { the script array's elements: an argument naming the same array shares
+      the earlier one's Data }
+    Source: Pointer;
   end;
-function CreateOpenArray(VarParam: Boolean; Sender: TPSExec; val: PPSVariantIFC): POpenArray;
+
+{ An open array argument of a native call.  An array of const goes as a buffer
+  of TVarRec made from the script's elements, written back by DestroyOpenArray
+  for a var argument.  An argument naming the same script array as an earlier
+  one of the call (in aCallData) shares that one's buffer, as two arguments of
+  one array share its elements in Delphi -- a const one sees what a var one
+  writes, a value one the routine copies on entry -- and a var one makes the
+  shared buffer written back, once }
+function CreateOpenArray(VarParam: Boolean; Sender: TPSExec; val: PPSVariantIFC; aCallData: TPSList): POpenArray;
 var
   datap, p: Pointer;
   ctype: TPSTypeRec;
   cp: Pointer;
   i: Longint;
+  lIdx: Longint;
+  lEarlier: POpenArray;
 begin
   if (Val.aType.BaseType <> btArray) and (val.aType.BaseType <> btStaticArray) then
   begin
@@ -10381,6 +11661,7 @@ begin
     Result^.ItemCount := PSDynArrayGetLength(Pointer(Val.Dta^), val.aType);
     datap := Pointer(Val.Dta^);
   end;
+  Result.Source := datap;
   if TPSTypeRec_Array(Val.aType).ArrayType.BaseType <> btPointer then
   begin
     Result.FreeIt := False;
@@ -10390,6 +11671,20 @@ begin
   end;
 
   { BaseType is btPointer, which means array of const }
+
+  if aCallData <> nil then
+    for lIdx := 0 to aCallData.Count - 1 do
+    begin
+      lEarlier := aCallData[lIdx];
+      if (lEarlier^.AType = 0) and (lEarlier^.Source = datap) then
+      begin
+        Result.FreeIt := False;
+        Result.Data := lEarlier^.Data;
+        if VarParam then
+          lEarlier^.VarParam := True;
+        exit;
+      end;
+    end;
 
   Result.FreeIt := True;
   Result.ElementSize := sizeof(TVarRec);
@@ -10443,7 +11738,7 @@ begin
             tvarrec(p^).VType := vtWideChar;
             tvarrec(p^).VWideChar := tbtwidechar(cp^);
           end;
-        {$IFDEF DELPHI2009UP}
+        {$IFNDEF WIDESTRING_EQUAL_UNICODESTRING}
         btUnicodeString: begin
           tvarrec(p^).VType := vtUnicodeString;
           tbtunicodestring(TVarRec(p^).VUnicodeString) := tbtunicodestring(cp^);
@@ -10541,6 +11836,8 @@ begin
     begin
       ctype := Pointer(Pointer(IPointer(datap)+PointerSize)^);
       cp := Pointer(Datap^);
+      { an element without data went as a nil pointer (CreateOpenArray): nothing to free or write back }
+      if cp <> nil then
       case ctype.BaseType of
         btU8:
           begin
@@ -10608,7 +11905,7 @@ begin
             if v^.varParam then
               tbtwidechar(cp^) := tvarrec(p^).VWideChar;
           end;
-        {$IFDEF DELPHI2009UP}
+        {$IFNDEF WIDESTRING_EQUAL_UNICODESTRING}
         btUnicodeString:
           begin
           if v^.VarParam then
@@ -10630,6 +11927,10 @@ begin
             tbtstring(cp^) := tbtstring(TVarRec(p^).VString);
           finalize(tbtString(TVarRec(p^).VAnsiString));
         end;
+        btPChar: begin
+          if v^.VarParam then
+            Pointer(cp^) := TVarRec(p^).VPChar;
+        end;
         btClass: begin
           if v^.VarParam then
             Pointer(cp^) := TVarRec(p^).VObject;
@@ -10638,7 +11939,7 @@ begin
 {$IFDEF Delphi3UP}
         btInterface: begin
           if v^.VarParam then
-            IUnknown(cp^) := IUnknown(TVarRec(p^).VInterface);
+            SetInterfaceVar(Pointer(cp^), TVarRec(p^).VInterface);
           IUnknown(TVarRec(p^).VInterface) := nil;
         end;
 {$ENDIF}
@@ -10652,6 +11953,19 @@ begin
   Dispose(V);
 end;
 
+
+{ The method a procedure-pointer value stands for: the script procedure whose number it holds,
+  otherwise the method stored beside the number -- a handler the script read from an event
+  Delphi had assigned -- and nil when there is none. }
+function ProcPtrToMethod(Se: TPSExec; ProcPtr: Pointer): TMethod;
+begin
+  if tbtu32(ProcPtr^) <> 0 then
+    Result := MkMethod(Se, tbtu32(ProcPtr^))
+  else begin
+    Result.Data := Pointer(Pointer(IPointer(ProcPtr)+PointerSize)^);
+    Result.Code := Pointer(Pointer(IPointer(ProcPtr)+PointerSize2)^);
+  end;
+end;
 
 {$IFNDEF FPC}
   {$UNDEF _INVOKECALL_INC_}
@@ -10705,9 +12019,24 @@ end;
   {$ENDIF}
 {$ENDIF}
 
+{ A native routine can call a script routine back, which can grow the script's
+  stack -- its data does not move (UseChunks) -- or clear it, while the
+  native routine holds addresses into it: chunks a Clear releases meanwhile are
+  kept until the call ends }
+function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+begin
+  FStack.NativeCallStarts;
+  try
+    Result := PlatformInnerfuseCall(_Self, Address, CallingConv, Params, res);
+  finally
+    FStack.NativeCallEnds;
+  end;
+end;
+
 type
   PScriptMethodInfo = ^TScriptMethodInfo;
   TScriptMethodInfo = record
+    { nil once the script has ended }
     Se: TPSExec;
     ProcNo: Cardinal;
   end;
@@ -10720,6 +12049,9 @@ begin
     Result.Code := nil;
     Result.Data := nil;
   end else begin
+    {$IFDEF FPC}{$IFDEF empty_methods_handler}
+    raise Exception.Create(RPS_NoNativeMethodsHandler);
+    {$ENDIF}{$ENDIF}
     Result.Code := @MyAllMethodsHandler;
     Result.Data := GetMethodInfoRec(FSE, No);
   end;
@@ -10728,7 +12060,15 @@ end;
 
 procedure PFree(Sender: TPSExec; P: PScriptMethodInfo);
 begin
-  Dispose(p);
+  { the script has ended, but native code can still hold a method made from
+    this record -- an event of an object that outlives the script -- so the
+    record is never freed: a call through it finds no executor and is
+    refused.  Where the RTL has the entry, the memory manager is asked to
+    leave it out of a leak report at exit; whether it does is the manager's }
+  P^.Se := nil;
+  {$IF Defined(DELPHI2006UP) and not Defined(FPC)}
+  System.RegisterExpectedMemoryLeak(P);
+  {$IFEND}
 end;
 
 function GetMethodInfoRec(SE: TPSExec; ProcNo: Cardinal): Pointer;
@@ -10744,7 +12084,8 @@ begin
   I := 2147483647;
   repeat
     pp := Se.FindProcResource2(@PFree, I);
-    if (i <> -1) and (pp^.ProcNo = ProcNo) then
+    { a record at the list's first place too: the search leaves i at -1 there }
+    if (pp <> nil) and (pp^.ProcNo = ProcNo) then
     begin
       Result := Pp;
       exit;
@@ -10809,7 +12150,7 @@ begin
   {$ifdef Win64}
   if (word((@p[0])^) = $25FF) {and (word((@p[6])^)=$C08B)}then
   begin
-    p := PPointer(NativeUInt(@P[0]) + Cardinal((@p[2])^) + 6{Instruction Size})^
+    p := PPointer(NativeInt(@P[0]) + Integer((@p[2])^) + 6{Instruction Size})^
   end;
   {$endif}
 end;
@@ -10953,7 +12294,10 @@ begin
 
     if TPSTypeRec_Array(Result.aType).ArrayType.BaseType = btPointer then begin
       { See CreateOpenArray }
-      Result := PPSVariantIFC(IPointer(Result.Dta^) + IPointer(Fieldno) * 3 * SizeOf(Pointer))^;
+      if Result.aType.BaseType = btStaticArray then
+        Result := PPSVariantIFC(IPointer(Result.Dta) + IPointer(Fieldno) * 3 * SizeOf(Pointer))^
+      else
+        Result := PPSVariantIFC(IPointer(Result.Dta^) + IPointer(Fieldno) * 3 * SizeOf(Pointer))^;
       exit;
     end;
 
@@ -11032,6 +12376,13 @@ begin
     n := Stack[Stack.Count -1]
   else
     n := Stack[Stack.Count -2];
+  { Free on nil does nothing, as Delphi's TObject.Free does; any other method on nil is refused below }
+  if (n <> nil) and (n^.FType.BaseType = btClass) and (PPSVariantClass(n).Data = nil) and (p.Ext2 = nil) and
+    (p.Ext1 = @TObject.Free) then
+  begin
+    Result := True;
+    exit;
+  end;
   if (n = nil) or (n^.FType.BaseType <> btClass)or (PPSVariantClass(n).Data = nil) then
   begin
     Caller.CMD_Err(erNullPointerException);
@@ -11128,9 +12479,10 @@ begin
     exit;
   end;
   {$IFDEF FPC}
-  // under FPC a constructor it's called with self=0 (EAX) and
-  // the VMT class pointer in EDX so they are effectively swaped
-  // using register calling convention
+  // Free Pascal 3 calls a constructor as Delphi does, with the class in the
+  // first register and 1 in the second.  Here the class travels as the first
+  // parameter and Self is 1; the stubs' constructor arm (x86.inc, x64.inc)
+  // loads the first parameter first, so the two arrive in that order.
   {$IFDEF CPU64}
   PPSVariantS64(IntVal).Data := Int64(FSelf);
   {$ELSE}
@@ -11287,8 +12639,9 @@ begin
     if IUnknown(resvar.Dta^) <> nil then
       IUnknown(resvar.Dta^).Release;
 {$ENDIF}
-    IUnknown(resvar.Dta^) := nil;
-    if (IUnknown(invar.Dta^) = nil) or (IUnknown(invar.Dta^).QueryInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^)) <> 0) then
+    SetInterfaceVar(Pointer(resvar.Dta^), nil);
+    { a nil interface casts to nil, as in Delphi }
+    if (IUnknown(invar.Dta^) <> nil) and (IUnknown(invar.Dta^).QueryInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^)) <> 0) then
     begin
       Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastInterface));
       Result := False;
@@ -11301,8 +12654,9 @@ begin
     if IUnknown(resvar.Dta^) <> nil then
       IUnknown(resvar.Dta^).Release;
 {$ENDIF}
-    IUnknown(resvar.Dta^) := nil;
-    if (TObject(invar.Dta^)= nil) or (not TObject(invar.dta^).GetInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^))) then
+    SetInterfaceVar(Pointer(resvar.Dta^), nil);
+    { a nil object casts to nil, as in Delphi }
+    if (TObject(invar.Dta^) <> nil) and not TObject(invar.dta^).GetInterface(TPSTypeRec_Interface(ResVar.aType).Guid, IUnknown(resvar.Dta^)) then
     begin
       Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastInterface));
       Result := False;
@@ -11332,13 +12686,16 @@ begin
       exit;
     end;
 
+    Result := True;
     try
       TObject(ResVar.Dta^) := TObject(InVar.Dta^) as FSelf;
     except
       Result := False;
       Caller.CMD_Err2(erCustomError, tbtString(RPS_CannotCastObject));
-      exit;
     end;
+    { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
+    if not Result then
+      exit;
   end else
   begin
     Result := False;
@@ -11366,7 +12723,7 @@ begin
     if IUnknown(n.Dta^) <> nil then
       IUnknown(n.Dta^).Release;
     {$ENDIF}
-    IUnknown(n.Dta^) := nil;
+    SetInterfaceVar(Pointer(n.Dta^), nil);
   end else
   {$ENDIF}
     Pointer(n.Dta^) := nil;
@@ -11456,6 +12813,24 @@ begin
 end;
 
 
+{ Whether aValue lies in the range of the Delphi type of aProp, a published
+  property, where that type is an enumeration; True for any other kind.  A
+  script enumeration can have more members than the Delphi type of its name
+  (TBorderStyle, a subrange in Delphi), and SetOrdProp stores whatever it is
+  given. }
+function _InPropertyRange(aProp: PPropInfo; aValue: Longint): Boolean;
+var
+  lType : PTypeInfo;
+  lData : PTypeData;
+begin
+  lType := aProp^.PropType{$IFNDEF FPC}^{$ENDIF};
+  Result := True;
+  if lType^.Kind = tkEnumeration then begin
+    lData := GetTypeData(lType);
+    Result := (aValue >= lData^.MinValue) and (aValue <= lData^.MaxValue);
+  end;
+end;
+
 function getMethodNo(P: TMethod; SE: TPSExec): Cardinal;
 begin
   if (p.Code <> @MyAllMethodsHandler) or (p.Data = nil)or (PScriptMethodInfo(p.Data)^.Se <> se)  then
@@ -11494,20 +12869,58 @@ begin
       n := NewTPSVariantIFC(Stack[Stack.Count -2], false);
       if (PPropInfo(p.Ext1)^.PropType^.Kind = tkMethod) and ((n.aType.BaseType = btu32) or (n.aType.BaseType = btProcPtr))then
       begin
-        SetMethodProp(TObject(FSelf), PPropInfo(p.Ext1), MkMethod(Caller, tbtu32(n.dta^)));
+        if n.aType.BaseType = btProcPtr then
+          SetMethodProp(TObject(FSelf), PPropInfo(p.Ext1), ProcPtrToMethod(Caller, n.dta))
+        else begin
+          { a number names a script routine, as a procedural value's does: a method made of any other number
+            read past the routine list when native code called it }
+          if (tbtu32(n.dta^) <> 0) and (tbtu32(n.dta^) <> InvalidVal) and
+            ((tbtu32(n.dta^) >= Cardinal(Caller.FProcs.Count)) or (tbtu32(n.dta^) = Caller.FMainProc)) then
+          begin
+            Caller.CMD_Err(erOutOfProcRange);
+            Result := False;
+            Exit;
+          end;
+          SetMethodProp(TObject(FSelf), PPropInfo(p.Ext1), MkMethod(Caller, tbtu32(n.dta^)));
+        end;
       end else
       case n.aType.BaseType of
         btSet:
           begin
+            if TPSTypeRec_Set(n.aType).aByteSize > SizeOf(ltemp) then begin
+              Caller.CMD_Err(erOutOfRange);
+              Result := False;
+              Exit;
+            end;
             ltemp := 0;
             move(Byte(n.Dta^), ltemp, TPSTypeRec_Set(n.aType).aByteSize);
             SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), ltemp);
           end;
-        btChar, btU8: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbtu8(n.Dta^));
+        btChar, btU8:
+          if (n.aType.BaseType = btChar) and (PPropInfo(p.Ext1)^.PropType^.Kind = tkWChar) then
+            SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), Ord(PSAnsiCharToWideChar(tbtchar(n.Dta^))))
+          else if not _InPropertyRange(PPropInfo(p.Ext1), tbtu8(n.Dta^)) then begin
+            Caller.CMD_Err(erOutOfRange);
+            Result := False;
+            Exit;
+          end else
+            SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbtu8(n.Dta^));
         btS8: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbts8(n.Dta^));
-        {$IFNDEF PS_NOWIDESTRING}btwidechar, {$ENDIF}btU16: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbtu16(n.Dta^));
+        {$IFNDEF PS_NOWIDESTRING}btwidechar, {$ENDIF}btU16:
+          if not _InPropertyRange(PPropInfo(p.Ext1), tbtu16(n.Dta^)) then begin
+            Caller.CMD_Err(erOutOfRange);
+            Result := False;
+            Exit;
+          end else
+            SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbtu16(n.Dta^));
         btS16: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbts16(n.Dta^));
-        btU32: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbtu32(n.Dta^));
+        btU32:
+          if not _InPropertyRange(PPropInfo(p.Ext1), Longint(tbtu32(n.Dta^))) then begin
+            Caller.CMD_Err(erOutOfRange);
+            Result := False;
+            Exit;
+          end else
+            SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbtu32(n.Dta^));
         btS32: SetOrdProp(TObject(FSelf), PPropInfo(p.Ext1), tbts32(n.Dta^));
         {$IFNDEF PS_NOINT64}
         btS64: SetInt64Prop(TObject(FSelf), PPropInfo(p.Ext1), tbts64(n.Dta^));
@@ -11521,9 +12934,9 @@ begin
         btClass: SetOrdProp(TObject(FSelf), P.Ext1, IPointer(n.Dta^));
 	  {$IFDEF DELPHI6UP}
 {$IFNDEF PS_NOWIDESTRING}
-{$IFNDEF DELPHI2009UP}btUnicodeString,{$ENDIF}
+{$IFDEF WIDESTRING_EQUAL_UNICODESTRING}btUnicodeString,{$ENDIF}
   btWideString: SetWideStrProp(TObject(FSelf), P.Ext1, tbtWidestring(n.dta^));
-{$IFDEF DELPHI2009UP}
+{$IFNDEF WIDESTRING_EQUAL_UNICODESTRING}
   btUnicodeString: {$IFDEF DELPHI_TOKYO_UP}SetStrProp{$ELSE}SetUnicodeStrProp{$ENDIF}(TObject(FSelf), P.Ext1, tbtUnicodestring(n.dta^));
 {$ENDIF}
   {$ENDIF}
@@ -11558,7 +12971,8 @@ begin
       begin
         m := GetMethodProp(TObject(FSelf), PPropInfo(p.Ext1));
         Cardinal(n.Dta^) := GetMethodNo(m, Caller);
-        if Cardinal(n.dta^) = 0 then
+        { only a procedural value holds the method beside its number: a number is four bytes }
+        if (Cardinal(n.dta^) = 0) and (n.aType.BaseType = btProcPtr) then
         begin
           Pointer(Pointer((IPointer(n.dta)+PointerSize))^) := m.Data;
           Pointer(Pointer((IPointer(n.dta)+PointerSize2))^) := m.Code;
@@ -11567,10 +12981,19 @@ begin
       case n.aType.BaseType of
         btSet:
           begin
+            if TPSTypeRec_Set(n.aType).aByteSize > SizeOf(ltemp) then begin
+              Caller.CMD_Err(erOutOfRange);
+              Result := False;
+              Exit;
+            end;
             ltemp := GetOrdProp(TObject(FSelf), PPropInfo(p.Ext1));
             move(ltemp, Byte(n.Dta^), TPSTypeRec_Set(n.aType).aByteSize);
           end;
-        btChar, btU8: tbtu8(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
+        btChar, btU8:
+          if (n.aType.BaseType = btChar) and (PPropInfo(p.Ext1)^.PropType^.Kind = tkWChar) then
+            tbtchar(n.Dta^) := PSWideCharToAnsiChar(WideChar(Word(GetOrdProp(TObject(FSelf), p.Ext1))))
+          else
+            tbtu8(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
         btS8: tbts8(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
         {$IFNDEF PS_NOWIDESTRING}btwidechar, {$ENDIF}btU16: tbtu16(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
         btS16: tbts16(n.Dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
@@ -11587,7 +13010,7 @@ begin
         btClass: IPointer(n.dta^) := GetOrdProp(TObject(FSelf), p.Ext1);
 	  {$IFDEF DELPHI6UP}
 {$IFNDEF PS_NOWIDESTRING}
-        {$IFDEF DELPHI2009UP}
+        {$IFNDEF WIDESTRING_EQUAL_UNICODESTRING}
         btUnicodeString: tbtUnicodeString(n.dta^) := {$IFDEF DELPHI_TOKYO_UP}GetStrProp{$ELSE}GetUnicodeStrProp{$ENDIF}(TObject(FSelf), P.Ext1);
         {$ELSE}
         btUnicodeString,
@@ -11721,11 +13144,14 @@ begin
     for i := Stack.Count -3 downto Longint(Stack.Count) - ParamCount -2 do
       Params.Add(NewPPSVariantIFC(Stack[I], False));
     tt := CreateHeapVariant(Caller.FindType2(btString));
-    if tt <> nil then
+    if tt = nil then
     begin
-      PPSVariantAString(tt).Data := p.Name;
-      Params.Add(NewPPSVariantIFC(tt, false));
+      DisposePPSVariantIFCList(Params);
+      Result := False;
+      exit;
     end;
+    PPSVariantAString(tt).Data := p.Name;
+    Params.Add(NewPPSVariantIFC(tt, false));
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
     finally
@@ -11755,11 +13181,14 @@ begin
       Params.Add(NewPPSVariantIFC(Stack[I], false));
     end;
     tt := CreateHeapVariant(Caller.FindType2(btString));
-    if tt <> nil then
+    if tt = nil then
     begin
-      PPSVariantAString(tt).Data := p.Name;
-      Params.Add(NewPPSVariantIFC(tt, false));
+      DisposePPSVariantIFCList(Params);
+      Result := False;
+      exit;
     end;
+    PPSVariantAString(tt).Data := p.Name;
+    Params.Add(NewPPSVariantIFC(tt, false));
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
     finally
@@ -11832,13 +13261,19 @@ begin
       Params.Add(NewPPSVariantIFC(Stack[i], False));
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext1, cdRegister, Params, nil);
-    finally
-      Cardinal(n.Dta^) := getMethodNo(data, Caller);
-      if Cardinal(n.Dta^) = 0 then
+      { the event is stored only when the read helper returned: Delphi leaves a destination as it was when
+        a getter raises }
+      if Result then
       begin
-        Pointer(Pointer((IPointer(n.dta)+PointerSize))^) := data.Data;
-        Pointer(Pointer((IPointer(n.dta)+PointerSize2))^) := data.Code;
+        Cardinal(n.Dta^) := getMethodNo(data, Caller);
+        { only a procedural value holds the method beside its number: a number is four bytes }
+        if (Cardinal(n.Dta^) = 0) and (n.aType.BaseType = btProcPtr) then
+        begin
+          Pointer(Pointer((IPointer(n.dta)+PointerSize))^) := data.Data;
+          Pointer(Pointer((IPointer(n.dta)+PointerSize2))^) := data.Code;
+        end;
       end;
+    finally
       DestroyHeapVariant(n2);
       DisposePPSVariantIFCList(Params);
     end;
@@ -11857,11 +13292,19 @@ begin
       Result := False;
       exit;
     end;
-    n := NewTPSVariantIFC(Stack[Longint(Stack.Count) - 2], false);
+    { the value lies below an indexed property's indices }
+    n := NewTPSVariantIFC(Stack[Longint(Stack.Count) - ParamCount - 2], false);
     if (n.Dta = nil) or ((n.aType.BaseType <> btu32) and (n.aType.BaseType <> btProcPtr)) then
     begin
       result := false;
       Caller.CMD_Err(erNullPointerException);
+      exit;
+    end;
+    { the write helper takes a method, and a number would reach it as one }
+    if n.aType.BaseType = btU32 then
+    begin
+      Result := False;
+      Caller.CMD_Err(erTypeMismatch);
       exit;
     end;
     (*n2 := CreateHeapVariant(Caller.FindType2(btPchar));
@@ -11879,14 +13322,13 @@ begin
     Params := TPSList.Create;
     Params.Add(@n);
 
- //   for i := Stack.Count -2 downto Longint(Stack.Count) - ParamCount -1 do
- //   begin
-//      Params.Add(NewPPSVariantIFC(Stack[I], False));
-//    end;
+    for i := Stack.Count -2 downto Longint(Stack.Count) - ParamCount -1 do
+      Params.Add(NewPPSVariantIFC(Stack[I], False));
     try
       Result := Caller.InnerfuseCall(FSelf, p.Ext2, cdregister, Params, nil);
     finally
-      Params.Clear;
+      { the value is n itself, which the list does not own }
+      Params.Delete(0);
       //DestroyHeapVariant(n2);
       DisposePPSVariantIFCList(Params);
     end;
@@ -12193,14 +13635,18 @@ begin
   end;
   if s[1] <> #0 then
   begin
-    res := NewPPSVariantIFC(FStack[CurrStack + 1], True);
+    res := NewPPSVariantIFC(FStack[CurrStack], True);
   end else res := nil;
-  Result := InnerfuseCall(Slf, Ptr, cdRegister, MyList, Res);
-
-  DisposePPSVariantIFC(res);
-  DisposePPSVariantIFCList(mylist);
+  try
+    Result := InnerfuseCall(Slf, Ptr, cdRegister, MyList, Res);
+  finally
+    DisposePPSVariantIFC(res);
+    DisposePPSVariantIFCList(mylist);
+  end;
 end;
 
+{ The Last* functions: with exception frames, the exception of the nearest
+  except handler running (none outside one); with none, the last exception. }
 function TPSExec.LastEx: TPSError;
 var
   pp: TPSExceptionHandler;
@@ -12209,8 +13655,11 @@ begin
     result := ExEx;
     exit;
   end;
-  pp := fExceptionStack[fExceptionStack.Count-1];
-  result := pp.ExceptionData;
+  pp := _HandlerFrame(FExceptionStack);
+  if pp = nil then
+    result := ENoError
+  else
+    result := pp.ExceptionData;
 end;
 
 function TPSExec.LastExParam: tbtString;
@@ -12221,8 +13670,11 @@ begin
     result := ExParam;
     exit;
   end;
-  pp := fExceptionStack[fExceptionStack.Count-1];
-  result := pp.ExceptionParam;
+  pp := _HandlerFrame(FExceptionStack);
+  if pp = nil then
+    result := ''
+  else
+    result := pp.ExceptionParam;
 end;
 
 function TPSExec.LastExPos: Integer;
@@ -12233,9 +13685,11 @@ begin
     result := ExPos;
     exit;
   end;
-  pp := fExceptionStack[fExceptionStack.Count-1];
-  result := pp.ExceptOffset;
-
+  pp := _HandlerFrame(FExceptionStack);
+  if pp = nil then
+    result := Integer(InvalidVal)
+  else
+    result := Integer(pp.ExceptionPos);
 end;
 
 function TPSExec.LastExProc: Integer;
@@ -12246,8 +13700,11 @@ begin
     result := ExProc;
     exit;
   end;
-  pp := fExceptionStack[fExceptionStack.Count-1];
-  result := FProcs.IndexOf(pp.CurrProc);
+  pp := _HandlerFrame(FExceptionStack);
+  if pp = nil then
+    result := Integer(InvalidVal)
+  else
+    result := Integer(pp.ExceptionProcNo);
 end;
 
 function TPSExec.LastExObject: TObject;
@@ -12258,8 +13715,11 @@ begin
    result := ExObject;
    exit;
  end;
- pp := fExceptionStack[fExceptionStack.Count-1];
- result := pp.ExceptionObject;
+ pp := _HandlerFrame(FExceptionStack);
+ if pp = nil then
+   result := nil
+ else
+   result := pp.ExceptionObject;
 end;
 
 { TPSRuntimeClass }
@@ -12444,8 +13904,10 @@ begin
   inherited Create;
   FClasses := TPSList.Create;
   RegisterClassLibraryRuntime(Exec, Self);
+  { not a resource: Clear releases those, and loading a script begins with a
+    Clear, where the importer is needed next }
   if AutoFree then
-    Exec.AddResource(@RCIFreeProc, Self);
+    Exec.FOwnedImporters.Add(Self);
 end;
 
 destructor TPSRuntimeClassImporter.Destroy;
@@ -12503,7 +13965,15 @@ begin
 {$IFDEF CPU64}
     { See the btSet/btRecord/btStaticArray comment in x64.inc }
     btSet: Result := not (atype.RealSize in [1, 2, 3, 4{$IFDEF DELPHI}{$IFNDEF DELPHI_RIO_UP}, 5, 6, 7, 8{$ENDIF}{$ENDIF}]);
-    btRecord, btStaticArray: Result := not (atype.RealSize in [1, 2, 4{$IFDEF DELPHI}{$IFNDEF DELPHI_RIO_UP}, 5, 6, 7, 8{$ENDIF}{$ENDIF}]);
+{$IF defined(FPC) and defined(MSWINDOWS)}
+    { Every record and static array by reference, as the FPC arm of the
+      btSet/btRecord/btStaticArray case in x64.inc passes them.  Free Pascal x86_64
+      compiles no method handler (empty_methods_handler), so no call reaches this
+      arm there. }
+    btRecord, btStaticArray: Result := True;
+{$ELSE}
+    btRecord, btStaticArray: Result := not (atype.RealSize in [1, 2, 4{$IFDEF DELPHI}{$IFNDEF DELPHI_RIO_UP}, 8{$ENDIF}{$ENDIF}]);
+{$IFEND}
 {$ELSE}
     btSet, btRecord, btStaticArray: Result := atype.RealSize > PointerSize;
 {$ENDIF}
@@ -12517,16 +13987,6 @@ begin
   Result := (Modifier = '%') or (Modifier = '!') or AlwaysAsVariable(aType);
 end;
 
-{$ifdef fpc}
-  {$if defined(cpupowerpc) or defined(cpuarm) or defined(cpu64)}
-    {$define empty_methods_handler}
-  {$ifend}
-{$else}
-  {$if defined(cpuarm) or defined(cpuarm64)}
-    {$define empty_methods_handler}
-  {$ifend}
-{$endif}
-
 {$ifdef empty_methods_handler}
 procedure MyAllMethodsHandler;
 begin
@@ -12534,10 +13994,113 @@ end;
 {$else}
 
 
+{ Copies a value parameter native code hands a script procedure it calls as a
+  method; aCopied turns False when the copy fails (CopyArrayContents takes the
+  exception) }
+procedure CopyNativeParameter(aDest, aSrc: Pointer; aType: TPSTypeRec; var aCopied: Boolean);
+begin
+  if not CopyArrayContents(aDest, aSrc, 1, aType) then
+    aCopied := False;
+end;
+
+{ Refuses a call into a script procedure one of whose parameters could not be
+  copied, after freeing the parameters made for it, as a Delphi routine's
+  failed copy of a parameter raises to its caller before the routine runs.
+  The copy's own exception is gone, so the caller gets Invalid parameter }
+procedure RefuseNativeParameters(aParams: TPSList);
+begin
+  FreePIFVariantList(aParams);
+  raise Exception.Create(RPS_InvalidParameter);
+end;
+
+{ A parameter the native caller passes by reference (ParamAsVariable): a var
+  parameter is the caller's variable; a value or const one -- a Variant, a
+  large set, record or static array -- is the routine's own copy of it, as a
+  Delphi routine copies such a value before it writes to it; aCopied turns
+  False when that copy fails }
+function NativeReferenceParameter(Se: TPSExec; const Modifier: tbtchar; aType: TPSTypeRec;
+  aData: Pointer; var aCopied: Boolean): PPSVariant;
+begin
+  if (Modifier = '%') or (Modifier = '!') then
+  begin
+    Result := CreateHeapVariant(Se.FindType2(btPointer));
+    PPSVariantPointer(Result).DestType := aType;
+    PPSVariantPointer(Result).DataDest := aData;
+  end else
+  begin
+    Result := CreateHeapVariant(aType);
+    CopyNativeParameter(@PPSVariantData(Result)^.Data, aData, aType, aCopied);
+  end;
+end;
+
+{ The procedural value a method stands for, written at aProcPtr: the number of
+  the script procedure when the method is one of Se's procedures made a method,
+  otherwise number 0 with the method beside it -- as a script holds an event
+  Delphi had assigned }
+procedure MethodToProcPtr(Se: TPSExec; const aMethod: TMethod; aProcPtr: Pointer);
+begin
+  tbtu32(aProcPtr^) := getMethodNo(aMethod, Se);
+  if tbtu32(aProcPtr^) = 0 then
+  begin
+    Pointer(Pointer(IPointer(aProcPtr)+PointerSize)^) := aMethod.Data;
+    Pointer(Pointer(IPointer(aProcPtr)+PointerSize2)^) := aMethod.Code;
+  end;
+end;
+
+{ The procedural-type parameter aIdx of a script procedure that native code
+  calls as a method: a value of its own made from the method the caller passed
+  at aNative.  A var or out parameter sets aWriteBacks[aIdx] to aNative, where
+  StoreMethodParameters puts it back as a method after the call -- unless an
+  earlier one names the same variable: then it points at that one's value, as
+  two var parameters of one variable share it }
+function MethodParameter(Se: TPSExec; const aModifier: tbtchar; aType: TPSTypeRec; aNative: Pointer;
+  Params: TPSList; var aWriteBacks: array of Pointer; aIdx: Integer): PPSVariant;
+var
+  lIdx: Integer;
+begin
+  if (aModifier = '%') or (aModifier = '!') then
+  begin
+    for lIdx := 0 to High(aWriteBacks) do
+      if aWriteBacks[lIdx] = aNative then
+      begin
+        Result := CreateHeapVariant(Se.FindType2(btPointer));
+        PPSVariantPointer(Result).DestType := aType;
+        PPSVariantPointer(Result).DataDest := @PPSVariantData(Params[lIdx])^.Data;
+        Exit;
+      end;
+    aWriteBacks[aIdx] := aNative;
+  end;
+  Result := CreateHeapVariant(aType);
+  MethodToProcPtr(Se, TMethod(aNative^), @PPSVariantData(Result)^.Data);
+end;
+
+procedure StoreMethodParameters(Se: TPSExec; Params: TPSList; const aWriteBacks: array of Pointer);
+var
+  lIdx: Integer;
+begin
+  for lIdx := 0 to High(aWriteBacks) do
+    if aWriteBacks[lIdx] <> nil then
+      TMethod(aWriteBacks[lIdx]^) := ProcPtrToMethod(Se, @PPSVariantData(Params[lIdx])^.Data);
+end;
+
+{$IFNDEF CPU64}
+{ Whether a 32-bit native caller passes a method parameter by reference: a var
+  or out one always, one by value on Free Pascal; Delphi pushes a method by
+  value as its two slots }
+function MethodByReference(const aModifier: tbtchar): Boolean;
+begin
+  {$IFDEF FPC}
+  Result := True;
+  {$ELSE}
+  Result := (aModifier = '%') or (aModifier = '!');
+  {$ENDIF}
+end;
+{$ENDIF}
+
 {$IFDEF CPU64}
 function MyAllMethodsHandler64(Self: PScriptMethodInfo; _RDX, _R8, _R9:Pointer; Stack: PPointer;  _XMM1, _XMM2, _XMM3: Pointer; {$IFDEF DELPHI} ResPtr: Pointer {$ENDIF}): Integer; forward;
 {$ELSE}
-function MyAllMethodsHandler32(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer{$IFDEF DELPHI}; ResPtr: Pointer{$ENDIF}): Integer; forward;
+function MyAllMethodsHandler32(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer{$IF defined(DELPHI) or (defined(FPC) and defined(CPUI386))}; ResPtr: Pointer{$IFEND}): Integer; forward;
 {$ENDIF}
 
 procedure MyAllMethodsHandler;
@@ -12574,12 +14137,9 @@ asm
   // RCX (Self), RDX, R8, R9 already contain the values we need
   lea     rax, [rbp+80]         // Stack ptr
   mov     [rsp+32], rax
-  movq    rax, xmm1             // XMM1 raw value
-  mov     [rsp+40], rax
-  movq    rax, xmm2             // XMM2 raw value
-  mov     [rsp+48], rax
-  movq    rax, xmm3             // XMM3 raw value
-  mov     [rsp+56], rax
+  movsd   qword ptr [rsp+40], xmm1   // XMM1 raw value
+  movsd   qword ptr [rsp+48], xmm2   // XMM2 raw value
+  movsd   qword ptr [rsp+56], xmm3   // XMM3 raw value
   lea     rax, [rbp+0]          // ResPtr
   mov     [rsp+64], rax         // 64+8 = 72
 
@@ -12588,7 +14148,7 @@ asm
   add     rsp, 80
 
   // Return ResPtr in both XMM0 and RAX, allowing the caller to choose correct one
-  movq    xmm0, [rbp+0]
+  movsd   xmm0, qword ptr [rbp+0]
   mov     rax, [rbp+0]
 end;
 {$ELSE}
@@ -12621,7 +14181,7 @@ end;
 //     EAX = Self pointer
 //     EDX, ECX = param1 and param2
 //     STACK = param3... paramcount
-{$IFDEF DELPHI}
+{$IF defined(DELPHI) or (defined(FPC) and defined(CPUI386))}
 asm
   // Like the Win64 stub: the stub owns an 8-byte result slot and passes its
   // address to MyAllMethodsHandler32 as ResPtr, so that an Int64/UInt64
@@ -12658,7 +14218,7 @@ asm
   mov [esp], edx
   mov eax, ecx
 end;
-{$ENDIF}
+{$IFEND}
 {$endif CPU64}
 
 function ResultAsRegister(b: TPSTypeRec): Boolean;
@@ -12701,7 +14261,12 @@ begin
 {$ENDIF}
     btSet: Result := b.RealSize <= PointerSize;
 {$IFNDEF DELPHI}
-    btStaticArray: Result := b.RealSize <= PointerSize;
+    { Free Pascal i386 returns every static array through the hidden result
+      pointer, and on Windows a record of 1, 2 or 4 bytes with no managed
+      field in EAX }
+{$IFDEF MSWINDOWS}
+    btRecord: Result := (b.RealSize in [1, 2, 4]) and not IsManagedType(b);
+{$ENDIF}
 {$ENDIF}
   else
     Result := false;
@@ -12743,10 +14308,11 @@ begin
       by-reference boundary: 3 (by reference) rounds to 4 (by value), while
       the rounding of 5-7 to 8 does not (all by reference) }
     btSet: Result := b.RealSize in [1, 2, 3, 4{$IFDEF CPU64}{$IFNDEF DELPHI_RIO_UP}, 5, 6, 7, 8{$ENDIF}{$ENDIF}];
-    btRecord, btStaticArray: Result := b.RealSize in [1, 2, 4{$IFDEF CPU64}{$IFNDEF DELPHI_RIO_UP}, 5, 6, 7, 8{$ENDIF}{$ENDIF}];
+    btRecord, btStaticArray: Result := b.RealSize in [1, 2, 4{$IFDEF CPU64}{$IFNDEF DELPHI_RIO_UP}, 8{$ENDIF}{$ENDIF}];
 {$ELSE}
+    { Free Pascal i386 passes a set of up to 4 bytes in a register, and a
+      value static array of up to 4 bytes on the stack }
     btSet: Result := b.RealSize <= PointerSize;
-    btStaticArray: Result := b.RealSize <= PointerSize;
 {$ENDIF}
 {$IFDEF CPU64}
     btSingle,
@@ -12783,6 +14349,10 @@ var
   s,e: tbtString;
   FStack: pointer;
   ex: TPSExceptionHandler;
+  lPosition, lStackBase, lRaised: Cardinal;
+  lNative, lResultDest: Pointer;
+  lWriteBacks: array of Pointer;
+  lCopied: Boolean;
 begin
   {$IFDEF LOG}
   __Log('RDX=$'+ IntToHex(IPointer(_RDX)));
@@ -12793,6 +14363,13 @@ begin
   __Log('XMM2=$'+ FloatToStr(Double(_XMM2)));
   __Log('XMM3=$'+ FloatToStr(Double(_XMM3)));
   {$ENDIF}
+  { a method kept by native code after its script ended }
+  if not Assigned(Self^.Se) then
+    raise Exception.Create(RPS_EndedScriptMethod);
+  { a host routine's declaration in the script holds the modes of its parameters, not their types: its
+    arguments cannot be read }
+  if TObject(Self^.Se.FProcs[Self^.ProcNo]) is TPSExternalProcRec then
+    raise Exception.Create(RPS_HostRoutineAsMethod);
   Decl := TPSInternalProcRec(Self^.Se.FProcs[Self^.ProcNo]).ExportDecl;
 
   FStack := Stack;
@@ -12804,8 +14381,11 @@ begin
     grfw(s);
   end;
   c := Params.Count;
+  SetLength(lWriteBacks, c);
+  lResultDest := nil;
   regno := 0;
   Result := 0;
+  lCopied := True;
 
   s := decl;
   e := grfw(s);
@@ -12813,10 +14393,17 @@ begin
   if e <> '-1' then begin
     cpt := Self.Se.GetTypeNo(StrToInt(e));
     if not ResultAsRegister(cpt) then begin
-      Res := CreateHeapVariant(Self.Se.FindType2(btPointer));
-      PPSVariantPointer(Res).DestType := cpt;
+      lResultDest := Pointer(_RDX);
+      if cpt.BaseType = btProcPtr then
+        { the caller's result is a method: the script's procedural value is
+          made apart and stored as a method after the call }
+        Res := CreateHeapVariant(cpt)
+      else begin
+        Res := CreateHeapVariant(Self.Se.FindType2(btPointer));
+        PPSVariantPointer(Res).DestType := cpt;
+        PPSVariantPointer(Res).DataDest := lResultDest;
+      end;
       Params.Add(Res);
-      PPSVariantPointer(Res).DataDest := Pointer(_RDX);
       inc(regno);
     end
     else begin
@@ -12837,25 +14424,28 @@ begin
     fmod := e[1];
     delete(e, 1, 1);
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if ParamAsVariable(fmod, cpt) and (RegNo < 3) then
+    if (cpt.BaseType = btProcPtr) and (RegNo < 3) then
     begin
-      tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
-      PPSVariantPointer(tmp).DestType := cpt;
-      Params[i] := tmp;
+      { a method is passed by reference, by value or not }
       case regno of
-        0: begin
-            PPSVariantPointer(tmp).DataDest := Pointer(_RDX);
-            inc(regno);
-          end;
-        1: begin
-            PPSVariantPointer(tmp).DataDest := Pointer(_R8);
-            inc(regno);
-          end;
-        2: begin
-            PPSVariantPointer(tmp).DataDest := Pointer(_R9);
-            inc(regno);
-          end;
+        0: lNative := _RDX;
+        1: lNative := _R8;
+      else
+        lNative := _R9;
       end;
+      inc(regno);
+      Params[i] := MethodParameter(Self.Se, fmod, cpt, lNative, Params, lWriteBacks, i);
+    end
+    else if ParamAsVariable(fmod, cpt) and (RegNo < 3) then
+    begin
+      case regno of
+        0: lNative := Pointer(_RDX);
+        1: lNative := Pointer(_R8);
+      else
+        lNative := Pointer(_R9);
+      end;
+      inc(regno);
+      Params[i] := NativeReferenceParameter(Self.Se, fmod, cpt, lNative, lCopied);
     end
     else if SupportsRegister(cpt) and (RegNo < 3) then
     begin
@@ -12866,21 +14456,21 @@ begin
             if cpt.BaseType in [btSingle, btDouble, btExtended] then
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM1, 1, cpt)
             else
-              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_RDX, 1, cpt);
+              CopyNativeParameter(@PPSVariantData(tmp)^.Data, @_RDX, cpt, lCopied);
             inc(regno);
           end;
         1: begin
             if cpt.BaseType in [btSingle, btDouble, btExtended] then
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM2, 1, cpt)
             else
-              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R8, 1, cpt);
+              CopyNativeParameter(@PPSVariantData(tmp)^.Data, @_R8, cpt, lCopied);
             inc(regno);
           end;
         2: begin
             if cpt.BaseType in [btSingle, btDouble, btExtended] then
               CopyArrayContents(@PPSVariantData(tmp)^.Data, @_XMM3, 1, cpt)
             else
-              CopyArrayContents(@PPSVariantData(tmp)^.Data, @_R9, 1, cpt);
+              CopyNativeParameter(@PPSVariantData(tmp)^.Data, @_R9, cpt, lCopied);
             inc(regno);
           end;
       end;
@@ -12895,20 +14485,21 @@ begin
     delete(e, 1, 1);
     if Params[i] <> nil then Continue;
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if ParamAsVariable(fmod, cpt) then begin
-      tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
-      PPSVariantPointer(tmp).DestType := cpt;
-      Params[i] := tmp;
-      PPSVariantPointer(tmp).DataDest := Pointer(FStack^);
+    if cpt.BaseType = btProcPtr then
+      Params[i] := MethodParameter(Self.Se, fmod, cpt, Pointer(FStack^), Params, lWriteBacks, i)
+    else if ParamAsVariable(fmod, cpt) then begin
+      Params[i] := NativeReferenceParameter(Self.Se, fmod, cpt, Pointer(FStack^), lCopied);
     end
     else begin
       tmp := CreateHeapVariant(cpt);
       Params[i] := tmp;
-      CopyArrayContents(@PPSVariantData(tmp)^.Data, Pointer(FStack), 1, cpt);
+      CopyNativeParameter(@PPSVariantData(tmp)^.Data, Pointer(FStack), cpt, lCopied);
     end;
     FStack := Pointer(IPointer(FStack) + PointerSize);
     Inc(Result, PointerSize);
   end;
+  if not lCopied then
+    RefuseNativeParameters(Params);
   ex := TPSExceptionHandler.Create;
   ex.FinallyOffset := InvalidVal;
   ex.ExceptOffset := InvalidVal;
@@ -12918,12 +14509,22 @@ begin
   ex.BasePtr := Self.Se.FCurrStackBase;
   Ex.StackSize := Self.Se.FStack.Count;
   i :=  Self.Se.FExceptionStack.Add(ex);
+  { where the interpreter stands while the native code runs the script }
+  lPosition := Self.Se.FCurrentPosition;
+  lStackBase := Self.Se.FCurrStackBase;
+  lRaised := Self.Se.FRaisedCount;
   Self.Se.RunProc(Params, Self.ProcNo);
   if Self.Se.FExceptionStack[i] = ex then begin
     Self.Se.FExceptionStack.Remove(ex);
     ex.Free;
+  end else begin
+    { the script's exception ended the call at this frame, below the return
+      address: the interpreter is back where the native code called it }
+    Self.Se.FCurrentPosition := lPosition;
+    Self.Se.FCurrStackBase := lStackBase;
   end;
 
+  StoreMethodParameters(Self.Se, Params, lWriteBacks);
   if (Res <> nil) then begin
     Params.DeleteLast;
     if (ResultAsRegister(Res.FType)) then begin
@@ -12946,8 +14547,10 @@ begin
       end;
 {$ENDIF}
     end{$IFDEF DELPHI} else begin
+      if (Res^.FType.BaseType = btProcPtr) and (Self.Se.ExEx = erNoError) then
+        TMethod(lResultDest^) := ProcPtrToMethod(Self.Se, @PPSVariantData(Res)^.Data);
       { The Win64 ABI requires returning the hidden result pointer in RAX }
-      PPointer(ResPtr)^ := PPSVariantPointer(Res).DataDest;
+      PPointer(ResPtr)^ := lResultDest;
     end{$ENDIF};
     DestroyHeapVariant(res);
   end;
@@ -12955,17 +14558,39 @@ begin
     DestroyHeapVariant(Params[i]);
   Params.Free;
   if Self.Se.ExEx <> erNoError then begin
+    { the exception goes to the native code, which may handle it and go on:
+      the executor holds it no longer, and counts it again only if the
+      native code lets it come back }
     if Self.Se.ExObject <> nil then begin
       FStack := Self.Se.ExObject;
       Self.Se.ExObject := nil;
-      raise TObject(FStack);
     end
     else
-      raise EPSException.Create(PSErrorToString(Self.SE.ExceptionCode, Self.Se.ExceptionString), Self.Se, Self.Se.ExProc, Self.Se.ExPos);
+      FStack := EPSException.Create(PSErrorToString(Self.SE.ExceptionCode, Self.Se.ExceptionString), Self.Se, Self.Se.ExProc, Self.Se.ExPos);
+    Self.Se.ExceptionProc(InvalidVal, InvalidVal, erNoError, '', nil);
+    Self.Se.FRaisedCount := lRaised;
+    raise TObject(FStack);
   end;
 end;
 {$ELSE}
-function MyAllMethodsHandler32(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer{$IFDEF DELPHI}; ResPtr: Pointer{$ENDIF}): Integer;
+type
+  { a real result of a script routine that native code called through a method
+    pointer, as the script held it: MyAllMethodsHandler32 puts it on the x87
+    stack.  No field precedes the variants, so each starts at the record's
+    first byte }
+  TPSMethodRealResult = record
+    case Byte of
+      0: (VSingle: tbtSingle);
+      1: (VDouble: tbtDouble);
+      2: (VExtended: tbtExtended);
+      3: (VCurrency: tbtCurrency);
+  end;
+
+{ MyAllMethodsHandler32's work but for putting a real result on the x87 stack:
+  a call that returns one sets aKind to its type -- btSingle, btDouble,
+  btExtended or btCurrency -- and aResult to its bytes }
+function _MethodsHandler32Call(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer{$IF defined(DELPHI) or (defined(FPC) and defined(CPUI386))}; ResPtr: Pointer{$IFEND};
+  var aKind: TPSBaseType; var aResult: TPSMethodRealResult): Integer;
 var
   Decl: tbtString;
   I, C, regno: Integer;
@@ -12976,9 +14601,20 @@ var
   s,e: tbtString;
   FStack: pointer;
   ex: TPSExceptionHandler;
+  lPosition, lStackBase, lRaised: Cardinal;
+  lNative, lResultDest: Pointer;
+  lWriteBacks: array of Pointer;
+  lCopied: Boolean;
 
 
 begin
+  { a method kept by native code after its script ended }
+  if not Assigned(Self^.Se) then
+    raise Exception.Create(RPS_EndedScriptMethod);
+  { a host routine's declaration in the script holds the modes of its parameters, not their types: its
+    arguments cannot be read }
+  if TObject(Self^.Se.FProcs[Self^.ProcNo]) is TPSExternalProcRec then
+    raise Exception.Create(RPS_HostRoutineAsMethod);
   Decl := TPSInternalProcRec(Self^.Se.FProcs[Self^.ProcNo]).ExportDecl;
 
   FStack := Stack;
@@ -12991,8 +14627,11 @@ begin
     grfw(s);
   end;
   c := Params.Count;
+  SetLength(lWriteBacks, c);
+  lResultDest := nil;
   regno := 0;
   Result := 0;
+  lCopied := True;
   s := decl;
   grfw(s);
   for i := c-1 downto 0 do
@@ -13001,21 +14640,23 @@ begin
     fmod := e[1];
     delete(e, 1, 1);
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if ParamAsVariable(fmod, cpt) and (RegNo < 2) then
+    if (cpt.BaseType = btProcPtr) and (RegNo < 2) and MethodByReference(fmod) then
     begin
-      tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
-      PPSVariantPointer(tmp).DestType := cpt;
-      Params[i] := tmp;
-      case regno of
-        0: begin
-            PPSVariantPointer(tmp).DataDest := Pointer(_EDX);
-            inc(regno);
-          end;
-        1: begin
-            PPSVariantPointer(tmp).DataDest := Pointer(_ECX);
-            inc(regno);
-          end;
-      end;
+      if regno = 0 then
+        lNative := _EDX
+      else
+        lNative := _ECX;
+      inc(regno);
+      Params[i] := MethodParameter(Self.Se, fmod, cpt, lNative, Params, lWriteBacks, i);
+    end
+    else if ParamAsVariable(fmod, cpt) and (RegNo < 2) then
+    begin
+      if regno = 0 then
+        lNative := Pointer(_EDX)
+      else
+        lNative := Pointer(_ECX);
+      inc(regno);
+      Params[i] := NativeReferenceParameter(Self.Se, fmod, cpt, lNative, lCopied);
     end
     else if SupportsRegister(cpt) and (RegNo < 2) then
     begin
@@ -13023,11 +14664,11 @@ begin
       Params[i] := tmp;
       case regno of
         0: begin
-            CopyArrayContents(@PPSVariantData(tmp)^.Data, @_EDX, 1, cpt);
+            CopyNativeParameter(@PPSVariantData(tmp)^.Data, @_EDX, cpt, lCopied);
             inc(regno);
           end;
         1: begin
-            CopyArrayContents(@PPSVariantData(tmp)^.Data, @_ECX, 1, cpt);
+            CopyNativeParameter(@PPSVariantData(tmp)^.Data, @_ECX, cpt, lCopied);
             inc(regno);
           end;
       end;
@@ -13041,17 +14682,25 @@ begin
     cpt := Self.Se.GetTypeNo(StrToInt(e));
     if not ResultAsRegister(cpt) then
     begin
-      Res := CreateHeapVariant(Self.Se.FindType2(btPointer));
-      PPSVariantPointer(Res).DestType := cpt;
-      Params.Add(Res);
       case regno of
-        0: PPSVariantPointer(Res).DataDest := Pointer(_EDX);
-        1: PPSVariantPointer(Res).DataDest := Pointer(_ECX);
+        0: lResultDest := Pointer(_EDX);
+        1: lResultDest := Pointer(_ECX);
       else
-        PPSVariantPointer(Res).DataDest := Pointer(FStack^);
+        lResultDest := Pointer(FStack^);
         Inc(Result, PointerSize);
         FStack := Pointer(IPointer(FStack) + PointerSize);
       end;
+      if cpt.BaseType = btProcPtr then
+        { the caller's result is a method: the script's procedural value is
+          made apart and stored as a method after the call }
+        Res := CreateHeapVariant(cpt)
+      else
+      begin
+        Res := CreateHeapVariant(Self.Se.FindType2(btPointer));
+        PPSVariantPointer(Res).DestType := cpt;
+        PPSVariantPointer(Res).DataDest := lResultDest;
+      end;
+      Params.Add(Res);
     end else
     begin
       Res := CreateHeapVariant(cpt);
@@ -13067,12 +14716,24 @@ begin
     delete(e, 1, 1);
     if Params[i] <> nil then Continue;
     cpt := Self.Se.GetTypeNo(StrToInt(e));
-    if ParamAsVariable(fmod, cpt) then
+    if cpt.BaseType = btProcPtr then
     begin
-      tmp := CreateHeapVariant(self.Se.FindType2(btPointer));
-      PPSVariantPointer(tmp).DestType := cpt;
-      Params[i] := tmp;
-      PPSVariantPointer(tmp).DataDest := Pointer(FStack^);
+      if MethodByReference(fmod) then
+      begin
+        Params[i] := MethodParameter(Self.Se, fmod, cpt, Pointer(FStack^), Params, lWriteBacks, i);
+        FStack := Pointer(IPointer(FStack) + PointerSize);
+        Inc(Result, PointerSize);
+      end else
+      begin
+        { the method's two slots, on the stack }
+        Params[i] := MethodParameter(Self.Se, fmod, cpt, FStack, Params, lWriteBacks, i);
+        FStack := Pointer(IPointer(FStack) + SizeOf(TMethod));
+        Inc(Result, SizeOf(TMethod));
+      end;
+    end
+    else if ParamAsVariable(fmod, cpt) then
+    begin
+      Params[i] := NativeReferenceParameter(Self.Se, fmod, cpt, Pointer(FStack^), lCopied);
       FStack := Pointer(IPointer(FStack) + PointerSize);
       Inc(Result, PointerSize);
     end
@@ -13087,11 +14748,13 @@ begin
     begin
       tmp := CreateHeapVariant(cpt);
       Params[i] := tmp;
-      CopyArrayContents(@PPSVariantData(tmp)^.Data, Pointer(FStack), 1, cpt);
+      CopyNativeParameter(@PPSVariantData(tmp)^.Data, Pointer(FStack), cpt, lCopied);
       FStack := Pointer((IPointer(FStack) + cpt.RealSize + 3) and not 3);
       Inc(Result, (cpt.RealSize + 3) and not 3);
     end;
   end;
+  if not lCopied then
+    RefuseNativeParameters(Params);
   ex := TPSExceptionHandler.Create;
   ex.FinallyOffset := InvalidVal;
   ex.ExceptOffset := InvalidVal;
@@ -13101,13 +14764,24 @@ begin
   ex.BasePtr := Self.Se.FCurrStackBase;
   Ex.StackSize := Self.Se.FStack.Count;
   i :=  Self.Se.FExceptionStack.Add(ex);
+  { where the interpreter stands while the native code runs the script }
+  lPosition := Self.Se.FCurrentPosition;
+  lStackBase := Self.Se.FCurrStackBase;
+  lRaised := Self.Se.FRaisedCount;
   Self.Se.RunProc(Params, Self.ProcNo);
   if Self.Se.FExceptionStack[i] = ex then
   begin
     Self.Se.FExceptionStack.Remove(ex);
     ex.Free;
+  end else
+  begin
+    { the script's exception ended the call at this frame, below the return
+      address: the interpreter is back where the native code called it }
+    Self.Se.FCurrentPosition := lPosition;
+    Self.Se.FCurrStackBase := lStackBase;
   end;
 
+  StoreMethodParameters(Self.Se, Params, lWriteBacks);
   if (Res <> nil) then
   begin
     Params.DeleteLast;
@@ -13116,27 +14790,28 @@ begin
       if (res^.FType.BaseType = btSingle) or (res^.FType.BaseType = btDouble) or
       (res^.FType.BaseType = btCurrency) or (res^.Ftype.BaseType = btExtended) then
       begin
-        case Res^.FType.BaseType of
-          btSingle: PutOnFPUStackExtended(PPSVariantSingle(res).Data);
-          btDouble: PutOnFPUStackExtended(PPSVariantDouble(res).Data);
-          btExtended: PutOnFPUStackExtended(PPSVariantExtended(res).Data);
-          { Currency is returned on the FPU stack as its scaled integer backing (FILD), not its logical value }
-          btCurrency: PutOnFPUStackCurrency(PPSVariantCurrency(res).Data);
-        end;
+        { kept for MyAllMethodsHandler32, which puts it on the x87 stack once
+          this routine has returned, after every release here.  As its bytes:
+          a failed call raises below and its result goes nowhere, so nothing
+          may load what the script left there -- a signalling NaN would raise
+          in place of the script's exception }
+        aKind := Res^.FType.BaseType;
+        Move(PPSVariantData(Res)^.Data, aResult, Res^.FType.RealSize);
         DestroyHeapVariant(Res);
         Res := nil;
       end else
       begin
-{$IFDEF DELPHI}
+{$IF defined(DELPHI) or (defined(FPC) and defined(CPUI386))}
         CopyArrayContents(ResPtr, @PPSVariantData(res)^.Data, 1, Res^.FType);
 {$ELSE}
 {$IFNDEF PS_NOINT64}
   if (res^.FType.BaseType <> btS64) and (res^.FType.BaseType <> btU64) then
 {$ENDIF}
           CopyArrayContents(Pointer(IPointer(Stack)-PointerSize2), @PPSVariantData(res)^.Data, 1, Res^.FType);
-{$ENDIF}
+{$IFEND}
       end;
-    end;
+    end else if (Res^.FType.BaseType = btProcPtr) and (Self.Se.ExEx = erNoError) then
+      TMethod(lResultDest^) := ProcPtrToMethod(Self.Se, @PPSVariantData(Res)^.Data);
     DestroyHeapVariant(res);
   end;
   for i := 0 to Params.Count -1 do
@@ -13144,13 +14819,39 @@ begin
   Params.Free;
   if Self.Se.ExEx <> erNoError then
   begin
+    { the exception goes to the native code, which may handle it and go on:
+      the executor holds it no longer, and counts it again only if the
+      native code lets it come back }
     if Self.Se.ExObject <> nil then
     begin
       FStack := Self.Se.ExObject;
       Self.Se.ExObject := nil;
-      raise TObject(FStack);
     end else
-      raise EPSException.Create(PSErrorToString(Self.SE.ExceptionCode, Self.Se.ExceptionString), Self.Se, Self.Se.ExProc, Self.Se.ExPos);
+      FStack := EPSException.Create(PSErrorToString(Self.SE.ExceptionCode, Self.Se.ExceptionString), Self.Se, Self.Se.ExProc, Self.Se.ExPos);
+    Self.Se.ExceptionProc(InvalidVal, InvalidVal, erNoError, '', nil);
+    Self.Se.FRaisedCount := lRaised;
+    raise TObject(FStack);
+  end;
+end;
+
+{ Native code calling a script routine through a method pointer, from the stub
+  MyAllMethodsHandler.  A real result goes on the x87 stack as the last act:
+  this routine holds nothing to release after it, so code a release reaches --
+  a memory manager -- does not meet the result on the x87 stack }
+function MyAllMethodsHandler32(Self: PScriptMethodInfo; const Stack: PPointer; _EDX, _ECX: Pointer{$IF defined(DELPHI) or (defined(FPC) and defined(CPUI386))}; ResPtr: Pointer{$IFEND}): Integer;
+var
+  lKind: TPSBaseType;
+  lResult: TPSMethodRealResult;
+begin
+  { btReturnAddress, the type of no result: none to put there }
+  lKind := btReturnAddress;
+  Result := _MethodsHandler32Call(Self, Stack, _EDX, _ECX{$IF defined(DELPHI) or (defined(FPC) and defined(CPUI386))}, ResPtr{$IFEND}, lKind, lResult);
+  { Currency is returned on the FPU stack as its scaled integer backing (FILD), not its logical value }
+  case lKind of
+    btSingle: PutOnFPUStackExtended(lResult.VSingle);
+    btDouble: PutOnFPUStackExtended(lResult.VDouble);
+    btExtended: PutOnFPUStackExtended(lResult.VExtended);
+    btCurrency: PutOnFPUStackCurrency(lResult.VCurrency);
   end;
 end;
 {$ENDIF CPU64}
@@ -13408,6 +15109,29 @@ end;
 const
   MemDelta = 4096;
 
+type
+  PPSStackChunk = ^TPSStackChunk;
+  TPSStackChunk = record
+    Data: Pointer;
+    Capacity: Longint;
+    Length: Longint; { the length in use when the next chunk was begun }
+  end;
+
+{ The chunks from aFrom on, freed }
+procedure _FreeStackChunks(var aChunks: array of Pointer; var aCount: Longint; aFrom: Longint);
+var
+  lChunk: PPSStackChunk;
+begin
+  while aCount > aFrom do
+  begin
+    Dec(aCount);
+    lChunk := aChunks[aCount];
+    aChunks[aCount] := nil;
+    FreeMem(lChunk.Data);
+    Dispose(lChunk);
+  end;
+end;
+
 { TPSStack }
 
 procedure TPSStack.AdjustLength;
@@ -13455,7 +15179,11 @@ begin
     if TPSTypeRec(v^).BaseType in NeedFinalization then
     FinalizeVariant(Pointer(IPointer(v)+PointerSize), Pointer(v^));
   end;
-  FreeMem(FDataPtr, FCapacity);
+  if FChunked then
+    _FreeStackChunks(FChunks, FChunkCount, 0)
+  else
+    FreeMem(FDataPtr, FCapacity);
+  _FreeStackChunks(FRetired, FRetiredCount, 0);
   inherited Destroy;
 end;
 
@@ -13605,30 +15333,73 @@ begin
   c := count -1;
   p1 := Data[c];
   DeleteLast;
-  FLength := IPointer(p1) - IPointer(FDataPtr);
-  if TPSTypeRec(p1^).BaseType in NeedFinalization then
-    FinalizeVariant(Pointer(IPointer(p1)+PointerSize), Pointer(p1^));
+  { finalized while its storage is still the stack's: what the finalization
+    runs (a native destructor running a script event) pushes above it }
+  try
+    if TPSTypeRec(p1^).BaseType in NeedFinalization then
+      FinalizeVariant(Pointer(IPointer(p1)+PointerSize), Pointer(p1^));
+  finally
+    if FChunked and (p1 = FDataPtr) and (FChunkIdx > 0) then
+    begin
+      { the chunk's first value: the stack goes on in the chunk before it, where
+        it stood when this one was begun }
+      Dec(FChunkIdx);
+      FDataPtr := PPSStackChunk(FChunks[FChunkIdx]).Data;
+      FCapacity := PPSStackChunk(FChunks[FChunkIdx]).Capacity;
+      FLength := PPSStackChunk(FChunks[FChunkIdx]).Length;
+    end
+    else
+      FLength := IPointer(p1) - IPointer(FDataPtr);
+  end;
 end;
 
 function TPSStack.Push(TotalSize: Longint): PPSVariant;
 var
   o: Cardinal;
   p: Pointer;
+  lSize: Longint;
 begin
+  { the stack's length and capacity are Longints: a size that would carry them past it allocated nothing,
+    and the value was then initialised past the stack }
+  if (TotalSize < 0) or (Int64(FLength) + TotalSize > High(Longint) - 3 * MemDelta) then
+    raise Exception.Create(RPS_OutOfMemory);
+  { the value's slot in the list first: when the list cannot grow, nothing has
+    changed, and when the data cannot, the slot is given back }
+  Add(nil);
   o := FLength;
-  FLength := (FLength + TotalSize);
-  //if FLength mod PointerSize <> 0 then
-  if FLength mod Longint(PointerSize) <> 0 then
-    //FLength := FLength + (PointerSize - (FLength mod PointerSize));
-    FLength := FLength + (Longint(PointerSize) - Longint((FLength mod Longint(PointerSize))));
-  if FLength > FCapacity then AdjustLength;
+  try
+    FLength := (FLength + TotalSize);
+    if FLength mod Longint(PointerSize) <> 0 then
+      FLength := FLength + (Longint(PointerSize) - Longint((FLength mod Longint(PointerSize))));
+    if FLength > FCapacity then
+    begin
+      if FChunked then
+      begin
+        { the value goes at the start of the next chunk: the data on the stack
+          does not move }
+        lSize := FLength - Longint(o);
+        FLength := Longint(o);
+        NextChunk(lSize);
+        o := 0;
+        FLength := lSize;
+      end
+      else
+        AdjustLength;
+    end;
+  except
+    FLength := Longint(o);
+    DeleteLast;
+    raise;
+  end;
   p := Pointer(IPointer(FDataPtr) + IPointer(o));
-  Add(p);
+  Data^[Count - 1] := p;
   Result := P;
 end;
 
 function TPSStack.PushType(aType: TPSTypeRec): PPSVariant;
 begin
+  if Int64(aType.RealSize) + SizeOf(Pointer) > High(Longint) then
+    raise Exception.Create(RPS_OutOfMemory);
   Result := Push(aType.RealSize + Sizeof(Pointer));
   Result.FType := aType;
   InitializeVariant(Pointer(IPointer(Result)+PointerSize), aType);
@@ -13658,6 +15429,33 @@ var
   I: Longint;
 begin
   if Value < FLength then raise Exception.Create(RPS_CapacityLength);
+  if FChunked then
+  begin
+    { the chunks hold the data, and Push adds them: clearing the stack releases
+      them -- kept while a native call runs, which may still write where its
+      arguments were }
+    if Value = 0 then
+    begin
+      if FNativeCalls > 0 then
+      begin
+        if FRetiredCount + FChunkCount > High(FRetired) + 1 then
+          SetLength(FRetired, FRetiredCount + FChunkCount);
+        for I := 0 to FChunkCount - 1 do
+        begin
+          FRetired[FRetiredCount] := FChunks[I];
+          Inc(FRetiredCount);
+          FChunks[I] := nil;
+        end;
+        FChunkCount := 0;
+      end
+      else
+        _FreeStackChunks(FChunks, FChunkCount, 0);
+      FChunkIdx := -1;
+      FDataPtr := nil;
+      FCapacity := 0;
+    end;
+    Exit;
+  end;
   if Value = 0 then
   begin
     if FDataPtr <> nil then
@@ -13679,10 +15477,13 @@ begin
     OOFS := IPointer(P) - IPointer(FDataPtr);
 
     for i := Count -1 downto 0 do begin
+      { the slot a push has taken holds nil until its value's address is known }
+      if Data[i] = nil then
+        Continue;
       Data[i] := Pointer(IPointer(Data[i]) + OOFS);
       if Items[i].FType.FBaseType = btPointer then begin // check if pointer points to moved stack data
         if (IPointer(PPSVariantPointer(Data[i]).DataDest) >= IPointer(FDataPtr)) and
-           (IPointer(PPSVariantPointer(Data[i]).DataDest) <  IPointer(FDataPtr)+IPointer(FLength)) then
+           (IPointer(PPSVariantPointer(Data[i]).DataDest) <  IPointer(FDataPtr)+IPointer(FCapacity)) then
           PPSVariantPointer(Data[i]).DataDest := Pointer(IPointer(PPSVariantPointer(Data[i]).DataDest) + OOFS);
       end;
     end;
@@ -13691,6 +15492,85 @@ begin
   end;
   FDataPtr := p;
   FCapacity := Value;
+end;
+
+procedure TPSStack.UseChunks;
+var
+  lChunk: PPSStackChunk;
+begin
+  if FChunked then
+    Exit;
+  SetLength(FChunks, 4);
+  FChunkCount := 0;
+  FChunkIdx := -1;
+  if FDataPtr <> nil then
+  begin
+    New(lChunk);
+    lChunk.Data := FDataPtr;
+    lChunk.Capacity := FCapacity;
+    lChunk.Length := 0;
+    FChunks[0] := lChunk;
+    FChunkCount := 1;
+    FChunkIdx := 0;
+  end;
+  { last: until here the block is still the stack's own, and Destroy frees it }
+  FChunked := True;
+end;
+
+{ A value of aSize bytes does not fit in the chunk in use: it goes at the start
+  of the next one -- a spare one kept from before when it is large enough -- and
+  the values already on the stack stay where they are }
+procedure TPSStack.NextChunk(aSize: Longint);
+var
+  lChunk: PPSStackChunk;
+  lCapacity: Longint;
+begin
+  if (FChunkIdx + 1 < FChunkCount) and
+    (PPSStackChunk(FChunks[FChunkIdx + 1]).Capacity < aSize) then
+    _FreeStackChunks(FChunks, FChunkCount, FChunkIdx + 1);
+  if FChunkIdx + 1 >= FChunkCount then
+  begin
+    if FChunkCount = 0 then
+      lCapacity := MemDelta
+    else if PPSStackChunk(FChunks[FChunkCount - 1]).Capacity > 128 * MemDelta then
+      lCapacity := 256 * MemDelta
+    else
+      lCapacity := 2 * PPSStackChunk(FChunks[FChunkCount - 1]).Capacity;
+    if lCapacity < aSize then
+      lCapacity := ((aSize + MemDelta - 1) div MemDelta) * MemDelta;
+    if FChunkCount > High(FChunks) then
+      SetLength(FChunks, 2 * FChunkCount + 4);
+    New(lChunk);
+    try
+      GetMem(lChunk.Data, lCapacity);
+    except
+      Dispose(lChunk);
+      raise;
+    end;
+    lChunk.Capacity := lCapacity;
+    lChunk.Length := 0;
+    FChunks[FChunkCount] := lChunk;
+    Inc(FChunkCount);
+  end;
+  if FChunkIdx >= 0 then
+    PPSStackChunk(FChunks[FChunkIdx]).Length := FLength;
+  Inc(FChunkIdx);
+  lChunk := FChunks[FChunkIdx];
+  FDataPtr := lChunk.Data;
+  FCapacity := lChunk.Capacity;
+  Assert(aSize <= FCapacity);
+end;
+
+procedure TPSStack.NativeCallStarts;
+begin
+  Inc(FNativeCalls);
+end;
+
+procedure TPSStack.NativeCallEnds;
+begin
+  Dec(FNativeCalls);
+  if FNativeCalls = 0 then
+    _FreeStackChunks(FRetired, FRetiredCount, 0);
 end;
 
 procedure TPSStack.SetClass(ItemNo: Longint; const Data: TObject);
@@ -13861,7 +15741,9 @@ var
 const
   LOCALE_SYSTEM_DEFAULT = 2 shl 10; // Delphi 2 doesn't define this
 
-function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
+{ the work of IDispatchInvoke, into aResult, which it is handed empty }
+procedure _IDispatchInvokeInto(const Self: IDispatch; PropertySet: Boolean; const Name: tbtString;
+  const Par: array of Variant; var aResult: Variant);
 var
   Param: Word;
   i, ArgErr: Longint;
@@ -13894,6 +15776,8 @@ begin
 
   if PropertySet then
   begin
+    if High(Par) < 0 then
+      raise Exception.Create(RPS_InvalidParameter);
     Param := DISPATCH_PROPERTYPUT;
     DispParam.cNamedArgs := 1;
     DispParam.rgdispidNamedArgs := @DispPropertyPut;
@@ -13934,7 +15818,7 @@ begin
           PVariant(DispParam.rgvarg[i].pvarVal)^ := Par[High(Par)-i];
         end;
       end;
-      i :=Self.Invoke(DispatchId, GUID_NULL, LOCALE_SYSTEM_DEFAULT, Param, DispParam, @Result, @ExceptInfo, @ArgErr);
+      i :=Self.Invoke(DispatchId, GUID_NULL, LOCALE_SYSTEM_DEFAULT, Param, DispParam, @aResult, @ExceptInfo, @ArgErr);
       {$IFNDEF Delphi3UP}
       try
        if not Succeeded(i) then
@@ -13984,6 +15868,20 @@ begin
     for i := WSFreeList.Count -1 downto 0 do
       SysFreeString(WSFreeList[i]);
     WSFreeList.Free;
+  end;
+end;
+
+function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
+var
+  lResult: Variant;
+begin
+  try
+    _IDispatchInvokeInto(Self, PropertySet, Name, Par, lResult);
+  finally
+    { written only now, and on every road out -- a raise included, as Delphi's
+      late binding does: releasing what the destination holds can run a script
+      event, which can free the container it lies in }
+    MoveIntoVariant(@Result, lResult);
   end;
 end;
 {$ENDIF}

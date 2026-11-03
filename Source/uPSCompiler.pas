@@ -4053,6 +4053,19 @@ var
   Intf: TPSInterface;
 {$ENDIF}
 begin
+  { issue #246: accept Delphi's 'packed' before structured type declarations.
+    PascalScript records/arrays are always packed, so it only affects parsing }
+  if (FParser.CurrTokenID = CSTI_Identifier) and (FParser.GetToken = 'PACKED') then
+  begin
+    FParser.Next;
+    if not ((FParser.CurrTokenId = CSTII_Record) or (FParser.CurrTokenId = CSTII_Array) or
+      (FParser.CurrTokenId = CSTII_Set)) then
+    begin
+      MakeError('', ecIdentifierExpected, '');
+      Result := nil;
+      Exit;
+    end;
+  end;
   if (FParser.CurrTokenID = CSTII_Function) or (FParser.CurrTokenID = CSTII_Procedure) then
   begin
      Result := ReadTypeAddProcedure(Name, FParser);

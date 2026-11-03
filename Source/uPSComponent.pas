@@ -56,7 +56,7 @@ type
     FPlugin: TPSPlugin;
     procedure SetPlugin(const Value: TPSPlugin);
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: {$IFDEF FPC}AnsiString{$ELSE}string{$ENDIF}; override;
   public
     procedure Assign(Source: TPersistent); override; //Birb
   published
@@ -144,6 +144,7 @@ type
     function GetExecErrorRow: Cardinal;
     function GetExecErrorFileName: tbtstring;
     procedure SetDefines(const Value: TStrings);
+    procedure SetPlugins(const Value: TPSPlugins);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -184,7 +185,7 @@ type
 
     property SuppressLoadData: Boolean read FSuppressLoadData write FSuppressLoadData;
 
-    function LoadExec: Boolean;
+    function LoadExec: Boolean; virtual;
 
     procedure Stop; virtual;
 
@@ -200,7 +201,7 @@ type
 
     procedure GetCompiled(var data: tbtstring);
 
-    procedure SetCompiled(const Data: tbtstring);
+    procedure SetCompiled(const Data: tbtstring); virtual;
 
     property Comp: TPSPascalCompiler read FComp;
 
@@ -279,7 +280,7 @@ type
 
     property UseDebugInfo: Boolean read FUseDebugInfo write FUseDebugInfo default True;
 
-    property Plugins: TPSPlugins read FPlugins write FPlugins;
+    property Plugins: TPSPlugins read FPlugins write SetPlugins;
 
     property MainFileName: tbtstring read FMainFileName write SetMainFileName;
 
@@ -326,11 +327,13 @@ type
     FBreakPoints: TIFList;
     FOnLineInfo: TPSOnLineInfo;
     FLastRow: Cardinal;
+    FLastFile: tbtstring;
     FOnBreakpoint: TPSOnLineInfo;
     function GetBreakPoint(I: Integer): TPSBreakPointInfo;
     function GetBreakPointCount: Longint;
   protected
     procedure SetMainFileName(const Value: tbtstring); override;
+    procedure DoOnExecute(RunTimeImporter: TPSRuntimeClassImporter); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -556,7 +559,13 @@ var
   i: Longint;
   dta: tbtstring;
 begin
+  { a compiled script is loaded only while none of it runs }
+  if Running then raise Exception.Create(RPS_ScripEngineAlreadyRunning);
   FExec.Clear;
+  { a compilation that raises before the compiler runs -- a refused
+    preprocessing -- leaves no messages or output of the one before; after
+    the executor, whose values' release can reach the compiler's objects }
+  FComp.Clear;
   FExec.CMD_Err(erNoError);
   FExec.ClearspecialProcImports;
   FExec.ClearFunctionList;
@@ -657,6 +666,9 @@ end;
 
 destructor TPSScript.Destroy;
 begin
+  { the executor first: releasing the script's values can run a script event,
+    which needs the runtime class importer and the plugins }
+  FExec.Free;
   FDefines.Free;
 
   FPP.Free;
@@ -664,7 +676,6 @@ begin
   FPlugins.Free;
   FPlugins := nil;
   FScript.Free;
-  FExec.Free;
   FComp.Free;
   inherited Destroy;
 end;
@@ -672,8 +683,13 @@ end;
 function TPSScript.Execute: Boolean;
 begin
   if Running then raise Exception.Create(RPS_ScripEngineAlreadyRunning);
-  if SuppressLoadData then
-    LoadExec;
+  { a load that fails keeps its error: the run would clear it -- with
+    nothing compiled to load, a script SetCompiled loaded still runs }
+  if SuppressLoadData and not LoadExec and (FExec.Status = isNotLoaded) then
+  begin
+    Result := False;
+    Exit;
+  end;
 
   DoOnExecute (RI);
 
@@ -743,6 +759,8 @@ function TPSScript.LoadExec: Boolean;
 var
   s: tbtstring;
 begin
+  { a compiled script is loaded only while none of it runs }
+  if Running then raise Exception.Create(RPS_ScripEngineAlreadyRunning);
   if (not FComp.GetOutput(s)) or (not FExec.LoadData(s)) then
   begin
     Result := False;
@@ -800,7 +818,14 @@ procedure TPSScript.SetCompiled(const Data: tbtstring);
 var
   i: Integer;
 begin
+  { a compiled script is loaded only while none of it runs }
+  if Running then raise Exception.Create(RPS_ScripEngineAlreadyRunning);
   FExec.Clear;
+  { the code loaded here is the script now: a compilation's output, which
+    the load SuppressLoadData leaves to the run would put back over it,
+    goes -- after the executor, whose values' release can reach the
+    compiler's objects }
+  FComp.Clear;
   FExec.ClearspecialProcImports;
   FExec.ClearFunctionList;
   if ri <> nil then
@@ -846,7 +871,8 @@ end;
 
 procedure TPSScript.SetScript(const Value: TStrings);
 begin
-  FScript.Assign(Value);
+  if Value <> FScript then
+    FScript.Assign(Value);
 end;
 
 
@@ -894,7 +920,7 @@ function TPSScript.TranslatePositionPos(Proc, Position: Cardinal;
 var
   D1, D2: Cardinal;
 begin
-  Result := Exec.TranslatePositionEx(Exec.ExceptionProcNo, Exec.ExceptionPos, Pos, D1, D2, fn);
+  Result := Exec.TranslatePositionEx(Proc, Position, Pos, D1, D2, fn);
 end;
 
 function TPSScript.TranslatePositionRC(Proc, Position: Cardinal;
@@ -973,14 +999,26 @@ end;
 
 procedure TPSScript.SetDefines(const Value: TStrings);
 begin
-  FDefines.Assign(Value);
+  if Value <> FDefines then
+    FDefines.Assign(Value);
+end;
+
+procedure TPSScript.SetPlugins(const Value: TPSPlugins);
+begin
+  if Value <> FPlugins then
+    FPlugins.Assign(Value);
 end;
 
 function TPSScript.ExecuteFunction(const Params: array of Variant;
   const ProcName: tbtstring): Variant;
 begin
-  if SuppressLoadData then
-    LoadExec;
+  { while the script runs the call is into it: nothing is loaded under the
+    run }
+  if SuppressLoadData and not Running and not LoadExec and (FExec.Status = isNotLoaded) then
+    if FExec.ExceptionCode <> erNoError then
+      raise Exception.Create(string(ExecErrorToString))
+    else
+      raise Exception.Create(RPS_ScriptNotCompiled);
 
   DoOnExecute (RI);
 
@@ -1063,26 +1101,37 @@ begin
     if FOnFindUnknownFile(self, '', lName, lData) then begin
       lPrevAllowUnit := FComp.AllowUnit;
       FComp.AllowUnit := true;
-      if FUsePreProcessor then
-      begin
-        FPP.Defines.Assign(FDefines);
-        Fpp.MainFile := lData;
-        Fpp.MainFileName := lName;
-        Fpp.PreProcess(lName, lData);
-        Result := FComp.Compile(lData);
-        Fpp.AdjustMessages(FComp);
-      end else
-      begin
-        FComp.OnTranslateLineInfo := nil;
-        Result := FComp.Compile(lData);
+      try
+        if FUsePreProcessor then
+        begin
+          FPP.Defines.Assign(FDefines);
+          Fpp.MainFile := lData;
+          Fpp.MainFileName := lName;
+          { the unit's line information is kept under its name as the script
+            names it -- the module its messages and positions carry --
+            whatever file name the finder gave }
+          Fpp.PreProcess(lName, lData, Name);
+          Result := FComp.Compile(lData);
+          Fpp.AdjustMessages(FComp);
+        end else
+        begin
+          FComp.OnTranslateLineInfo := nil;
+          Result := FComp.Compile(lData);
+        end;
+      finally
+        FComp.AllowUnit := lPrevAllowUnit;
       end;
-      FComp.AllowUnit := lPrevAllowUnit;
     end else begin
+      { with script units the compiler reports the unit, where the script names it }
+      {$IFNDEF PS_USESSUPPORT}
       FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
+      {$ENDIF}
       Result := false;
     end;
   end else begin
+    {$IFNDEF PS_USESSUPPORT}
     FComp.MakeError(FComp.UnitName, ecUnknownIdentifier, lName);
+    {$ENDIF}
     result := false;
   end;
 end;
@@ -1180,8 +1229,11 @@ begin
     lFileName := FileName;
 
   if @dc.FOnLineInfo <> nil then dc.FOnLineInfo(dc, lFileName, Position, Row, Col);
-  if row = dc.FLastRow then exit;
+  { a handler that stopped the script: the row does not run }
+  if dc.Exec.Status <> isRunning then exit;
+  if (row = dc.FLastRow) and (lFileName = dc.FLastFile) then exit;
   dc.FLastRow := row;
+  dc.FLastFile := lFileName;
   h := MakeHash(lFileName);
   bi := nil;
   for i := DC.FBreakPoints.Count -1 downto 0 do
@@ -1196,7 +1248,9 @@ begin
   if bi <> nil then
   begin
     if @dc.FOnBreakpoint <> nil then dc.FOnBreakpoint(dc, lFileName, Position, Row, Col);
-    dc.Pause;
+    { a handler, or the host's OnLine before it, may have stopped the script }
+    if dc.Exec.Status = isRunning then
+      dc.Pause;
   end;
 end;
 
@@ -1250,12 +1304,23 @@ destructor TPSScriptDebugger.Destroy;
 var
   i: Longint;
 begin
+  { the script's values are released while the breakpoints still exist: a
+    script event a release runs passes the line hook, which reads them }
+  FExec.Clear;
   for i := FBreakPoints.Count -1 downto 0 do
   begin
     TPSBreakPointInfo(FBreakPoints[i]).Free;
   end;
   FBreakPoints.Free;
   inherited Destroy;
+end;
+
+procedure TPSScriptDebugger.DoOnExecute(RunTimeImporter: TPSRuntimeClassImporter);
+begin
+  { a new run: the row the previous run ended on is no repeat }
+  FLastRow := 0;
+  FLastFile := '';
+  inherited DoOnExecute(RunTimeImporter);
 end;
 
 function TPSScriptDebugger.GetBreakPoint(I: Integer): TPSBreakPointInfo;
@@ -1273,6 +1338,7 @@ var
   i: Longint;
   pv: PIFVariant;
   s1, s: tbtstring;
+  lFound: Boolean;
 begin
   s := Uppercase(Name);
   if pos('.', s) > 0 then
@@ -1284,26 +1350,36 @@ begin
     s := '';
   end;
   pv := nil;
-  for i := 0 to Exec.CurrentProcVars.Count -1 do
+  { a name of the current routine ends the search, even before its value is
+    on the stack }
+  lFound := False;
+  { no current routine without debug information or before a run's first
+    line }
+  if Exec.CurrentProcVars <> nil then
   begin
-    if Uppercase(Exec.CurrentProcVars[i]) =  s1 then
+    for i := 0 to Exec.CurrentProcVars.Count -1 do
     begin
-      pv := Exec.GetProcVar(i);
-      break;
+      if Uppercase(Exec.CurrentProcVars[i]) =  s1 then
+      begin
+        pv := Exec.GetProcVar(i);
+        lFound := True;
+        break;
+      end;
     end;
   end;
-  if pv = nil then
+  if not lFound and (Exec.CurrentProcParams <> nil) then
   begin
     for i := 0 to Exec.CurrentProcParams.Count -1 do
     begin
       if Uppercase(Exec.CurrentProcParams[i]) =  s1 then
       begin
         pv := Exec.GetProcParam(i);
+        lFound := True;
         break;
       end;
     end;
   end;
-  if pv = nil then
+  if not lFound then
   begin
     for i := 0 to Exec.GlobalVarNames.Count -1 do
     begin
@@ -1325,6 +1401,7 @@ var
   i: Longint;
   pv: PIFVariant;
   s1, s: tbtstring;
+  lFound: Boolean;
 begin
   s := Uppercase(Name);
   if pos('.', s) > 0 then
@@ -1336,6 +1413,9 @@ begin
     s := '';
   end;
   pv := nil;
+  { a name of the current routine ends the search, even before its value is
+    on the stack }
+  lFound := False;
   if Exec.CurrentProcVars <> nil then
   begin
     for i := 0 to Exec.CurrentProcVars.Count -1 do
@@ -1343,22 +1423,24 @@ begin
       if Uppercase(Exec.CurrentProcVars[i]) =  s1 then
       begin
         pv := Exec.GetProcVar(i);
+        lFound := True;
         break;
       end;
     end;
   end;
-  if (pv = nil) and (Exec.CurrentProcParams <> nil) then
+  if not lFound and (Exec.CurrentProcParams <> nil) then
   begin
     for i := 0 to Exec.CurrentProcParams.Count -1 do
     begin
       if Uppercase(Exec.CurrentProcParams[i]) =  s1 then
       begin
         pv := Exec.GetProcParam(i);
+        lFound := True;
         break;
       end;
     end;
   end;
-  if (pv = nil) and (Exec.GlobalVarNames <> nil) then
+  if not lFound and (Exec.GlobalVarNames <> nil) then
   begin
     for i := 0 to Exec.GlobalVarNames.Count -1 do
     begin
@@ -1369,7 +1451,9 @@ begin
       end;
     end;
   end;
-  if pv = nil then
+  { a dotted name has no address to give: a record's field has no name at
+    run time, and a property no storage of its own }
+  if (pv = nil) or (s <> '') then
     Result := nil
   else
     Result := NewTPSVariantIFC(pv, False).Dta;
@@ -1484,7 +1568,7 @@ begin
    inherited;
 end;
 
-function TPSPluginItem.GetDisplayName: string;
+function TPSPluginItem.GetDisplayName: {$IFDEF FPC}AnsiString{$ELSE}string{$ENDIF};
 begin
   if FPlugin <> nil then
     Result := string(FPlugin.Name)

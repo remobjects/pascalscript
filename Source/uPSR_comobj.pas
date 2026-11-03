@@ -22,6 +22,25 @@ implementation
    uses SysUtils, Ole2;
   {$ENDIF}
 {$ENDIF}
+{$IFDEF PS_FPC_HAS_COM}
+{ Free Pascal's StringToGUID, CreateOleObject and GetActiveOleObject take the RTL's
+  string, an AnsiString in the Unicode mode: called through these, so the script's
+  text converts rather than arriving as UTF-16 bytes. }
+function _PsStringToGUID(const S: string): TGUID;
+begin
+  Result := StringToGUID(S);
+end;
+
+function _PsCreateOleObject(const ClassName: string): IDispatch;
+begin
+  Result := CreateOleObject(ClassName);
+end;
+
+function _PsGetActiveOleObject(const ClassName: string): IDispatch;
+begin
+  Result := GetActiveOleObject(ClassName);
+end;
+{$ENDIF}
 {$IFNDEF DELPHI3UP}
 
 const
@@ -92,10 +111,10 @@ begin
 {$IFDEF FPC}
     {$IFDEF PS_FPC_HAS_COM}
     cl.RegisterDelphiFunction(@OleCheck, 'OleCheck', cdRegister);
-    cl.RegisterDelphiFunction(@StringToGUID, 'StringToGUID', cdRegister);
+    cl.RegisterDelphiFunction(@_PsStringToGUID, 'StringToGUID', cdRegister);
     cl.RegisterDelphiFunction(@CreateComObject, 'CreateComObject', cdRegister);
-    cl.RegisterDelphiFunction(@CreateOleObject, 'CreateOleObject', cdRegister);
-    cl.RegisterDelphiFunction(@GetActiveOleObject, 'GetActiveOleObject', cdRegister);
+    cl.RegisterDelphiFunction(@_PsCreateOleObject, 'CreateOleObject', cdRegister);
+    cl.RegisterDelphiFunction(@_PsGetActiveOleObject, 'GetActiveOleObject', cdRegister);
     {$ENDIF}
 {$ELSE}
   cl.RegisterDelphiFunction(@OleCheck, 'OleCheck', cdRegister);

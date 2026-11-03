@@ -42,7 +42,7 @@ procedure SIRegisterTComponent(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TPersistent'), 'TComponent') do
   begin
-    RegisterMethod('function FindComponent(AName: string): TComponent;');
+    RegisterMethod({$IFDEF FPC}'function FindComponent(AName: AnsiString): TComponent;'{$ELSE}'function FindComponent(AName: string): TComponent;'{$ENDIF});
     RegisterMethod('constructor Create(AOwner: TComponent); virtual;');
 
     RegisterProperty('Owner', 'TComponent', iptR);

@@ -477,10 +477,11 @@ begin
     WriteVars;
     WriteProcs;
     I.Free;
+    result := true;
   except
-    exit;
+    { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
+    Result := False;
   end;
-  result := true;
 end;
 
 { TMyIFPSExec }

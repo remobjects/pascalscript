@@ -147,7 +147,7 @@ asmcall_end:
 	ldmea	r11,{r4,r5,r6,r7,r8,r9,r10,r11,r13,r15}
 end;
 
-function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+function TPSExec.PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   rint: Trint;			{ registers r0 to r3 }
   rfloat: Trfloat;		{ registers f0 to f3 }

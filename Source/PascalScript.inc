@@ -65,7 +65,9 @@ Defines:
   {$I PascalScriptFPC.inc}
 {$ENDIF}
 
-{$IFDEF DELPHI2005UP}
+{ Delphi 2005 and 2006 stop with an internal error on a class derived directly from one that a run-time
+  library unit the declaring unit uses has a class helper for, so they take the procedure form, as Delphi 7 does }
+{$IFDEF DELPHI2007UP}
   {$DEFINE class_helper_present}
 {$ENDIF}
 {$IFDEF FPC}

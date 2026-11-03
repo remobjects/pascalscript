@@ -52,6 +52,7 @@ var
   FuncCC, s, s2: AnsiString;
   CC: TDllCallingConvention;
   DelayLoad, LoadWithAlteredSearchPath: Boolean;
+  lOpen, lClose: Longint;
 
 begin
   Name := FastUpperCase(OriginalName);
@@ -65,7 +66,20 @@ begin
     Result := nil;
     exit;
   end;
-  FuncName := copy(FuncCC, 1, rpos('@', FuncCC)-1)+#0;
+  { a quoted library name can hold an @ of its own: it is quoted where the
+    text's last quote closes one opened right after an @, ends the text or
+    is followed by the options' space, and has no @ after it -- a routine's
+    name can hold a quote and a space before the library's own @ }
+  lClose := rpos('"', FuncCC);
+  lOpen := 0;
+  if lClose > 1 then
+    lOpen := rpos('"', copy(FuncCC, 1, lClose - 1));
+  if (lOpen > 1) and (FuncCC[lOpen - 1] = '@')
+     and ((lClose = Length(FuncCC)) or (FuncCC[lClose + 1] = ' '))
+     and (pos(tbtchar('@'), copy(FuncCC, lClose + 1, MaxInt)) = 0) then
+    FuncName := copy(FuncCC, 1, lOpen - 2)+#0
+  else
+    FuncName := copy(FuncCC, 1, rpos('@', FuncCC)-1)+#0;
   delete(FuncCc, 1, length(FuncName));
   if pos(tbtchar(' '), Funccc) <> 0 then
   begin

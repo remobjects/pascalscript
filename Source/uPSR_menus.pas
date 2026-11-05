@@ -144,7 +144,7 @@ procedure RIRegisterTPOPUPMENU(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TPopupMenu) do
   begin
-		RegisterConstructor(@TPopupMenu.CREATE, 'Create');
+		RegisterVirtualConstructor(@TPopupMenu.CREATE, 'Create');
 		RegisterVirtualMethod(@TPopupMenu.POPUP, 'Popup');
 		RegisterPropertyHelper(@TPopupMenu.POPUPCOMPONENT_R,@TPopupMenu.POPUPCOMPONENT_W,'PopupComponent');
 		RegisterEventPropertyHelper(@TPopupMenu.ONPOPUP_R,@TPopupMenu.ONPOPUP_W,'OnPopup');
@@ -209,7 +209,7 @@ procedure RIRegisterTPOPUPMENU(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TPOPUPMENU) do
   begin
-		RegisterConstructor(@TPOPUPMENU.CREATE, 'Create');
+		RegisterVirtualConstructor(@TPOPUPMENU.CREATE, 'Create');
 		RegisterVirtualMethod(@TPOPUPMENU.POPUP, 'Popup');
 		RegisterPropertyHelper(@TPOPUPMENUPOPUPCOMPONENT_R,@TPOPUPMENUPOPUPCOMPONENT_W,'PopupComponent');
 		RegisterEventPropertyHelper(@TPOPUPMENUONPOPUP_R,@TPOPUPMENUONPOPUP_W,'OnPopup');
@@ -285,6 +285,27 @@ end;
 {$ENDIF class_helper_present}
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
+{ Members that are dynamic methods, bound through routines that call them: a descendant's
+  override then runs, where bound by address a script ran this class's own code. }
+function TMenuItemGetParentComponent_P(Self: TMenuItem): TComponent;
+begin
+  Result := Self.GetParentComponent;
+end;
+
+function TMenuItemHasParent_P(Self: TMenuItem): Boolean;
+begin
+  Result := Self.HasParent;
+end;
+
+{$IFNDEF FPC}
+{ ParentBiDiModeChanged is overloaded; bound through a routine, the script's call reaches the overload
+  that takes the control. }
+procedure TMenuParentBiDiModeChanged_P(Self: TMenu; AControl: TObject);
+begin
+  Self.ParentBiDiModeChanged(AControl);
+end;
+{$ENDIF}
+
 {$IFDEF DELPHI10UP}{$REGION 'TMenu'}{$ENDIF}
 {$IFDEF class_helper_present}
 type
@@ -339,13 +360,25 @@ procedure TMenu_PSHelper.BIDIMODE_R(var T: TBIDIMODE);
 begin T := Self.BIDIMODE; end;
 
 procedure TMenu_PSHelper.AUTOLINEREDUCTION_W(const T: TMENUAUTOFLAG);
-begin Self.AUTOLINEREDUCTION := T; end;
+var
+  lRaw : Byte absolute T;
+begin
+  if lRaw > Ord(High(TMenuAutoFlag)) then
+    raise ERangeError.Create('Out Of Range');
+  Self.AUTOLINEREDUCTION := T;
+end;
 
 procedure TMenu_PSHelper.AUTOLINEREDUCTION_R(var T: TMENUAUTOFLAG);
 begin T := Self.AUTOLINEREDUCTION; end;
 
 procedure TMenu_PSHelper.AUTOHOTKEYS_W(const T: TMENUAUTOFLAG);
-begin Self.AUTOHOTKEYS := T; end;
+var
+  lRaw : Byte absolute T;
+begin
+  if lRaw > Ord(High(TMenuAutoFlag)) then
+    raise ERangeError.Create('Out Of Range');
+  Self.AUTOHOTKEYS := T;
+end;
 
 procedure TMenu_PSHelper.AUTOHOTKEYS_R(var T: TMENUAUTOFLAG);
 begin T := Self.AUTOHOTKEYS; end;
@@ -364,7 +397,7 @@ procedure RIRegisterTMENU(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TMENU) do
 	begin
-		RegisterConstructor(@TMENU.CREATE, 'Create');
+		RegisterVirtualConstructor(@TMENU.CREATE, 'Create');
 		RegisterMethod(@TMENU.DISPATCHCOMMAND, 'DispatchCommand');
 		RegisterMethod(@TMENU.FINDITEM, 'FindItem');
 		RegisterPropertyHelper(@TMENU.IMAGES_R,@TMENU.IMAGES_W,'Images');
@@ -373,7 +406,7 @@ begin
 		RegisterPropertyHelper(@TMENU.ITEMS_R,nil,'Items');
 {$IFNDEF FPC}
 		RegisterMethod(@TMENU.DISPATCHPOPUP, 'DispatchPopup');
-		RegisterMethod(@TMENU.PARENTBIDIMODECHANGED, 'ParentBiDiModeChanged');
+		RegisterMethod(@TMenuParentBiDiModeChanged_P, 'ParentBiDiModeChanged');
 		RegisterMethod(@TMENU.PROCESSMENUCHAR, 'ProcessMenuChar');
 		RegisterPropertyHelper(@TMENU.AUTOHOTKEYS_R,@TMENU.AUTOHOTKEYS_W,'AutoHotkeys');
 		RegisterPropertyHelper(@TMENU.AUTOLINEREDUCTION_R,@TMENU.AUTOLINEREDUCTION_W,'AutoLineReduction');
@@ -415,13 +448,25 @@ procedure TMENUBIDIMODE_R(Self: TMENU; var T: TBIDIMODE);
 begin T := Self.BIDIMODE; end;
 
 procedure TMENUAUTOLINEREDUCTION_W(Self: TMENU; const T: TMENUAUTOFLAG);
-begin Self.AUTOLINEREDUCTION := T; end;
+var
+  lRaw : Byte absolute T;
+begin
+  if lRaw > Ord(High(TMenuAutoFlag)) then
+    raise ERangeError.Create('Out Of Range');
+  Self.AUTOLINEREDUCTION := T;
+end;
 
 procedure TMENUAUTOLINEREDUCTION_R(Self: TMENU; var T: TMENUAUTOFLAG);
 begin T := Self.AUTOLINEREDUCTION; end;
 
 procedure TMENUAUTOHOTKEYS_W(Self: TMENU; const T: TMENUAUTOFLAG);
-begin Self.AUTOHOTKEYS := T; end;
+var
+  lRaw : Byte absolute T;
+begin
+  if lRaw > Ord(High(TMenuAutoFlag)) then
+    raise ERangeError.Create('Out Of Range');
+  Self.AUTOHOTKEYS := T;
+end;
 
 procedure TMENUAUTOHOTKEYS_R(Self: TMENU; var T: TMENUAUTOFLAG);
 begin T := Self.AUTOHOTKEYS; end;
@@ -445,7 +490,7 @@ procedure RIRegisterTMENU(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TMENU) do
 	begin
-		RegisterConstructor(@TMENU.CREATE, 'Create');
+		RegisterVirtualConstructor(@TMENU.CREATE, 'Create');
 		RegisterMethod(@TMENU.DISPATCHCOMMAND, 'DispatchCommand');
 		RegisterMethod(@TMENU.FINDITEM, 'FindItem');
 		RegisterPropertyHelper(@TMENUIMAGES_R,@TMENUIMAGES_W,'Images');
@@ -454,7 +499,7 @@ begin
 		RegisterPropertyHelper(@TMENUITEMS_R,nil,'Items');
 {$IFNDEF FPC}
 		RegisterMethod(@TMENU.DISPATCHPOPUP, 'DispatchPopup');
-		RegisterMethod(@TMENU.PARENTBIDIMODECHANGED, 'ParentBiDiModeChanged');
+		RegisterMethod(@TMenuParentBiDiModeChanged_P, 'ParentBiDiModeChanged');
 		RegisterMethod(@TMENU.PROCESSMENUCHAR, 'ProcessMenuChar');
 		RegisterPropertyHelper(@TMENUAUTOHOTKEYS_R,@TMENUAUTOHOTKEYS_W,'AutoHotkeys');
 		RegisterPropertyHelper(@TMENUAUTOLINEREDUCTION_R,@TMENUAUTOLINEREDUCTION_W,'AutoLineReduction');
@@ -676,7 +721,7 @@ procedure RIRegisterTMENUITEM(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TMenuItem) do
 	begin
-		RegisterConstructor(@TMenuItem.CREATE, 'Create');
+		RegisterVirtualConstructor(@TMenuItem.CREATE, 'Create');
 		RegisterVirtualMethod(@TMenuItem.INITIATEACTION, 'InitiateAction');
 		RegisterMethod(@TMenuItem.INSERT, 'Insert');
 		RegisterMethod(@TMenuItem.DELETE, 'Delete');
@@ -694,9 +739,9 @@ begin
 {$ENDIF}
 		RegisterMethod(@TMenuItem.INDEXOF, 'IndexOf');
 		RegisterMethod(@TMenuItem.GETIMAGELIST, 'GetImageList');
-		RegisterMethod(@TMenuItem.GETPARENTCOMPONENT, 'GetParentComponent');
+		RegisterMethod(@TMenuItemGetParentComponent_P, 'GetParentComponent');
 		RegisterMethod(@TMenuItem.GETPARENTMENU, 'GetParentMenu');
-		RegisterMethod(@TMenuItem.HASPARENT, 'HasParent');
+		RegisterMethod(@TMenuItemHasParent_P, 'HasParent');
 		RegisterMethod(@TMenuItem.ADD, 'Add');
 		RegisterMethod(@TMenuItem.REMOVE, 'Remove');
 {$IFNDEF FPC}
@@ -881,7 +926,7 @@ procedure RIRegisterTMENUITEM(Cl: TPSRuntimeClassImporter);
 begin
 	with Cl.Add(TMENUITEM) do
 	begin
-		RegisterConstructor(@TMENUITEM.CREATE, 'Create');
+		RegisterVirtualConstructor(@TMENUITEM.CREATE, 'Create');
 		RegisterVirtualMethod(@TMENUITEM.INITIATEACTION, 'InitiateAction');
 		RegisterMethod(@TMENUITEM.INSERT, 'Insert');
 		RegisterMethod(@TMENUITEM.DELETE, 'Delete');
@@ -899,9 +944,9 @@ begin
 {$ENDIF}
 		RegisterMethod(@TMENUITEM.INDEXOF, 'IndexOf');
 		RegisterMethod(@TMENUITEM.GETIMAGELIST, 'GetImageList');
-		RegisterMethod(@TMENUITEM.GETPARENTCOMPONENT, 'GetParentComponent');
+		RegisterMethod(@TMenuItemGetParentComponent_P, 'GetParentComponent');
 		RegisterMethod(@TMENUITEM.GETPARENTMENU, 'GetParentMenu');
-		RegisterMethod(@TMENUITEM.HASPARENT, 'HasParent');
+		RegisterMethod(@TMenuItemHasParent_P, 'HasParent');
 		RegisterMethod(@TMENUITEM.ADD, 'Add');
 		RegisterMethod(@TMENUITEM.REMOVE, 'Remove');
 {$IFNDEF FPC}
@@ -975,6 +1020,9 @@ begin
 	{$IFNDEF FPC}
 	RIRegisterTPOPUPLIST(Cl);
 	RIRegisterTMENUITEMSTACK(Cl);
+	{ declared to scripts under ancestors a host can supply }
+	Cl.Add(EMenuError);
+	Cl.Add(TMenuActionLink);
 	{$ENDIF}
 end;
 

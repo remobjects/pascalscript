@@ -63,6 +63,9 @@ procedure SIRegisterTCanvas(cl: TPSPascalCompiler); // requires TPersistent
 begin
   with Cl.AddClassN(cl.FindClass('TPersistent'), 'TCanvas') do
   begin
+    {$IFNDEF FPC}
+    RegisterMethod('constructor Create');
+    {$ENDIF}
     RegisterMethod('procedure Arc(X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);');
     RegisterMethod('procedure Chord(X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);');
     RegisterMethod('procedure Draw(X, Y: Integer; Graphic: TGraphic);');
@@ -199,7 +202,11 @@ begin
   Cl.addTypeS('TFontStyles', 'set of TFontStyle');
 
   cl.AddTypeS('TFontPitch', '(fpDefault, fpVariable, fpFixed)');
+  {$IFDEF DELPHI2006UP}
+  cl.AddTypeS('TPenStyle', '(psSolid, psDash, psDot, psDashDot, psDashDotDot, psClear, psInsideFrame, psUserStyle, psAlternate)');
+  {$ELSE}
   cl.AddTypeS('TPenStyle', '(psSolid, psDash, psDot, psDashDot, psDashDotDot, psClear, psInsideFrame)');
+  {$ENDIF}
   cl.AddTypeS('TPenMode', '(pmBlack, pmWhite, pmNop, pmNot, pmCopy, pmNotCopy, pmMergePenNot, pmMaskPenNot, pmMergeNotPen, pmMaskNotPen, pmMerge, pmNotMerge, pmMask, pmNotMask, pmXor, pmNotXor)');
   cl.AddTypeS('TBrushStyle', '(bsSolid, bsClear, bsHorizontal, bsVertical, bsFDiagonal, bsBDiagonal, bsCross, bsDiagCross)');
   cl.addTypeS('TColor', 'Integer');

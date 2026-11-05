@@ -102,6 +102,16 @@ begin
     RegisterMethod('function ShowModal: Integer');
     RegisterMethod('procedure Release');
     RegisterProperty('Active', 'Boolean', iptr);
+    {$IFNDEF FPC}
+    { TCustomForm declares Visible, ClientWidth and ClientHeight again with
+      setters of its own, and newer Delphi versions Left and Top too:
+      declared on TForm, a script's access reaches the form's property }
+    RegisterProperty('Left', 'Integer', iptrw);
+    RegisterProperty('Top', 'Integer', iptrw);
+    RegisterProperty('ClientWidth', 'LongInt', iptrw);
+    RegisterProperty('ClientHeight', 'LongInt', iptrw);
+    RegisterProperty('Visible', 'Boolean', iptrw);
+    {$ENDIF}
     RegisterProperty('ActiveControl', 'TWinControl', iptrw);
     {$IFDEF DELPHI4UP}
     RegisterProperty('Anchors', 'TAnchors', iptrw);
@@ -264,10 +274,14 @@ end;
 procedure SIRegister_Forms_TypesAndConsts(Cl: TPSPascalCompiler);
 begin
   Cl.AddTypeS('TIdleEvent', 'procedure (Sender: TObject; var Done: Boolean)');
-  cl.AddTypeS('TScrollBarKind', '(sbHorizontal, sbVertical)');
-  cl.AddTypeS('TScrollBarInc', 'SmallInt');
-  cl.AddTypeS('TFormBorderStyle', '(bsNone, bsSingle, bsSizeable, bsDialog, bsToolWindow, bsSizeToolWin)');
-  cl.AddTypeS('TBorderStyle', 'TFormBorderStyle');
+  if cl.FindType('TScrollBarKind') = nil then
+    cl.AddTypeS('TScrollBarKind', '(sbHorizontal, sbVertical)');
+  if cl.FindType('TScrollBarInc') = nil then
+    cl.AddTypeS('TScrollBarInc', 'SmallInt');
+  if cl.FindType('TFormBorderStyle') = nil then
+    cl.AddTypeS('TFormBorderStyle', '(bsNone, bsSingle, bsSizeable, bsDialog, bsToolWindow, bsSizeToolWin)');
+  if cl.FindType('TBorderStyle') = nil then
+    cl.AddTypeS('TBorderStyle', 'TFormBorderStyle');
   cl.AddTypeS('TWindowState', '(wsNormal, wsMinimized, wsMaximized)');
   cl.AddTypeS('TFormStyle', '(fsNormal, fsMDIChild, fsMDIForm, fsStayOnTop)');
   {$IFDEF DELPHI_SEATTLE_UP}
@@ -280,7 +294,8 @@ begin
   cl.AddTypeS('TCloseQueryEvent' ,'procedure(Sender: TObject; var CanClose: Boolean)');
   cl.AddTypeS('TBorderIcon' ,'(biSystemMenu, biMinimize, biMaximize, biHelp)');
   cl.AddTypeS('TBorderIcons', 'set of TBorderIcon');
-  cl.AddTypeS('THelpContext', 'LongInt');
+  if cl.FindType('THelpContext') = nil then
+    cl.AddTypeS('THelpContext', 'LongInt');
   {$IFNDEF CLX}
   if cl.FindType('HWND') = nil then
     cl.AddTypeS('HWND', 'NativeUInt');

@@ -21,10 +21,10 @@ procedure RIRegister_Graphics(Cl: TPSRuntimeClassImporter; Streams: Boolean);
 implementation
 {$IFNDEF FPC}
 uses
-  Classes{$IFDEF CLX}, QGraphics{$ELSE}, Windows, Graphics{$ENDIF} {$IFDEF DELPHI_TOKYO_UP}, UITypes {$ENDIF};
+  SysUtils, Classes{$IFDEF CLX}, QGraphics{$ELSE}, Windows, Graphics{$ENDIF} {$IFDEF DELPHI_TOKYO_UP}, UITypes {$ENDIF};
 {$ELSE}
 uses
-  Classes, Graphics,LCLType;
+  SysUtils, Classes, Graphics,LCLType;
 {$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TFont'}{$ENDIF}
@@ -87,6 +87,81 @@ end;
 {$ENDIF class_helper_present}
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
+{ Members that are virtual in some or all Delphi versions, bound through routines that call them
+  by name: the compiler then calls through the object's virtual method table wherever the member is
+  virtual, so a descendant's override runs.  Bound by address, a script ran this class's own code
+  whatever the object's class. }
+procedure TCanvasArc_P(Self: TCanvas; X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);
+begin
+  Self.Arc(X1, Y1, X2, Y2, X3, Y3, X4, Y4);
+end;
+
+procedure TCanvasChord_P(Self: TCanvas; X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);
+begin
+  Self.Chord(X1, Y1, X2, Y2, X3, Y3, X4, Y4);
+end;
+
+procedure TCanvasDraw_P(Self: TCanvas; X, Y: Integer; Graphic: TGraphic);
+begin
+  Self.Draw(X, Y, Graphic);
+end;
+
+procedure TCanvasEllipse_P(Self: TCanvas; X1, Y1, X2, Y2: Integer);
+begin
+  Self.Ellipse(X1, Y1, X2, Y2);
+end;
+
+procedure TCanvasFillRect_P(Self: TCanvas; const Rect: TRect);
+begin
+  Self.FillRect(Rect);
+end;
+
+{$IFNDEF CLX}
+{ FillStyle is a byte in scripts and TFillStyle has two members, which index a two-entry table: a value
+  outside them is refused }
+procedure TCanvasFloodFill_P(Self: TCanvas; X, Y: Integer; Color: TColor; FillStyle: Byte);
+begin
+  if FillStyle > Ord(High(TFillStyle)) then
+    raise ERangeError.Create('Out Of Range');
+  Self.FloodFill(X, Y, Color, TFillStyle(FillStyle));
+end;
+{$ENDIF}
+
+procedure TCanvasLineTo_P(Self: TCanvas; X, Y: Integer);
+begin
+  Self.LineTo(X, Y);
+end;
+
+procedure TCanvasMoveTo_P(Self: TCanvas; X, Y: Integer);
+begin
+  Self.MoveTo(X, Y);
+end;
+
+procedure TCanvasPie_P(Self: TCanvas; X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer);
+begin
+  Self.Pie(X1, Y1, X2, Y2, X3, Y3, X4, Y4);
+end;
+
+procedure TCanvasRectangle_P(Self: TCanvas; X1, Y1, X2, Y2: Integer);
+begin
+  Self.Rectangle(X1, Y1, X2, Y2);
+end;
+
+procedure TCanvasRefresh_P(Self: TCanvas);
+begin
+  Self.Refresh;
+end;
+
+procedure TCanvasRoundRect_P(Self: TCanvas; X1, Y1, X2, Y2, X3, Y3: Integer);
+begin
+  Self.RoundRect(X1, Y1, X2, Y2, X3, Y3);
+end;
+
+procedure TCanvasTextOut_P(Self: TCanvas; X, Y: Integer; Text: string);
+begin
+  Self.TextOut(X, Y, Text);
+end;
+
 {$IFDEF DELPHI10UP}{$REGION 'TCanvas'}{$ENDIF}
 {$IFDEF class_helper_present}
 type
@@ -134,27 +209,30 @@ procedure RIRegisterTCanvas(cl: TPSRuntimeClassImporter); // requires TPersisten
 begin
   with Cl.Add(TCanvas) do
   begin
-    RegisterMethod(@TCanvas.Arc, 'Arc');
-    RegisterMethod(@TCanvas.Chord, 'Chord');
-    RegisterMethod(@TCanvas.Rectangle, 'Rectangle');
-    RegisterMethod(@TCanvas.RoundRect, 'RoundRect');
-    RegisterMethod(@TCanvas.Ellipse, 'Ellipse');
-    RegisterMethod(@TCanvas.FillRect, 'FillRect');
+    {$IFNDEF FPC}
+    RegisterConstructor(@TCanvas.Create, 'Create');
+    {$ENDIF}
+    RegisterMethod(@TCanvasArc_P, 'Arc');
+    RegisterMethod(@TCanvasChord_P, 'Chord');
+    RegisterMethod(@TCanvasRectangle_P, 'Rectangle');
+    RegisterMethod(@TCanvasRoundRect_P, 'RoundRect');
+    RegisterMethod(@TCanvasEllipse_P, 'Ellipse');
+    RegisterMethod(@TCanvasFillRect_P, 'FillRect');
 {$IFDEF FPC}
-    RegisterMethod(@TCanvas.FloodFill, 'FloodFill');
+    RegisterMethod(@TCanvasFloodFill_P, 'FloodFill');
 {$ELSE}
 {$IFNDEF CLX}
-    RegisterMethod(@TCanvas.FloodFill, 'FloodFill');
+    RegisterMethod(@TCanvasFloodFill_P, 'FloodFill');
 {$ENDIF}
 {$ENDIF}
-    RegisterMethod(@TCanvas.Draw, 'Draw');
+    RegisterMethod(@TCanvasDraw_P, 'Draw');
 
-    RegisterMethod(@TCanvas.Lineto, 'LineTo');
-    RegisterMethod(@TCanvas.Moveto, 'MoveTo');
-    RegisterMethod(@TCanvas.Pie, 'Pie');
-    RegisterMethod(@TCanvas.Refresh, 'Refresh');
+    RegisterMethod(@TCanvasLineTo_P, 'LineTo');
+    RegisterMethod(@TCanvasMoveTo_P, 'MoveTo');
+    RegisterMethod(@TCanvasPie_P, 'Pie');
+    RegisterMethod(@TCanvasRefresh_P, 'Refresh');
     RegisterMethod(@TCanvas.TextHeight, 'TextHeight');
-    RegisterMethod(@TCanvas.TextOut, 'TextOut');
+    RegisterMethod(@TCanvasTextOut_P, 'TextOut');
     RegisterMethod(@TCanvas.TextWidth, 'TextWidth');
 {$IFNDEF CLX}
     RegisterPropertyHelper(@TCanvas.HandleR, @TCanvas.HandleW, 'Handle');
@@ -187,6 +265,9 @@ procedure RIRegisterTCanvas(cl: TPSRuntimeClassImporter); // requires TPersisten
 begin
   with Cl.Add(TCanvas) do
   begin
+    {$IFNDEF FPC}
+    RegisterConstructor(@TCanvas.Create, 'Create');
+    {$ENDIF}
 {$IFDEF FPC}
     RegisterMethod(@TCanvasArc, 'Arc');
     RegisterMethod(@TCanvasChord, 'Chord');
@@ -196,24 +277,24 @@ begin
     RegisterMethod(@TCanvasFillRect, 'FillRect');
     RegisterMethod(@TCanvasFloodFill, 'FloodFill');
 {$ELSE}
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Arc, 'Arc');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Chord, 'Chord');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Rectangle, 'Rectangle');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}RoundRect, 'RoundRect');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}Ellipse, 'Ellipse');
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FillRect, 'FillRect');
+    RegisterMethod(@TCanvasArc_P, 'Arc');
+    RegisterMethod(@TCanvasChord_P, 'Chord');
+    RegisterMethod(@TCanvasRectangle_P, 'Rectangle');
+    RegisterMethod(@TCanvasRoundRect_P, 'RoundRect');
+    RegisterMethod(@TCanvasEllipse_P, 'Ellipse');
+    RegisterMethod(@TCanvasFillRect_P, 'FillRect');
 {$IFNDEF CLX}
-    RegisterMethod(@TCanvas{$IFNDEF FPC}.{$ENDIF}FloodFill, 'FloodFill');
+    RegisterMethod(@TCanvasFloodFill_P, 'FloodFill');
 {$ENDIF}
 {$ENDIF}
-    RegisterMethod(@TCanvas.Draw, 'Draw');
+    RegisterMethod(@TCanvasDraw_P, 'Draw');
 
-    RegisterMethod(@TCanvas.Lineto, 'LineTo');
-    RegisterMethod(@TCanvas.Moveto, 'MoveTo');
-    RegisterMethod(@TCanvas.Pie, 'Pie');
-    RegisterMethod(@TCanvas.Refresh, 'Refresh');
+    RegisterMethod(@TCanvasLineTo_P, 'LineTo');
+    RegisterMethod(@TCanvasMoveTo_P, 'MoveTo');
+    RegisterMethod(@TCanvasPie_P, 'Pie');
+    RegisterMethod(@TCanvasRefresh_P, 'Refresh');
     RegisterMethod(@TCanvas.TextHeight, 'TextHeight');
-    RegisterMethod(@TCanvas.TextOut, 'TextOut');
+    RegisterMethod(@TCanvasTextOut_P, 'TextOut');
     RegisterMethod(@TCanvas.TextWidth, 'TextWidth');
 {$IFNDEF CLX}
     RegisterPropertyHelper(@TCanvasHandleR, @TCanvasHandleW, 'Handle');
@@ -243,7 +324,7 @@ procedure RIRegisterTGRAPHICSOBJECT(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TGraphicsObject) do
   begin
-    RegisterPropertyHelper(@TGraphicsObject.ONCHANGE_R, @TGraphicsObject.ONCHANGE_W, 'OnChange');
+    RegisterEventPropertyHelper(@TGraphicsObject.ONCHANGE_R, @TGraphicsObject.ONCHANGE_W, 'OnChange');
   end;
 end;
 {$ELSE}
@@ -254,7 +335,7 @@ procedure RIRegisterTGRAPHICSOBJECT(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TGRAPHICSOBJECT) do
   begin
-    RegisterPropertyHelper(@TGRAPHICSOBJECTONCHANGE_R, @TGRAPHICSOBJECTONCHANGE_W, 'OnChange');
+    RegisterEventPropertyHelper(@TGRAPHICSOBJECTONCHANGE_R, @TGRAPHICSOBJECTONCHANGE_W, 'OnChange');
   end;
 end;
 {$ENDIF class_helper_present}
@@ -316,7 +397,7 @@ begin
     RegisterPropertyHelper(@TGraphic.Empty_R,nil,'Empty');
     RegisterPropertyHelper(@TGraphic.Height_R,@TGraphic.Height_W,'Height');
     RegisterPropertyHelper(@TGraphic.Width_R,@TGraphic.Width_W,'Width');
-    RegisterPropertyHelper(@TGraphic.OnChange_R,@TGraphic.OnChange_W,'OnChange');
+    RegisterEventPropertyHelper(@TGraphic.OnChange_R,@TGraphic.OnChange_W,'OnChange');
 
     {$IFNDEF PS_MINIVCL}
     RegisterPropertyHelper(@TGraphic.Modified_R,@TGraphic.Modified_W,'Modified');
@@ -345,7 +426,7 @@ begin
     RegisterPropertyHelper(@TGraphicEmpty_R,nil,'Empty');
     RegisterPropertyHelper(@TGraphicHeight_R,@TGraphicHeight_W,'Height');
     RegisterPropertyHelper(@TGraphicWidth_R,@TGraphicWidth_W,'Width');
-    RegisterPropertyHelper(@TGraphicOnChange_R,@TGraphicOnChange_W,'OnChange');
+    RegisterEventPropertyHelper(@TGraphicOnChange_R,@TGraphicOnChange_W,'OnChange');
 
     {$IFNDEF PS_MINIVCL}
     RegisterPropertyHelper(@TGraphicModified_R,@TGraphicModified_W,'Modified');
@@ -355,6 +436,33 @@ end;
 
 {$ENDIF class_helper_present}
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{ Members that are virtual in some or all Delphi versions, bound through routines that call them
+  by name: the compiler then calls through the object's virtual method table wherever the member is
+  virtual, so a descendant's override runs.  Bound by address, a script ran this class's own code
+  whatever the object's class. }
+procedure TBitmapLoadFromStream_P(Self: TBitmap; Stream: TStream);
+begin
+  Self.LoadFromStream(Stream);
+end;
+
+procedure TBitmapSaveToStream_P(Self: TBitmap; Stream: TStream);
+begin
+  Self.SaveToStream(Stream);
+end;
+
+{$IFNDEF CLX}{$IFNDEF FPC}
+procedure TBitmapLoadFromClipboardFormat_P(Self: TBitmap; AFormat: Word; AData: THandle; APalette: HPALETTE);
+begin
+  Self.LoadFromClipboardFormat(AFormat, AData, APalette);
+end;
+
+procedure TBitmapSaveToClipboardFormat_P(Self: TBitmap; var Format: Word; var Data: THandle;
+  var APalette: HPALETTE);
+begin
+  Self.SaveToClipboardFormat(Format, Data, APalette);
+end;
+{$ENDIF}{$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TBitmap'}{$ENDIF}
 {$IFDEF class_helper_present}
@@ -401,8 +509,8 @@ begin
   with CL.Add(TBitmap) do
   begin
     if Streams then begin
-      RegisterMethod(@TBitmap.LoadFromStream, 'LoadFromStream');
-      RegisterMethod(@TBitmap.SaveToStream, 'SaveToStream');
+      RegisterMethod(@TBitmapLoadFromStream_P, 'LoadFromStream');
+      RegisterMethod(@TBitmapSaveToStream_P, 'SaveToStream');
     end;
     RegisterPropertyHelper(@TBitmap.Canvas_R,nil,'Canvas');
 {$IFNDEF CLX}
@@ -415,14 +523,14 @@ begin
 {$ENDIF}
     RegisterMethod(@TBitmap.FreeImage, 'FreeImage');
 {$IFNDEF CLX}
-    RegisterMethod(@TBitmap.LoadFromClipboardFormat, 'LoadFromClipboardFormat');
+    {$IFDEF FPC}RegisterMethod(@TBitmap.LoadFromClipboardFormat, 'LoadFromClipboardFormat');{$ELSE}RegisterMethod(@TBitmapLoadFromClipboardFormat_P, 'LoadFromClipboardFormat');{$ENDIF}
 {$ENDIF}
     RegisterMethod(@TBitmap.LoadFromResourceName, 'LoadFromResourceName');
     RegisterMethod(@TBitmap.LoadFromResourceID, 'LoadFromResourceID');
 {$IFNDEF CLX}
     RegisterMethod(@TBitmap.ReleaseHandle, 'ReleaseHandle');
     RegisterMethod(@TBitmap.ReleasePalette, 'ReleasePalette');
-    RegisterMethod(@TBitmap.SaveToClipboardFormat, 'SaveToClipboardFormat');
+    {$IFDEF FPC}RegisterMethod(@TBitmap.SaveToClipboardFormat, 'SaveToClipboardFormat');{$ELSE}RegisterMethod(@TBitmapSaveToClipboardFormat_P, 'SaveToClipboardFormat');{$ENDIF}
     RegisterPropertyHelper(@TBitmap.Monochrome_R,@TBitmap.Monochrome_W,'Monochrome');
     RegisterPropertyHelper(@TBitmap.Palette_R,@TBitmap.Palette_W,'Palette');
 {$IFNDEF FPC}
@@ -457,8 +565,8 @@ begin
   with CL.Add(TBitmap) do
   begin
     if Streams then begin
-      RegisterMethod(@TBitmap.LoadFromStream, 'LoadFromStream');
-      RegisterMethod(@TBitmap.SaveToStream, 'SaveToStream');
+      RegisterMethod(@TBitmapLoadFromStream_P, 'LoadFromStream');
+      RegisterMethod(@TBitmapSaveToStream_P, 'SaveToStream');
     end;
     RegisterPropertyHelper(@TBitmapCanvas_R,nil,'Canvas');
 {$IFNDEF CLX}
@@ -471,14 +579,14 @@ begin
 {$ENDIF}
     RegisterMethod(@TBitmap.FreeImage, 'FreeImage');
 {$IFNDEF CLX}
-    RegisterMethod(@TBitmap.LoadFromClipboardFormat, 'LoadFromClipboardFormat');
+    {$IFDEF FPC}RegisterMethod(@TBitmap.LoadFromClipboardFormat, 'LoadFromClipboardFormat');{$ELSE}RegisterMethod(@TBitmapLoadFromClipboardFormat_P, 'LoadFromClipboardFormat');{$ENDIF}
 {$ENDIF}
     RegisterMethod(@TBitmap.LoadFromResourceName, 'LoadFromResourceName');
     RegisterMethod(@TBitmap.LoadFromResourceID, 'LoadFromResourceID');
 {$IFNDEF CLX}
     RegisterMethod(@TBitmap.ReleaseHandle, 'ReleaseHandle');
     RegisterMethod(@TBitmap.ReleasePalette, 'ReleasePalette');
-    RegisterMethod(@TBitmap.SaveToClipboardFormat, 'SaveToClipboardFormat');
+    {$IFDEF FPC}RegisterMethod(@TBitmap.SaveToClipboardFormat, 'SaveToClipboardFormat');{$ELSE}RegisterMethod(@TBitmapSaveToClipboardFormat_P, 'SaveToClipboardFormat');{$ENDIF}
     RegisterPropertyHelper(@TBitmapMonochrome_R,@TBitmapMonochrome_W,'Monochrome');
     RegisterPropertyHelper(@TBitmapPalette_R,@TBitmapPalette_W,'Palette');
 {$IFNDEF FPC}

@@ -262,17 +262,18 @@ const
       1 = end of first finally<br>
       2 = end of except<br>
       3 = end of second finally<br>
+      4 = a jump leaving the frame (Break, Continue)<br>
     </i><br>
 }
   cm_poexh = 20;
 { Script internal command: Integer NOT<br>
     Command: TPSCommand; <br>
-    Where: Cardinal;<br>
+    Var: TPSVariable;<br>
 }
   cm_in = 21;
   {Script internal command: Set Stack Pointer To Copy<br>
       Command: TPSCommand; <br>
-    Where: Cardinal;<br>
+    VarDest, VarSrc: TPSVariable;<br>
 }
   cm_spc = 22;
   {Script internal command: Inc<br>
@@ -345,7 +346,7 @@ type
 {$IFDEF FPC}
   IPointer = PtrUInt;
 {$ELSE}
-  {$IFDEF DELPHI2009UP}
+  {$IFDEF DELPHI16UP}
     IPointer = NativeUInt;
   {$ELSE}
     IPointer = Cardinal;
@@ -452,6 +453,10 @@ type
     procedure AddUses(pUnitName: TbtString);
 
     function HasUses(pUnitName: TbtString): Boolean;
+
+    { the position, among the units this one's uses clause names, of its last
+      naming of the unit pUnitName; -1 where it names none so }
+    function UsesIndex(const pUnitName: TbtString): Longint;
 
     {$WARNINGS OFF}
     property UnitName: TbtString read fUnitName write SetUnitName;
@@ -592,6 +597,8 @@ type
     FData: TbtString;
     FText: {$IFDEF DELPHI4UP}PAnsiChar{$ELSE}PChar{$ENDIF};
     FLastEnterPos, FRow, FRealPosition, FTokenLength: Cardinal;
+    { where the current token starts: its row and that row's first position }
+    FTokenRow, FTokenLineStart: Cardinal;
     FTokenId: TPSPasToken;
     FToken: TbtString;
     FOriginalToken: TbtString;
@@ -616,7 +623,7 @@ type
 
     property CurrTokenID: TPSPasToken read FTokenId;
 
-    property Row: Cardinal read FRow;
+    property Row: Cardinal read FTokenRow;
 
     property Col: Cardinal read GetCol;
 
@@ -645,6 +652,19 @@ function FastUpperCase(const s: TbtString): TbtString;
 function GRFW(var s: TbtString): TbtString;
 function GRLW(var s: TbtString): TbtString;
 
+{ aText as ANSI text in aBuffer, which holds aBufSize bytes: at most aBufSize - 1 of them, ending on a
+  whole character, and a #0 after them.  Returns the bytes copied; nothing is written where aBuffer is
+  nil or aBufSize is not positive.  A trailing half of a character in aText -- a lead byte, or a high
+  surrogate whose low one is missing -- is dropped. }
+function PSTextToAnsiBuffer(const aText: string; aBuffer: PAnsiChar; aBufSize: Integer): Integer;
+
+{ A script character -- an ANSI character -- as the 16-bit character the ANSI code page maps it to,
+  and the reverse, each converted as the system converts text to and from the ANSI code page: a
+  16-bit character the code page lacks becomes its best-fit character there where it has one, and
+  '?' where it has none or needs two bytes for it. }
+function PSAnsiCharToWideChar(aChar: AnsiChar): WideChar;
+function PSWideCharToAnsiChar(aChar: WideChar): AnsiChar;
+
 const
 
   FCapacityInc = 32;
@@ -658,6 +678,73 @@ function WideUpperCase(const S: WideString): WideString;
 function WideLowerCase(const S: WideString): WideString;
 {$ENDIF}
 implementation
+
+{ aCount less any high surrogate its characters of aText end on }
+function _WholeCharCount(const aText: string; aCount: Integer): Integer;
+begin
+  Result := aCount;
+  {$IFDEF UNICODE}
+  while (Result > 0) and (Ord(aText[Result]) >= $D800) and (Ord(aText[Result]) <= $DBFF) do
+    Dec(Result);
+  {$ENDIF}
+end;
+
+function PSTextToAnsiBuffer(const aText: string; aBuffer: PAnsiChar; aBufSize: Integer): Integer;
+var
+  lAnsi : AnsiString;
+  lLow  : Integer;
+  lHigh : Integer;
+  lMid  : Integer;
+begin
+  Result := 0;
+  if (aBuffer = nil) or (aBufSize <= 0) then
+    Exit;
+  lHigh := _WholeCharCount(aText, Length(aText));
+  lAnsi := AnsiString(Copy(aText, 1, lHigh));
+  if Length(lAnsi) >= aBufSize then begin
+    { the longest beginning that fits, by halves: a longer beginning never
+      converts to fewer bytes }
+    lLow := 0;
+    while lHigh - lLow > 1 do begin
+      lMid := lLow + (lHigh - lLow) div 2;
+      if Length(AnsiString(Copy(aText, 1, lMid))) < aBufSize then
+        lLow := lMid
+      else
+        lHigh := lMid;
+    end;
+    lAnsi := AnsiString(Copy(aText, 1, _WholeCharCount(aText, lLow)));
+  end;
+  Result := Length(lAnsi);
+  {$IFNDEF UNICODE}
+  if (Result > 0) and (ByteType(lAnsi, Result) = mbLeadByte) then
+    Dec(Result);
+  {$ENDIF}
+  if Result > 0 then
+    Move(PAnsiChar(lAnsi)^, aBuffer^, Result);
+  aBuffer[Result] := #0;
+end;
+
+function PSAnsiCharToWideChar(aChar: AnsiChar): WideChar;
+var
+  lText : WideString;
+begin
+  lText := WideString(AnsiString(aChar));
+  if Length(lText) = 1 then
+    Result := lText[1]
+  else
+    Result := '?';
+end;
+
+function PSWideCharToAnsiChar(aChar: WideChar): AnsiChar;
+var
+  lText : AnsiString;
+begin
+  lText := AnsiString(WideString(aChar));
+  if Length(lText) = 1 then
+    Result := lText[1]
+  else
+    Result := '?';
+end;
 
 {$IFDEF DELPHI3UP }
 resourceString
@@ -861,7 +948,18 @@ begin
   FCheckCount := 0;
   NewCapacity := mm(FCount, FCapacityInc);
   if NewCapacity < 64 then NewCapacity := 64;
-  GetMem(NewData, NewCapacity * PointerSize);
+  { trimming the block is no part of the list's state: when the new block
+    cannot be had, the list keeps its own }
+  NewData := nil;
+  try
+    GetMem(NewData, NewCapacity * PointerSize);
+  except
+    on EOutOfMemory do
+      NewData := nil;
+  end;
+  { left after the handler: Delphi XE3 to XE5 for Win64 keep the exception object of a handler left by a jump }
+  if NewData = nil then
+    Exit;
   for I := 0 to Longint(FCount) -1 do
   begin
     NewData^[i] := FData^[I];
@@ -878,8 +976,9 @@ function TPSList.Add(P: Pointer): Longint;
 begin
   if FCount >= FCapacity then
   begin
-    Inc(FCapacity, FCapacityInc);// := FCount + 1;
-    ReAllocMem(FData, FCapacity * PointerSize);
+    { the block first: when it cannot grow, the list is as it was }
+    ReAllocMem(FData, (FCapacity + FCapacityInc) * PointerSize);
+    Inc(FCapacity, FCapacityInc);
   end;
   FData[FCount] := P; // Instead of SetItem
   Result := FCount;
@@ -893,18 +992,28 @@ end;
 procedure TPSList.AddBlock(List: PPointerList; Count: Longint);
 var
   L: Longint;
+  lNew: PPointerList;
+  lOld: PPointerList;
 
 begin
+  lOld := nil;
   if Longint(FCount) + Count > Longint(FCapacity) then
   begin
+    { the block added may lie in this list, so the old block stands until it
+      has been read; when the new one cannot be had, the list is as it was }
+    GetMem(lNew, (FCapacity + Cardinal(mm(Count, FCapacityInc))) * PointerSize);
+    Move(FData^, lNew^, FCount * PointerSize);
+    lOld := FData;
+    FData := lNew;
     Inc(FCapacity, mm(Count, FCapacityInc));
-    ReAllocMem(FData, FCapacity *PointerSize);
   end;
   for L := 0 to Count -1 do
   begin
     FData^[FCount] := List^[L];
     Inc(FCount);
   end;
+  if Assigned(lOld) then
+    FreeMem(lOld);
 {$IFNDEF PS_NOSMARTLIST}
   Inc(FCheckCount);
   if FCheckCount > FMaxCheckCount then Recreate;
@@ -1199,7 +1308,7 @@ const
 
 function TPSPascalParser.GetCol: Cardinal;
 begin
-  Result := FRealPosition - FLastEnterPos + 1;
+  Result := FRealPosition - FTokenLineStart + 1;
 end;
 
 procedure TPSPascalParser.Next;
@@ -1256,6 +1365,7 @@ var
     ct, ci: Cardinal;
     hs: Boolean;
     p: {$IFDEF DELPHI4UP}PAnsiChar{$ELSE}PChar{$ENDIF};
+    lOpenRow, lOpenLineStart: Cardinal;
   begin
     ParseToken := iNoError;
     ct := CurrTokenPos;
@@ -1422,7 +1532,10 @@ var
         begin
           if FText[ct + 1] = '*' then
           begin
-            ci := ct + 1;
+            lOpenRow := FRow;
+            lOpenLineStart := FLastEnterPos;
+            { past the opener: its '*' does not close it as '(*)' }
+            ci := ct + 2;
             while (FText[ci] <> #0) do begin
               if (FText[ci] = '*') and (FText[ci + 1] = ')') then
                 Break;
@@ -1443,6 +1556,9 @@ var
             begin
               CurrTokenId := CSTIINT_Comment;
               ParseToken := iCommentError;
+              { reported where the comment opens }
+              FRow := lOpenRow;
+              FLastEnterPos := lOpenLineStart;
             end else
             begin
               CurrTokenId := CSTIINT_Comment;
@@ -1565,6 +1681,8 @@ var
         end;
       '{':
         begin
+          lOpenRow := FRow;
+          lOpenLineStart := FLastEnterPos;
           ci := ct + 1;
           while (FText[ci] <> #0) and (FText[ci] <> '}') do begin
             if FText[ci] = #13 then
@@ -1584,6 +1702,9 @@ var
           begin
             CurrTokenId := CSTIINT_Comment;
             ParseToken := iCommentError;
+            { reported where the comment opens }
+            FRow := lOpenRow;
+            FLastEnterPos := lOpenLineStart;
           end else
             CurrTokenId := CSTIINT_Comment;
           CurrTokenLen := ci - ct + 1;
@@ -1607,6 +1728,10 @@ begin
   end;
   repeat
     FRealPosition := FRealPosition + Cardinal(FTokenLength);
+    { a token's place is where it starts: its scan counts the line breaks
+      inside it }
+    FTokenRow := FRow;
+    FTokenLineStart := FLastEnterPos;
     Err := ParseToken(FRealPosition, Cardinal(FTokenLength), FTokenID);
     if Err <> iNoError then
     begin
@@ -1662,6 +1787,8 @@ begin
   FTokenId := CSTI_EOF;
   FLastEnterPos := 0;
   FRow := 1;
+  FTokenRow := 1;
+  FTokenLineStart := 0;
   Next;
 end;
 
@@ -1751,9 +1878,32 @@ begin
   inherited;
 end;
 
+{ Whether aUnit is aUnitName or uses it, directly or not, searching each unit
+  once: searched route by route, units that share the units they use would
+  take twice as long with each level of sharing }
+function _UnitReaches(aUnit: TPSUnit; const aUnitName: TbtString; aVisited: TPSList): Boolean;
+var
+  lIdx: Integer;
+  lUsed: TPSUnit;
+begin
+  Result := aUnit.fUnitName = aUnitName;
+  if Result then
+    exit;
+  aVisited.Add(aUnit);
+  for lIdx := 0 to aUnit.fUnits.Count - 1 do
+  begin
+    lUsed := TPSUnit(aUnit.fUnits[lIdx]);
+    if (aVisited.IndexOf(lUsed) < 0) and _UnitReaches(lUsed, aUnitName, aVisited) then
+    begin
+      Result := True;
+      exit;
+    end;
+  end;
+end;
+
 function TPSUnit.HasUses(pUnitName: TbtString): Boolean;
 var
-  Dummy: Integer;
+  lVisited: TPSList;
 begin
   pUnitName:=FastUpperCase(pUnitName);
 
@@ -1764,14 +1914,29 @@ begin
   end;
 
   result:=false;
+  if fUnits.Count = 0 then
+    exit;
 
-  for Dummy:=0 to fUnits.Count-1 do
-  begin
-    result:=TPSUnit(fUnits[Dummy]).HasUses(pUnitName);
-
-    if result then
-      exit;
+  lVisited := TPSList.Create;
+  try
+    result := _UnitReaches(Self, pUnitName, lVisited);
+  finally
+    lVisited.Free;
   end;
+end;
+
+function TPSUnit.UsesIndex(const pUnitName: TbtString): Longint;
+var
+  lName : TbtString;
+  lIdx  : Longint;
+begin
+  lName := FastUpperCase(pUnitName);
+  for lIdx := Pred(fUnits.Count) downto 0 do
+    if TPSUnit(fUnits[lIdx]).fUnitName = lName then begin
+      Result := lIdx;
+      Exit;
+    end;
+  Result := -1;
 end;
 
 procedure TPSUnit.SetUnitName(const Value: TbtString);

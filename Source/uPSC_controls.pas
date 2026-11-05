@@ -59,7 +59,7 @@ begin
     {$IFDEF DELPHI23UP}
     RegisterProperty('StyleElements', 'TStyleElements', iptrw);
     {$ENDIF}
-    {$IFDEF DELPHI26UP}
+    {$IFDEF DELPHI27UP}
     RegisterProperty('StyleName', 'string', iptrw);
     {$ENDIF}
 
@@ -141,10 +141,16 @@ end;
 procedure SIRegister_Controls_TypesAndConsts(Cl: TPSPascalCompiler);
 begin
 {$IFNDEF FPC}
+  {$IFDEF DELPHI2010UP}
+  Cl.addTypeS('TEShiftState','(ssShift, ssAlt, ssCtrl, ssLeft, ssRight, ssMiddle, ssDouble, ssTouch, ssPen)');
+  {$ELSE}
   Cl.addTypeS('TEShiftState','(ssShift, ssAlt, ssCtrl, ssLeft, ssRight, ssMiddle, ssDouble)');
+  {$ENDIF}
   {$ELSE}
   Cl.addTypeS('TEShiftState','(ssShift, ssAlt, ssCtrl, ssLeft, ssRight, ssMiddle, ssDouble,' +
-  'ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum,ssScroll,ssTriple,ssQuad)');
+  'ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum,ssScroll,ssTriple,ssQuad,ssExtra1,ssExtra2'
+  {$IF defined(FPC_FULLVERSION) and (FPC_FULLVERSION >= 30204)} + ',ssTouch,ssPen,ssHorizontal'{$IFEND}
+  + ')');
   {$ENDIF}
   Cl.addTypeS('TShiftState','set of TEShiftState');
   cl.AddTypeS('TMouseButton', '(mbLeft, mbRight, mbMiddle)');
@@ -170,7 +176,7 @@ begin
 
   cl.AddTypeS('TEndDragEvent', 'procedure(Sender, Target: TObject; X, Y: Integer)');
 
-  cl.addTypeS('TAlign', '(alNone, alTop, alBottom, alLeft, alRight, alClient)');
+  cl.addTypeS('TAlign', '(alNone, alTop, alBottom, alLeft, alRight, alClient, alCustom)');
 
   {$IFDEF DELPHI23UP}
   cl.addTypeS('TStyleElement', '(seFont, seClient, seBorder)');
@@ -197,9 +203,10 @@ begin
   cl.AddConstantN('mrIgnore', 'Integer').Value.ts32 := 5;
   cl.AddConstantN('mrYes', 'Integer').Value.ts32 := 6;
   cl.AddConstantN('mrNo', 'Integer').Value.ts32 := 7;
-  cl.AddConstantN('mrAll', 'Integer').Value.ts32 := 8;
-  cl.AddConstantN('mrNoToAll', 'Integer').Value.ts32 := 9;
-  cl.AddConstantN('mrYesToAll', 'Integer').Value.ts32 := 10;
+  { Delphi XE2 moved these three past mrClose, mrHelp, mrTryAgain and mrContinue }
+  cl.AddConstantN('mrAll', 'Integer').Value.ts32 := {$IFDEF DELPHI16UP}12{$ELSE}8{$ENDIF};
+  cl.AddConstantN('mrNoToAll', 'Integer').Value.ts32 := {$IFDEF DELPHI16UP}13{$ELSE}9{$ENDIF};
+  cl.AddConstantN('mrYesToAll', 'Integer').Value.ts32 := {$IFDEF DELPHI16UP}14{$ELSE}10{$ENDIF};
   cl.AddConstantN('crDefault', 'Integer').Value.ts32 := 0;
   cl.AddConstantN('crNone', 'Integer').Value.ts32 := -1;
   cl.AddConstantN('crArrow', 'Integer').Value.ts32 := -2;
@@ -262,12 +269,21 @@ end;
 procedure SIRegisterTSizeConstraints(cl: TPSPascalCompiler);
 begin
   cl.AddTypeS('TConstraintSize', 'Integer');
+  {$IFNDEF FPC}
+  { its constructor names TControl, which the library registers later: declared
+    here without its ancestor until then }
+  if cl.FindClass('TControl') = nil then
+    cl.AddClassN(nil, 'TControl');
+  {$ENDIF}
   with CL.AddClassN(CL.FindClass('TPersistent'),'TSizeConstraints') do
   begin
     RegisterProperty('MaxHeight', 'TConstraintSize', iptrw);
     RegisterProperty('MaxWidth', 'TConstraintSize', iptrw);
     RegisterProperty('MinHeight', 'TConstraintSize', iptrw);
     RegisterProperty('MinWidth', 'TConstraintSize', iptrw);
+    {$IFNDEF FPC}
+    RegisterMethod('constructor Create(Control: TControl); virtual;');
+    {$ENDIF}
   end;
 end;
 {$ENDIF}

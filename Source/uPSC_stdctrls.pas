@@ -125,6 +125,7 @@ begin
     RegisterProperty('ParentColor', 'Boolean', iptrw);
     RegisterProperty('ParentFont', 'Boolean', iptrw);
     RegisterProperty('ParentShowHint', 'Boolean', iptrw);
+    RegisterProperty('PopupMenu', 'TPopupMenu', iptrw);
     RegisterProperty('ShowAccelChar', 'Boolean', iptrw);
     RegisterProperty('Transparent', 'Boolean', iptrw);
     RegisterProperty('WordWrap', 'Boolean', iptrw);
@@ -646,17 +647,31 @@ end;
 procedure SIRegister_StdCtrls_TypesAndConsts(cl: TPSPascalCompiler);
 begin
   cl.AddTypeS('TEditCharCase', '(ecNormal, ecUpperCase, ecLowerCase)');
+  if cl.FindType('TScrollBarKind') = nil then
+    cl.AddTypeS('TScrollBarKind', '(sbHorizontal, sbVertical)');
+  if cl.FindType('TScrollBarInc') = nil then
+    cl.AddTypeS('TScrollBarInc', 'SmallInt');
+  if cl.FindType('TFormBorderStyle') = nil then
+    cl.AddTypeS('TFormBorderStyle', '(bsNone, bsSingle, bsSizeable, bsDialog, bsToolWindow, bsSizeToolWin)');
+  if cl.FindType('TBorderStyle') = nil then
+    cl.AddTypeS('TBorderStyle', 'TFormBorderStyle');
   cl.AddTypeS('TScrollStyle', '(ssNone, ssHorizontal, ssVertical, ssBoth)');
   cl.AddTypeS('TComboBoxStyle', '(csDropDown, csSimple, csDropDownList, csOwnerDrawFixed, csOwnerDrawVariable)');
   {$IFDEF DELPHI23UP}
   cl.AddTypeS('TButtonStyle', '(bsPushButton, bsCommandLink, bsSplitButton)');
   {$ENDIF}
   cl.AddTypeS('TCheckBoxState', '(cbUnchecked, cbChecked, cbGrayed)');
+  {$IFDEF FPC}
   cl.AddTypeS('TListBoxStyle', '(lbStandard, lbOwnerDrawFixed, lbOwnerDrawVariable)');
+  {$ELSE}
+  cl.AddTypeS('TListBoxStyle', '(lbStandard, lbOwnerDrawFixed, lbOwnerDrawVariable, lbVirtual, lbVirtualOwnerDraw)');
+  {$ENDIF}
   cl.AddTypeS('TScrollCode', '(scLineUp, scLineDown, scPageUp, scPageDown, scPosition, scTrack, scTop, scBottom, scEndScroll)');
-  Cl.addTypeS('TEOwnerDrawState', '(odSelected, odGrayed, odDisabled, odChecked, odFocused, odDefault, odHotLight, odInactive, odNoAccel, odNoFocusRect, odReserved1, odReserved2, odComboBoxEdit)');
   cl.AddTypeS('TTextLayout', '(tlTop, tlCenter, tlBottom)');
-  cl.AddTypeS('TOwnerDrawState', 'set of TEOwnerDrawState');
+  if cl.FindType('TOwnerDrawState') = nil then begin
+    Cl.addTypeS('TEOwnerDrawState', '(odSelected, odGrayed, odDisabled, odChecked, odFocused, odDefault, odHotLight, odInactive, odNoAccel, odNoFocusRect, odReserved1, odReserved2, odComboBoxEdit)');
+    cl.AddTypeS('TOwnerDrawState', 'set of TEOwnerDrawState');
+  end;
 
   cl.AddTypeS('TDrawItemEvent', 'procedure(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState)');
   cl.AddTypeS('TMeasureItemEvent', 'procedure(Control: TWinControl; Index: Integer; var Height: Integer)');

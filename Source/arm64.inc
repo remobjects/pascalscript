@@ -50,7 +50,7 @@ procedure arm64call(
   Stack: Pointer;
   Items: NativeInt); external {$IFDEF DARWIN}name '_arm64call'{$ENDIF};
 
-function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+function TPSExec.PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   Stack: array of Byte;
   _X0: IPointer;
@@ -155,7 +155,7 @@ var
           begin
             if Copy(fvar.aType.ExportName, 1, 10) = '!OPENARRAY' then
             begin
-              p := CreateOpenArray(True, Self, FVar);
+              p := CreateOpenArray(True, Self, FVar, CallData);
               if p = nil then
                 Exit;
               CallData.Add(p);
@@ -191,7 +191,7 @@ var
           begin
             if Copy(fvar^.aType.ExportName, 1, 10) = '!OPENARRAY' then
             begin
-              p := CreateOpenArray(False, Self, FVar);
+              p := CreateOpenArray(False, Self, FVar, CallData);
               if p = nil then
                 Exit;
               CallData.Add(p);
@@ -274,7 +274,7 @@ begin
     IsConstructor := False;
 {$ENDIF}
 
-  InnerfuseCall := False;
+  PlatformInnerfuseCall := False;
   if Address = nil then
     Exit;
 
@@ -299,7 +299,7 @@ begin
       DisposePPSVariantIFC(Params[0]);
       Params.Delete(0);
     end;
-    {$ENDIF}
+    {$IFEND}
 
     if Assigned(_Self) then
       StoreIntReg(IPointer(_Self));

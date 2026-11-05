@@ -4,7 +4,7 @@ unit uPSR_stdctrls;
 {$I PascalScript.inc}
 interface
 uses
-  uPSRuntime, uPSUtils;
+  uPSRuntime, uPSUtils, uPSR_controls;
 
 
 procedure RIRegisterTCUSTOMGROUPBOX(Cl: TPSRuntimeClassImporter);
@@ -97,6 +97,52 @@ begin
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
+{ Members that are virtual in some or all Delphi versions, bound through routines that call them
+  by name: the compiler then calls through the object's virtual method table wherever the member is
+  virtual, so a descendant's override runs.  Bound by address, a script ran this class's own code
+  whatever the object's class. }
+procedure TCustomEditClear_P(Self: TCustomEdit);
+begin
+  Self.Clear;
+end;
+
+procedure TCustomComboBoxClear_P(Self: TCustomComboBox);
+begin
+  Self.Clear;
+end;
+
+procedure TCustomComboBoxSelectAll_P(Self: TCustomComboBox);
+begin
+  Self.SelectAll;
+end;
+
+procedure TCustomListBoxClear_P(Self: TCustomListBox);
+begin
+  Self.Clear;
+end;
+
+{$IFNDEF PS_MINIVCL}{$IFNDEF FPC}
+{ A script PChar is a PAnsiChar on every compiler, Delphi's PChar a PWideChar from Delphi 2009: the
+  text members that take one are bound through routines that go through a string, and copy at most
+  BufSize - 1 bytes and a #0 into the script's buffer. }
+function TCustomEditGetSelTextBuf_P(Self: TCustomEdit; Buffer: PAnsiChar; BufSize: Integer): Integer;
+var
+  lText : string;
+begin
+  Result := 0;
+  if BufSize <= 0 then
+    Exit;
+  SetLength(lText, BufSize);
+  SetLength(lText, Self.GetSelTextBuf(PChar(lText), BufSize));
+  Result := PSTextToAnsiBuffer(lText, Buffer, BufSize);
+end;
+
+procedure TCustomEditSetSelTextBuf_P(Self: TCustomEdit; Buffer: PAnsiChar);
+begin
+  Self.SetSelTextBuf(PChar(string(AnsiString(Buffer))));
+end;
+{$ENDIF}{$ENDIF}
+
 {$IFDEF DELPHI10UP}{$REGION 'TCustomEdit'}{$ENDIF}
 {$IFDEF class_helper_present}
 type
@@ -130,7 +176,7 @@ procedure RIRegisterTCUSTOMEDIT(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCustomEdit) do
   begin
-    RegisterMethod(@TCustomEdit.CLEAR, 'Clear');
+    RegisterMethod(@TCustomEditClear_P, 'Clear');
     RegisterMethod(@TCustomEdit.CLEARSELECTION, 'ClearSelection');
     RegisterMethod(@TCustomEdit.SELECTALL, 'SelectAll');
     RegisterPropertyHelper(@TCustomEdit.MODIFIED_R, @TCustomEdit.MODIFIED_W, 'Modified');
@@ -144,8 +190,8 @@ begin
     RegisterMethod(@TCustomEdit.CUTTOCLIPBOARD, 'CutToClipboard');
 		RegisterMethod(@TCustomEdit.PASTEFROMCLIPBOARD, 'PasteFromClipboard');
 		{$IFNDEF FPC}
-		RegisterMethod(@TCustomEdit.GETSELTEXTBUF, 'GetSelTextBuf');
-    RegisterMethod(@TCustomEdit.SETSELTEXTBUF, 'SetSelTextBuf');
+		RegisterMethod(@TCustomEditGetSelTextBuf_P, 'GetSelTextBuf');
+    RegisterMethod(@TCustomEditSetSelTextBuf_P, 'SetSelTextBuf');
 		{$ENDIF}{FPC}
     {$ENDIF}
   end;
@@ -168,7 +214,7 @@ procedure RIRegisterTCUSTOMEDIT(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCUSTOMEDIT) do
   begin
-    RegisterMethod(@TCUSTOMEDIT.CLEAR, 'Clear');
+    RegisterMethod(@TCustomEditClear_P, 'Clear');
     RegisterMethod(@TCUSTOMEDIT.CLEARSELECTION, 'ClearSelection');
     RegisterMethod(@TCUSTOMEDIT.SELECTALL, 'SelectAll');
     RegisterPropertyHelper(@TCUSTOMEDITMODIFIED_R, @TCUSTOMEDITMODIFIED_W, 'Modified');
@@ -182,8 +228,8 @@ begin
     RegisterMethod(@TCUSTOMEDIT.CUTTOCLIPBOARD, 'CutToClipboard');
 		RegisterMethod(@TCUSTOMEDIT.PASTEFROMCLIPBOARD, 'PasteFromClipboard');
 		{$IFNDEF FPC}
-		RegisterMethod(@TCUSTOMEDIT.GETSELTEXTBUF, 'GetSelTextBuf');
-    RegisterMethod(@TCUSTOMEDIT.SETSELTEXTBUF, 'SetSelTextBuf');
+		RegisterMethod(@TCustomEditGetSelTextBuf_P, 'GetSelTextBuf');
+    RegisterMethod(@TCustomEditSetSelTextBuf_P, 'SetSelTextBuf');
 		{$ENDIF}{FPC}
     {$ENDIF}
   end;
@@ -196,6 +242,9 @@ end;
 procedure RIRegisterTEDIT(Cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TEdit);
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TEdit'));
+  {$ENDIF}{$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
@@ -222,6 +271,9 @@ end;
 procedure RIRegisterTMEMO(Cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TMEMO);
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TMemo'));
+  {$ENDIF}{$ENDIF}
 end;
 
 {$ELSE}
@@ -295,8 +347,8 @@ begin
     RegisterPropertyHelper(@TCustomComboBox.ITEMINDEX_R, @TCustomComboBox.ITEMINDEX_W, 'ItemIndex');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TCustomComboBox.CLEAR, 'Clear');
-    RegisterMethod(@TCustomComboBox.SELECTALL, 'SelectAll');
+    RegisterMethod(@TCustomComboBoxClear_P, 'Clear');
+    RegisterMethod(@TCustomComboBoxSelectAll_P, 'SelectAll');
     RegisterPropertyHelper(@TCustomComboBox.CANVAS_R, nil, 'Canvas');
     RegisterPropertyHelper(@TCustomComboBox.SELLENGTH_R, @TCustomComboBox.SELLENGTH_W, 'SelLength');
     RegisterPropertyHelper(@TCustomComboBox.SELSTART_R, @TCustomComboBox.SELSTART_W, 'SelStart');
@@ -330,8 +382,8 @@ begin
     RegisterPropertyHelper(@TCUSTOMCOMBOBOXITEMINDEX_R, @TCUSTOMCOMBOBOXITEMINDEX_W, 'ItemIndex');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TCUSTOMCOMBOBOX.CLEAR, 'Clear');
-    RegisterMethod(@TCUSTOMCOMBOBOX.SELECTALL, 'SelectAll');
+    RegisterMethod(@TCustomComboBoxClear_P, 'Clear');
+    RegisterMethod(@TCustomComboBoxSelectAll_P, 'SelectAll');
     RegisterPropertyHelper(@TCUSTOMCOMBOBOXCANVAS_R, nil, 'Canvas');
     RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELLENGTH_R, @TCUSTOMCOMBOBOXSELLENGTH_W, 'SelLength');
     RegisterPropertyHelper(@TCUSTOMCOMBOBOXSELSTART_R, @TCUSTOMCOMBOBOXSELSTART_W, 'SelStart');
@@ -346,6 +398,9 @@ end;
 procedure RIRegisterTCOMBOBOX(Cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TComboBox);
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TComboBox'));
+  {$ENDIF}{$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
@@ -360,6 +415,9 @@ end;
 procedure RIRegisterTBUTTON(Cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TButton);
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TButton'));
+  {$ENDIF}{$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
@@ -374,6 +432,9 @@ end;
 procedure RIRegisterTCHECKBOX(Cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TCheckBox);
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TCheckBox'));
+  {$ENDIF}{$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
@@ -381,6 +442,9 @@ end;
 procedure RIRegisterTRADIOBUTTON(Cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TRadioButton);
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TRadioButton'));
+  {$ENDIF}{$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
@@ -423,7 +487,7 @@ begin
     RegisterPropertyHelper(@TCustomListBox.SELECTED_R, @TCustomListBox.SELECTED_W, 'Selected');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TCustomListBox.CLEAR, 'Clear');
+    RegisterMethod(@TCustomListBoxClear_P, 'Clear');
     RegisterMethod(@TCustomListBox.ITEMATPOS, 'ItemAtPos');
     RegisterMethod(@TCustomListBox.ITEMRECT, 'ItemRect');
     RegisterPropertyHelper(@TCustomListBox.CANVAS_R, nil, 'Canvas');
@@ -455,7 +519,7 @@ begin
     RegisterPropertyHelper(@TCUSTOMLISTBOXSELECTED_R, @TCUSTOMLISTBOXSELECTED_W, 'Selected');
 
     {$IFNDEF PS_MINIVCL}
-    RegisterMethod(@TCUSTOMLISTBOX.CLEAR, 'Clear');
+    RegisterMethod(@TCustomListBoxClear_P, 'Clear');
     RegisterMethod(@TCUSTOMLISTBOX.ITEMATPOS, 'ItemAtPos');
     RegisterMethod(@TCUSTOMLISTBOX.ITEMRECT, 'ItemRect');
     RegisterPropertyHelper(@TCUSTOMLISTBOXCANVAS_R, nil, 'Canvas');
@@ -470,6 +534,9 @@ end;
 procedure RIRegisterTLISTBOX(Cl: TPSRuntimeClassImporter);
 begin
   Cl.Add(TListBox);
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TListBox'));
+  {$ENDIF}{$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
@@ -480,6 +547,9 @@ begin
   begin
     RegisterMethod(@TSCROLLBAR.SETPARAMS, 'SetParams');
   end;
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TScrollBar'));
+  {$ENDIF}{$ENDIF}
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 

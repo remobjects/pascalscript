@@ -147,7 +147,7 @@ asmcall_end:
 	ldmea	r11,{r4,r5,r6,r7,r8,r9,r10,r11,r13,r15}
 end;
 
-function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+function TPSExec.PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   rint: Trint;			{ registers r0 to r3 }
   rfloat: Trfloat;		{ registers f0 to f3 }
@@ -318,7 +318,7 @@ begin
 	                                         addfloat(fvar.dta, 1);
 	                                       {$else}
 					         addgen(dword(psingle(fvar.dta)^));
-					       {$endif}
+					       {$IFEND}
           btDouble{, btExtended}:              {$if defined(FPUFPA) or defined(FPC_abi_eabihf)}
 	                                         addfloat(fvar.dta, 2);
 	                                       {$else}
@@ -330,7 +330,7 @@ begin
 					           addgen(hi(qword(pdouble(fvar.dta)^)));
 					           {$ENDIF}
 						 end;
-					       {$endif}
+					       {$IFEND}
           btPChar:                             addgen(dword(ppchar(fvar.dta)^));
           btChar:                              addgen(dword(pchar(fvar.dta)^));
           {$IFNDEF PS_NOINT64}bts64:           begin

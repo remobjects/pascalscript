@@ -4,7 +4,7 @@ unit uPSR_forms;
 {$I PascalScript.inc}
 interface
 uses
-  uPSRuntime, uPSUtils;
+  uPSRuntime, uPSUtils, uPSR_controls;
 
 procedure RIRegisterTCONTROLSCROLLBAR(Cl: TPSRuntimeClassImporter);
 {$IFNDEF FPC} procedure RIRegisterTSCROLLINGWINCONTROL(Cl: TPSRuntimeClassImporter);{$ENDIF}
@@ -74,6 +74,39 @@ begin
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
+{ Members that are virtual in some or all Delphi versions, bound through routines that call them
+  by name: the compiler then calls through the object's virtual method table wherever the member is
+  virtual, so a descendant's override runs.  Bound by address, a script ran this class's own code
+  whatever the object's class. }
+function TFormShowModal_P(Self: TForm): Integer;
+begin
+  Result := Self.ShowModal;
+end;
+
+function TFormCloseQuery_P(Self: TForm): Boolean;
+begin
+  Result := Self.CloseQuery;
+end;
+
+function TFormSetFocusedControl_P(Self: TForm; Control: TWinControl): Boolean;
+begin
+  Result := Self.SetFocusedControl(Control);
+end;
+
+{$IFDEF DELPHI28UP}
+{ From Delphi 11 Alexandria PixelsPerInch is no longer published (TForm inherits
+  TWinControl's public one): read and written through helpers. }
+procedure TFormPixelsPerInch_R(Self: TForm; var T: Integer);
+begin
+  T := Self.PixelsPerInch;
+end;
+
+procedure TFormPixelsPerInch_W(Self: TForm; T: Integer);
+begin
+  Self.PixelsPerInch := T;
+end;
+{$ENDIF}
+
 {$IFDEF DELPHI10UP}{$REGION 'TForm'}{$ENDIF}
 {$IFDEF class_helper_present}
 type
@@ -140,7 +173,7 @@ begin
     RegisterMethod(@TForm.CLOSE, 'Close');
     RegisterMethod(@TForm.HIDE, 'Hide');
     RegisterMethod(@TForm.SHOW, 'Show');
-    RegisterMethod(@TForm.SHOWMODAL, 'ShowModal');
+    RegisterMethod(@TFormShowModal_P, 'ShowModal');
     RegisterMethod(@TForm.RELEASE, 'Release');
     RegisterPropertyHelper(@TForm.ACTIVE_R, nil, 'Active');
 
@@ -163,14 +196,20 @@ begin
     RegisterPropertyHelper(@TForm.MDICHILDCOUNT_R, nil, 'MDIChildCount');
     RegisterPropertyHelper(@TForm.MDICHILDREN_R, nil, 'MDIChildren');
  {$ENDIF}{FPC}
-    RegisterMethod(@TForm.CLOSEQUERY, 'CloseQuery');
+    RegisterMethod(@TFormCloseQuery_P, 'CloseQuery');
     RegisterMethod(@TForm.DEFOCUSCONTROL, 'DefocusControl');
     RegisterMethod(@TForm.FOCUSCONTROL, 'FocusControl');
-    RegisterMethod(@TForm.SETFOCUSEDCONTROL, 'SetFocusedControl');
+    RegisterMethod(@TFormSetFocusedControl_P, 'SetFocusedControl');
     RegisterPropertyHelper(@TForm.CANVAS_R, nil, 'Canvas');
     RegisterPropertyHelper(@TForm.MODALRESULT_R, @TForm.MODALRESULT_W, 'ModalResult');
+    {$IFDEF DELPHI28UP}
+    RegisterPropertyHelper(@TFormPixelsPerInch_R, @TFormPixelsPerInch_W, 'PixelsPerInch');
+    {$ENDIF}
     {$ENDIF}{PS_MINIVCL}
   end;
+  {$IFDEF UNICODE}{$IFNDEF FPC}
+  RIRegisterKeyPressHelper(Cl.FindClass('TForm'));
+  {$ENDIF}{$ENDIF}
 end;
 
 {$ELSE}
@@ -212,11 +251,7 @@ begin
     RegisterMethod(@TFORM.CLOSE, 'Close');
     RegisterMethod(@TFORM.HIDE, 'Hide');
     RegisterMethod(@TFORM.SHOW, 'Show');
-    {$IFDEF DELPHI_SEATTLE_UP}
-    RegisterVirtualMethod(@TFORM.SHOWMODAL, 'ShowModal');
-    {$ELSE}
-    RegisterMethod(@TFORM.SHOWMODAL, 'ShowModal');
-    {$ENDIF}
+    RegisterMethod(@TFormShowModal_P, 'ShowModal');
     RegisterMethod(@TFORM.RELEASE, 'Release');
     RegisterPropertyHelper(@TFORMACTIVE_R, nil, 'Active');
 
@@ -239,10 +274,10 @@ begin
     RegisterPropertyHelper(@TFORMMDICHILDCOUNT_R, nil, 'MDIChildCount');
     RegisterPropertyHelper(@TFORMMDICHILDREN_R, nil, 'MDIChildren');
  {$ENDIF}{FPC}
-    RegisterMethod(@TFORM.CLOSEQUERY, 'CloseQuery');
+    RegisterMethod(@TFormCloseQuery_P, 'CloseQuery');
     RegisterMethod(@TFORM.DEFOCUSCONTROL, 'DefocusControl');
     RegisterMethod(@TFORM.FOCUSCONTROL, 'FocusControl');
-    RegisterMethod(@TFORM.SETFOCUSEDCONTROL, 'SetFocusedControl');
+    RegisterMethod(@TFormSetFocusedControl_P, 'SetFocusedControl');
     RegisterPropertyHelper(@TFORMCANVAS_R, nil, 'Canvas');
     RegisterPropertyHelper(@TFORMMODALRESULT_R, @TFORMMODALRESULT_W, 'ModalResult');
     {$ENDIF}{PS_MINIVCL}
@@ -283,6 +318,10 @@ type
     procedure HINTSHORTPAUSE_W(T: INTEGER);
     procedure HINTHIDEPAUSE_R(var T: INTEGER);
     procedure HINTHIDEPAUSE_W(T: INTEGER);
+    {$IFNDEF FPC}
+    procedure ICON_R(var T: TICON);
+    procedure ICON_W(T: TICON);
+    {$ENDIF}
     procedure MAINFORM_R(var T: {$IFDEF DELPHI3UP}TCustomForm{$ELSE}TFORM{$ENDIF});
     procedure SHOWHINT_R(var T: BOOLEAN);
     procedure SHOWHINT_W(T: BOOLEAN);
@@ -341,6 +380,10 @@ procedure TApplication_PSHelper.HINTSHORTPAUSE_R(var T: INTEGER); begin T := Sel
 procedure TApplication_PSHelper.HINTSHORTPAUSE_W(T: INTEGER); begin Self.HINTSHORTPAUSE := T; end;
 procedure TApplication_PSHelper.HINTHIDEPAUSE_R(var T: INTEGER); begin T := Self.HINTHIDEPAUSE; end;
 procedure TApplication_PSHelper.HINTHIDEPAUSE_W(T: INTEGER); begin Self.HINTHIDEPAUSE := T; end;
+{$IFNDEF FPC}
+procedure TApplication_PSHelper.ICON_R(var T: TICON); begin T := Self.ICON; end;
+procedure TApplication_PSHelper.ICON_W(T: TICON); begin Self.ICON := T; end;
+{$ENDIF}
 procedure TApplication_PSHelper.MAINFORM_R(var T: {$IFDEF DELPHI3UP}TCustomForm{$ELSE}TFORM{$ENDIF}); begin T := Self.MAINFORM; end;
 procedure TApplication_PSHelper.SHOWHINT_R(var T: BOOLEAN); begin T := Self.SHOWHINT; end;
 procedure TApplication_PSHelper.SHOWHINT_W(T: BOOLEAN); begin Self.SHOWHINT := T; end;
@@ -380,10 +423,10 @@ begin
     RegisterMethod(@TApplication.MINIMIZE, 'Minimize');
     RegisterMethod(@TApplication.RESTORE, 'Restore');
     RegisterPropertyHelper(@TApplication.ACTIVE_R, nil, 'Active');
-    RegisterPropertyHelper(@TApplication.ONACTIVATE_R, @TApplication.ONACTIVATE_W, 'OnActivate');
-    RegisterPropertyHelper(@TApplication.ONDEACTIVATE_R, @TApplication.ONDEACTIVATE_W, 'OnDeactivate');
-    RegisterPropertyHelper(@TApplication.ONMINIMIZE_R, @TApplication.ONMINIMIZE_W, 'OnMinimize');
-    RegisterPropertyHelper(@TApplication.ONRESTORE_R, @TApplication.ONRESTORE_W, 'OnRestore');
+    RegisterEventPropertyHelper(@TApplication.ONACTIVATE_R, @TApplication.ONACTIVATE_W, 'OnActivate');
+    RegisterEventPropertyHelper(@TApplication.ONDEACTIVATE_R, @TApplication.ONDEACTIVATE_W, 'OnDeactivate');
+    RegisterEventPropertyHelper(@TApplication.ONMINIMIZE_R, @TApplication.ONMINIMIZE_W, 'OnMinimize');
+    RegisterEventPropertyHelper(@TApplication.ONRESTORE_R, @TApplication.ONRESTORE_W, 'OnRestore');
     RegisterMethod(@TApplication.NORMALIZETOPMOSTS, 'NormalizeTopMosts');
     RegisterMethod(@TApplication.RESTORETOPMOSTS, 'RestoreTopMosts');
     {$IFNDEF CLX}
@@ -404,8 +447,8 @@ begin
     RegisterPropertyHelper(@TApplication.SHOWMAINFORM_R, @TApplication.SHOWMAINFORM_W, 'ShowMainForm');
     RegisterPropertyHelper(@TApplication.TERMINATED_R, nil, 'Terminated');
     RegisterPropertyHelper(@TApplication.TITLE_R, @TApplication.TITLE_W, 'Title');
-    RegisterPropertyHelper(@TApplication.ONIDLE_R, @TApplication.ONIDLE_W, 'OnIdle');
-    RegisterPropertyHelper(@TApplication.ONHINT_R, @TApplication.ONHINT_W, 'OnHint');
+    RegisterEventPropertyHelper(@TApplication.ONIDLE_R, @TApplication.ONIDLE_W, 'OnIdle');
+    RegisterEventPropertyHelper(@TApplication.ONHINT_R, @TApplication.ONHINT_W, 'OnHint');
     {$IFNDEF PS_MINIVCL}
     RegisterMethod(@TApplication.CONTROLDESTROYED, 'ControlDestroyed');
     RegisterMethod(@TApplication.CANCELHINT, 'CancelHint');
@@ -427,7 +470,10 @@ begin
     RegisterPropertyHelper(@TApplication.HINTPAUSE_R, @TApplication.HINTPAUSE_W, 'HintPause');
     RegisterPropertyHelper(@TApplication.HINTSHORTPAUSE_R, @TApplication.HINTSHORTPAUSE_W, 'HintShortPause');
     RegisterPropertyHelper(@TApplication.HINTHIDEPAUSE_R, @TApplication.HINTHIDEPAUSE_W, 'HintHidePause');
-    RegisterPropertyHelper(@TApplication.ONHELP_R, @TApplication.ONHELP_W, 'OnHelp');
+    {$IFNDEF FPC}
+    RegisterPropertyHelper(@TApplication.ICON_R, @TApplication.ICON_W, 'Icon');
+    {$ENDIF}
+    RegisterEventPropertyHelper(@TApplication.ONHELP_R, @TApplication.ONHELP_W, 'OnHelp');
     {$ENDIF}
   end;
 end;
@@ -459,6 +505,10 @@ procedure TAPPLICATIONHINTSHORTPAUSE_R(Self: TAPPLICATION; var T: INTEGER); begi
 procedure TAPPLICATIONHINTSHORTPAUSE_W(Self: TAPPLICATION; T: INTEGER); begin Self.HINTSHORTPAUSE := T; end;
 procedure TAPPLICATIONHINTHIDEPAUSE_R(Self: TAPPLICATION; var T: INTEGER); begin T := Self.HINTHIDEPAUSE; end;
 procedure TAPPLICATIONHINTHIDEPAUSE_W(Self: TAPPLICATION; T: INTEGER); begin Self.HINTHIDEPAUSE := T; end;
+{$IFNDEF FPC}
+procedure TAPPLICATIONICON_R(Self: TAPPLICATION; var T: TICON); begin T := Self.ICON; end;
+procedure TAPPLICATIONICON_W(Self: TAPPLICATION; T: TICON); begin Self.ICON := T; end;
+{$ENDIF}
 procedure TAPPLICATIONMAINFORM_R(Self: TAPPLICATION; var T: {$IFDEF DELPHI3UP}TCustomForm{$ELSE}TFORM{$ENDIF}); begin T := Self.MAINFORM; end;
 procedure TAPPLICATIONSHOWHINT_R(Self: TAPPLICATION; var T: BOOLEAN); begin T := Self.SHOWHINT; end;
 procedure TAPPLICATIONSHOWHINT_W(Self: TAPPLICATION; T: BOOLEAN); begin Self.SHOWHINT := T; end;
@@ -498,10 +548,10 @@ begin
     RegisterMethod(@TAPPLICATION.MINIMIZE, 'Minimize');
     RegisterMethod(@TAPPLICATION.RESTORE, 'Restore');
     RegisterPropertyHelper(@TAPPLICATIONACTIVE_R, nil, 'Active');
-    RegisterPropertyHelper(@TAPPLICATIONONACTIVATE_R, @TAPPLICATIONONACTIVATE_W, 'OnActivate');
-    RegisterPropertyHelper(@TAPPLICATIONONDEACTIVATE_R, @TAPPLICATIONONDEACTIVATE_W, 'OnDeactivate');
-    RegisterPropertyHelper(@TAPPLICATIONONMINIMIZE_R, @TAPPLICATIONONMINIMIZE_W, 'OnMinimize');
-    RegisterPropertyHelper(@TAPPLICATIONONRESTORE_R, @TAPPLICATIONONRESTORE_W, 'OnRestore');
+    RegisterEventPropertyHelper(@TAPPLICATIONONACTIVATE_R, @TAPPLICATIONONACTIVATE_W, 'OnActivate');
+    RegisterEventPropertyHelper(@TAPPLICATIONONDEACTIVATE_R, @TAPPLICATIONONDEACTIVATE_W, 'OnDeactivate');
+    RegisterEventPropertyHelper(@TAPPLICATIONONMINIMIZE_R, @TAPPLICATIONONMINIMIZE_W, 'OnMinimize');
+    RegisterEventPropertyHelper(@TAPPLICATIONONRESTORE_R, @TAPPLICATIONONRESTORE_W, 'OnRestore');
     RegisterMethod(@TAPPLICATION.NORMALIZETOPMOSTS, 'NormalizeTopMosts');
     RegisterMethod(@TAPPLICATION.RESTORETOPMOSTS, 'RestoreTopMosts');
     {$IFNDEF CLX}
@@ -522,8 +572,8 @@ begin
     RegisterPropertyHelper(@TAPPLICATIONSHOWMAINFORM_R, @TAPPLICATIONSHOWMAINFORM_W, 'ShowMainForm');
     RegisterPropertyHelper(@TAPPLICATIONTERMINATED_R, nil, 'Terminated');
     RegisterPropertyHelper(@TAPPLICATIONTITLE_R, @TAPPLICATIONTITLE_W, 'Title');
-    RegisterPropertyHelper(@TAPPLICATIONONIDLE_R, @TAPPLICATIONONIDLE_W, 'OnIdle');
-    RegisterPropertyHelper(@TAPPLICATIONONHINT_R, @TAPPLICATIONONHINT_W, 'OnHint');
+    RegisterEventPropertyHelper(@TAPPLICATIONONIDLE_R, @TAPPLICATIONONIDLE_W, 'OnIdle');
+    RegisterEventPropertyHelper(@TAPPLICATIONONHINT_R, @TAPPLICATIONONHINT_W, 'OnHint');
     {$IFNDEF PS_MINIVCL}
     RegisterMethod(@TAPPLICATION.CONTROLDESTROYED, 'ControlDestroyed');
     RegisterMethod(@TAPPLICATION.CANCELHINT, 'CancelHint');
@@ -545,7 +595,10 @@ begin
     RegisterPropertyHelper(@TAPPLICATIONHINTPAUSE_R, @TAPPLICATIONHINTPAUSE_W, 'HintPause');
     RegisterPropertyHelper(@TAPPLICATIONHINTSHORTPAUSE_R, @TAPPLICATIONHINTSHORTPAUSE_W, 'HintShortPause');
     RegisterPropertyHelper(@TAPPLICATIONHINTHIDEPAUSE_R, @TAPPLICATIONHINTHIDEPAUSE_W, 'HintHidePause');
-    RegisterPropertyHelper(@TAPPLICATIONONHELP_R, @TAPPLICATIONONHELP_W, 'OnHelp');
+    {$IFNDEF FPC}
+    RegisterPropertyHelper(@TAPPLICATIONICON_R, @TAPPLICATIONICON_W, 'Icon');
+    {$ENDIF}
+    RegisterEventPropertyHelper(@TAPPLICATIONONHELP_R, @TAPPLICATIONONHELP_W, 'OnHelp');
     {$ENDIF}
   end;
 end;

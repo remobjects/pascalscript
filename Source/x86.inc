@@ -1,7 +1,4 @@
 { implementation of x86         abi }
-{$ifdef FPC}
-{$define PS_ARRAY_ON_STACK}
-{$endif}
 { Pure assembler: Delphi 12.3 sometimes generates a bad instruction for the
   Result of a float function that contains an asm block }
 function RealFloatCall_Register(p: Pointer;
@@ -206,12 +203,13 @@ begin
     mov r, ecx
     @@5:
     mov ecx, stackdatalen
-    jecxz @@7
+    jecxz @@8
     @@6:
     pop eax
     dec ecx
     or ecx, ecx
     jnz @@6
+    @@8:
     mov ecx, resedx
     jecxz @@7
     mov [ecx], edx
@@ -236,7 +234,7 @@ const
 {$IFDEF DELPHI_ATHENS_UP}{$DEFINE DELPHI_SMALL_MANAGED_BORROW}{$ENDIF}
 {$ENDIF}
 
-function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+function TPSExec.PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var
   Stack: ansistring;
   I: Longint;
@@ -245,7 +243,6 @@ var
   pp: ^Byte;
 {$IFDEF FPC}
   IsConstructor,IsVirtualCons: Boolean;
-  MethodData: TMethod;
 {$ENDIF}
 
   EAX, EDX, ECX: Longint;
@@ -279,6 +276,17 @@ var
         ((res^.aType.RealSize <> 4) or IsManagedType(res^.aType))
     else
     {$ENDIF}
+    {$IF defined(FPC) and defined(MSWINDOWS)}
+    { Free Pascal Win32: a record result is returned in EAX at 1, 2 or 4 bytes,
+      and by a cdecl routine in EAX:EDX up to 8 bytes; a larger one, one
+      holding a managed field, and a pascal routine's are written through the
+      hidden result pointer }
+    if res^.aType.BaseType = btRecord then
+      Result := IsManagedType(res^.aType) or (CallingConv = cdPascal) or
+        ((CallingConv = cdCdecl) and (res^.aType.RealSize > 8)) or
+        ((CallingConv <> cdCdecl) and not (res^.aType.RealSize in [1, 2, 4]))
+    else
+    {$IFEND}
     begin
       {$IFDEF MSWINDOWS}
       Result := res^.aType.RealSize > 4;
@@ -287,6 +295,55 @@ var
       {$ENDIF}
     end;
   end;
+
+  {$IFDEF FPC}
+  { Free Pascal's RTL and fcl-db keep an enumeration or a set of up to 32 members in 4 bytes (their
+    units are compiled in objfpc mode), where the script holds it in 1 to 3: a native routine writing
+    such a var parameter would overrun the script's value.  It gets a zero-extended copy instead,
+    whose script-sized part is written back after the call }
+  type
+    TNarrowedVar = record
+      AType  : Byte; { 1; must be first, matching uPSRuntime's TOpenArray }
+      Size   : Longint;
+      Target : Pointer;
+      Data   : array[0..31] of Byte;
+    end;
+    PNarrowedVar = ^TNarrowedVar;
+    { a method pointer passed by reference: a copy per parameter, alive until the call returns }
+    TMethodCallData = record
+      AType : Byte; { 255; must be first, matching uPSRuntime's TOpenArray }
+      Data  : TMethod;
+    end;
+    PMethodCallData = ^TMethodCallData;
+
+  function NarrowedVar(aTarget: Pointer; aSize: Longint): Pointer;
+  var
+    lRec: PNarrowedVar;
+    lIdx: Longint;
+  begin
+    { the same script value passed twice by reference shares one copy, as it shares one address on Delphi }
+    if CallData <> nil then
+      for lIdx := 0 to CallData.Count - 1 do
+      begin
+        lRec := CallData[lIdx];
+        if (lRec^.AType = 1) and (lRec^.Target = aTarget) then
+        begin
+          Result := @lRec^.Data;
+          Exit;
+        end;
+      end;
+    New(lRec);
+    FillChar(lRec^, SizeOf(lRec^), 0);
+    lRec^.AType := 1;
+    lRec^.Size := aSize;
+    lRec^.Target := aTarget;
+    Move(aTarget^, lRec^.Data, aSize);
+    if CallData = nil then
+      CallData := TPSList.Create;
+    CallData.Add(lRec);
+    Result := @lRec^.Data;
+  end;
+  {$ENDIF}
 
   function GetPtr(fVar: PPSVariantIFC): Boolean;
   var
@@ -305,9 +362,32 @@ var
           begin
             if Copy(fvar.aType.ExportName, 1, 10) = '!OPENARRAY' then
             begin
-              p := CreateOpenArray(True, Self, FVar);
+              p := CreateOpenArray(True, Self, FVar, CallData);
               if p = nil then exit;
               CallData.Add(p);
+              {$IFDEF FPC}
+              if (RegUsage >= 3) and (CallingConv = cdCdecl) then
+              begin
+                { Free Pascal has a cdecl routine take an array of const only as an
+                  external one, whose values go one by one as C varargs: refused }
+                if TPSTypeRec_Array(fvar.aType).ArrayType.BaseType = btPointer then
+                  Exit;
+                { Free Pascal passes a cdecl open array as its data alone, with no high bound }
+                Stack := StringOfChar(AnsiChar(#0),4) + Stack;
+                Pointer((@Stack[1])^) := POpenArray(p)^.Data;
+                Result := True;
+                Exit;
+              end;
+              {$ENDIF}
+              if (RegUsage >= 3) and (CallingConv in [cdCdecl, cdStdCall, cdSafeCall]) then
+              begin
+                { pushed from right to left: the data pointer sits below the high bound }
+                Stack := StringOfChar(AnsiChar(#0),8) + Stack;
+                Pointer((@Stack[1])^) := POpenArray(p)^.Data;
+                Longint((@Stack[5])^) := POpenArray(p)^.ItemCount -1;
+                Result := True;
+                Exit;
+              end;
               case RegUsage of
                 0: begin EAX := Longint(POpenArray(p)^.Data); Inc(RegUsage); end;
                 1: begin EDX := Longint(POpenArray(p)^.Data); Inc(RegUsage); end;
@@ -352,6 +432,12 @@ var
           exit; //invalid type
         end;
       end; {case}
+      {$IFDEF FPC}
+      if fvar.aType.BaseType in [btU8, btS8, btU16, btS16] then
+        VarPtr := NarrowedVar(VarPtr, fvar.aType.RealSize)
+      else if (fvar.aType.BaseType = btSet) and (TPSTypeRec_Set(fvar.aType).aByteSize < 32) then
+        VarPtr := NarrowedVar(VarPtr, TPSTypeRec_Set(fvar.aType).aByteSize);
+      {$ENDIF}
       case RegUsage of
         0: begin EAX := Longint(VarPtr); Inc(RegUsage); end;
         1: begin EDX := Longint(VarPtr); Inc(RegUsage); end;
@@ -420,20 +506,70 @@ var
                       cardinal((@tempstr[1])^) := cardinal(fvar.dta^);
                   end;
                 {$ELSE}
+                {$IFDEF FPC}
+                3: Move(fvar.dta^, tempstr[1], 3);
+                4: cardinal((@tempstr[1])^) := cardinal(fvar.dta^);
+                {$ELSE}
                 3, 4: cardinal((@tempstr[1])^) := cardinal(fvar.dta^);
+                {$ENDIF}
                 {$ENDIF}
                 else
                   pointer((@tempstr[1])^) := fvar.dta;
               end;
             end;
+            {$IFDEF FPC}
+            { Free Pascal Win32: a record of 1-4 bytes is passed by value on the
+              stack, never in a register, and under cdecl and stdcall a larger one
+              is passed by value on the stack too, rounded up to whole 4-byte slots }
+            if fVar^.aType.BaseType = btRecord then
+              if DataSize <= 4 then
+                UseReg := False
+              else if (CallingConv in [cdCdecl, cdStdCall]) and not IsManagedType(fVar^.aType) then
+              begin
+                UseReg := False;
+                tempstr := StringOfChar(AnsiChar(#0), ((DataSize + 3) div 4) * 4);
+                Move(fvar.dta^, tempstr[1], DataSize);
+              end;
+            { and so is a set larger than 4 bytes under cdecl, which every other
+              convention passes by reference }
+            if (fVar^.aType.BaseType = btSet) and (DataSize > 4) and (CallingConv = cdCdecl) then
+            begin
+              UseReg := False;
+              tempstr := StringOfChar(AnsiChar(#0), ((DataSize + 3) div 4) * 4);
+              Move(fvar.dta^, tempstr[1], DataSize);
+            end;
+            {$ENDIF}
           end;
         btArray:
           begin
             if Copy(fvar^.aType.ExportName, 1, 10) = '!OPENARRAY' then
             begin
-              p := CreateOpenArray(False, SElf, FVar);
+              p := CreateOpenArray(False, SElf, FVar, CallData);
               if p =nil then exit;
               CallData.Add(p);
+              {$IFDEF FPC}
+              if (RegUsage >= 3) and (CallingConv = cdCdecl) then
+              begin
+                { Free Pascal has a cdecl routine take an array of const only as an
+                  external one, whose values go one by one as C varargs: refused }
+                if TPSTypeRec_Array(fvar.aType).ArrayType.BaseType = btPointer then
+                  Exit;
+                { Free Pascal passes a cdecl open array as its data alone, with no high bound }
+                Stack := StringOfChar(AnsiChar(#0),4) + Stack;
+                Pointer((@Stack[1])^) := POpenArray(p)^.Data;
+                Result := True;
+                Exit;
+              end;
+              {$ENDIF}
+              if (RegUsage >= 3) and (CallingConv in [cdCdecl, cdStdCall, cdSafeCall]) then
+              begin
+                { pushed from right to left: the data pointer sits below the high bound }
+                Stack := StringOfChar(AnsiChar(#0),8) + Stack;
+                Pointer((@Stack[1])^) := POpenArray(p)^.Data;
+                Longint((@Stack[5])^) := POpenArray(p)^.ItemCount -1;
+                Result := True;
+                Exit;
+              end;
               case RegUsage of
                 0: begin EAX := Longint(POpenArray(p)^.Data); Inc(RegUsage); end;
                 1: begin EDX := Longint(POpenArray(p)^.Data); Inc(RegUsage); end;
@@ -491,6 +627,18 @@ var
                 UseReg := False;
             end else
             {$ENDIF}
+            {$IFDEF FPC}
+            { Free Pascal Win32: a static array of 1-4 bytes is passed by value
+              on the stack, never in a register, under every convention but
+              cdecl, which passes every static array by reference }
+            if (fVar^.aType.BaseType = btStaticArray) and
+               (fvar^.aType.RealSize <= 4) and (CallingConv <> cdCdecl) then
+            begin
+              tempstr := StringOfChar(AnsiChar(#0),4);
+              Move(fvar.dta^, tempstr[1], fvar^.aType.RealSize);
+              UseReg := False;
+            end else
+            {$ENDIF}
             begin
               TempStr := StringOfChar(AnsiChar(#0),4);
               Pointer((@TempStr[1])^) := Pointer(fvar.Dta);
@@ -520,7 +668,14 @@ var
         btChar,
         btU8,
         btS8: begin
+            {$IFDEF FPC}
+            { joined, an AnsiChar goes through the compile host's code page: 200 arrives as 195
+              under a UTF-8 run-time page }
+            TempStr := StringOfChar(AnsiChar(#0),4);
+            tbtchar((@TempStr[1])^) := tbtchar(fVar^.dta^);
+            {$ELSE}
             TempStr := tbtchar(fVar^.dta^) + tbtstring(StringOfChar(AnsiChar(#0),3));
+            {$ENDIF}
           end;
         {$IFNDEF PS_NOWIDESTRING}btWideChar, {$ENDIF}
         btu16, btS16: begin
@@ -558,12 +713,25 @@ var
         btProcPtr:
           begin
 {$IFDEF FPC}
-            MethodData := MKMethod(Self, Longint(FVar.Dta^));
-            TempStr := StringOfChar(AnsiChar(#0),4);
-            Pointer((@TempStr[1])^) := @MethodData;
+            { Free Pascal Win32 passes a method pointer by value under cdecl and by
+              reference under the other conventions, each one in a copy of its own }
+            if CallingConv = cdCdecl then
+            begin
+              TempStr := StringOfChar(AnsiChar(#0),8);
+              TMethod((@TempStr[1])^) := ProcPtrToMethod(Self, FVar.Dta);
+              UseReg := False;
+            end else
+            begin
+              p := New(PMethodCallData);
+              PMethodCallData(p)^.AType := 255;
+              CallData.Add(p);
+              PMethodCallData(p)^.Data := ProcPtrToMethod(Self, FVar.Dta);
+              TempStr := StringOfChar(AnsiChar(#0),4);
+              Pointer((@TempStr[1])^) := @PMethodCallData(p)^.Data;
+            end;
 {$ELSE}
             TempStr := StringOfChar(AnsiChar(#0),8);
-            TMethod((@TempStr[1])^) := MKMethod(Self, Longint(FVar.Dta^));
+            TMethod((@TempStr[1])^) := ProcPtrToMethod(Self, FVar.Dta);
             UseReg := false;
 {$ENDIF}
           end;
@@ -607,6 +775,22 @@ var
     end;
     Result := True;
   end;
+{$IFDEF FPC}
+  { Free Pascal passes a cdecl or stdcall method Self ahead of its hidden result pointer, where Delphi
+    passes the result pointer first: called right after GetPtr(res) has put that pointer in front of
+    Self, this exchanges the two }
+  procedure SelfAheadOfResult;
+  var
+    lSelf: Pointer;
+  begin
+    if Assigned(_Self) then
+    begin
+      lSelf := Pointer((@Stack[5])^);
+      Pointer((@Stack[5])^) := Pointer((@Stack[1])^);
+      Pointer((@Stack[1])^) := lSelf;
+    end;
+  end;
+{$ENDIF}
 begin
   {$IFDEF FPC}
   if (Integer(CallingConv) and 128) <> 0 then begin
@@ -620,7 +804,7 @@ begin
   end else
     IsConstructor := false;
   {$ENDIF}
-  InnerfuseCall := False;
+  PlatformInnerfuseCall := False;
   if Address = nil then
     exit; // need address
   Stack := '';
@@ -757,22 +941,28 @@ begin
           end;
           if assigned(res) then begin
             case res^.aType.BaseType of
-              {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}btInterface, btArray, btString, btVariant: GetPtr(res);
+              {$IFNDEF PS_NOWIDESTRING}btWideString, btUnicodeString, {$ENDIF}btInterface, btArray, btString, btVariant{$IFDEF FPC}, btStaticArray{$ENDIF}: GetPtr(res);
               btRecord{$IFDEF DELPHI_and_MSWINDOWS}, btStaticArray{$ENDIF}:
                 begin
                   if ResultUsesResultPointer(res) then GetPtr(res);
                 end;
-              {$IFDEF DELPHI_and_MSWINDOWS}
+              {$IF Defined(DELPHI_and_MSWINDOWS) or Defined(FPC)}
               btSet:
                 begin
                   if TPSTypeRec_Set(res.aType).aByteSize > 4 then GetPtr(res);
                 end;
-              {$ENDIF}
+              {$IFEND}
             end;
           end;
           if assigned(_Self) then begin
+            {$IFDEF FPC}
+            { Free Pascal pushes a pascal method's Self first, above every parameter }
+            Stack := Stack + StringOfChar(AnsiChar(#0),4);
+            Pointer((@Stack[Length(Stack)-3])^) := _Self;
+            {$ELSE}
             Stack := StringOfChar(AnsiChar(#0),4) +Stack;
             Pointer((@Stack[1])^) := _Self;
+            {$ENDIF}
           end;
           {$IFDEF DARWIN}
           if (length(Stack) mod 16) <> 0 then begin
@@ -799,7 +989,7 @@ begin
                 end;
               {$ENDIF}
               btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}
-              btInterface, btArray, btstring: RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
+              btInterface, btArray, btstring{$IFDEF FPC}, btStaticArray{$ENDIF}: RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
               btRecord{$IFDEF DELPHI_and_MSWINDOWS}, btStaticArray{$ENDIF}:
                 begin
                   if not ResultUsesResultPointer(res) then
@@ -812,7 +1002,7 @@ begin
                   else
                     RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
                 end;
-              {$IFDEF DELPHI_and_MSWINDOWS}
+              {$IF Defined(DELPHI_and_MSWINDOWS) or Defined(FPC)}
               btSet:
                 begin
                   case TPSTypeRec_Set(res.aType).aByteSize of
@@ -826,7 +1016,7 @@ begin
                     else RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil)
                   end;
                 end;
-              {$ENDIF}
+              {$IFEND}
             else
               exit;
             end;
@@ -836,9 +1026,8 @@ begin
         end;
       cdSafeCall: begin
           RegUsage := 3;
-          if assigned(res) then begin
-            GetPtr(res);
-          end;
+          if assigned(res) and not GetPtr(res) then
+            exit;
           for I :=  Params.Count - 1 downto 0 do begin
             if not GetPtr(Params[i]) then Exit;
           end;
@@ -857,12 +1046,12 @@ begin
 
       CdCdecl: begin
           RegUsage := 3;
-          if assigned(_Self) then begin
-            Stack := StringOfChar(AnsiChar(#0),4);
-            Pointer((@Stack[1])^) := _Self;
-          end;
           for I := Params.Count - 1 downto 0 do begin
             if not GetPtr(Params[I]) then Exit;
+          end;
+          if assigned(_Self) then begin
+            Stack := StringOfChar(AnsiChar(#0),4) + Stack;
+            Pointer((@Stack[1])^) := _Self;
           end;
           {$IFDEF DARWIN}
           if (length(Stack) mod 16) <> 0 then begin
@@ -889,23 +1078,37 @@ begin
                 end;
               {$ENDIF}
               btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}
-              btInterface, btArray, btstring: begin GetPtr(res); RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil); end;
+              btInterface, btArray, btstring{$IFDEF FPC}, btStaticArray{$ENDIF}: begin GetPtr(res); {$IFDEF FPC}SelfAheadOfResult;{$ENDIF} RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil); end;
               btRecord{$IFDEF DELPHI_and_MSWINDOWS}, btStaticArray{$ENDIF}:
                 begin
                   if ResultUsesResultPointer(res) then
                   begin
                     GetPtr(res);
+                    {$IFDEF FPC}SelfAheadOfResult;{$ENDIF}
                     RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
                   end
                   else
                     case res.aType.RealSize of
                       1: PByte(res.Dta)^ := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 1, nil);
                       2: PWord(res.Dta)^ := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 2, nil);
+                    {$IFDEF FPC}
+                      { Free Pascal returns a cdecl record of up to 8 bytes in EAX:EDX }
+                      3, 5..8:
+                        begin
+                          EAX := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, @EDX);
+                          if res.aType.RealSize < 4 then
+                            Move(EAX, res.Dta^, res.aType.RealSize)
+                          else begin
+                            Move(EAX, res.Dta^, 4);
+                            Move(EDX, Pointer(IPointer(res.Dta) + 4)^, res.aType.RealSize - 4);
+                          end;
+                        end;
+                    {$ENDIF}
                     else
                       PCardinal(res.Dta)^ := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
                     end;
                 end;
-              {$IFDEF DELPHI_and_MSWINDOWS}
+              {$IF Defined(DELPHI_and_MSWINDOWS) or Defined(FPC)}
               btSet:
                 begin
                   case TPSTypeRec_Set(res.aType).aByteSize of
@@ -918,11 +1121,12 @@ begin
                     4: PCardinal(res.Dta)^ := RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
                     else begin
                       GetPtr(res);
+                      {$IFDEF FPC}SelfAheadOfResult;{$ENDIF}
                       RealCall_Cdecl(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
                     end;
                   end;
                 end;
-              {$ENDIF}
+              {$IFEND}
             else
               exit;
             end;
@@ -960,12 +1164,13 @@ begin
                 end;
               {$ENDIF}
               btVariant, {$IFNDEF PS_NOWIDESTRING}btUnicodeString, btWideString, {$ENDIF}
-              btInterface, btArray, btstring: begin GetPtr(res); RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil); end;
+              btInterface, btArray, btstring{$IFDEF FPC}, btStaticArray{$ENDIF}: begin GetPtr(res); {$IFDEF FPC}SelfAheadOfResult;{$ENDIF} RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil); end;
               btRecord{$IFDEF DELPHI_and_MSWINDOWS}, btStaticArray{$ENDIF}:
                 begin
                   if ResultUsesResultPointer(res) then
                   begin
                     GetPtr(res);
+                    {$IFDEF FPC}SelfAheadOfResult;{$ENDIF}
                     RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
                   end
                   else
@@ -976,7 +1181,7 @@ begin
                       PCardinal(res.Dta)^ := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
                     end;
                 end;
-              {$IFDEF DELPHI_and_MSWINDOWS}
+              {$IF Defined(DELPHI_and_MSWINDOWS) or Defined(FPC)}
               btSet:
                 begin
                   case TPSTypeRec_Set(res.aType).aByteSize of
@@ -989,11 +1194,12 @@ begin
                     4: PCardinal(res.Dta)^ := RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 4, nil);
                     else begin
                       GetPtr(res);
+                      {$IFDEF FPC}SelfAheadOfResult;{$ENDIF}
                       RealCall_Other(Address, @Stack[Length(Stack)-3], Length(Stack) div 4, 0, nil);
                     end;
                   end;
                 end;
-              {$ENDIF}
+              {$IFEND}
             else
               exit;
             end;
@@ -1009,6 +1215,13 @@ begin
       pp := CallData[i];
       case pp^ of
         0: DestroyOpenArray(Self, Pointer(pp));
+{$IFDEF FPC}
+        1: begin
+             Move(PNarrowedVar(pp)^.Data, PNarrowedVar(pp)^.Target^, PNarrowedVar(pp)^.Size);
+             Dispose(PNarrowedVar(pp));
+           end;
+        255: Dispose(PMethodCallData(pp));
+{$ENDIF}
       end;
     end;
     CallData.Free;

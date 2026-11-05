@@ -374,7 +374,7 @@ begin
     end;  { case }
 end;
 
-function TPSExec.InnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
+function TPSExec.PlatformInnerfuseCall(_Self, Address: Pointer; CallingConv: TPSCallingConvention; Params: TPSList; res: PPSVariantIFC): Boolean;
 var SysCalConv : TCallConv;
     Args: TArray<TValue>;
     old_Args: TArray<TValue>;
@@ -458,9 +458,9 @@ begin
       //5,6
       btU32, btS32:            PCardinal(res.dta)^ := Cardinal(Invoke(Address,Args,SysCalConv,TypeInfo(Cardinal),IsStatic).AsInteger);
       //7
-      btSingle:                PSingle(res.dta)^ := Single(Invoke(Address,Args,SysCalConv,TypeInfo(Single),IsStatic).AsExtended);
+      btSingle:                PSingle(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Single),IsStatic).AsExtended;
       //8
-      btDouble:                PDouble(res.dta)^ := Double(Invoke(Address,Args,SysCalConv,TypeInfo(Double),IsStatic).AsExtended);
+      btDouble:                PDouble(res.dta)^ := Invoke(Address,Args,SysCalConv,TypeInfo(Double),IsStatic).AsExtended;
       //9
       btExtended:              PExtended(res.dta)^ := Extended(Invoke(Address,Args,SysCalConv,TypeInfo(Extended),IsStatic).AsExtended);
       //10

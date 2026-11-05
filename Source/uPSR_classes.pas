@@ -32,7 +32,76 @@ procedure RIRegister_Classes(Cl: TPSRuntimeClassImporter; Streams: Boolean{$IFDE
 
 implementation
 uses
+  {$IF Defined(UNICODE) and not Defined(FPC)}SysUtils,{$IFEND}
   Classes;
+
+{ Members that are virtual in some or all Delphi versions, bound through routines that call them
+  by name: the compiler then calls through the object's virtual method table wherever the member is
+  virtual, so a descendant's override runs (a data set's MoveBy, for one).  Bound by address, a script
+  ran this class's own code whatever the object's class.  A constructor routine calls the
+  constructor on the class the script constructs. }
+function TStringsIndexOfName_P(Self: TStrings; Name: string): Integer;
+begin
+  Result := Self.IndexOfName(Name);
+end;
+
+function TStringsIndexOfObject_P(Self: TStrings; AObject: TObject): Integer;
+begin
+  Result := Self.IndexOfObject(AObject);
+end;
+
+procedure TStringsInsertObject_P(Self: TStrings; Index: Integer; S: string; AObject: TObject);
+begin
+  Self.InsertObject(Index, S, AObject);
+end;
+
+{$IF Defined(UNICODE) and not Defined(FPC)}
+{ A script PChar is a PAnsiChar; from Delphi 2009 SetText takes and GetText
+  returns a PWideChar, so the text is converted through the ANSI code page.
+  Both call the virtual member, so a descendant's override runs.  GetText's
+  buffer is the caller's to free, which a script cannot do: Delphi's is
+  freed here, the ANSI copy the script gets is not. }
+procedure TStringsSetText_P(Self: TStrings; Text: PAnsiChar);
+begin
+  Self.SetText(PChar(string(AnsiString(Text))));
+end;
+
+function TStringsGetText_P(Self: TStrings): PAnsiChar;
+var
+  lBuffer: PChar;
+  lText: AnsiString;
+begin
+  lBuffer := Self.GetText;
+  try
+    lText := AnsiString(string(lBuffer));
+  finally
+    StrDispose(lBuffer);
+  end;
+  GetMem(Result, Length(lText) + 1);
+  Move(PAnsiChar(lText)^, Result^, Length(lText) + 1);
+end;
+{$IFEND}
+
+{$IFNDEF PS_MINIVCL}
+procedure TCustomMemoryStreamSaveToStream_P(Self: TCustomMemoryStream; Stream: TStream);
+begin
+  Self.SaveToStream(Stream);
+end;
+
+procedure TMemoryStreamSetSize_P(Self: TMemoryStream; NewSize: Longint);
+begin
+  Self.SetSize(NewSize);
+end;
+{$ENDIF}
+
+{$IFDEF FPC}
+{ The overload of Equals the script declares: Free Pascal's first overload, whose
+  address the name alone would give, is Equals(Obj: TObject), and virtual. }
+function TStringsEquals_P(Self: TStrings; Strings: TStrings): Boolean;
+begin
+  Result := Self.Equals(Strings);
+end;
+{$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TStrings'}{$ENDIF}
 {$IFDEF class_helper_present}
@@ -41,7 +110,7 @@ type
   public
     procedure CapacityR(var T: Longint);
     procedure CapacityW( T: Longint);
-    procedure DelimiterR( var T: char);
+    procedure DelimiterR( var T: AnsiChar);
     procedure DelimiterW( T: char);
     {$IFDEF DELPHI2006UP}
     procedure StrictDelimiterR( var T: boolean);
@@ -49,9 +118,9 @@ type
     {$ENDIF}
     procedure DelimitedTextR( var T: string);
     procedure DelimitedTextW( T: string);
-    procedure NameValueSeparatorR( var T: char);
+    procedure NameValueSeparatorR( var T: AnsiChar);
     procedure NameValueSeparatorW( T: char);
-    procedure QuoteCharR( var T: char);
+    procedure QuoteCharR( var T: AnsiChar);
     procedure QuoteCharW( T: char);
     procedure CountR( var T: Longint);
     procedure TextR( var T: string);
@@ -79,14 +148,18 @@ begin
   Self.Capacity := T;
 end;
 
-procedure TStrings_PSHelper.DelimiterR( var T: char);
+{ A script Char is an AnsiChar on every compiler.  The read helper writes through a pointer to the
+  script's value, so it takes an AnsiChar: a Delphi Char written there is two bytes from Delphi 2009
+  and overwrote the byte after the script's character.  From Delphi 2009 both directions convert
+  through the ANSI code page, as every script character. }
+procedure TStrings_PSHelper.DelimiterR( var T: AnsiChar);
 begin
-  T := Self.Delimiter;
+  T := {$IFDEF UNICODE}PSWideCharToAnsiChar(Self.Delimiter){$ELSE}Self.Delimiter{$ENDIF};
 end;
 
 procedure TStrings_PSHelper.DelimiterW( T: char);
 begin
-  Self.Delimiter:= T;
+  Self.Delimiter := {$IFDEF UNICODE}PSAnsiCharToWideChar(AnsiChar(Ord(T))){$ELSE}T{$ENDIF};
 end;
 
 {$IFDEF DELPHI2006UP}
@@ -111,24 +184,24 @@ begin
   Self.DelimitedText:= T;
 end;
 
-procedure TStrings_PSHelper.NameValueSeparatorR( var T: char);
+procedure TStrings_PSHelper.NameValueSeparatorR( var T: AnsiChar);
 begin
-  T := Self.NameValueSeparator;
+  T := {$IFDEF UNICODE}PSWideCharToAnsiChar(Self.NameValueSeparator){$ELSE}Self.NameValueSeparator{$ENDIF};
 end;
 
 procedure TStrings_PSHelper.NameValueSeparatorW( T: char);
 begin
-  Self.NameValueSeparator:= T;
+  Self.NameValueSeparator := {$IFDEF UNICODE}PSAnsiCharToWideChar(AnsiChar(Ord(T))){$ELSE}T{$ENDIF};
 end;
 
-procedure TStrings_PSHelper.QuoteCharR( var T: char);
+procedure TStrings_PSHelper.QuoteCharR( var T: AnsiChar);
 begin
-  T := Self.QuoteChar;
+  T := {$IFDEF UNICODE}PSWideCharToAnsiChar(Self.QuoteChar){$ELSE}Self.QuoteChar{$ENDIF};
 end;
 
 procedure TStrings_PSHelper.QuoteCharW( T: char);
 begin
-  Self.QuoteChar:= T;
+  Self.QuoteChar := {$IFDEF UNICODE}PSAnsiCharToWideChar(AnsiChar(Ord(T))){$ELSE}T{$ENDIF};
 end;
 
 procedure TStrings_PSHelper.CountR( var T: Longint);
@@ -205,9 +278,9 @@ procedure RIRegisterTStrings(cl: TPSRuntimeClassImporter; Streams: Boolean); // 
 begin
   with Cl.Add(TStrings) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStrings.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
 
     RegisterVirtualMethod(@TStrings.Add, 'Add');
     RegisterMethod(@TStrings.Append, 'Append');
@@ -238,22 +311,22 @@ begin
     {$IFNDEF PS_MINIVCL}
     RegisterMethod(@TStrings.BeginUpdate, 'BeginUpdate');
     RegisterMethod(@TStrings.EndUpdate, 'EndUpdate');
-    RegisterMethod(@TStrings.Equals,  'Equals');
+    RegisterMethod({$IFDEF FPC}@TStringsEquals_P{$ELSE}@TStrings.Equals{$ENDIF},  'Equals');
     RegisterVirtualMethod(@TStrings.Exchange, 'Exchange');
-    RegisterMethod(@TStrings.IndexOfName, 'IndexOfName');
+    RegisterMethod(@TStringsIndexOfName_P, 'IndexOfName');
     if Streams then
       RegisterVirtualMethod(@TStrings.LoadFromStream, 'LoadFromStream');
     RegisterVirtualMethod(@TStrings.Move, 'Move');
     if Streams then
       RegisterVirtualMethod(@TStrings.SaveToStream, 'SaveToStream');
-    RegisterVirtualMethod(@TStrings.SetText, 'SetText');
+    {$IF Defined(UNICODE) and not Defined(FPC)}RegisterMethod(@TStringsSetText_P, 'SetText');{$ELSE}RegisterVirtualMethod(@TStrings.SetText, 'SetText');{$IFEND}
     RegisterPropertyHelper(@TStrings.NamesR, nil, 'Names');
     RegisterPropertyHelper(@TStrings.ValuesR, @TStrings.ValuesW, 'Values');
     RegisterPropertyHelper(@TStrings.ValueFromIndexR, @TStrings.ValueFromIndexW, 'ValueFromIndex');
     RegisterVirtualMethod(@TStrings.ADDOBJECT, 'AddObject');
-    RegisterVirtualMethod(@TStrings.GETTEXT, 'GetText');
-    RegisterMethod(@TStrings.INDEXOFOBJECT, 'IndexOfObject');
-    RegisterMethod(@TStrings.INSERTOBJECT, 'InsertObject');
+    {$IF Defined(UNICODE) and not Defined(FPC)}RegisterMethod(@TStringsGetText_P, 'GetText');{$ELSE}RegisterVirtualMethod(@TStrings.GETTEXT, 'GetText');{$IFEND}
+    RegisterMethod(@TStringsIndexOfObject_P, 'IndexOfObject');
+    RegisterMethod(@TStringsInsertObject_P, 'InsertObject');
     {$ENDIF}
   end;
 end;
@@ -261,18 +334,18 @@ end;
 {$ELSE}
 procedure TStringsCapacityR(Self: TStrings; var T: Longint); begin T := Self.Capacity; end;
 procedure TStringsCapacityW(Self: TStrings; T: Longint); begin Self.Capacity := T; end;
-procedure TStringsDelimiterR(Self: TStrings; var T: char); begin T := Self.Delimiter; end;
-procedure TStringsDelimiterW(Self: TStrings; T: char); begin Self.Delimiter:= T; end;
+procedure TStringsDelimiterR(Self: TStrings; var T: AnsiChar); begin T := {$IFDEF UNICODE}PSWideCharToAnsiChar(Self.Delimiter){$ELSE}Self.Delimiter{$ENDIF}; end;
+procedure TStringsDelimiterW(Self: TStrings; T: char); begin Self.Delimiter := {$IFDEF UNICODE}PSAnsiCharToWideChar(AnsiChar(Ord(T))){$ELSE}T{$ENDIF}; end;
 {$IFDEF DELPHI2006UP}
 procedure TStringsStrictDelimiterR(Self: TStrings; var T: boolean); begin T := Self.StrictDelimiter; end;
 procedure TStringsStrictDelimiterW(Self: TStrings; T: boolean); begin Self.StrictDelimiter:= T; end;
 {$ENDIF}
 procedure TStringsDelimitedTextR(Self: TStrings; var T: string); begin T := Self.DelimitedText; end;
 procedure TStringsDelimitedTextW(Self: TStrings; T: string); begin Self.DelimitedText:= T; end;
-procedure TStringsNameValueSeparatorR(Self: TStrings; var T: char); begin T := Self.NameValueSeparator; end;
-procedure TStringsNameValueSeparatorW(Self: TStrings; T: char); begin Self.NameValueSeparator:= T; end;
-procedure TStringsQuoteCharR(Self: TStrings; var T: char); begin T := Self.QuoteChar; end;
-procedure TStringsQuoteCharW(Self: TStrings; T: char); begin Self.QuoteChar:= T; end;
+procedure TStringsNameValueSeparatorR(Self: TStrings; var T: AnsiChar); begin T := {$IFDEF UNICODE}PSWideCharToAnsiChar(Self.NameValueSeparator){$ELSE}Self.NameValueSeparator{$ENDIF}; end;
+procedure TStringsNameValueSeparatorW(Self: TStrings; T: char); begin Self.NameValueSeparator := {$IFDEF UNICODE}PSAnsiCharToWideChar(AnsiChar(Ord(T))){$ELSE}T{$ENDIF}; end;
+procedure TStringsQuoteCharR(Self: TStrings; var T: AnsiChar); begin T := {$IFDEF UNICODE}PSWideCharToAnsiChar(Self.QuoteChar){$ELSE}Self.QuoteChar{$ENDIF}; end;
+procedure TStringsQuoteCharW(Self: TStrings; T: char); begin Self.QuoteChar := {$IFDEF UNICODE}PSAnsiCharToWideChar(AnsiChar(Ord(T))){$ELSE}T{$ENDIF}; end;
 
 procedure TStringsCountR(Self: TStrings; var T: Longint); begin T := Self.Count; end;
 
@@ -327,9 +400,9 @@ procedure RIRegisterTStrings(cl: TPSRuntimeClassImporter; Streams: Boolean); // 
 begin
   with Cl.Add(TStrings) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStrings.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
 
     RegisterVirtualMethod(@TStrings.Add, 'Add');
     RegisterMethod(@TStrings.Append, 'Append');
@@ -360,22 +433,22 @@ begin
     {$IFNDEF PS_MINIVCL}
     RegisterMethod(@TStrings.BeginUpdate, 'BeginUpdate');
     RegisterMethod(@TStrings.EndUpdate, 'EndUpdate');
-    RegisterMethod(@TStrings.Equals,  'Equals');
+    RegisterMethod({$IFDEF FPC}@TStringsEquals_P{$ELSE}@TStrings.Equals{$ENDIF},  'Equals');
     RegisterVirtualMethod(@TStrings.Exchange, 'Exchange');
-    RegisterMethod(@TStrings.IndexOfName, 'IndexOfName');
+    RegisterMethod(@TStringsIndexOfName_P, 'IndexOfName');
     if Streams then
       RegisterVirtualMethod(@TStrings.LoadFromStream, 'LoadFromStream');
     RegisterVirtualMethod(@TStrings.Move, 'Move');
     if Streams then
       RegisterVirtualMethod(@TStrings.SaveToStream, 'SaveToStream');
-    RegisterVirtualMethod(@TStrings.SetText, 'SetText');
+    {$IF Defined(UNICODE) and not Defined(FPC)}RegisterMethod(@TStringsSetText_P, 'SetText');{$ELSE}RegisterVirtualMethod(@TStrings.SetText, 'SetText');{$IFEND}
     RegisterPropertyHelper(@TStringsNamesR, nil, 'Names');
     RegisterPropertyHelper(@TStringsValuesR, @TStringsValuesW, 'Values');
     RegisterPropertyHelper(@TStringsValueFromIndexR, @TStringsValueFromIndexW, 'ValueFromIndex');
     RegisterVirtualMethod(@TSTRINGS.ADDOBJECT, 'AddObject');
-    RegisterVirtualMethod(@TSTRINGS.GETTEXT, 'GetText');
-    RegisterMethod(@TSTRINGS.INDEXOFOBJECT, 'IndexOfObject');
-    RegisterMethod(@TSTRINGS.INSERTOBJECT, 'InsertObject');
+    {$IF Defined(UNICODE) and not Defined(FPC)}RegisterMethod(@TStringsGetText_P, 'GetText');{$ELSE}RegisterVirtualMethod(@TSTRINGS.GETTEXT, 'GetText');{$IFEND}
+    RegisterMethod(@TStringsIndexOfObject_P, 'IndexOfObject');
+    RegisterMethod(@TStringsInsertObject_P, 'InsertObject');
     {$ENDIF}
   end;
 end;
@@ -453,9 +526,9 @@ procedure RIRegisterTSTRINGLIST(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGLIST) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStringList.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
     RegisterVirtualMethod(@TStringList.FIND, 'Find');
     RegisterVirtualMethod(@TStringList.SORT, 'Sort');
     RegisterPropertyHelper(@TStringList.CASESENSITIVE_R, @TStringList.CASESENSITIVE_W, 'CaseSensitive');
@@ -484,9 +557,9 @@ procedure RIRegisterTSTRINGLIST(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGLIST) do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterConstructor(@TStringList.CREATE, 'Create');
-{$ENDIF}
+{$IFEND}
     RegisterVirtualMethod(@TSTRINGLIST.FIND, 'Find');
     RegisterVirtualMethod(@TSTRINGLIST.SORT, 'Sort');
     RegisterPropertyHelper(@TSTRINGLISTCASESENSITIVE_R, @TSTRINGLISTCASESENSITIVE_W, 'CaseSensitive');
@@ -499,6 +572,18 @@ end;
 
 {$ENDIF}
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFDEF FPC}
+type
+  TPSBitsClass = class of TBits;
+
+{ Free Pascal's TBits.Create is virtual: called through the class, so a
+  descendant's runs. }
+function TBitsCreate_P(Self: TClass; CreateNewInstance: Boolean): TObject;
+begin
+  Result := TPSBitsClass(Self).Create;
+end;
+{$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TBits'}{$ENDIF}
 {$IFNDEF PS_MINIVCL}
@@ -536,6 +621,9 @@ procedure RIRegisterTBITS(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TBits) do
   begin
+    {$IFDEF FPC}
+    RegisterConstructor(@TBitsCreate_P, 'Create');
+    {$ENDIF}
     RegisterMethod(@TBits.OPENBIT, 'OpenBit');
     RegisterPropertyHelper(@TBits.BITS_R, @TBits.BITS_W, 'Bits');
     RegisterPropertyHelper(@TBits.SIZE_R, @TBits.SIZE_W, 'Size');
@@ -553,6 +641,9 @@ procedure RIRegisterTBITS(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TBITS) do
   begin
+    {$IFDEF FPC}
+    RegisterConstructor(@TBitsCreate_P, 'Create');
+    {$ENDIF}
     RegisterMethod(@TBITS.OPENBIT, 'OpenBit');
     RegisterPropertyHelper(@TBITSBITS_R, @TBITSBITS_W, 'Bits');
     RegisterPropertyHelper(@TBITSSIZE_R, @TBITSSIZE_W, 'Size');
@@ -562,36 +653,55 @@ end;
 {$ENDIF}
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
+{ CopyFrom is bound through a routine: from Delphi 10.4 Sydney it has a third parameter, BufferSize,
+  with a default the script cannot pass, and scripts declare it with two parameters on every version. }
+function TStreamCopyFrom_P(Self: TStream; Source: TStream; Count: Int64): Int64;
+begin
+  Result := Self.CopyFrom(Source, Count);
+end;
+
+{ ReadBuffer and WriteBuffer are bound through routines: from Delphi 10.2 Tokyo their count is a NativeInt,
+  which the script's LongInt reached for Win64 without its sign. }
+procedure TStreamReadBuffer_P(Self: TStream; var Buffer; Count: Longint);
+begin
+  Self.ReadBuffer(Buffer, Count);
+end;
+
+procedure TStreamWriteBuffer_P(Self: TStream; const Buffer; Count: Longint);
+begin
+  Self.WriteBuffer(Buffer, Count);
+end;
+
 {$IFDEF DELPHI10UP}{$REGION 'TStream'}{$ENDIF}
 {$IFDEF class_helper_present}
 type
   TStream_PSHelper = class helper for TStream
   public
-    procedure POSITION_R(var T: LONGINT);
-    procedure POSITION_W(T: LONGINT);
-    procedure SIZE_R(var T: LONGINT);
+    procedure POSITION_R(var T: Int64);
+    procedure POSITION_W(T: Int64);
+    procedure SIZE_R(var T: Int64);
     {$IFDEF DELPHI3UP}
-    procedure SIZE_W(T: LONGINT);
+    procedure SIZE_W(T: Int64);
     {$ENDIF}
   end;
 
 
-procedure TStream_PSHelper.POSITION_R(var T: LONGINT);
+procedure TStream_PSHelper.POSITION_R(var T: Int64);
 begin
   t := Self.Position;
 end;
-procedure TStream_PSHelper.POSITION_W(T: LONGINT);
+procedure TStream_PSHelper.POSITION_W(T: Int64);
 begin
   Self.Position := t;
 end;
 
-procedure TStream_PSHelper.SIZE_R(var T: LONGINT);
+procedure TStream_PSHelper.SIZE_R(var T: Int64);
 begin
   t := Self.Size;
 end;
 
 {$IFDEF DELPHI3UP}
-procedure TStream_PSHelper.SIZE_W(T: LONGINT);
+procedure TStream_PSHelper.SIZE_W(T: Int64);
 begin
   Self.Size := t;
 end;
@@ -604,20 +714,20 @@ begin
     RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.READ, 'Read');
     RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.WRITE, 'Write');
     RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.SEEK, 'Seek');
-    RegisterMethod(@TStream.READBUFFER, 'ReadBuffer');
-    RegisterMethod(@TStream.WRITEBUFFER, 'WriteBuffer');
-    RegisterMethod(@TStream.COPYFROM, 'CopyFrom');
+    RegisterMethod(@TStreamReadBuffer_P, 'ReadBuffer');
+    RegisterMethod(@TStreamWriteBuffer_P, 'WriteBuffer');
+    RegisterMethod(@TStreamCopyFrom_P, 'CopyFrom');
     RegisterPropertyHelper(@TStream.POSITION_R, @TStream.POSITION_W, 'Position');
     RegisterPropertyHelper(@TStream.SIZE_R, {$IFDEF DELPHI3UP}@TStream.SIZE_W, {$ELSE}nil, {$ENDIF}'Size');
   end;
 end;
 
 {$ELSE}
-procedure TSTREAMPOSITION_R(Self: TSTREAM; var T: LONGINT); begin t := Self.POSITION; end;
-procedure TSTREAMPOSITION_W(Self: TSTREAM; T: LONGINT); begin Self.POSITION := t; end;
-procedure TSTREAMSIZE_R(Self: TSTREAM; var T: LONGINT); begin t := Self.SIZE; end;
+procedure TSTREAMPOSITION_R(Self: TSTREAM; var T: Int64); begin t := Self.POSITION; end;
+procedure TSTREAMPOSITION_W(Self: TSTREAM; T: Int64); begin Self.POSITION := t; end;
+procedure TSTREAMSIZE_R(Self: TSTREAM; var T: Int64); begin t := Self.SIZE; end;
 {$IFDEF DELPHI3UP}
-procedure TSTREAMSIZE_W(Self: TSTREAM; T: LONGINT); begin Self.SIZE := t; end;
+procedure TSTREAMSIZE_W(Self: TSTREAM; T: Int64); begin Self.SIZE := t; end;
 {$ENDIF}
 
 procedure RIRegisterTSTREAM(Cl: TPSRuntimeClassImporter);
@@ -630,9 +740,9 @@ begin
     RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.READ, 'Read');
     RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.WRITE, 'Write');
     RegisterVirtualAbstractMethod(TMemoryStream, @TMemoryStream.SEEK, 'Seek');
-    RegisterMethod(@TSTREAM.READBUFFER, 'ReadBuffer');
-    RegisterMethod(@TSTREAM.WRITEBUFFER, 'WriteBuffer');
-    RegisterMethod(@TSTREAM.COPYFROM, 'CopyFrom');
+    RegisterMethod(@TStreamReadBuffer_P, 'ReadBuffer');
+    RegisterMethod(@TStreamWriteBuffer_P, 'WriteBuffer');
+    RegisterMethod(@TStreamCopyFrom_P, 'CopyFrom');
     RegisterPropertyHelper(@TSTREAMPOSITION_R, @TSTREAMPOSITION_W, 'Position');
     RegisterPropertyHelper(@TSTREAMSIZE_R, {$IFDEF DELPHI3UP}@TSTREAMSIZE_W, {$ELSE}nil, {$ENDIF}'Size');
   end;
@@ -731,10 +841,30 @@ end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TStringStream'}{$ENDIF}
-{$IFDEF UNICODE}
-  {$IFNDEF FPC}
-    {$DEFINE STRINGSTREAMFIX}
-  {$ENDIF}
+{ TStringStream.Create(AString) is bound through a routine on Delphi 2009 and later: there the class
+  declares a parameterless Create first, which a binding by address would take. }
+{$IFDEF UNICODE}{$IFNDEF FPC}
+type
+  TPSStringStreamClass = class of TStringStream;
+
+function TStringStreamCreate_P(Self: TClass; CreateNewInstance: Boolean; AString: string): TObject;
+begin
+  Result := TPSStringStreamClass(Self).Create(AString);
+end;
+{$DEFINE PS_STRINGSTREAM_P}
+{$ENDIF}{$ENDIF}
+{$IFDEF FPC}
+{ Free Pascal declares Create(const ABytes: TBytes) first, in either string mode.  Its
+  AnsiString Create holds the text in TEncoding.Default, as Delphi's Create(AString)
+  does; its UnicodeString one would hold UTF-16. }
+type
+  TPSStringStreamClass = class of TStringStream;
+
+function TStringStreamCreate_P(Self: TClass; CreateNewInstance: Boolean; AString: string): TObject;
+begin
+  Result := TPSStringStreamClass(Self).Create(AnsiString(AString));
+end;
+{$DEFINE PS_STRINGSTREAM_P}
 {$ENDIF}
 
 {$IFDEF class_helper_present}
@@ -755,7 +885,7 @@ procedure RIRegisterTSTRINGSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGSTREAM) do
   begin
-    RegisterConstructor({$IFDEF STRINGSTREAMFIX}@TStringStream.CreateString{$ELSE}@TSTRINGSTREAM.CREATE{$ENDIF}, 'Create');
+    RegisterConstructor({$IFDEF PS_STRINGSTREAM_P}@TStringStreamCreate_P{$ELSE}@TSTRINGSTREAM.CREATE{$ENDIF}, 'Create');
   end;
 end;
 
@@ -771,7 +901,7 @@ procedure RIRegisterTSTRINGSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TSTRINGSTREAM) do
   begin
-    RegisterConstructor({$IFDEF STRINGSTREAMFIX}@TStringStreamCreateString{$ELSE}@TSTRINGSTREAM.CREATE{$ENDIF}, 'Create');
+    RegisterConstructor({$IFDEF PS_STRINGSTREAM_P}@TStringStreamCreate_P{$ELSE}@TSTRINGSTREAM.CREATE{$ENDIF}, 'Create');
   end;
 end;
 
@@ -786,7 +916,7 @@ procedure RIRegisterTCUSTOMMEMORYSTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TCustomMemoryStream) do
   begin
-    RegisterMethod(@TCUSTOMMEMORYSTREAM.SAVETOSTREAM, 'SaveToStream');
+    RegisterMethod(@TCustomMemoryStreamSaveToStream_P, 'SaveToStream');
     RegisterMethod(@TCUSTOMMEMORYSTREAM.SAVETOFILE, 'SaveToFile');
   end;
 end;
@@ -800,21 +930,73 @@ begin
     RegisterMethod(@TMEMORYSTREAM.CLEAR, 'Clear');
     RegisterMethod(@TMEMORYSTREAM.LOADFROMSTREAM, 'LoadFromStream');
     RegisterMethod(@TMEMORYSTREAM.LOADFROMFILE, 'LoadFromFile');
-    RegisterMethod(@TMEMORYSTREAM.SETSIZE, 'SetSize');
+    RegisterMethod(@TMemoryStreamSetSize_P, 'SetSize');
   end;
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TResourceStream'}{$ENDIF}
+{$IF Defined(UNICODE) and not Defined(FPC)}
+type
+  TPSResourceStreamClass = class of TResourceStream;
+
+{ A script PChar is a PAnsiChar; from Delphi 2009 TResourceStream takes the
+  resource type as a PWideChar: a type given as text is converted through the
+  ANSI code page, an integer identifier (below 65536) is passed as it is. }
+function _ResourceTypeOf(ResType: PAnsiChar; var aText: string): PChar;
+begin
+  if IPointer(ResType) shr 16 = 0 then
+    Result := PChar(ResType)
+  else begin
+    aText := string(AnsiString(ResType));
+    Result := PChar(aText);
+  end;
+end;
+
+function TResourceStreamCreate_P(Self: TClass; CreateNewInstance: Boolean; Instance: THandle; ResName: string;
+  ResType: PAnsiChar): TObject;
+var
+  lText: string;
+begin
+  Result := TPSResourceStreamClass(Self).Create(Instance, ResName, _ResourceTypeOf(ResType, lText));
+end;
+
+function TResourceStreamCreateFromID_P(Self: TClass; CreateNewInstance: Boolean; Instance: THandle;
+  ResID: Integer; ResType: PAnsiChar): TObject;
+var
+  lText: string;
+begin
+  Result := TPSResourceStreamClass(Self).CreateFromID(Instance, ResID, _ResourceTypeOf(ResType, lText));
+end;
+{$IFEND}
+
 procedure RIRegisterTRESOURCESTREAM(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TResourceStream) do
   begin
+    {$IF Defined(UNICODE) and not Defined(FPC)}
+    RegisterConstructor(@TResourceStreamCreate_P, 'Create');
+    RegisterConstructor(@TResourceStreamCreateFromID_P, 'CreateFromID');
+    {$ELSE}
     RegisterConstructor(@TRESOURCESTREAM.CREATE, 'Create');
     RegisterConstructor(@TRESOURCESTREAM.CREATEFROMID, 'CreateFromID');
+    {$IFEND}
   end;
 end;
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{$IFNDEF FPC}
+type
+  TPSParserClass = class of TParser;
+
+{ TParser.Create is bound through a routine: where Delphi declares an AOnError parameter after the
+  stream first (12 Athens and 13 Florence, read), with a default the script cannot pass, a binding by
+  address read an error-handler argument the call never supplied. }
+function TParserCreate_P(Self: TClass; CreateNewInstance: Boolean; Stream: TStream): TObject;
+begin
+  Result := TPSParserClass(Self).Create(Stream);
+end;
+{$ENDIF}
 
 {$IFDEF DELPHI10UP}{$REGION 'TParser'}{$ENDIF}
 {$IFDEF class_helper_present}
@@ -822,7 +1004,7 @@ type
   TParser_PSHelper = class helper for TParser
   public
     procedure SOURCELINE_R(var T: INTEGER);
-    procedure TOKEN_R(var T: CHAR);
+    procedure TOKEN_R(var T: AnsiChar);
   end;
 
 procedure TParser_PSHelper.SOURCELINE_R(var T: INTEGER);
@@ -830,16 +1012,21 @@ begin
   T := Self.SourceLine;
 end;
 
-procedure TParser_PSHelper.TOKEN_R(var T: CHAR);
+{ A script Char is an AnsiChar on every compiler, and the read helper writes
+  through a pointer to the script's value, so it takes an AnsiChar.  The
+  token is the byte the parser read, not decoded through a code page, and
+  NextToken and CheckToken pass it to a script as that byte: the helper
+  takes the token's low byte too. }
+procedure TParser_PSHelper.TOKEN_R(var T: AnsiChar);
 begin
-  T := Self.Token;
+  T := AnsiChar(Ord(Self.Token));
 end;
 
 procedure RIRegisterTPARSER(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TParser) do
   begin
-    RegisterConstructor(@TParser.CREATE, 'Create');
+    {$IFDEF FPC}RegisterConstructor(@TParser.CREATE, 'Create');{$ELSE}RegisterConstructor(@TParserCreate_P, 'Create');{$ENDIF}
     RegisterMethod(@TParser.CHECKTOKEN, 'CheckToken');
     RegisterMethod(@TParser.CHECKTOKENSYMBOL, 'CheckTokenSymbol');
     RegisterMethod(@TParser.ERROR, 'Error');
@@ -859,13 +1046,13 @@ end;
 
 {$ELSE}
 procedure TPARSERSOURCELINE_R(Self: TPARSER; var T: INTEGER); begin T := Self.SOURCELINE; end;
-procedure TPARSERTOKEN_R(Self: TPARSER; var T: CHAR); begin T := Self.TOKEN; end;
+procedure TPARSERTOKEN_R(Self: TPARSER; var T: AnsiChar); begin T := AnsiChar(Ord(Self.TOKEN)); end;
 
 procedure RIRegisterTPARSER(Cl: TPSRuntimeClassImporter);
 begin
   with Cl.Add(TPARSER) do
   begin
-    RegisterConstructor(@TPARSER.CREATE, 'Create');
+    {$IFDEF FPC}RegisterConstructor(@TPARSER.CREATE, 'Create');{$ELSE}RegisterConstructor(@TParserCreate_P, 'Create');{$ENDIF}
     RegisterMethod(@TPARSER.CHECKTOKEN, 'CheckToken');
     RegisterMethod(@TPARSER.CHECKTOKENSYMBOL, 'CheckTokenSymbol');
     RegisterMethod(@TPARSER.ERROR, 'Error');
@@ -896,6 +1083,15 @@ Begin
 end;
 {$ENDIF}
 {$IFDEF DELPHI10UP}{$ENDREGION}{$ENDIF}
+
+{ TCollection.Create as scripts know it: Delphi's takes the item class, which a script cannot pass, so
+  the call refuses, naming the class -- for TCollection and every class derived from it that inherits
+  this Create (no class between them declares one to scripts). }
+function TCollectionCreate_P(Self: TClass; CreateNewInstance: Boolean): TObject;
+begin
+  raise EInvalidOperation.CreateFmt('A script cannot create a %s: it cannot pass its item class',
+    [Self.ClassName]);
+end;
 
 {$IFDEF DELPHI10UP}{$REGION 'TCollection'}{$ENDIF}
 {$IFDEF class_helper_present}
@@ -936,7 +1132,7 @@ procedure RIRegisterTCOLLECTION(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TCollection) do
   begin
-  RegisterConstructor(@TCollection.CREATE, 'Create');
+  RegisterConstructor(@TCollectionCreate_P, 'Create');
 {$IFDEF DELPHI6UP}  {$IFNDEF FPC} RegisterMethod(@TCollection.OWNER, 'Owner'); {$ENDIF} {$ENDIF} // no owner in FPC
   RegisterMethod(@TCollection.ADD, 'Add');
   RegisterVirtualMethod(@TCollection.BEGINUPDATE, 'BeginUpdate');
@@ -969,7 +1165,7 @@ procedure RIRegisterTCOLLECTION(Cl: TPSRuntimeClassImporter);
 Begin
 with Cl.Add(TCOLLECTION) do
   begin
-  RegisterConstructor(@TCOLLECTION.CREATE, 'Create');
+  RegisterConstructor(@TCollectionCreate_P, 'Create');
 {$IFDEF DELPHI6UP}  {$IFNDEF FPC} RegisterMethod(@TCOLLECTION.OWNER, 'Owner'); {$ENDIF} {$ENDIF} // no owner in FPC
   RegisterMethod(@TCOLLECTION.ADD, 'Add');
   RegisterVirtualMethod(@TCOLLECTION.BEGINUPDATE, 'BeginUpdate');
@@ -1120,7 +1316,10 @@ begin
     {$ENDIF}
   end;
   {$IFNDEF PS_MINIVCL}
-  RIRegisterTPARSER(Cl);
+  { a parser is made from a stream and reads one: declared where the stream
+    class is, whoever registered it }
+  if Cl.FindClass('TStream') <> nil then
+    RIRegisterTPARSER(Cl);
   RIRegisterTCOLLECTIONITEM(Cl);
   RIRegisterTCOLLECTION(Cl);
   {$IFDEF DELPHI3UP}

@@ -39,11 +39,19 @@ procedure SIRegisterTPARAMS(CL: TPSPascalCompiler);
 procedure SIRegisterTPARAM(CL: TPSPascalCompiler);
 procedure SIRegisterTGUIDFIELD(CL: TPSPascalCompiler);
 procedure SIRegisterTVARIANTFIELD(CL: TPSPascalCompiler);
+{$IFNDEF FPC}
 procedure SIRegisterTREFERENCEFIELD(CL: TPSPascalCompiler);
 procedure SIRegisterTDATASETFIELD(CL: TPSPascalCompiler);
+{$ENDIF}
+{$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
 procedure SIRegisterTARRAYFIELD(CL: TPSPascalCompiler);
+{$ENDIF}
+{$IFNDEF FPC}
 procedure SIRegisterTADTFIELD(CL: TPSPascalCompiler);
+{$ENDIF}
+{$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
 procedure SIRegisterTOBJECTFIELD(CL: TPSPascalCompiler);
+{$ENDIF}
 procedure SIRegisterTGRAPHICFIELD(CL: TPSPascalCompiler);
 procedure SIRegisterTMEMOFIELD(CL: TPSPascalCompiler);
 procedure SIRegisterTBLOBFIELD(CL: TPSPascalCompiler);
@@ -116,15 +124,15 @@ With RegClassS(cl,'TComponent','TDataSet') do
   RegisterMethod('procedure EnableControls');
 {$IFDEF DELPHI2006UP}
 {$IFDEF DELPHI2009UP}
-  RegisterMethod('function FieldByName(const FieldName: string): TField');
-  RegisterMethod('function FindField(const FieldName: string): TField');
+  RegisterMethod({$IFDEF FPC}'function FieldByName(const FieldName: AnsiString): TField'{$ELSE}'function FieldByName(const FieldName: string): TField'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'function FindField(const FieldName: AnsiString): TField'{$ELSE}'function FindField(const FieldName: string): TField'{$ENDIF});
 {$ELSE}
   RegisterMethod('function FieldByName(const FieldName: WideString): TField');
   RegisterMethod('function FindField(const FieldName: WideString): TField');
 {$ENDIF}
 {$ELSE}
-  RegisterMethod('function FieldByName(const FieldName: string): TField');
-  RegisterMethod('function FindField(const FieldName: string): TField');
+  RegisterMethod({$IFDEF FPC}'function FieldByName(const FieldName: AnsiString): TField'{$ELSE}'function FieldByName(const FieldName: string): TField'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'function FindField(const FieldName: AnsiString): TField'{$ELSE}'function FindField(const FieldName: string): TField'{$ENDIF});
 {$ENDIF}
   RegisterMethod('function FindFirst: Boolean');
   RegisterMethod('function FindLast: Boolean');
@@ -146,8 +154,8 @@ With RegClassS(cl,'TComponent','TDataSet') do
   RegisterMethod('function IsLinkedTo(DataSource: TDataSource): Boolean');
   RegisterMethod('function IsSequenced: Boolean');
   RegisterMethod('procedure Last');
-  RegisterMethod('function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean');
-  RegisterMethod('function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant');
+  RegisterMethod({$IFDEF FPC}'function Locate(const KeyFields: AnsiString; const KeyValues: Variant; Options: TLocateOptions): Boolean'{$ELSE}'function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'function Lookup(const KeyFields: AnsiString; const KeyValues: Variant; const ResultFields: AnsiString): Variant'{$ELSE}'function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant'{$ENDIF});
   RegisterMethod('function MoveBy(Distance: Integer): Integer');
   RegisterMethod('procedure Next');
   RegisterMethod('procedure Open');
@@ -160,11 +168,15 @@ With RegClassS(cl,'TComponent','TDataSet') do
   RegisterMethod('procedure UpdateCursorPos');
   RegisterMethod('procedure UpdateRecord');
   RegisterMethod('function UpdateStatus: TUpdateStatus');
+  {$IFNDEF FPC}
   RegisterProperty('AggFields', 'TFields', iptr);
+  {$ENDIF}
   RegisterProperty('BOF', 'Boolean', iptr);
 //  RegisterProperty('Bookmark', 'TBookmarkStr', iptrw);
   RegisterProperty('CanModify', 'Boolean', iptr);
+  {$IFNDEF FPC}
   RegisterProperty('DataSetField', 'TDataSetField', iptrw);
+  {$ENDIF}
   RegisterProperty('DataSource', 'TDataSource', iptr);
   RegisterProperty('DefaultFields', 'Boolean', iptr);
   RegisterProperty('Designer', 'TDataSetDesigner', iptr);
@@ -172,20 +184,28 @@ With RegClassS(cl,'TComponent','TDataSet') do
   RegisterProperty('BlockReadSize', 'Integer', iptrw);
   RegisterProperty('FieldCount', 'Integer', iptr);
   RegisterProperty('FieldDefs', 'TFieldDefs', iptrw);
+  {$IFNDEF FPC}
   RegisterProperty('FieldDefList', 'TFieldDefList', iptr);
+  {$ENDIF}
   RegisterProperty('Fields', 'TFields', iptr);
+  {$IFNDEF FPC}
   RegisterProperty('FieldList', 'TFieldList', iptr);
+  {$ENDIF}
   RegisterProperty('FieldValues', 'Variant string', iptrw);
   RegisterProperty('Found', 'Boolean', iptr);
 {$IFDEF DELPHI6UP}
   RegisterProperty('IsUnidirectional', 'Boolean', iptr);
 {$ENDIF}
   RegisterProperty('Modified', 'Boolean', iptr);
+  {$IFNDEF FPC}
   RegisterProperty('ObjectView', 'Boolean', iptrw);
+  {$ENDIF}
   RegisterProperty('RecordCount', 'Integer', iptr);
   RegisterProperty('RecNo', 'Integer', iptrw);
   RegisterProperty('RecordSize', 'Word', iptr);
+  {$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
   RegisterProperty('SparseArrays', 'Boolean', iptrw);
+  {$ENDIF}
   RegisterProperty('State', 'TDataSetState', iptr);
   RegisterProperty('Filter', 'string', iptrw);
   RegisterProperty('Filtered', 'Boolean', iptrw);
@@ -224,15 +244,16 @@ procedure SIRegisterTPARAMS(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TCollection','TParams') do
   begin
+  RegisterMethod('constructor Create');
   RegisterMethod('procedure AssignValues(Value: TParams)');
   RegisterMethod('procedure AddParam(Value: TParam)');
   RegisterMethod('procedure RemoveParam(Value: TParam)');
-  RegisterMethod('function CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType): TParam');
+  RegisterMethod({$IFDEF FPC}'function CreateParam(FldType: TFieldType; const ParamName: AnsiString; ParamType: TParamType): TParam'{$ELSE}'function CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType): TParam'{$ENDIF});
 //  RegisterMethod('procedure GetParamList(List: TList; const ParamNames: string)');
   RegisterMethod('function IsEqual(Value: TParams): Boolean');
-  RegisterMethod('function ParseSQL(SQL: string; DoCreate: Boolean): string');
-  RegisterMethod('function ParamByName(const Value: string): TParam');
-  RegisterMethod('function FindParam(const Value: string): TParam');
+  RegisterMethod({$IFDEF FPC}'function ParseSQL(SQL: AnsiString; DoCreate: Boolean): AnsiString'{$ELSE}'function ParseSQL(SQL: string; DoCreate: Boolean): string'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'function ParamByName(const Value: AnsiString): TParam'{$ELSE}'function ParamByName(const Value: string): TParam'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'function FindParam(const Value: AnsiString): TParam'{$ELSE}'function FindParam(const Value: string): TParam'{$ENDIF});
   RegisterProperty('Items', 'TParam Integer', iptrw);
   RegisterProperty('ParamValues', 'Variant string', iptrw);
   end;
@@ -247,7 +268,7 @@ With RegClassS(cl,'TCollectionItem','TParam') do
   RegisterMethod('procedure Clear');
 //  RegisterMethod('procedure GetData(Buffer: Pointer)');
   RegisterMethod('function GetDataSize: Integer');
-  RegisterMethod('procedure LoadFromFile(const FileName: string; BlobType: TBlobType)');
+  RegisterMethod({$IFDEF FPC}'procedure LoadFromFile(const FileName: AnsiString; BlobType: TBlobType)'{$ELSE}'procedure LoadFromFile(const FileName: string; BlobType: TBlobType)'{$ENDIF});
   RegisterMethod('procedure LoadFromStream(Stream: TStream; BlobType: TBlobType)');
 //  RegisterMethod('procedure SetBlobData(Buffer: Pointer; Size: Integer)');
 //  RegisterMethod('procedure SetData(Buffer: Pointer)');
@@ -287,7 +308,7 @@ end;
 
 procedure SIRegisterTGUIDFIELD(CL: TPSPascalCompiler);
 Begin
-With RegClassS(cl,'TField','TGuidField') do
+With RegClassS(cl,'TStringField','TGuidField') do
   begin
   end;
 end;
@@ -299,6 +320,7 @@ With RegClassS(cl,'TField','TVariantField') do
   end;
 end;
 
+{$IFNDEF FPC}
 procedure SIRegisterTREFERENCEFIELD(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TDataSetField','TReferenceField') do
@@ -315,21 +337,27 @@ With RegClassS(cl,'TObjectField','TDataSetField') do
   RegisterProperty('IncludeObjectField', 'Boolean', iptrw);
   end;
 end;
+{$ENDIF}
 
+{$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
 procedure SIRegisterTARRAYFIELD(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TObjectField','TArrayField') do
   begin
   end;
 end;
+{$ENDIF}
 
+{$IFNDEF FPC}
 procedure SIRegisterTADTFIELD(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TObjectField','TADTField') do
   begin
   end;
 end;
+{$ENDIF}
 
+{$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
 procedure SIRegisterTOBJECTFIELD(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TField','TObjectField') do
@@ -341,6 +369,7 @@ With RegClassS(cl,'TField','TObjectField') do
   RegisterProperty('ObjectType', 'string', iptrw);
   end;
 end;
+{$ENDIF}
 
 procedure SIRegisterTGRAPHICFIELD(CL: TPSPascalCompiler);
 Begin
@@ -360,9 +389,9 @@ procedure SIRegisterTBLOBFIELD(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TField','TBlobField') do
   begin
-  RegisterMethod('procedure LoadFromFile(const FileName: string)');
+  RegisterMethod({$IFDEF FPC}'procedure LoadFromFile(const FileName: AnsiString)'{$ELSE}'procedure LoadFromFile(const FileName: string)'{$ENDIF});
   RegisterMethod('procedure LoadFromStream(Stream: TStream)');
-  RegisterMethod('procedure SaveToFile(const FileName: string)');
+  RegisterMethod({$IFDEF FPC}'procedure SaveToFile(const FileName: AnsiString)'{$ELSE}'procedure SaveToFile(const FileName: string)'{$ENDIF});
   RegisterMethod('procedure SaveToStream(Stream: TStream)');
   RegisterProperty('BlobSize', 'Integer', iptr);
   RegisterProperty('Modified', 'Boolean', iptrw);
@@ -370,7 +399,9 @@ With RegClassS(cl,'TField','TBlobField') do
   RegisterProperty('Transliterate', 'Boolean', iptrw);
   RegisterProperty('BlobType', 'TBlobType', iptrw);
 {$IFDEF DELPHI6UP}
+{$IFNDEF FPC}
   RegisterProperty('GraphicHeader', 'Boolean', iptrw);
+{$ENDIF}
 {$ENDIF}
   end;
 end;
@@ -475,14 +506,14 @@ end;
 
 procedure SIRegisterTAUTOINCFIELD(CL: TPSPascalCompiler);
 Begin
-With RegClassS(cl,'TIntegerField','TAutoIncField') do
+With RegClassS(cl,{$IFDEF FPC}'TLongintField'{$ELSE}'TIntegerField'{$ENDIF},'TAutoIncField') do
   begin
   end;
 end;
 
 procedure SIRegisterTWORDFIELD(CL: TPSPascalCompiler);
 Begin
-With RegClassS(cl,'TIntegerField','TWordField') do
+With RegClassS(cl,{$IFDEF FPC}'TLongintField'{$ELSE}'TIntegerField'{$ENDIF},'TWordField') do
   begin
   end;
 end;
@@ -500,19 +531,31 @@ end;
 
 procedure SIRegisterTSMALLINTFIELD(CL: TPSPascalCompiler);
 Begin
-With RegClassS(cl,'TIntegerField','TSmallintField') do
+With RegClassS(cl,{$IFDEF FPC}'TLongintField'{$ELSE}'TIntegerField'{$ENDIF},'TSmallintField') do
   begin
   end;
 end;
 
 procedure SIRegisterTINTEGERFIELD(CL: TPSPascalCompiler);
 Begin
+{$IFDEF FPC}
+{ fcl-db's TIntegerField and the classes Delphi derives from it are siblings under TLongintField, which
+  declares Value, MinValue and MaxValue }
+With RegClassS(cl,'TNumericField','TLongintField') do
+  begin
+  RegisterProperty('Value', 'LongInt', iptrw);
+  RegisterProperty('MaxValue', 'LongInt', iptrw);
+  RegisterProperty('MinValue', 'LongInt', iptrw);
+  end;
+RegClassS(cl,'TLongintField','TIntegerField');
+{$ELSE}
 With RegClassS(cl,'TNumericField','TIntegerField') do
   begin
   RegisterProperty('Value', 'LongInt', iptrw);
   RegisterProperty('MaxValue', 'LongInt', iptrw);
   RegisterProperty('MinValue', 'LongInt', iptrw);
   end;
+{$ENDIF}
 end;
 
 procedure SIRegisterTNUMERICFIELD(CL: TPSPascalCompiler);
@@ -579,7 +622,9 @@ With RegClassS(cl,'TComponent','TField') do
   RegisterProperty('EditMask', 'string', iptrw);
   RegisterProperty('EditMaskPtr', 'string', iptr);
   RegisterProperty('FieldNo', 'Integer', iptr);
+  {$IFNDEF FPC}
   RegisterProperty('FullName', 'string', iptr);
+  {$ENDIF}
   RegisterProperty('IsIndexField', 'Boolean', iptr);
   RegisterProperty('IsNull', 'Boolean', iptr);
   RegisterProperty('Lookup', 'Boolean', iptrw);
@@ -587,13 +632,17 @@ With RegClassS(cl,'TComponent','TField') do
   RegisterProperty('NewValue', 'Variant', iptrw);
   RegisterProperty('Offset', 'Integer', iptr);
   RegisterProperty('OldValue', 'Variant', iptr);
+  {$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
   RegisterProperty('ParentField', 'TObjectField', iptrw);
+  {$ENDIF}
   RegisterProperty('Size', 'Integer', iptrw);
   RegisterProperty('Text', 'string', iptrw);
   RegisterProperty('ValidChars', 'TFieldChars', iptrw);
   RegisterProperty('Value', 'Variant', iptrw);
   RegisterProperty('Alignment', 'TAlignment', iptrw);
+  {$IFNDEF FPC}
   RegisterProperty('AutoGenerateValue', 'TAutoRefreshFlag', iptrw);
+  {$ENDIF}
   RegisterProperty('CustomConstraint', 'string', iptrw);
   RegisterProperty('ConstraintErrorMessage', 'string', iptrw);
   RegisterProperty('DefaultExpression', 'string', iptrw);
@@ -638,11 +687,11 @@ With RegClassS(cl,'TObject','TFields') do
   begin
   RegisterMethod('constructor Create(ADataSet: TDataSet)');
   RegisterMethod('procedure Add(Field: TField)');
-  RegisterMethod('procedure CheckFieldName(const FieldName: string)');
-  RegisterMethod('procedure CheckFieldNames(const FieldNames: string)');
+  RegisterMethod({$IFDEF FPC}'procedure CheckFieldName(const FieldName: AnsiString)'{$ELSE}'procedure CheckFieldName(const FieldName: string)'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'procedure CheckFieldNames(const FieldNames: AnsiString)'{$ELSE}'procedure CheckFieldNames(const FieldNames: string)'{$ENDIF});
   RegisterMethod('procedure Clear');
-  RegisterMethod('function FindField(const FieldName: string): TField');
-  RegisterMethod('function FieldByName(const FieldName: string): TField');
+  RegisterMethod({$IFDEF FPC}'function FindField(const FieldName: AnsiString): TField'{$ELSE}'function FindField(const FieldName: string): TField'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'function FieldByName(const FieldName: AnsiString): TField'{$ELSE}'function FieldByName(const FieldName: string): TField'{$ENDIF});
   RegisterMethod('function FieldByNumber(FieldNo: Integer): TField');
   RegisterMethod('procedure GetFieldNames(List: TStrings)');
   RegisterMethod('function IndexOf(Field: TField): Integer');
@@ -670,8 +719,9 @@ Begin
 With RegClassS(cl,'TFlatList','TFieldDefList') do
   begin
   RegisterMethod('function FieldByName(const Name: string): TFieldDef');
-  RegisterMethod('function Find(const Name: string): TFieldDef');
+  RegisterMethod({$IFDEF FPC}'function Find(const Name: AnsiString): TFieldDef'{$ELSE}'function Find(const Name: string): TFieldDef'{$ENDIF});
   RegisterProperty('FieldDefs', 'TFieldDef Integer', iptr);
+  SetDefaultPropery('FieldDefs');
   end;
 end;
 
@@ -691,11 +741,11 @@ With RegClassS(cl,'TDefCollection','TIndexDefs') do
   begin
   RegisterMethod('constructor Create(ADataSet: TDataSet)');
   RegisterMethod('function AddIndexDef: TIndexDef');
-  RegisterMethod('function Find(const Name: string): TIndexDef');
+  RegisterMethod({$IFDEF FPC}'function Find(const Name: AnsiString): TIndexDef'{$ELSE}'function Find(const Name: string): TIndexDef'{$ENDIF});
   RegisterMethod('procedure Update');
-  RegisterMethod('function FindIndexForFields(const Fields: string): TIndexDef');
-  RegisterMethod('function GetIndexForFields(const Fields: string; CaseInsensitive: Boolean): TIndexDef');
-  RegisterMethod('procedure Add(const Name, Fields: string; Options: TIndexOptions)');
+  RegisterMethod({$IFDEF FPC}'function FindIndexForFields(const Fields: AnsiString): TIndexDef'{$ELSE}'function FindIndexForFields(const Fields: string): TIndexDef'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'function GetIndexForFields(const Fields: AnsiString; CaseInsensitive: Boolean): TIndexDef'{$ELSE}'function GetIndexForFields(const Fields: string; CaseInsensitive: Boolean): TIndexDef'{$ENDIF});
+  RegisterMethod({$IFDEF FPC}'procedure Add(const Name, Fields: AnsiString; Options: TIndexOptions)'{$ELSE}'procedure Add(const Name, Fields: string; Options: TIndexOptions)'{$ENDIF});
   RegisterProperty('Items', 'TIndexDef Integer', iptrw);
   SetDefaultPropery('Items');
   end;
@@ -705,15 +755,19 @@ procedure SIRegisterTINDEXDEF(CL: TPSPascalCompiler);
 Begin
 With RegClassS(cl,'TNamedItem','TIndexDef') do
   begin
-  RegisterMethod('constructor Create(Owner: TIndexDefs; const Name, Fields: string; Options: TIndexOptions)');
+  RegisterMethod({$IFDEF FPC}'constructor Create(Owner: TIndexDefs; const Name, Fields: AnsiString; Options: TIndexOptions)'{$ELSE}'constructor Create(Owner: TIndexDefs; const Name, Fields: string; Options: TIndexOptions)'{$ENDIF});
+  {$IFNDEF FPC}
   RegisterProperty('FieldExpression', 'string', iptr);
+  {$ENDIF}
   RegisterProperty('CaseInsFields', 'string', iptrw);
   RegisterProperty('DescFields', 'string', iptrw);
   RegisterProperty('Expression', 'string', iptrw);
   RegisterProperty('Fields', 'string', iptrw);
   RegisterProperty('Options', 'TIndexOptions', iptrw);
   RegisterProperty('Source', 'string', iptrw);
+  {$IFNDEF FPC}
   RegisterProperty('GroupingLevel', 'Integer', iptrw);
+  {$ENDIF}
   end;
 end;
 
@@ -723,12 +777,14 @@ With RegClassS(cl,'TDefCollection','TFieldDefs') do
   begin
   RegisterMethod('constructor Create(AOwner: TPersistent)');
   RegisterMethod('function AddFieldDef: TFieldDef');
-  RegisterMethod('function Find(const Name: string): TFieldDef');
+  RegisterMethod({$IFDEF FPC}'function Find(const Name: AnsiString): TFieldDef'{$ELSE}'function Find(const Name: string): TFieldDef'{$ENDIF});
   RegisterMethod('procedure Update');
   RegisterMethod('procedure Add(const Name: string; DataType: TFieldType; Size: Integer; Required: Boolean)');
   RegisterProperty('HiddenFields', 'Boolean', iptrw);
   RegisterProperty('Items', 'TFieldDef Integer', iptrw);
+  {$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
   RegisterProperty('ParentDef', 'TFieldDef', iptr);
+  {$ENDIF}
   SetDefaultPropery('Items');
   end;
 end;
@@ -738,16 +794,24 @@ Begin
 With RegClassS(cl,'TNamedItem','TFieldDef') do
   begin
 //  RegisterMethod('constructor Create(Owner: TFieldDefs; const Name: string; DataType: TFieldType; Size: Integer; Required: Boolean; FieldNo: Integer)');
+  {$IFNDEF FPC}
   RegisterMethod('function AddChild: TFieldDef');
-  RegisterMethod('function CreateField(Owner: TComponent; ParentField: TObjectField; const FieldName: string; CreateChildren: Boolean): TField');
+  {$ENDIF}
+  RegisterMethod({$IFDEF PS_FCLDB_NO_OBJECT_FIELD}'function CreateField(Owner: TComponent): TField'{$ELSE}{$IFDEF FPC}'function CreateField(Owner: TComponent; ParentField: TObjectField; const FieldName: AnsiString; CreateChildren: Boolean): TField'{$ELSE}'function CreateField(Owner: TComponent; ParentField: TObjectField; const FieldName: string; CreateChildren: Boolean): TField'{$ENDIF}{$ENDIF});
+  {$IFNDEF FPC}
   RegisterMethod('function HasChildDefs: Boolean');
+  {$ENDIF}
   RegisterProperty('FieldClass', 'TFieldClass', iptr);
-  RegisterProperty('FieldNo', 'Integer', iptrw);
+  RegisterProperty('FieldNo', 'Integer', {$IFDEF FPC}iptr{$ELSE}iptrw{$ENDIF});
   RegisterProperty('InternalCalcField', 'Boolean', iptrw);
+  {$IFNDEF FPC}
   RegisterProperty('ParentDef', 'TFieldDef', iptr);
+  {$ENDIF}
   RegisterProperty('Required', 'Boolean', iptrw);
   RegisterProperty('Attributes', 'TFieldAttributes', iptrw);
+  {$IFNDEF FPC}
   RegisterProperty('ChildDefs', 'TFieldDefs', iptrw);
+  {$ENDIF}
   RegisterProperty('DataType', 'TFieldType', iptrw);
   RegisterProperty('Precision', 'Integer', iptrw);
   RegisterProperty('Size', 'Integer', iptrw);
@@ -759,9 +823,9 @@ Begin
 With RegClassS(cl,'TOwnedCollection','TDefCollection') do
   begin
 //  RegisterMethod('constructor Create(ADataSet: TDataSet; AOwner: TPersistent; AClass: TCollectionItemClass)');
-  RegisterMethod('function Find(const AName: string): TNamedItem');
+  RegisterMethod({$IFDEF FPC}'function Find(const AName: AnsiString): TNamedItem'{$ELSE}'function Find(const AName: string): TNamedItem'{$ENDIF});
   RegisterMethod('procedure GetItemNames(List: TStrings)');
-  RegisterMethod('function IndexOf(const AName: string): Integer');
+  RegisterMethod({$IFDEF FPC}'function IndexOf(const AName: AnsiString): Integer'{$ELSE}'function IndexOf(const AName: string): Integer'{$ENDIF});
   RegisterProperty('Dataset', 'TDataSet', iptr);
   RegisterProperty('Updated', 'Boolean', iptrw);
   end;
@@ -779,11 +843,27 @@ procedure SIRegister_DB(Cl: TPSPascalCompiler);
 Begin
 cl.AddTypeS('TFieldType', '(ftUnknown, ftString, ftSmallint, ftInteger, ftWord, ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate, ftTime, ftDateTime,'+
     'ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo, ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar, ftWideString,'+
-    'ftLargeint, ftADT, ftArray, ftReference, ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface, ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd)');
+    'ftLargeint, ftADT, ftArray, ftReference, ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface, ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd'
+    {$IFDEF FPC}
+    { fcl-db's own list: from 3.2.4 it carries seven of Delphi's later members, in its own order }
+    + ', ftFixedWideChar, ftWideMemo'
+    {$IF defined(FPC_FULLVERSION) and (FPC_FULLVERSION >= 30204)}
+    + ', ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended, ftSingle'
+    {$IFEND}
+    {$ELSE}
+    {$IFDEF DELPHI2006UP} + ', ftFixedWideChar, ftWideMemo, ftOraTimeStamp, ftOraInterval'{$ENDIF}
+    {$IFDEF DELPHI2009UP} + ', ftLongWord, ftShortint, ftByte, ftExtended, ftConnection, ftParams, ftStream'{$ENDIF}
+    {$IFDEF DELPHI2010UP} + ', ftTimeStampOffset, ftObject, ftSingle'{$ENDIF}
+    {$IFDEF DELPHI_FLORENCE_UP} + ', ftLargeUint'{$ENDIF}
+    {$ENDIF}
+    + ')');
+  cl.AddTypeS('TFieldChars', 'set of Char');
 
-  CL.AddTypeS('TDataSetState', '(dsInactive, dsBrowse, dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue, dsBlockRead, dsInternalCalc, dsOpening)');
+  CL.AddTypeS('TDataSetState', '(dsInactive, dsBrowse, dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue, dsBlockRead, dsInternalCalc, dsOpening'{$IFDEF FPC} + ', dsRefreshFields'{$ENDIF} + ')');
 
 cl.addTypeS('TLocateOption','(loCaseInsensitive, loPartialKey)');
+cl.addTypeS('TFilterOption', '(foCaseInsensitive, foNoPartialCompare)');
+cl.addTypeS('TFilterOptions', 'set of TFilterOption');
 cl.addtypes('TLocateOptions','set of TLocateOption');
 cl.addtypes('TUpdateStatus','(usUnmodified, usModified, usInserted, usDeleted)');
 cl.addtypes('TUpdateStatusSet', 'set of TUpdateStatus');
@@ -793,7 +873,9 @@ RegClassS(cl,'TComponent','TDataSet');
 RegClassS(cl,'TComponent','TField');
 RegClassS(cl,'TComponent','TFieldDefs');
 RegClassS(cl,'TComponent','TIndexDefs');
+{$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
 RegClassS(cl, 'TComponent', 'TObjectField');
+{$ENDIF}
 RegClassS(cl, 'TComponent', 'TDataLink');
 RegClassS(cl, 'TComponent', 'TDataSource');
 RegClassS(cl, 'TComponent', 'TParam');
@@ -801,13 +883,11 @@ RegClassS(cl, 'TComponent', 'TParam');
 SIRegisterTNAMEDITEM(Cl);
 Cl.addTypeS('TDefUpdateMethod', 'procedure');
 SIRegisterTDEFCOLLECTION(Cl);
-cl.AddConstantN('faHiddenCol','LongInt').Value.tu32 := 1;
-cl.AddConstantN('faReadOnly','LongInt').Value.tu32 := 2;
-cl.AddConstantN('faRequired','LongInt').Value.tu32 := 4;
-cl.AddConstantN('faLink','LongInt').Value.tu32 := 8;
-cl.AddConstantN('faUnNamed','LongInt').Value.tu32 := 16;
-cl.AddConstantN('faFixed','LongInt').Value.tu32 := 32;
-cl.addTypeS('TFieldAttributes', 'Byte');
+{ as Delphi declares them: where the SysUtils library is registered first,
+  faReadOnly keeps naming the file attribute, which a field's attribute set
+  then refuses }
+cl.addTypeS('TFieldAttribute', '(faHiddenCol, faReadOnly, faRequired, faLink, faUnNamed, faFixed)');
+cl.addTypeS('TFieldAttributes', 'set of TFieldAttribute');
 SIRegisterTFIELDDEF(Cl);
 SIRegisterTFIELDDEFS(Cl);
 cl.AddConstantN('ixPrimary','LongInt').Value.tu32 := 1;
@@ -819,9 +899,13 @@ cl.AddConstantN('ixNonMaintained','LongInt').Value.tu32 := 32;
 cl.addTypeS('TIndexOptions', 'Byte');
 SIRegisterTINDEXDEF(Cl);
 SIRegisterTINDEXDEFS(Cl);
+{$IFNDEF FPC}
+{ fcl-db declares no TFlatList, TFieldDefList or TFieldList, and the run time
+  registers none of them on Free Pascal (uPSR_DB) }
 SIRegisterTFLATLIST(Cl);
 SIRegisterTFIELDDEFLIST(Cl);
 SIRegisterTFIELDLIST(Cl);
+{$ENDIF}
 cl.AddConstantN('fkData','LongInt').Value.tu32 := 1;
 cl.AddConstantN('fkCalculated','LongInt').Value.tu32 := 2;
 cl.AddConstantN('fkLookup','LongInt').Value.tu32 := 4;
@@ -833,6 +917,10 @@ cl.AddConstantN('pfInUpdate','LongInt').Value.tu32 := 1;
 cl.AddConstantN('pfInWhere','LongInt').Value.tu32 := 2;
 cl.AddConstantN('pfInKey','LongInt').Value.tu32 := 4;
 cl.AddConstantN('pfHidden','LongInt').Value.tu32 :=8;
+{$IFDEF FPC}
+cl.AddConstantN('pfRefreshOnInsert','LongInt').Value.tu32 := 16;
+cl.AddConstantN('pfRefreshOnUpdate','LongInt').Value.tu32 := 32;
+{$ENDIF}
 cl.addTypeS('TProviderFlags', 'Byte');
 cl.addTypeS('TFieldNotifyEvent', 'procedure (Sender: TField)');
 cl.addTypeS('TFieldGetTextEvent', 'procedure (Sender: TField; var Text: string; DisplayText: Boolean)');
@@ -868,19 +956,27 @@ cl.addTypeS('TBlobType', 'Byte');
 SIRegisterTBLOBFIELD(Cl);
 SIRegisterTMEMOFIELD(Cl);
 SIRegisterTGRAPHICFIELD(Cl);
+{$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
 SIRegisterTOBJECTFIELD(Cl);
+{$ENDIF}
+{$IFNDEF FPC}
 SIRegisterTADTFIELD(Cl);
+{$ENDIF}
+{$IFNDEF PS_FCLDB_NO_OBJECT_FIELD}
 SIRegisterTARRAYFIELD(Cl);
+{$ENDIF}
+{$IFNDEF FPC}
 SIRegisterTDATASETFIELD(Cl);
 SIRegisterTREFERENCEFIELD(Cl);
+{$ENDIF}
 SIRegisterTVARIANTFIELD(Cl);
 SIRegisterTGUIDFIELD(Cl);
 cl.addTypeS('TBlobData', 'string');
-cl.AddConstantN('ptUnknown','LongInt').Value.tu32 := 1;
-cl.AddConstantN('ptInput','LongInt').Value.tu32 := 2;
-cl.AddConstantN('ptOutput','LongInt').Value.tu32 := 4;
-cl.AddConstantN('ptInputOutput','LongInt').Value.tu32 := 8;
-cl.AddConstantN('ptResult','LongInt').Value.tu32 := 16;
+cl.AddConstantN('ptUnknown','LongInt').Value.tu32 := 0;
+cl.AddConstantN('ptInput','LongInt').Value.tu32 := 1;
+cl.AddConstantN('ptOutput','LongInt').Value.tu32 := 2;
+cl.AddConstantN('ptInputOutput','LongInt').Value.tu32 := 3;
+cl.AddConstantN('ptResult','LongInt').Value.tu32 := 4;
 RegClassS(cl,'TObject','TParams');
 SIRegisterTPARAM(Cl);
 SIRegisterTPARAMS(Cl);

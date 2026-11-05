@@ -48,16 +48,16 @@ begin
   with Cl.AddClassN(cl.FindClass('TPersistent'), 'TStrings') do
   begin
     IsAbstract := True;
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterMethod('constructor Create;');
-{$ENDIF}
-    RegisterMethod('function Add(S: string): Integer;');
-    RegisterMethod('procedure Append(S: string);');
+{$IFEND}
+    RegisterMethod({$IFDEF FPC}'function Add(S: AnsiString): Integer;'{$ELSE}'function Add(S: string): Integer;'{$ENDIF});
+    RegisterMethod({$IFDEF FPC}'procedure Append(S: AnsiString);'{$ELSE}'procedure Append(S: string);'{$ENDIF});
     RegisterMethod('procedure AddStrings(Strings: TStrings);');
     RegisterMethod('procedure Clear;');
     RegisterMethod('procedure Delete(Index: Integer);');
-    RegisterMethod('function IndexOf(const S: string): Integer; ');
-    RegisterMethod('procedure Insert(Index: Integer; S: string); ');
+    RegisterMethod({$IFDEF FPC}'function IndexOf(const S: AnsiString): Integer; '{$ELSE}'function IndexOf(const S: string): Integer; '{$ENDIF});
+    RegisterMethod({$IFDEF FPC}'procedure Insert(Index: Integer; S: AnsiString); '{$ELSE}'procedure Insert(Index: Integer; S: string); '{$ENDIF});
     RegisterProperty('Capacity', 'Integer', iptRW);
     RegisterProperty('Delimiter', 'Char', iptRW);
 {$IFDEF DELPHI2006UP}
@@ -71,8 +71,8 @@ begin
     RegisterProperty('CommaText', 'string', iptrw);
     if Streams then
     begin
-      RegisterMethod('procedure LoadFromFile(FileName: string); ');
-      RegisterMethod('procedure SaveToFile(FileName: string); ');
+      RegisterMethod({$IFDEF FPC}'procedure LoadFromFile(FileName: AnsiString); '{$ELSE}'procedure LoadFromFile(FileName: string); '{$ENDIF});
+      RegisterMethod({$IFDEF FPC}'procedure SaveToFile(FileName: AnsiString); '{$ELSE}'procedure SaveToFile(FileName: string); '{$ENDIF});
     end;
     RegisterProperty('Strings', 'string Integer', iptRW);
     SetDefaultPropery('Strings');
@@ -93,7 +93,7 @@ begin
     RegisterProperty('Names', 'string Integer', iptr);
     RegisterProperty('Values', 'string string', iptRW);
     RegisterProperty('ValueFromIndex', 'string Integer', iptRW);
-    RegisterMethod('function AddObject(S: string; AObject: TObject): Integer');
+    RegisterMethod({$IFDEF FPC}'function AddObject(S: AnsiString; AObject: TObject): Integer'{$ELSE}'function AddObject(S: string; AObject: TObject): Integer'{$ENDIF});
     RegisterMethod('function GetText: PChar');
     RegisterMethod('function IndexOfObject(AObject: TObject): Integer');
     RegisterMethod('procedure InsertObject(Index: Integer; S: string; AObject: TObject)');
@@ -105,10 +105,10 @@ procedure SIRegisterTSTRINGLIST(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TStrings'), 'TStringList') do
   begin
-{$IFDEF DELPHI2005UP}
+{$IF defined(DELPHI2005UP) or defined(FPC)}
     RegisterMethod('constructor Create;');
-{$ENDIF}
-    RegisterMethod('function Find(S: string; var Index: Integer): Boolean');
+{$IFEND}
+    RegisterMethod({$IFDEF FPC}'function Find(S: AnsiString; var Index: Integer): Boolean'{$ELSE}'function Find(S: string; var Index: Integer): Boolean'{$ENDIF});
     RegisterMethod('procedure Sort');
     RegisterProperty('CaseSensitive', 'Boolean', iptrw);
     RegisterProperty('Duplicates', 'TDuplicates', iptrw);
@@ -123,8 +123,12 @@ procedure SIRegisterTBITS(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TObject'), 'TBits') do
   begin
+    {$IFDEF FPC}
+    RegisterMethod('constructor Create');
+    {$ENDIF}
     RegisterMethod('function OpenBit: Integer');
     RegisterProperty('Bits', 'Boolean Integer', iptrw);
+    SetDefaultPropery('Bits');
     RegisterProperty('Size', 'Integer', iptrw);
   end;
 end;
@@ -139,28 +143,26 @@ begin
     {$ENDIF}
     RegisterMethod('function Read(Buffer: AnyString; Count: LongInt): LongInt');
     RegisterMethod('function Write(Buffer: AnyString; Count: LongInt): LongInt');
-    {$IFDEF DELPHI_TOKYO_UP}
+    { Free Pascal's TCustomMemoryStream.Seek, which the run time binds, takes an Int64
+      as Delphi's does from XE2 }
+    {$IF defined(DELPHI16UP) or defined(FPC)}
     {$IFNDEF PS_NOINT64}
     RegisterMethod('function Seek(Offset: Int64; Origin: Word): Int64');
     {$ENDIF}
     {$ELSE}
     RegisterMethod('function Seek(Offset: LongInt; Origin: Word): LongInt');
-    {$ENDIF}
+    {$IFEND}
     RegisterMethod('procedure ReadBuffer(Buffer: AnyString; Count: LongInt)');
     RegisterMethod('procedure WriteBuffer(Buffer: AnyString; Count: LongInt)');
     {$IFDEF DELPHI4UP}
     {$IFNDEF PS_NOINT64}
-    {$IFDEF DELPHI_SYDNEY_UP}
-    RegisterMethod('function CopyFrom(Source: TStream; Count: Int64; BufferSize: Integer): Int64');
-    {$ELSE}
     RegisterMethod('function CopyFrom(Source: TStream; Count: Int64): Int64');
-    {$ENDIF}
     {$ENDIF}
     {$ELSE}
     RegisterMethod('function CopyFrom(Source: TStream; Count: Integer): LongInt');
     {$ENDIF}
-    RegisterProperty('Position', 'LongInt', iptrw);
-    RegisterProperty('Size', 'LongInt', iptrw);
+    RegisterProperty('Position', 'Int64', iptrw);
+    RegisterProperty('Size', 'Int64', iptrw);
   end;
 end;
 
@@ -180,7 +182,7 @@ begin
   begin
     RegisterMethod('procedure Clear');
     RegisterMethod('procedure LoadFromStream(Stream: TStream)');
-    RegisterMethod('procedure LoadFromFile(FileName: string)');
+    RegisterMethod({$IFDEF FPC}'procedure LoadFromFile(FileName: AnsiString)'{$ELSE}'procedure LoadFromFile(FileName: string)'{$ENDIF});
     RegisterMethod('procedure SetSize(NewSize: LongInt)');
   end;
 end;
@@ -190,7 +192,7 @@ procedure SIRegisterTFILESTREAM(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('THandleStream'), 'TFileStream') do
   begin
-    RegisterMethod('constructor Create(FileName: string; Mode: Word)');
+    RegisterMethod({$IFDEF FPC}'constructor Create(FileName: AnsiString; Mode: Word)'{$ELSE}'constructor Create(FileName: string; Mode: Word)'{$ENDIF});
   end;
 end;
 
@@ -209,7 +211,7 @@ begin
   begin
     IsAbstract := True;
     RegisterMethod('procedure SaveToStream(Stream: TStream)');
-    RegisterMethod('procedure SaveToFile(FileName: string)');
+    RegisterMethod({$IFDEF FPC}'procedure SaveToFile(FileName: AnsiString)'{$ELSE}'procedure SaveToFile(FileName: string)'{$ENDIF});
   end;
 end;
 
@@ -217,7 +219,7 @@ procedure SIRegisterTRESOURCESTREAM(Cl: TPSPascalCompiler);
 begin
   with Cl.AddClassN(cl.FindClass('TCustomMemoryStream'), 'TResourceStream') do
   begin
-    RegisterMethod('constructor Create(Instance: THandle; ResName: string; ResType: PChar)');
+    RegisterMethod({$IFDEF FPC}'constructor Create(Instance: THandle; ResName: AnsiString; ResType: PChar)'{$ELSE}'constructor Create(Instance: THandle; ResName: string; ResType: PChar)'{$ENDIF});
     RegisterMethod('constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar)');
   end;
 end;
@@ -228,17 +230,21 @@ begin
   begin
     RegisterMethod('constructor Create(Stream: TStream)');
     RegisterMethod('procedure CheckToken(T: Char)');
-    RegisterMethod('procedure CheckTokenSymbol(S: string)');
-    RegisterMethod('procedure Error(Ident: Integer)');
-    RegisterMethod('procedure ErrorStr(Message: string)');
+    RegisterMethod({$IFDEF FPC}'procedure CheckTokenSymbol(S: AnsiString)'{$ELSE}'procedure CheckTokenSymbol(S: string)'{$ENDIF});
+    RegisterMethod({$IFDEF FPC}'procedure Error(Ident: AnsiString)'{$ELSE}'procedure Error(Ident: string)'{$ENDIF});
+    RegisterMethod({$IFDEF FPC}'procedure ErrorStr(Message: AnsiString)'{$ELSE}'procedure ErrorStr(Message: string)'{$ENDIF});
     RegisterMethod('procedure HexToBinary(Stream: TStream)');
     RegisterMethod('function NextToken: Char');
+    {$IFDEF DELPHI_TOKYO_UP}
+    RegisterMethod('function SourcePos: NativeInt');
+    {$ELSE}
     RegisterMethod('function SourcePos: LongInt');
-    RegisterMethod('function TokenComponentIdent: string');
+    {$ENDIF}
+    RegisterMethod({$IFDEF FPC}'function TokenComponentIdent: AnsiString'{$ELSE}'function TokenComponentIdent: string'{$ENDIF});
     RegisterMethod('function TokenFloat: Extended');
-    RegisterMethod('function TokenInt: LongInt');
-    RegisterMethod('function TokenString: string');
-    RegisterMethod('function TokenSymbolIs(S: string): Boolean');
+    RegisterMethod('function TokenInt: Int64');
+    RegisterMethod({$IFDEF FPC}'function TokenString: AnsiString'{$ELSE}'function TokenString: string'{$ENDIF});
+    RegisterMethod({$IFDEF FPC}'function TokenSymbolIs(S: AnsiString): Boolean'{$ELSE}'function TokenSymbolIs(S: string): Boolean'{$ENDIF});
     RegisterProperty('SourceLine', 'Integer', iptr);
     RegisterProperty('Token', 'Char', iptr);
   end;
@@ -265,7 +271,9 @@ Begin
   if cr = nil then cr := cl.AddClassN(cl.FindClass('TPersistent'), 'TCollection');
 With cr do
   begin
-//  RegisterMethod('constructor Create(ItemClass: TCollectionItemClass)');
+  { Delphi's Create takes the item class, which a script cannot pass; this one is bound to a routine that
+    refuses, for TCollection and every class derived from it that inherits this Create }
+  RegisterMethod('constructor Create');
 {$IFDEF DELPHI6UP} {$IFNDEF FPC} RegisterMethod('function Owner: TPersistent'); {$ENDIF} {$ENDIF} // no owner in FPC
   RegisterMethod('function Add: TCollectionItem');
   RegisterMethod('procedure BeginUpdate');
@@ -301,7 +309,8 @@ begin
   cl.AddConstantN('toString', 'Char').SetString(#2);
   cl.AddConstantN('ToInteger', 'Char').SetString(#3);
   cl.AddConstantN('toFloat', 'Char').SetString(#4);
-  cl.AddConstantN('fmCreate', 'LongInt').Value.ts32 := $FFFF;
+  { Delphi 2010 changed fmCreate from $FFFF to $FF00, so that it combines with a sharing mode }
+  cl.AddConstantN('fmCreate', 'LongInt').Value.ts32 := {$IF Defined(DELPHI2010UP) or Defined(FPC)}$FF00{$ELSE}$FFFF{$IFEND};
   cl.AddConstantN('fmOpenRead', 'LongInt').Value.ts32 := 0;
   cl.AddConstantN('fmOpenWrite', 'LongInt').Value.ts32 := 1;
   cl.AddConstantN('fmOpenReadWrite', 'LongInt').Value.ts32 := 2;
@@ -314,8 +323,8 @@ begin
   cl.AddConstantN('MSecPerDay', 'LongInt').Value.ts32 := 86400000;
   cl.AddConstantN('DateDelta', 'LongInt').Value.ts32 := 693594;
   cl.AddTypeS('TAlignment', '(taLeftJustify, taRightJustify, taCenter)');
-  cl.AddTypeS('THelpEvent', 'function (Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean');
-  cl.AddTypeS('TGetStrProc', 'procedure(const S: string)');
+  cl.AddTypeS('THelpEvent', 'function (Command: Word; Data: ' + {$IFDEF FPC}'Longint'{$ELSE}'NativeInt'{$ENDIF} + '; var CallHelp: Boolean): Boolean');
+  cl.AddTypeS('TGetStrProc', 'procedure(const S: ' + {$IF not Defined(FPC) or not Defined(UNICODE)}'string'{$ELSE}'AnsiString'{$IFEND} + ')');
   cl.AddTypeS('TDuplicates', '(dupIgnore, dupAccept, dupError)');
   cl.AddTypeS('TOperation', '(opInsert, opRemove)');
   if cl.FindType('THandle') = nil then
@@ -346,7 +355,10 @@ begin
     {$ENDIF}
   end;
   {$IFNDEF PS_MINIVCL}
-  SIRegisterTPARSER(Cl);
+  { a parser is made from a stream and reads one: declared where the stream
+    class is, whoever registered it }
+  if Cl.FindClass('TStream') <> nil then
+    SIRegisterTPARSER(Cl);
   SIRegisterTCOLLECTIONITEM(Cl);
   SIRegisterTCOLLECTION(Cl);
   {$IFDEF DELPHI3UP}

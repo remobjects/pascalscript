@@ -567,6 +567,7 @@ begin
         ArrTypeInfo := nil;
         case TPSTypeRec_Array(res.aType).ArrayType.BaseType of
           btString: ArrTypeInfo := TypeInfo(TArray<tbtString>);
+          btAnsiString: ArrTypeInfo := TypeInfo(TArray<tbtAnsiString>);
           {$IFNDEF PS_NOWIDESTRING}
           btWideString: ArrTypeInfo := TypeInfo(TArray<tbtWideString>);
           btUnicodeString: ArrTypeInfo := TypeInfo(TArray<tbtUnicodeString>);

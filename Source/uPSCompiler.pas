@@ -12578,12 +12578,15 @@ var
         FUses.Add(s);
         if @FOnUses <> nil then
         begin
+          {$IFDEF PS_USESSUPPORT}
+          // saved before the try: the except branch below restores both
+          OldFileName:=fModule;
+          ParserPos:=FParser;
+          {$ENDIF}
           try
             {$IFDEF PS_USESSUPPORT}
-            OldFileName:=fModule;
             fModule:=FParser.OriginalToken;
             ParseUnit:=FParser.OriginalToken;
-            ParserPos:=FParser;
             {$ENDIF}
             if not OnUses(Self, FParser.GetToken) then
             begin
@@ -12603,8 +12606,14 @@ var
           except
             on e: Exception do
             begin
-              MakeError('', ecCustomError, tbtstring(e.Message));
-              {$IFNDEF PS_USESSUPPORT}
+              MakeError('', ecCustomError, tbtstring(e.Message)); // still attributed to the used unit
+              {$IFDEF PS_USESSUPPORT}
+              // restore what the regular failure path above restores: a stale
+              // fModule survives Cleanup and makes every following Compile of
+              // this instance fail with a bogus cross-reference error
+              FParser:=ParserPos;
+              fModule:=OldFileName;
+              {$ELSE}
               FUses.Free;
               {$ENDIF}
               Result := False;

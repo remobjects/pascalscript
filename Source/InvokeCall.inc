@@ -278,6 +278,8 @@ begin
                      Result := False;
                      Exit;
                    end;
+                   if elemIFC.aType.BaseType in [btSingle, btDouble] then
+                     arr[High(arr)] := TValue.From<Extended>(arr[High(arr)].AsExtended);
                  end;
                  aValues1 := aValues1 + arr;
                  arr_varrec := TValueArrayToArrayOfConst(arr);

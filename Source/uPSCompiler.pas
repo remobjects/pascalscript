@@ -6084,7 +6084,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         tmpp := AllocStackReg(GetTypeNo(BlockInfo, BVal.FVal1));
         if not MakeNil(BVal.FVal2.Pos, BVal.FVal2.Row, BVal.FVal2.Col, tmpp) then
         begin
-          tmpp.Free;;
+          tmpp.Free;
           Result := False;
           exit;
         end;
@@ -6438,7 +6438,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             dataval.Free;
             exit;
           end;
-          if (c < Low(Byte)) or (c > High(Byte)) then
+          if (c < 0) or (c >= SetType.BitSize) then
           begin
             with MakeError('', ecTypeMismatch, '') do
             begin
@@ -8449,7 +8449,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               MakeError('', ecCloseRoundExpected, '');
               exit;
             end;
-            if not ((GetTypeNo(BlockInfo, NewVar).BaseType = btChar) or
+            if (GetTypeNo(BlockInfo, NewVar) = nil) or not ((GetTypeNo(BlockInfo, NewVar).BaseType = btChar) or
             {$IFNDEF PS_NOWIDESTRING} (GetTypeNo(BlockInfo, NewVar).BaseType = btWideChar) or{$ENDIF}
             (GetTypeNo(BlockInfo, NewVar).BaseType = btEnum) or (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType))) then
             begin
@@ -8489,7 +8489,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               MakeError('', ecCloseRoundExpected, '');
               exit;
             end;
-            if not (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType)) then
+            if (GetTypeNo(BlockInfo, NewVar) = nil) or not (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType)) then
             begin
               NewVar.Free;
               Result := nil;
@@ -9031,6 +9031,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         end;
         begin
           F := TPSBinValueOp.Create;
+          F.SetParserPos(FParser);
           f.Val1 := F1;
           f.Val2 := F2;
           f.Operator := Op;
@@ -9081,6 +9082,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           Op := otAdd;
         end;
         F := TPSBinValueOp.Create;
+        F.SetParserPos(FParser);
         f.Val1 := F1;
         f.Val2 := F2;
         f.Operator := Op;
@@ -9135,6 +9137,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           Op := otAdd;
         end;
         F := TPSBinValueOp.Create;
+        F.SetParserPos(FParser);
         f.Val1 := F1;
         f.Val2 := F2;
         f.Operator := Op;
@@ -9258,6 +9261,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             otCast:
               begin
                 preplace := TPSValueData.Create;
+                preplace.Pos := p.Pos;
+                preplace.Row := p.Row;
+                preplace.Col := p.Col;
                 TPSValueData(preplace).Data := NewVariant(TPSUnValueOp(p).FType);
                 case TPSUnValueOp(p).FType.BaseType of
                   btU8:
@@ -9919,10 +9925,6 @@ begin
       end else if Where.ClassType = TPSBinValueOp then
       begin
         if CheckOutreg(TPSBinValueOp(Where).Val1, OutReg, aRoot) or CheckOutreg(TPSBinValueOp(Where).Val2, OutReg, False) then
-          Result := True;
-      end else if Where is TPSValueVar then
-      begin
-        if SameReg(Where, OutReg) then
           Result := True;
       end else if Where is TPSValueProc then
       begin
@@ -11249,6 +11251,13 @@ begin
     if FParser.CurrTokenId <> CSTII_Of then
     begin
       MakeError('', ecOfExpected, '');
+      val.Free;
+      ProcessCase := False;
+      exit;
+    end; {if}
+    if GetTypeNo(BlockInfo, Val) = nil then
+    begin
+      MakeError('', ecTypeMismatch, '');
       val.Free;
       ProcessCase := False;
       exit;
@@ -12717,6 +12726,7 @@ var
       end;
       if FParser.CurrTokenID <> CSTI_Semicolon then
       begin
+        DisposeVariant(CValue);
         MakeError('', ecSemicolonExpected, '');
         Result := False;
         exit;
@@ -13482,7 +13492,7 @@ begin
   at.DeclarePos := FParser.CurrTokenPos;
   at.DeclareRow := FParser.Row;
   at.DeclareCol := FParser.Col;
-  while att.Fields[i].Hidden do
+  while (i < att.FieldCount) and att.Fields[i].Hidden do
   begin
     at.AddValue(NewVariant(at2ut(att.Fields[i].FieldType)));
     inc(i);
@@ -14932,7 +14942,6 @@ begin
   TPSClassType(f).Cl := Result;
   Result.FInheritsFrom := InheritsFrom;
   FClasses.Add(Result);
-  TPSClassType(f).Cl := Result;
   f.ExportName := True;
 end;
 
@@ -15654,6 +15663,7 @@ destructor TPSValueProc.Destroy;
 begin
   FSelfPtr.Free;
   FParameters.Free;
+  inherited Destroy;
 end;
 { TPSParameter }
 

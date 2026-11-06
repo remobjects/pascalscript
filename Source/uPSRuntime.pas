@@ -2079,6 +2079,17 @@ begin
     Result := WithType(V, Result);
 end;
 
+{ Same format as PSVariantToString writes: FloatToStr of uPSUtils always uses a
+  dot, so the locale dependent SysUtils.StrToFloat would not read it back }
+function FloatValue(const s: string): Extended;
+var
+  Code: Integer;
+begin
+  Val(s, Result, Code);
+  if Code <> 0 then
+    Result := 0;
+end;
+
 procedure StringToPSVariant(const V: TPSVariantIFC; const Value: string);
 var
   StrL: TStrings;
@@ -2096,10 +2107,10 @@ begin
     {$IFNDEF PS_NOINT64}
     btS64             : tbtS64(V.Dta^) := StrToInt64Def(Value, 0);
     {$ENDIF}
-    btSingle          : tbtSingle(V.Dta^) := StrToFloatDef(Value, 0);
-    btDouble          : tbtDouble(V.Dta^) := StrToFloatDef(Value, 0);
-    btExtended        : tbtExtended(V.Dta^) := StrToFloatDef(Value, 0);
-    btCurrency        : tbtCurrency(V.Dta^) := StrToFloatDef(Value, 0);
+    btSingle          : tbtSingle(V.Dta^) := FloatValue(Value);
+    btDouble          : tbtDouble(V.Dta^) := FloatValue(Value);
+    btExtended        : tbtExtended(V.Dta^) := FloatValue(Value);
+    btCurrency        : tbtCurrency(V.Dta^) := FloatValue(Value);
     btString          : tbtstring(V.Dta^) := tbtstring(Value);
     btChar            : if Value <> '' then tbtChar(V.Dta^) := tbtChar(tbtstring(Value)[1]);
     {$IFNDEF PS_NOWIDESTRING}

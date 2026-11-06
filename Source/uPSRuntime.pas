@@ -3013,7 +3013,7 @@ var
             end;
           btAnsiString:
             begin
-              if not read(NameLen, 4) then
+              if (not read(NameLen, 4)) or (NameLen < 0) or (NameLen > Length(s) - Longint(Pos)) then
               begin
                 Cmd_Err(erOutOfRange);
                 Result := False;

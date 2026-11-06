@@ -46,7 +46,8 @@ uses
   uPSRuntime,
   uPSDisassembly,
   uPSC_std,
-  uPSC_classes;
+  uPSC_classes,
+  uPSPreProcessor;
 
 type
   { Byte buffer moved between TPSPascalCompiler.GetOutput, TPSExec.LoadData
@@ -628,6 +629,68 @@ begin
     'RegisterProperty with unknown type is not fatal by default');
   CheckHost(FeatureCompilesEx('begin end.', OnUsesStockImports),
     'stock Std and Classes imports register');
+end;
+
+{ --------------------------------------------------------------------------
+  07b PreProcessor: the output is the source, errors keep their line
+  -------------------------------------------------------------------------- }
+
+function OnUsesPlain(Sender: TPSPascalCompiler; const Name: TbtString): Boolean;
+begin
+  Result := True;
+end;
+
+function PPNeedFile(Sender: TPSPreProcessor; const CallingFileName: TbtString;
+  var FileName, Output: TbtString): Boolean;
+begin
+  Result := True;
+  Output := 'var i: Integer;'#13#10;
+end;
+
+{ preprocesses and compiles; returns the first message as module:row }
+function PreProcessed(const Src: TbtString; out OutLen: Integer): string;
+var
+  PP: TPSPreProcessor;
+  C: TPSPascalCompiler;
+  Output: TbtString;
+begin
+  Result := '';
+  PP := TPSPreProcessor.Create;
+  C := TPSPascalCompiler.Create;
+  try
+    C.OnUses := OnUsesPlain;
+    PP.OnNeedFile := PPNeedFile;
+    PP.MainFile := Src;
+    PP.MainFileName := 'MAIN';
+    PP.PreProcess('MAIN', Output);
+    OutLen := Length(Output);
+    C.Compile(Output);
+    PP.AdjustMessages(C);
+    if C.MsgCount > 0 then
+      Result := string(C.Msg[0].ModuleName) + ':' + IntToStr(C.Msg[0].Row);
+  finally
+    C.Free;
+    PP.Free;
+  end;
+end;
+
+procedure SectionPreProcessor;
+const
+  Src: TbtString = 'var i: Integer;'#13#10'begin'#13#10'  i := 1;'#13#10'end.'#13#10;
+var
+  n: Integer;
+  r: string;
+begin
+  Banner('07b PreProcessor');
+  r := PreProcessed(Src, n);
+  CheckHost(n = Length(Src), 'output has the length of the source');
+  CheckHost(r = '', 'plain script compiles without messages -> ' + r);
+  r := PreProcessed('{$DEFINE X}'#13#10'{$IFDEF X}'#13#10'begin end.'#13#10'{$ENDIF}'#13#10, n);
+  CheckHost(r = '', 'conditional directives -> ' + r);
+  r := PreProcessed('var i: Integer;'#13#10'begin'#13#10'  i := ''x'';'#13#10'end.'#13#10, n);
+  CheckHost(r = 'MAIN:3', 'error row without include -> ' + r);
+  r := PreProcessed('{$I A.INC}'#13#10'begin'#13#10'  i := ''x'';'#13#10'end.'#13#10, n);
+  CheckHost(r = 'MAIN:3', 'error row behind an include -> ' + r);
 end;
 
 { --------------------------------------------------------------------------
@@ -2069,6 +2132,7 @@ begin
   SectionPackedTypes;
   SectionCompilerReuse;
   SectionRegisterPropertyFailure;
+  SectionPreProcessor;
   SectionLoadDataErrorMessages;
   SectionArrayOfConst;
   SectionRaiseAndParams;

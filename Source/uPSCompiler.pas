@@ -952,6 +952,7 @@ type
     FAllowUnit: Boolean;
     FAllowDuplicateRegister : Boolean;
     FBooleanShortCircuit: Boolean;
+    FStrictPropertyRegistration: Boolean;
     FDebugOutput: tbtString;
     FOnExternalProc: TPSOnExternalProc;
     FOnUseVariable: TPSOnUseVariable;
@@ -1217,6 +1218,10 @@ type
     property AllowDuplicateRegister : Boolean read FAllowDuplicateRegister write FAllowDuplicateRegister;
 
     property BooleanShortCircuit: Boolean read FBooleanShortCircuit write FBooleanShortCircuit;
+    {Let RegisterProperty raise when a property's type is not registered, instead of
+     dropping the property. For checking a host's own registrations: enable it around
+     those calls only, the stock import units rely on dropping (see RegisterProperty)}
+    property StrictPropertyRegistration: Boolean read FStrictPropertyRegistration write FStrictPropertyRegistration;
 
     property UTF8Decode: Boolean read FUtf8Decode write FUtf8Decode;
 
@@ -15688,6 +15693,13 @@ begin
     if FType = nil then
     begin
       p.Free;
+      // Not an error by default: the stock import units depend on it for types of
+      // units a host may not import (e.g. TControl.PopupMenu without Menus). Scripts
+      // using such a property get 'Unknown identifier', which is hard to trace back
+      // to the registration, hence the opt-in check.
+      if FOwner.FStrictPropertyRegistration then
+        raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType,
+          [PropertyName + ': ' + PropertyType]);
       Exit;
     end;
     if p.Decl.Result = nil  then p.Decl.Result := FType else
@@ -15726,7 +15738,9 @@ begin
         a := iptW;
         if p^[i]^.SetProc = nil then continue;
       end;
-      RegisterProperty(p^[i]^.Name, p^[i]^.PropType^.Name, a);
+      // published properties of a type scripts do not know are simply not exposed
+      if FOwner.FindType(p^[i]^.PropType^.Name) <> nil then
+        RegisterProperty(p^[i]^.Name, p^[i]^.PropType^.Name, a);
     end;
   end;
   FreeMem(p);
@@ -15751,8 +15765,9 @@ begin
     a := iptW;
     if p^.SetProc = nil then begin result := False; exit; end;
   end;
-  RegisterProperty(p^.Name, p^.PropType^.Name, a);
-  Result := True;
+  Result := FOwner.FindType(p^.PropType^.Name) <> nil;
+  if Result then
+    RegisterProperty(p^.Name, p^.PropType^.Name, a);
 end;
 
 

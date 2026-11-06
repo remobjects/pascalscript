@@ -952,6 +952,7 @@ type
     FAllowUnit: Boolean;
     FAllowDuplicateRegister : Boolean;
     FBooleanShortCircuit: Boolean;
+    FStrictPropertyRegistration: Boolean;
     FDebugOutput: tbtString;
     FOnExternalProc: TPSOnExternalProc;
     FOnUseVariable: TPSOnUseVariable;
@@ -1238,6 +1239,10 @@ type
     property AllowDuplicateRegister : Boolean read FAllowDuplicateRegister write FAllowDuplicateRegister;
 
     property BooleanShortCircuit: Boolean read FBooleanShortCircuit write FBooleanShortCircuit;
+    {Let RegisterProperty raise when a property's type is not registered, instead of
+     dropping the property. For checking a host's own registrations: enable it around
+     those calls only, the stock import units rely on dropping (see RegisterProperty)}
+    property StrictPropertyRegistration: Boolean read FStrictPropertyRegistration write FStrictPropertyRegistration;
 
     property UTF8Decode: Boolean read FUtf8Decode write FUtf8Decode;
 
@@ -6152,7 +6157,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         tmpp := AllocStackReg(GetTypeNo(BlockInfo, BVal.FVal1));
         if not MakeNil(BVal.FVal2.Pos, BVal.FVal2.Row, BVal.FVal2.Col, tmpp) then
         begin
-          tmpp.Free;;
+          tmpp.Free;
           Result := False;
           exit;
         end;
@@ -6506,7 +6511,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             dataval.Free;
             exit;
           end;
-          if (c < Low(Byte)) or (c > High(Byte)) then
+          if (c < 0) or (c >= SetType.BitSize) then
           begin
             with MakeError('', ecTypeMismatch, '') do
             begin
@@ -8517,7 +8522,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               MakeError('', ecCloseRoundExpected, '');
               exit;
             end;
-            if not ((GetTypeNo(BlockInfo, NewVar).BaseType = btChar) or (GetTypeNo(BlockInfo, NewVar).BaseType = btAnsiChar) or
+            if (GetTypeNo(BlockInfo, NewVar) = nil) or not ((GetTypeNo(BlockInfo, NewVar).BaseType = btChar) or (GetTypeNo(BlockInfo, NewVar).BaseType = btAnsiChar) or
             {$IFNDEF PS_NOWIDESTRING} (GetTypeNo(BlockInfo, NewVar).BaseType = btWideChar) or{$ENDIF}
             (GetTypeNo(BlockInfo, NewVar).BaseType = btEnum) or (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType))) then
             begin
@@ -8557,7 +8562,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
               MakeError('', ecCloseRoundExpected, '');
               exit;
             end;
-            if not (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType)) then
+            if (GetTypeNo(BlockInfo, NewVar) = nil) or not (IsIntType(GetTypeNo(BlockInfo, NewVar).BaseType)) then
             begin
               NewVar.Free;
               Result := nil;
@@ -9107,6 +9112,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
         end;
         begin
           F := TPSBinValueOp.Create;
+          F.SetParserPos(FParser);
           f.Val1 := F1;
           f.Val2 := F2;
           f.Operator := Op;
@@ -9157,6 +9163,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           Op := otAdd;
         end;
         F := TPSBinValueOp.Create;
+        F.SetParserPos(FParser);
         f.Val1 := F1;
         f.Val2 := F2;
         f.Operator := Op;
@@ -9211,6 +9218,7 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
           Op := otAdd;
         end;
         F := TPSBinValueOp.Create;
+        F.SetParserPos(FParser);
         f.Val1 := F1;
         f.Val2 := F2;
         f.Operator := Op;
@@ -9334,6 +9342,9 @@ function TPSPascalCompiler.ProcessSub(BlockInfo: TPSBlockInfo): Boolean;
             otCast:
               begin
                 preplace := TPSValueData.Create;
+                preplace.Pos := p.Pos;
+                preplace.Row := p.Row;
+                preplace.Col := p.Col;
                 TPSValueData(preplace).Data := NewVariant(TPSUnValueOp(p).FType);
                 case TPSUnValueOp(p).FType.BaseType of
                   btU8:
@@ -9995,10 +10006,6 @@ begin
       end else if Where.ClassType = TPSBinValueOp then
       begin
         if CheckOutreg(TPSBinValueOp(Where).Val1, OutReg, aRoot) or CheckOutreg(TPSBinValueOp(Where).Val2, OutReg, False) then
-          Result := True;
-      end else if Where is TPSValueVar then
-      begin
-        if SameReg(Where, OutReg) then
           Result := True;
       end else if Where is TPSValueProc then
       begin
@@ -11325,6 +11332,13 @@ begin
     if FParser.CurrTokenId <> CSTII_Of then
     begin
       MakeError('', ecOfExpected, '');
+      val.Free;
+      ProcessCase := False;
+      exit;
+    end; {if}
+    if GetTypeNo(BlockInfo, Val) = nil then
+    begin
+      MakeError('', ecTypeMismatch, '');
       val.Free;
       ProcessCase := False;
       exit;
@@ -12800,6 +12814,7 @@ var
       end;
       if FParser.CurrTokenID <> CSTI_Semicolon then
       begin
+        DisposeVariant(CValue);
         MakeError('', ecSemicolonExpected, '');
         Result := False;
         exit;
@@ -12886,12 +12901,15 @@ var
         FUses.Add(s);
         if @FOnUses <> nil then
         begin
+          {$IFDEF PS_USESSUPPORT}
+          // saved before the try: the except branch below restores both
+          OldFileName:=fModule;
+          ParserPos:=FParser;
+          {$ENDIF}
           try
             {$IFDEF PS_USESSUPPORT}
-            OldFileName:=fModule;
             fModule:=FParser.OriginalToken;
             ParseUnit:=FParser.OriginalToken;
-            ParserPos:=FParser;
             {$ENDIF}
             if not OnUses(Self, FParser.GetToken) then
             begin
@@ -13586,7 +13604,7 @@ begin
   at.DeclarePos := FParser.CurrTokenPos;
   at.DeclareRow := FParser.Row;
   at.DeclareCol := FParser.Col;
-  while att.Fields[i].Hidden do
+  while (i < att.FieldCount) and att.Fields[i].Hidden do
   begin
     at.AddValue(NewVariant(at2ut(att.Fields[i].FieldType)));
     inc(i);
@@ -15036,7 +15054,6 @@ begin
   TPSClassType(f).Cl := Result;
   Result.FInheritsFrom := InheritsFrom;
   FClasses.Add(Result);
-  TPSClassType(f).Cl := Result;
   f.ExportName := True;
 end;
 
@@ -15763,6 +15780,7 @@ destructor TPSValueProc.Destroy;
 begin
   FSelfPtr.Free;
   FParameters.Free;
+  inherited Destroy;
 end;
 { TPSParameter }
 
@@ -16304,10 +16322,14 @@ begin
     if FType = nil then
     begin
       p.Free;
-      // dropping the property silently leads to hard-to-diagnose 'Unknown
-      // identifier' errors in scripts; report the unresolved type instead
-      raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType,
-        [PropertyName + ': ' + PropertyType]);
+      // Not an error by default: the stock import units depend on it for types of
+      // units a host may not import (e.g. TControl.PopupMenu without Menus). Scripts
+      // using such a property get 'Unknown identifier', which is hard to trace back
+      // to the registration, hence the opt-in check.
+      if FOwner.FStrictPropertyRegistration then
+        raise EPSCompilerException.CreateFmt(RPS_UnableToRegisterType,
+          [PropertyName + ': ' + PropertyType]);
+      Exit;
     end;
     if p.Decl.Result = nil  then p.Decl.Result := FType else
     begin
@@ -16345,7 +16367,9 @@ begin
         a := iptW;
         if p^[i]^.SetProc = nil then continue;
       end;
-      RegisterProperty(p^[i]^.Name, p^[i]^.PropType^.Name, a);
+      // published properties of a type scripts do not know are simply not exposed
+      if FOwner.FindType(p^[i]^.PropType^.Name) <> nil then
+        RegisterProperty(p^[i]^.Name, p^[i]^.PropType^.Name, a);
     end;
   end;
   FreeMem(p);
@@ -16370,8 +16394,9 @@ begin
     a := iptW;
     if p^.SetProc = nil then begin result := False; exit; end;
   end;
-  RegisterProperty(p^.Name, p^.PropType^.Name, a);
-  Result := True;
+  Result := FOwner.FindType(p^.PropType^.Name) <> nil;
+  if Result then
+    RegisterProperty(p^.Name, p^.PropType^.Name, a);
 end;
 
 

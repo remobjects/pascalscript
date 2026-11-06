@@ -107,7 +107,7 @@ Two portability details worth knowing when extending the suite:
 | 04 | SetRangeLiterals         | constant ranges in set literals: `['0'..'9']`, multiple ranges, mixed single values + ranges, byte ranges up to 255, enum ranges, empty inverted ranges |
 | 05 | PackedTypes              | the `packed` keyword in script and `AddTypeS` declarations (issue #246), `packed` before non-structured types still rejected |
 | 06 | CompilerReuse            | one `TPSPascalCompiler` instance surviving a failing `OnUses` registration and compiling again afterwards |
-| 07 | RegisterPropertyFailure  | `RegisterProperty` with an unresolvable type must raise instead of silently dropping the property |
+| 07 | RegisterPropertyFailure  | `RegisterProperty` with an unresolvable type must not be fatal by default; the stock Std and Classes imports must register |
 | 08 | LoadDataErrorMessages    | truncated bytecode streams are refused with an exception code set, the full stream still loads |
 | 09 | ArrayOfConst             | inline `array of const` arguments (issue #296), element types string/Integer/PChar/AnsiString/PAnsiChar/AnsiChar, single-character literal elements (probed) |
 | 10 | RaiseAndParams           | `ParamCount`/`ParamStr` builtins (cross-checked against the host), `raise Exception.Create(...)`, bare `raise` re-raising, `ExceptionType`/`ExceptionParam`, handler control flow |

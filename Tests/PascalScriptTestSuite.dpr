@@ -44,7 +44,9 @@ uses
   uPSUtils,
   uPSCompiler,
   uPSRuntime,
-  uPSDisassembly;
+  uPSDisassembly,
+  uPSC_std,
+  uPSC_classes;
 
 type
   { Byte buffer moved between TPSPascalCompiler.GetOutput, TPSExec.LoadData
@@ -596,8 +598,8 @@ function OnUsesRegProp(Sender: TPSPascalCompiler; const Name: TbtString): Boolea
 begin
   if Name = 'SYSTEM' then
   begin
-    { TUnknownType is never registered; the fixed tree raises here, the
-      unfixed tree silently drops the property }
+    { TUnknownType is never registered: the property is dropped, only a host
+      opting in with StrictPropertyRegistration gets an error }
     Sender.AddClassN(nil, 'TPropHost').RegisterProperty('BrokenProp',
       'TUnknownType', iptRW);
     Result := True;
@@ -606,14 +608,26 @@ begin
     Result := False;
 end;
 
+{ the stock imports register properties of types that may be missing, so this
+  fails on a tree where such a property is fatal }
+function OnUsesStockImports(Sender: TPSPascalCompiler;
+  const Name: TbtString): Boolean;
+begin
+  Result := Name = 'SYSTEM';
+  if Result then
+  begin
+    SIRegister_Std(Sender);
+    SIRegister_Classes(Sender, True);
+  end;
+end;
+
 procedure SectionRegisterPropertyFailure;
 begin
   Banner('07 RegisterPropertyFailure');
-  if FeatureCompilesEx('begin end.', OnUsesRegProp) then
-    SkipBug('RegisterProperty with unknown type raises',
-      'registration failure is swallowed silently on this tree')
-  else
-    Pass('RegisterProperty with unknown type raises');
+  CheckHost(FeatureCompilesEx('begin end.', OnUsesRegProp),
+    'RegisterProperty with unknown type is not fatal by default');
+  CheckHost(FeatureCompilesEx('begin end.', OnUsesStockImports),
+    'stock Std and Classes imports register');
 end;
 
 { --------------------------------------------------------------------------

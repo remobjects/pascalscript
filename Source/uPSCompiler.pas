@@ -12813,12 +12813,15 @@ var
         FUses.Add(s);
         if @FOnUses <> nil then
         begin
+          {$IFDEF PS_USESSUPPORT}
+          // saved before the try: the except branch below restores both
+          OldFileName:=fModule;
+          ParserPos:=FParser;
+          {$ENDIF}
           try
             {$IFDEF PS_USESSUPPORT}
-            OldFileName:=fModule;
             fModule:=FParser.OriginalToken;
             ParseUnit:=FParser.OriginalToken;
-            ParserPos:=FParser;
             {$ENDIF}
             if not OnUses(Self, FParser.GetToken) then
             begin

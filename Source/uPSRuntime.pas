@@ -13864,12 +13864,14 @@ const
 function IDispatchInvoke(Self: IDispatch; PropertySet: Boolean; const Name: tbtString; const Par: array of Variant): Variant;
 var
   Param: Word;
-  i, ArgErr: Longint;
+  i, ArgErr, aSize: Longint;
   DispatchId: Longint;
   DispParam: TDispParams;
   ExceptInfo: TExcepInfo;
   aName: PWideChar;
   WSFreeList: TPSList;
+  ArgType: Word;
+  DispArg: PVariantArg;
 begin
   if Self = nil then begin
     raise EPSException.Create('Variant is null, cannot invoke', nil, 0, 0);
@@ -13902,36 +13904,48 @@ begin
 
   WSFreeList := TPSList.Create;
   try
-    GetMem(DispParam.rgvarg, sizeof(TVariantArg) * (High(Par) + 1));
-    FillCHar(DispParam.rgvarg^, sizeof(TVariantArg) * (High(Par) + 1), 0);
+    aSize := SizeOf(TVariantArg) * (High(Par) + 1);
+    GetMem(DispParam.rgvarg, aSize);
+    FillChar(DispParam.rgvarg^, aSize, 0);
     try
       for i := 0 to High(Par)  do
       begin
-        if PVarData(@Par[High(Par)-i]).VType = varString then
+        ArgType := PVarData(@Par[High(Par)-i]).VType;
+        DispArg := @(DispParam.rgvarg{$IFDEF FPC}^{$ENDIF}[i]);
+        if ArgType = varString then
         begin
-          DispParam.rgvarg[i].vt := VT_BSTR;
-          DispParam.rgvarg[i].bstrVal := StringToOleStr(AnsiString(Par[High(Par)-i]));
-          WSFreeList.Add(DispParam.rgvarg[i].bstrVal);
+          DispArg.vt := VT_BSTR;
+          DispArg.bstrVal := StringToOleStr(AnsiString(Par[High(Par)-i]));
+          WSFreeList.Add(DispArg.bstrVal);
         {$IFDEF UNICODE}
-        end else if (PVarData(@Par[High(Par)-i]).VType = varOleStr) or (PVarData(@Par[High(Par)-i]).VType = varUString) then
+        end else if (ArgType = varOleStr) or (ArgType = varUString) then
         begin
-          DispParam.rgvarg[i].vt := VT_BSTR;
-          DispParam.rgvarg[i].bstrVal := StringToOleStr(UnicodeString(Par[High(Par)-i]));
-          WSFreeList.Add(DispParam.rgvarg[i].bstrVal);
+          DispArg.vt := VT_BSTR;
+          DispArg.bstrVal := StringToOleStr(UnicodeString(Par[High(Par)-i]));
+          WSFreeList.Add(DispArg.bstrVal);
         {$ENDIF}
+        end else if ArgType = varDispatch then
+        begin
+          // pass COM objects as plain VT_DISPATCH instead of a by-ref
+          // variant: strict marshalers (e.g. .NET COM interop) reject the
+          // wrapped form, and property assignments of IDispatch values only
+          // work this way. Deliberately without VT_BYREF, which is known to
+          // crash several COM servers.
+          DispArg.vt := VT_DISPATCH;
+          DispArg.dispVal := PVarData(@Par[High(Par)-i]).VDispatch;
         end else
         begin
-          DispParam.rgvarg[i].vt := VT_VARIANT or VT_BYREF;
+          DispArg.vt := VT_VARIANT or VT_BYREF;
           New(
           {$IFDEF DELPHI4UP}
           POleVariant
           {$ELSE}
           PVariant{$ENDIF}
-           (DispParam.rgvarg[i].pvarVal));
+           (DispArg.pvarVal));
 
           { Must be an owned copy because the Dispose below releases it.
             PVariant does not convert the type, unlike POleVariant. }
-          PVariant(DispParam.rgvarg[i].pvarVal)^ := Par[High(Par)-i];
+          PVariant(DispArg.pvarVal)^ := Par[High(Par)-i];
         end;
       end;
       i :=Self.Invoke(DispatchId, GUID_NULL, LOCALE_SYSTEM_DEFAULT, Param, DispParam, @Result, @ExceptInfo, @ArgErr);
@@ -13965,20 +13979,21 @@ begin
     finally
       for i := 0 to High(Par)  do
       begin
-        if DispParam.rgvarg[i].vt = (VT_VARIANT or VT_BYREF) then
+        DispArg := @(DispParam.rgvarg{$IFDEF FPC}^{$ENDIF}[i]);
+        if (DispArg.vt and VT_BYREF) = VT_BYREF then
         begin
           if{$IFDEF DELPHI4UP}POleVariant{$ELSE}PVariant{$ENDIF}
-            (DispParam.rgvarg[i].pvarVal) <> nil then
+            (DispArg.pvarVal) <> nil then
             Dispose(
             {$IFDEF DELPHI4UP}
              POleVariant
             {$ELSE}
              PVariant
             {$ENDIF}
-             (DispParam.rgvarg[i].pvarVal));
+             (DispArg.pvarVal));
         end;
       end;
-      FreeMem(DispParam.rgvarg, sizeof(TVariantArg) * (High(Par) + 1));
+      FreeMem(DispParam.rgvarg, aSize);
     end;
   finally
     for i := WSFreeList.Count -1 downto 0 do

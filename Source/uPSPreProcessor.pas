@@ -140,7 +140,7 @@ type
   TPSPascalPreProcessorParser = class(TObject)
   private
     FData: tbtstring;
-    FText: PAnsichar;
+    FText: TbtPChar;
     FToken: tbtstring;
     FTokenId: TPSPascalPreProcessorType;
     FLastEnterPos, FLen, FRow, FCol, FPos: Cardinal;
@@ -450,7 +450,13 @@ begin
       else
       begin
         ci := FPos + 1;
-        while not (FText[ci] in [#0,'{', '(', '''', '/']) do
+        while not
+          {$if declared(CharInSet)}
+          CharInSet(FText[ci],   [#0,'{', '(', '''', '/'])
+          {$else}
+          (         FText[ci] in [#0,'{', '(', '''', '/'])
+          {$ifend}
+          do
         begin
           if FText[ci] = #13 then
           begin
@@ -478,7 +484,7 @@ end;
 procedure TPSPascalPreProcessorParser.SetText(const dta: tbtstring);
 begin
   FData := dta;
-  FText := pAnsichar(FData);
+  FText := TbtPChar(FData);
   FLen := 0;
   FPos := 0;
   FCol := 1;
@@ -581,7 +587,7 @@ begin
     Item := FCurrentLineInfo.Add;
     current := FCurrentLineInfo.Count -1;
     FCurrentLineInfo.Current := current;
-    Item.FStartPos := Dest.Position;
+    Item.FStartPos := Dest.Position div SizeOf(TbtChar);
     Item.FFileName := FileName;
     Parser.SetText(dta);
     while Parser.TokenId <> ptEOF do
@@ -624,7 +630,7 @@ begin
               FAddedPosition := 0;
               IntPreProcess(Level +1, FileName, s, Dest);
               FCurrentLineInfo.Current := current;
-              FAddedPosition := Cardinal(Dest.Position) - Item.StartPos - Parser.Pos;
+              FAddedPosition := Cardinal(Dest.Position div SizeOf(TbtChar)) - Item.StartPos - Parser.Pos;
             end;
           end else if (Name = 'DEFINE') then
           begin
@@ -692,10 +698,10 @@ begin
         for i := length(s) downto 1 do
           s[i] := #32; // space
       end;
-      Dest.Write(s[1], length(s));
+      Dest.Write(s[1], length(s)*SizeOf(TbtChar));
       Parser.Next;
     end;
-    Item.FEndPos := Dest.Position;
+    Item.FEndPos := Dest.Position div SizeOf(TbtChar);
   finally
     Parser.Free;
   end;
@@ -725,8 +731,9 @@ begin
   try
     IntPreProcess(0, '', FileName, Stream);
     Stream.Position := 0;
-    SetLength(Output, Stream.Size);
-    Stream.Read(Output[1], Length(Output));
+    // Stream.Size is in bytes, SetLength counts chars
+    SetLength(Output, Stream.Size div SizeOf(TbtChar));
+    Stream.Read(Output[1], Stream.Size);
   finally
     Stream.Free;
   end;

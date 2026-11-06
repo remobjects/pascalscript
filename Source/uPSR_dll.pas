@@ -159,7 +159,10 @@ begin
       dllhandle := ph^.dllhandle;
     end;
   until dllhandle <> 0;
-  p.Ext1 := GetProcAddress(dllhandle, pansichar(s3));
+  // GetProcAddress takes an ANSI name; do not pass TbtPChar here: under
+  // PS_NATIVESTRINGS the raw cast would reinterpret UTF-16 data as an
+  // Ansi name (and older compilers lack the PWideChar overload)
+  p.Ext1 := GetProcAddress(dllhandle, PAnsiChar(TbtAnsiString(s3)));
   if p.Ext1 = nil then
   begin
     p.Ext2 := Pointer(1);

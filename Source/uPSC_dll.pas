@@ -49,7 +49,7 @@ function DllExternalProc(Sender: TPSPascalCompiler; Decl: TPSParametersDecl; con
 var
   FuncName,
   Name,
-  FuncCC, s, s2: AnsiString;
+  FuncCC, s, s2: tbtstring; // must follow tbtString: no wide->ansi->wide roundtrip for DLL names
   CC: TDllCallingConvention;
   DelayLoad, LoadWithAlteredSearchPath: Boolean;
 

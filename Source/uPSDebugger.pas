@@ -85,7 +85,7 @@ type
   public
     constructor Create;
     
-    function LoadData(const s: tbtstring): Boolean; override;
+    function LoadData(const s: tbtAnsiString): Boolean; override;
     
     procedure Pause; override;
     
@@ -590,7 +590,7 @@ begin
   FDebugMode := dmRun;
 end;
 
-function TPSDebugExec.LoadData(const s: tbtstring): Boolean;
+function TPSDebugExec.LoadData(const s: tbtAnsiString): Boolean;
 begin
   Result := inherited LoadData(s);
   FDebugMode := dmRun;

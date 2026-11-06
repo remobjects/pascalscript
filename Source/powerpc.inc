@@ -15,6 +15,8 @@ const
   rtINT = 0;
   rtINT64 = 1;
   rtFLOAT = 2;
+  // two #0 so it also serves as an empty PWideChar
+  EmptyPchar: array[0..1] of char = (#0, #0);
 
 type
   Trint = array[1..8] of dword;
@@ -199,6 +201,8 @@ var
   IsConstructor: Boolean;
   fSetHelper: dword;
   fSetP1, fsetP2: PByte;
+  tempdw: dword;
+  BorrowList: TPSPCharBorrowList;
 
   { add a dword to stack }
   procedure addstackdword(value: dword);
@@ -287,7 +291,8 @@ begin
   if assigned(res)
     then begin
       case res.atype.basetype of
-        btStaticArray, btRecord, btString: addgen(dword(res.dta));
+        btStaticArray, btRecord, btString, btAnsiString
+        {$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}: addgen(dword(res.dta));
       end;
     end;
 
@@ -305,9 +310,16 @@ begin
       then begin  { var param }
         case fvar.aType.BaseType of
           { add var params here }
-          btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btWideString, btWideChar, {$ENDIF}
+          btArray, btVariant, btSet, btStaticArray, btRecord, btInterface, btClass, {$IFNDEF PS_NOWIDESTRING} btUnicodeString, btWideString, btWideChar, btPWideChar, {$ENDIF}
+          btAnsiString, btAnsiChar, btPAnsiChar,
           btU8, btS8, btU16, btS16, btU32, btS32, btSingle, btDouble, btExtended, btString, btPChar, btChar, btCurrency
-          {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}: addgen(dword(fvar.dta));  { TODO: test all }
+          {$IFNDEF PS_NOINT64}, bts64, btU64{$ENDIF}:
+            begin
+              // the callee may overwrite P-Char slots (directly or inside
+              // records/static arrays); borrow their ownership around the call
+              PSBorrowPCharOwnership(fvar.aType, fvar.dta, BorrowList);
+              addgen(dword(fvar.dta));  { TODO: test all }
+            end;
           else begin
             writeln(stderr, 'Parameter type not recognised!');
             Exit;
@@ -322,12 +334,24 @@ begin
           { add normal params here }
           btString:                            addgen(dword(pstring(fvar.dta)^));
           btU8, btS8:                          addgen(dword(pbyte(fvar.dta)^));
-          btU16, BtS16:                        addgen(dword(pword(fvar.dta)^));
+          btU16, BtS16
+          {$IFNDEF PS_NOWIDESTRING}, btWideChar{$ENDIF}:
+                                               addgen(dword(pword(fvar.dta)^));
           btU32, btS32:                        addgen(dword(pdword(fvar.dta)^));
           btSingle:                            addfloat(fvar.dta, 1);
           btDouble, btExtended:                addfloat(fvar.dta, 2);
-          btPChar:                             addgen(dword(ppchar(fvar.dta)^));
+          btPChar, btPAnsiChar:                if ppointer(fvar.dta)^ = nil
+                                                 then addgen(dword(@EmptyPchar))
+                                                 else addgen(dword(ppointer(fvar.dta)^));
+          btAnsiString:                        addgen(dword(ppointer(fvar.dta)^));
+          btAnsiChar:                          addgen(dword(pbyte(fvar.dta)^));
           btChar:                              addgen(dword(pchar(fvar.dta)^));
+          {$IFNDEF PS_NOWIDESTRING}
+          btPWideChar:                         if ppointer(fvar.dta)^ = nil
+                                                 then addgen(dword(@EmptyPchar))
+                                                 else addgen(dword(ppointer(fvar.dta)^));
+          btWideString, btUnicodeString:       addgen(dword(ppointer(fvar.dta)^));
+          {$ENDIF}
           {$IFNDEF PS_NOINT64}bts64:           begin
                                                  addgen(dword(pint64(fvar.dta)^ shr 32));
                                                  addgen(dword(pint64(fvar.dta)^ and $ffffffff));
@@ -336,6 +360,12 @@ begin
                                                  addgen(dword(puint64(fvar.dta)^ shr 32));
                                                  addgen(dword(puint64(fvar.dta)^ and $ffffffff));
                                                end;{$ENDIF}
+          btCurrency:                          begin
+                                                 addgen(dword(pint64(fvar.dta)^ shr 32));
+                                                 addgen(dword(pint64(fvar.dta)^ and $ffffffff));
+                                               end;
+          btVariant:                           addgen(dword(fvar.dta));
+          btClass, btInterface:                addgen(dword(ppointer(fvar.dta)^));
           btStaticArray:                       addgen(dword(fvar.dta));
           btRecord:                            for j := 0 to (fvar.atype.realsize div 4)-1 do
                                                  addgen(pdword(fvar.dta + j*4)^);
@@ -385,14 +415,35 @@ begin
     else begin
       case res.atype.basetype of
         { add result types here }
-        btString:                ppcasmcall(rint, rfloat, address, st, stindex, rtINT);
-        btU8, btS8:              pbyte(res.dta)^ := byte(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
-        btU16, btS16:            pword(res.dta)^ := word(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
+        btString, btAnsiString
+        {$IFNDEF PS_NOWIDESTRING}, btWideString, btUnicodeString{$ENDIF}:
+                                 ppcasmcall(rint, rfloat, address, st, stindex, rtINT);
+        btU8, btS8, btAnsiChar:  pbyte(res.dta)^ := byte(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
+        btU16, btS16{$IFNDEF PS_NOWIDESTRING}, btWideChar{$ENDIF}:
+                                 pword(res.dta)^ := word(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
         btU32, btS32:            pdword(res.dta)^ := pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^;
         btSingle:                psingle(res.dta)^ := pdouble(ppcasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
         btDouble, btExtended:    pdouble(res.dta)^ := pdouble(ppcasmcall(rint, rfloat, address, st, stindex, rtFLOAT))^;
         btPChar:                 ppchar(res.dta)^ := pchar(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
+        // the NEW p-char types own their content: copy the returned data
+        btPAnsiChar:             begin
+                                   tempdw := pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^;
+                                   TbtAnsiString(res.dta^) := TbtAnsiString(PAnsiChar(tempdw));
+                                 end;
+        {$IFNDEF PS_NOWIDESTRING}
+        btPWideChar:             begin
+                                   tempdw := pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^;
+                                   tbtunicodestring(res.dta^) := tbtunicodestring(PWideChar(tempdw));
+                                 end;
+        {$ENDIF}
         btChar:                  pchar(res.dta)^ := char(pdword(ppcasmcall(rint, rfloat, address, st, stindex, rtINT))^);
+        {$IFNDEF PS_NOINT64}
+        { ppcasmcall stores r3 (high) at result+0 and r4 (low) at result+4:
+          on big-endian PPC that is a directly readable int64 }
+        btS64:                   pint64(res.dta)^ := pint64(ppcasmcall(rint, rfloat, address, st, stindex, rtINT64))^;
+        btU64:                   puint64(res.dta)^ := puint64(ppcasmcall(rint, rfloat, address, st, stindex, rtINT64))^;
+        {$ENDIF}
+        btCurrency:              pint64(res.dta)^ := pint64(ppcasmcall(rint, rfloat, address, st, stindex, rtINT64))^;
         btStaticArray, btRecord: ppcasmcall(rint, rfloat, address, st, stindex, rtINT);
         btArray:                 res.dta := ppcasmcall(rint, rfloat, address, st, stindex, rtINT);
 
@@ -404,6 +455,8 @@ begin
         end;  { else }
       end;  { case }
     end;
+
+  PSReownPCharOwnership(BorrowList);
 
   { cook dynamic arrays - fpc stores size-1 at @array-4 }
   for i := 0 to Params.Count-1 do begin

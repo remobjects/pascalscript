@@ -198,9 +198,9 @@ type
 
     property Running: Boolean read GetRunning;
 
-    procedure GetCompiled(var data: tbtstring);
+    procedure GetCompiled(var data: tbtAnsiString);
 
-    procedure SetCompiled(const Data: tbtstring);
+    procedure SetCompiled(const Data: tbtAnsiString);
 
     property Comp: TPSPascalCompiler read FComp;
 
@@ -688,7 +688,7 @@ begin
   Result := TPSExec.About;
 end;
 
-procedure TPSScript.GetCompiled(var data: tbtstring);
+procedure TPSScript.GetCompiled(var data: tbtAnsiString);
 begin
   if not FComp.GetOutput(Data) then
     raise Exception.Create(RPS_ScriptNotCompiled);
@@ -741,7 +741,8 @@ end;
 
 function TPSScript.LoadExec: Boolean;
 var
-  s: tbtstring;
+  s: tbtAnsiString;
+  d: tbtstring;
 begin
   if (not FComp.GetOutput(s)) or (not FExec.LoadData(s)) then
   begin
@@ -750,8 +751,8 @@ begin
   end;
   if FUseDebugInfo then
   begin
-    FComp.GetDebugOutput(s);
-    FExec.LoadDebugData(s);
+    FComp.GetDebugOutput(d);
+    FExec.LoadDebugData(d);
   end;
   Result := True;
 end;
@@ -796,7 +797,7 @@ begin
   end;
 end;
 
-procedure TPSScript.SetCompiled(const Data: tbtstring);
+procedure TPSScript.SetCompiled(const Data: tbtAnsiString);
 var
   i: Integer;
 begin
